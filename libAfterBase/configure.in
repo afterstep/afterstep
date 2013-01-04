@@ -80,12 +80,6 @@ dnl# AfterSTep already checked everything for us
 else
 
 dnl# we are alone - have to do all the checks ourselves :
-	dnl# Add -Wall
-	if test "x$GCC" = "xyes"; then
-	  if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
-  		CFLAGS="$CFLAGS -Wall"
-	  fi
-	fi
 
 	dnl# Add -fPIC for IA64 compilation
 
@@ -99,7 +93,7 @@ dnl# we are alone - have to do all the checks ourselves :
 	dnl# Add -g
 	if test "x$enable_gdb" = "xyes"; then
   		if ! test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
-			CFLAGS="$CFLAGS -g"
+			CFLAGS="$CFLAGS -g -w"
   		fi
 	else
   		DIRTY_CFLAGS="$CFLAGS"
@@ -118,7 +112,7 @@ dnl# we are alone - have to do all the checks ourselves :
 	fi
 	dnl# Add lots more warnings
 	if test "x$enable_warn" = "xyes"; then
-	  CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls"
+	  CFLAGS="$CFLAGS -Wall -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls"
 	fi
 
 	AC_PROG_INSTALL

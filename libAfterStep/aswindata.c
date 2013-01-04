@@ -57,13 +57,13 @@ window_data_destroy( ASHashableValue val, void *data )
 				free( wd->res_class );
 			if( wd->res_name )
 				free( wd->res_name );
-            if( wd->canvas )
-            {
-                XDestroyWindow( dpy, wd->canvas->w );
-                destroy_ascanvas( &(wd->canvas) );
-            }
-            if( wd->bar )
-                destroy_astbar( &(wd->bar) );
+			if( wd->canvas )
+			{
+				XDestroyWindow( dpy, wd->canvas->w );
+				destroy_ascanvas( &(wd->canvas) );
+			}
+			if( wd->bar )
+				destroy_astbar( &(wd->bar) );
 			wd->magic = 0 ;
 		}
 		free( wd );
@@ -100,7 +100,7 @@ add_window_data( ASWindowData *wd )
 		return NULL ;
 	if( _as_Winlist == NULL )
 		_as_Winlist = create_ashash( 7, NULL, NULL, window_data_destroy );
-    /* show_activity( "adding window %X", wd->client ); */
+	/* show_activity( "adding window %X", wd->client ); */
 	if( add_hash_item( _as_Winlist, AS_HASHABLE(wd->client), wd ) != ASH_Success )
 	{
 		window_data_destroy( 0, wd );
@@ -112,8 +112,8 @@ add_window_data( ASWindowData *wd )
 void
 window_data_cleanup()
 {
-    if( _as_Winlist )
-        destroy_ashash( &_as_Winlist );
+	if( _as_Winlist )
+		destroy_ashash( &_as_Winlist );
 }
 
 WindowPacketResult
@@ -140,10 +140,10 @@ handle_window_packet(send_data_type type, send_data_type *data, ASWindowData **p
 			return WP_Error ;
 	}else
 	{
-	    if( wd->magic   != MAGIC_ASWindowData ||
-	        wd->client  != data[0] ||
-		    wd->frame   != data[1] ||
-		    wd->ref_ptr != data[2] )
+		if( wd->magic   != MAGIC_ASWindowData ||
+			wd->client  != data[0] ||
+			wd->frame   != data[1] ||
+			wd->ref_ptr != data[2] )
 			return WP_Error ;
 		if( type == M_DESTROY_WINDOW )
 		{
@@ -153,13 +153,13 @@ handle_window_packet(send_data_type type, send_data_type *data, ASWindowData **p
 		}else if( (type&WINDOW_STATE_MASK) )
 		{
 			if( type == M_FOCUS_CHANGE )
-            {
+			{
 				if( wd->focused != data[3] )
 				{	
-                	res = WP_DataChanged ;
-                	wd->focused = data[3] ;
+					res = WP_DataChanged ;
+					wd->focused = data[3] ;
 				}
-            }
+			}
 			return res ;
 		}
 	}
@@ -167,8 +167,8 @@ handle_window_packet(send_data_type type, send_data_type *data, ASWindowData **p
 	{/* read in the name */
 		char **dst = NULL ;
 		INT32 encoding = data[3] ;
-        CARD32 *pbuf = &(data[4]);
-        char *new_name = deserialize_string( &pbuf, NULL );
+		CARD32 *pbuf = &(data[4]);
+		char *new_name = deserialize_string( &pbuf, NULL );
 LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );
 		switch(type)
 		{
@@ -183,49 +183,49 @@ LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );
 			case M_RES_NAME    : dst = &(wd->res_name );
 								 wd->res_name_encoding = encoding ; break;
 			default :
-                free( new_name );
-                return WP_Error ;
+				free( new_name );
+				return WP_Error ;
 		}
 		if( *dst )
 		{
 			if( strcmp(*dst, new_name ) == 0 )
-            {
-                free( new_name );
+			{
+				free( new_name );
 				return WP_Handled ;
-            }
+			}
 			free( *dst );
 		}
-        *dst = new_name ;
+		*dst = new_name ;
 		return WP_DataChanged ;
 	}
 
-    /* otherwise we need to read full config */
+	/* otherwise we need to read full config */
 #define CHECK_CHANGE_VAL(v,n,r) do{if((v)!=(n)){(r)=WP_DataChanged;(v)=(n);};}while(0)
 	CHECK_CHANGE_VAL(wd->frame_rect.x		,data[3],res);
 	CHECK_CHANGE_VAL(wd->frame_rect.y		,data[4],res);
 	CHECK_CHANGE_VAL(wd->frame_rect.width	,data[5],res);
 	CHECK_CHANGE_VAL(wd->frame_rect.height	,data[6],res);
-    if( IsValidDesk(data[7]) )
-        CHECK_CHANGE_VAL(wd->desk           ,data[7],res);
-    CHECK_CHANGE_VAL(wd->state_flags        ,data[8],res);
-    CHECK_CHANGE_VAL(wd->flags              ,data[9],res);
+	if( IsValidDesk(data[7]) )
+		CHECK_CHANGE_VAL(wd->desk           ,data[7],res);
+	CHECK_CHANGE_VAL(wd->state_flags        ,data[8],res);
+	CHECK_CHANGE_VAL(wd->flags              ,data[9],res);
 	CHECK_CHANGE_VAL(wd->client_icon_flags  ,data[10],res);
-    CHECK_CHANGE_VAL(wd->hints.base_width   ,data[11],res);
-    CHECK_CHANGE_VAL(wd->hints.base_height  ,data[12],res);
-    CHECK_CHANGE_VAL(wd->hints.width_inc    ,data[13],res);
-    CHECK_CHANGE_VAL(wd->hints.height_inc   ,data[14],res);
-    CHECK_CHANGE_VAL(wd->hints.min_width    ,data[15],res);
-    CHECK_CHANGE_VAL(wd->hints.min_height   ,data[16],res);
-    CHECK_CHANGE_VAL(wd->hints.max_width    ,data[17],res);
-    CHECK_CHANGE_VAL(wd->hints.max_height   ,data[18],res);
-    CHECK_CHANGE_VAL(wd->hints.win_gravity  ,data[19],res);
-    CHECK_CHANGE_VAL(wd->icon_title         ,data[20],res);
-    CHECK_CHANGE_VAL(wd->icon               ,data[21],res);
-    CHECK_CHANGE_VAL(wd->icon_rect.x        ,data[22],res);
-    CHECK_CHANGE_VAL(wd->icon_rect.y        ,data[23],res);
-    CHECK_CHANGE_VAL(wd->icon_rect.width    ,data[24],res);
-    CHECK_CHANGE_VAL(wd->icon_rect.height   ,data[25],res);
-    CHECK_CHANGE_VAL(wd->pid   				,data[26],res);
+	CHECK_CHANGE_VAL(wd->hints.base_width   ,data[11],res);
+	CHECK_CHANGE_VAL(wd->hints.base_height  ,data[12],res);
+	CHECK_CHANGE_VAL(wd->hints.width_inc    ,data[13],res);
+	CHECK_CHANGE_VAL(wd->hints.height_inc   ,data[14],res);
+	CHECK_CHANGE_VAL(wd->hints.min_width    ,data[15],res);
+	CHECK_CHANGE_VAL(wd->hints.min_height   ,data[16],res);
+	CHECK_CHANGE_VAL(wd->hints.max_width    ,data[17],res);
+	CHECK_CHANGE_VAL(wd->hints.max_height   ,data[18],res);
+	CHECK_CHANGE_VAL(wd->hints.win_gravity  ,data[19],res);
+	CHECK_CHANGE_VAL(wd->icon_title         ,data[20],res);
+	CHECK_CHANGE_VAL(wd->icon               ,data[21],res);
+	CHECK_CHANGE_VAL(wd->icon_rect.x        ,data[22],res);
+	CHECK_CHANGE_VAL(wd->icon_rect.y        ,data[23],res);
+	CHECK_CHANGE_VAL(wd->icon_rect.width    ,data[24],res);
+	CHECK_CHANGE_VAL(wd->icon_rect.height   ,data[25],res);
+	CHECK_CHANGE_VAL(wd->pid   				,data[26],res);
 
 	/* returning result : */
 	res = (*pdata != wd)?WP_DataCreated:res ;
@@ -236,17 +236,17 @@ LOCAL_DEBUG_OUT( "name received \"%s\"", new_name );
 void
 iterate_window_data( iter_list_data_handler iter_func, void *aux_data)
 {
-    if( iter_func && _as_Winlist )
-    {
-        ASHashIterator  i;
-        if( start_hash_iteration (_as_Winlist, &i) )
-            do
-            {
-                ASWindowData *data = curr_hash_data (&i);
-                if( !iter_func( data, aux_data ) )
-                    break;
-            }while( next_hash_item( &i ));
-    }
+	if( iter_func && _as_Winlist )
+	{
+		ASHashIterator  i;
+		if( start_hash_iteration (_as_Winlist, &i) )
+			do
+			{
+				ASWindowData *data = curr_hash_data (&i);
+				if( !iter_func( data, aux_data ) )
+					break;
+			}while( next_hash_item( &i ));
+	}
 }
 
 char *
@@ -279,7 +279,7 @@ get_window_name( ASWindowData *wd, ASNameTypes type, INT32 *encoding )
 									*encoding = wd->window_name_matched_encoding ;
 								break ;
 			case ASN_NameTypes :
-		    	break ;
+				break ;
 		}
 		if( vname == NULL )
 		{

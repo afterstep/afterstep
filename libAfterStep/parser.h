@@ -131,7 +131,7 @@ typedef struct SyntaxDef
   char *display_name;		/* will be in error message */
   char *doc_path;
   char *display_purpose;    /* purpose of what is identifyed by display_name */
-  	  
+	  
   /* generated members */
   struct ASHashTable *term_hash;	/* hash table for fast term search */
   int recursion;		/* prevents endless recursion in nested constructs */
@@ -147,7 +147,7 @@ typedef struct SyntaxStack
 
 typedef struct ASTreeStorageModel
 {
- 	struct ASTreeStorageModel  *next;
+	struct ASTreeStorageModel  *next;
 	struct ASTreeStorageModel  *child;
 }ASTreeStorageModel;
 
@@ -169,8 +169,8 @@ typedef struct StorageStack
 
 typedef struct FilePtrAndData
 {
-    FILE *fp ;
-    char *data ;                               /* prefetched line from the above file ! */
+	FILE *fp ;
+	char *data ;                               /* prefetched line from the above file ! */
 }FilePtrAndData;
 
 struct ConfigDef;
@@ -273,8 +273,8 @@ int PopStorage (ConfigDef * config);
 char *GetNextStatement (ConfigDef * config);
 
 ConfigDef *InitConfigReader (char *myname, SyntaxDef * syntax,
-			     ConfigDataType type, ConfigData source,
-			     SpecialFunc special);
+				 ConfigDataType type, ConfigData source,
+				 SpecialFunc special);
 int config2tree_storage (ConfigDef * config, ASTreeStorageModel **tail);
 int ParseConfig (ConfigDef * config, FreeStorageElem ** tail);
 FreeStorageElem *file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options );
@@ -283,7 +283,7 @@ FreeStorageElem *tline_subsyntax_parse(const char *keyword, char *tline, FILE * 
 void ProcessStatement(ConfigDef *config);
 
 ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax,
-			     ConfigDataType type, ConfigData  source);
+				 ConfigDataType type, ConfigData  source);
 
 #define WF_DISCARD_NONE   	0
 #define WF_DISCARD_PUBLIC	(1<<1)

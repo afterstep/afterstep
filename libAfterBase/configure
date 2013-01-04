@@ -3351,11 +3351,6 @@ if test "x$FROM_AFTERSTEP_CONFIGURE" = "xyes"; then
 
 else
 
-		if test "x$GCC" = "xyes"; then
-	  if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
-  		CFLAGS="$CFLAGS -Wall"
-	  fi
-	fi
 
 
 	if test "x$GCC" = "xyes" -a "x$CYGWIN" = "xno" ; then
@@ -3367,7 +3362,7 @@ else
 
 		if test "x$enable_gdb" = "xyes"; then
   		if ! test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
-			CFLAGS="$CFLAGS -g"
+			CFLAGS="$CFLAGS -g -w"
   		fi
 	else
   		DIRTY_CFLAGS="$CFLAGS"
@@ -3384,7 +3379,7 @@ else
 	  LDFLAGS="$LDFLAGS -pg"
 	fi
 		if test "x$enable_warn" = "xyes"; then
-	  CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls"
+	  CFLAGS="$CFLAGS -Wall -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls"
 	fi
 
 	# Find a good install program.  We prefer a C program (faster),

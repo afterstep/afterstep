@@ -82,18 +82,18 @@ DeadPipe (int nonsense)
 	if( already_dead ) 
 		return;/* non-reentrant function ! */
 	already_dead = True ;
-    
+	
 	window_data_cleanup();
 
 	FreeMyAppResources();
-    
+	
 #ifdef DEBUG_ALLOCS
-    print_unfreed_mem ();
+	print_unfreed_mem ();
 #endif /* DEBUG_ALLOCS */
 
-    XFlush (dpy);			/* need this for SetErootPixmap to take effect */
+	XFlush (dpy);			/* need this for SetErootPixmap to take effect */
 	XCloseDisplay (dpy);		/* need this for SetErootPixmap to take effect */
-    exit (0);
+	exit (0);
 }
 
 
@@ -128,7 +128,7 @@ process_message (send_data_type type, send_data_type *body)
 		{
 			/* Delete element */
 			for( curr = ASCommandState.clients_order->head;
-			     curr != NULL; curr = curr->next)
+				 curr != NULL; curr = curr->next)
 			{
 				if( ((client_item *)(curr->data)) ->cl  == wd->client)
 					destroy_bidirelem( ASCommandState.clients_order, curr);
@@ -155,7 +155,7 @@ apply_operations(void *data, void *aux_data)
 	void *h;
 	
 	for(curr = (ASCommandState.operations)->head;
-	    curr != NULL; curr = curr->next)
+		curr != NULL; curr = curr->next)
 	{
 		/* If lookup wasn't successful, move along */
 		if(get_hash_item( ASCommandState.handlers,
@@ -181,8 +181,8 @@ fix_area(void *data, void *list)
 	if( get_flags( wd->flags, AS_AvoidCover ) && ! get_flags( wd->state_flags, AS_Iconic) ) 
 	{	
 		subtract_rectangle_from_list( (ASVector *) list, wd->frame_rect.x, wd->frame_rect.y, 
-					      wd->frame_rect.x+(int)wd->frame_rect.width,
-					      wd->frame_rect.y+(int)wd->frame_rect.height );	  
+						  wd->frame_rect.x+(int)wd->frame_rect.width,
+						  wd->frame_rect.y+(int)wd->frame_rect.height );	  
 	}
 	return True;
 }
@@ -248,7 +248,7 @@ void
 ascom_deinit(void)
 {
 	destroy_ashash( &(ASCommandState.handlers) );
-       
+	   
 	destroy_asbidirlist( &(ASCommandState.operations) );
 	destroy_asbidirlist( &(ASCommandState.selected_wins) );
 	destroy_asbidirlist( &(ASCommandState.clients_order) );
@@ -289,13 +289,13 @@ ascom_get_win_names( void )
 		return NULL;
 
 	for( curr = ASCommandState.clients_order->head;
-	     curr != NULL; curr = curr->next)
+		 curr != NULL; curr = curr->next)
 		n_names++;
 	
 	ret = safemalloc(sizeof(char *) * n_names + 1);
 	
 	for( curr = ASCommandState.clients_order->head;
-	     curr != NULL; curr = curr->next)
+		 curr != NULL; curr = curr->next)
 	{
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
 		ret[i++] = strdup(wd->window_name);
@@ -330,7 +330,7 @@ ascom_get_available_area( void )
 	rects = PVECTOR_HEAD(XRectangle,list);
 	while( --i > 0 ) 
 	{	
-    	if( rects[largest].width*rects[largest].height < rects[i].width*rects[i].height ) 
+		if( rects[largest].width*rects[largest].height < rects[i].width*rects[i].height ) 
 			largest = i ; 
 	}
 	
@@ -338,7 +338,7 @@ ascom_get_available_area( void )
 	*result_rect = rects[largest];
 	
 	destroy_asvector(&list);
-       
+	   
 	return result_rect;
 
 }
@@ -383,7 +383,7 @@ ascom_do( const char *op, void *data)
 	}
 	
 	iterate_asbidirlist( ASCommandState.selected_wins, apply_operations, data,
-			     NULL, False);
+				 NULL, False);
 	
 }
 
@@ -479,7 +479,7 @@ select_all( Bool unselect )
 	  curr = ASCommandState.clients_order->head;
 	
 	for( ;
-	     curr != NULL; curr = curr->next)
+		 curr != NULL; curr = curr->next)
 	{
 		if( !unselect )
 			append_bidirelem( new_selection, curr->data );
@@ -517,7 +517,7 @@ select_windows_by_pattern( const char *pattern, Bool just_one, Bool unselect)
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
 		
 		
-                ret = regexec( &my_reg, wd->window_name, 0, NULL, 0);
+				ret = regexec( &my_reg, wd->window_name, 0, NULL, 0);
 		if( ((ret == 0) && !unselect) || ( (ret != 0) && unselect) )
 		{
 			
@@ -561,12 +561,12 @@ select_windows_on_screen( Bool unselect )
 		
 			/* add this window if it's not on current screen or desk */
 			if( (wd->desk != Scr.CurrentDesk) || 
-			    
-			    (  ( wd->frame_rect.x < Scr.Vx )
-			       || ( wd->frame_rect.y < Scr.Vy )
-			       || ( wd->frame_rect.x > (Scr.MyDisplayWidth + Scr.Vx) )
-			       || ( wd->frame_rect.y > (Scr.MyDisplayHeight + Scr.Vy) ))
-			    
+				
+				(  ( wd->frame_rect.x < Scr.Vx )
+				   || ( wd->frame_rect.y < Scr.Vy )
+				   || ( wd->frame_rect.x > (Scr.MyDisplayWidth + Scr.Vx) )
+				   || ( wd->frame_rect.y > (Scr.MyDisplayHeight + Scr.Vy) ))
+				
 				)
 				append_bidirelem( new_selection, curr->data );
 
@@ -578,9 +578,9 @@ select_windows_on_screen( Bool unselect )
 		
 			/* skip this window if it's not on current-screen */
 			if((  ( wd->frame_rect.x < Scr.Vx )
-			      || ( wd->frame_rect.y < Scr.Vy )
-			      || ( wd->frame_rect.x > (Scr.MyDisplayWidth + Scr.Vx) )
-			      || ( wd->frame_rect.y > (Scr.MyDisplayHeight + Scr.Vy) ))
+				  || ( wd->frame_rect.y < Scr.Vy )
+				  || ( wd->frame_rect.x > (Scr.MyDisplayWidth + Scr.Vx) )
+				  || ( wd->frame_rect.y > (Scr.MyDisplayHeight + Scr.Vy) ))
 				)
 				continue;
 			
@@ -614,7 +614,7 @@ select_windows_on_desk( Bool unselect )
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );
 	
 		if( (unselect && (wd->desk != Scr.CurrentDesk) ) || 
-		    (!unselect && (wd->desk == Scr.CurrentDesk)) )
+			(!unselect && (wd->desk == Scr.CurrentDesk)) )
 			append_bidirelem( new_selection, curr->data );
 		
 	}
@@ -742,7 +742,7 @@ select_focused_window( Bool unselect )
 		curr = ASCommandState.clients_order->head;
 
 	for( ;
-	     curr != NULL; curr = curr->next)
+		 curr != NULL; curr = curr->next)
 	{
 		
 		wd = fetch_window_by_id( ((client_item *)curr->data)->cl );

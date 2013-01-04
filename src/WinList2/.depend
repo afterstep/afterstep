@@ -14,4 +14,5 @@
 		../../libAfterStep/aswindata.h \
 		../../libAfterStep/balloon.h \
 		../../libAfterStep/event.h \
+		../../libAfterStep/shape.h \
 		../../libAfterConf/afterconf.h

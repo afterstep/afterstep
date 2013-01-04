@@ -61,7 +61,7 @@ LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
 	{	
 #ifdef UNKNOWN_KEYWORD_WARNING
 		if( !get_flags( config->flags, CP_IgnoreUnknown ) )
-		  	config_error (config, " unknown keyword encountered");
+			config_error (config, " unknown keyword encountered");
 #endif
 		return;
 	}
@@ -78,8 +78,8 @@ LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );
 		stripcomments (config->current_data);
 		config->current_data_len = strlen (config->current_data);
 	}
-    print_trimmed_str( "config->current_data", config->current_data );
-    LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
+	print_trimmed_str( "config->current_data", config->current_data );
+	LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
 
 	args2FreeStorage (pNext, config->current_data, config->current_data_len);
 
@@ -100,37 +100,37 @@ int ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 FreeStorageElem *
 tline_subsyntax_parse(const char *keyword, char *tline, FILE * fd, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options)
 {
-    FilePtrAndData fpd ;
-    ConfigDef    *ConfigReader ;
-    FreeStorageElem *storage = NULL, *more_stuff = NULL;
+	FilePtrAndData fpd ;
+	ConfigDef    *ConfigReader ;
+	FreeStorageElem *storage = NULL, *more_stuff = NULL;
 	ConfigData cd ;
-    if( syntax == NULL )
-        return NULL;
+	if( syntax == NULL )
+		return NULL;
 
-    fpd.fp = fd ;
+	fpd.fp = fd ;
 	if( keyword ) 
 	{
-	    fpd.data = safemalloc( strlen(keyword) + 1 + strlen(tline)+1+1 ) ;
-	    sprintf( fpd.data, "%s %s\n", keyword, tline );
+		fpd.data = safemalloc( strlen(keyword) + 1 + strlen(tline)+1+1 ) ;
+		sprintf( fpd.data, "%s %s\n", keyword, tline );
 	}else
 	{
-	    fpd.data = safemalloc( strlen(tline)+1+1 ) ;
+		fpd.data = safemalloc( strlen(tline)+1+1 ) ;
 		sprintf( fpd.data, "%s\n", tline );
 	}
 	LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
 	cd.fileptranddata = &fpd ;
-    ConfigReader = InitConfigReader (myname, syntax, CDT_FilePtrAndData, cd, special);
-    free( fpd.data );
+	ConfigReader = InitConfigReader (myname, syntax, CDT_FilePtrAndData, cd, special);
+	free( fpd.data );
 
-    if (!ConfigReader)
-        return NULL;
+	if (!ConfigReader)
+		return NULL;
 
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &storage);
 
 	/* getting rid of all the crap first */
-    StorageCleanUp (&storage, &more_stuff, CF_DISABLED_OPTION);
-    DestroyFreeStorage (&more_stuff);
+	StorageCleanUp (&storage, &more_stuff, CF_DISABLED_OPTION);
+	DestroyFreeStorage (&more_stuff);
 
 	if( foreign_options )
 		StorageCleanUp (&storage, foreign_options, CF_PHONY_OPTION|CF_FOREIGN_OPTION);
@@ -553,8 +553,8 @@ WriteConfig (ConfigDef * config, FreeStorageElem *storage,
 		 t_fd = open (target->filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 		 break;
 	 case CDT_FilePtr:
-     case CDT_FilePtrAndData:
-         t_fd = fileno (target->fileptr);
+	 case CDT_FilePtrAndData:
+		 t_fd = fileno (target->fileptr);
 		 break;
 	 case CDT_FileDesc:
 		 t_fd = *(target->filedesc);

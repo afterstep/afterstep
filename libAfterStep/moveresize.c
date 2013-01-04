@@ -60,13 +60,13 @@ update_ashint_geometry( ASHintWindow *hw, Bool force_redraw )
 	if( hw == NULL ) 
 		return;
 	
-    width = calculate_astbar_width( hw->bar );
-    height = calculate_astbar_height( hw->bar );
+	width = calculate_astbar_width( hw->bar );
+	height = calculate_astbar_height( hw->bar );
 	
 	if( width < hw->look->resize_move_geometry.width )
-        width = hw->look->resize_move_geometry.width;
-    if( height < hw->look->resize_move_geometry.height )
-        height = hw->look->resize_move_geometry.height ;
+		width = hw->look->resize_move_geometry.width;
+	if( height < hw->look->resize_move_geometry.height )
+		height = hw->look->resize_move_geometry.height ;
 
 	if( get_flags( hw->look->resize_move_geometry.flags, XValue|YValue ) != (XValue|YValue) )
 		ASQueryPointerRootXY( &x, &y );
@@ -74,7 +74,7 @@ update_ashint_geometry( ASHintWindow *hw, Bool force_redraw )
 	{
 		x = hw->look->resize_move_geometry.x ;
 		if( get_flags( hw->look->resize_move_geometry.flags, XNegative) )
-            x += hw->scr->MyDisplayWidth - width ;
+			x += hw->scr->MyDisplayWidth - width ;
 	}else
 	{
 		x += 10;
@@ -85,7 +85,7 @@ update_ashint_geometry( ASHintWindow *hw, Bool force_redraw )
 	{
 		y = hw->look->resize_move_geometry.y ;
 		if( get_flags( hw->look->resize_move_geometry.flags, YNegative) )
-            y += hw->scr->MyDisplayHeight - height ;
+			y += hw->scr->MyDisplayHeight - height ;
 	}else
 	{
 		y += 10;
@@ -100,11 +100,11 @@ update_ashint_geometry( ASHintWindow *hw, Bool force_redraw )
 	if( force_redraw )
 	{	
 		set_astbar_size( hw->bar, width, height );
-   		render_astbar( hw->bar, hw->canvas);
-   		update_canvas_display( hw->canvas );
+		render_astbar( hw->bar, hw->canvas);
+		update_canvas_display( hw->canvas );
 	}
-   	XRaiseWindow( dpy, hw->w );
-   	ASSync(False);
+	XRaiseWindow( dpy, hw->w );
+	ASSync(False);
 }
 
 void
@@ -119,16 +119,16 @@ create_ashint_window( ScreenInfo *scr, 	struct MyLook *look, const char *hint )
 
 	hw->scr = scr ;
 	hw->look = look ;
-    hw->bar = create_astbar();
-    set_astbar_style(hw->bar, BAR_STATE_UNFOCUSED, look->MSWindow[BACK_FOCUSED]->name );
+	hw->bar = create_astbar();
+	set_astbar_style(hw->bar, BAR_STATE_UNFOCUSED, look->MSWindow[BACK_FOCUSED]->name );
 
-    add_astbar_label( hw->bar, 0, 0, 0, ALIGN_CENTER, 1, 1, " ", AS_Text_ASCII );
+	add_astbar_label( hw->bar, 0, 0, 0, ALIGN_CENTER, 1, 1, " ", AS_Text_ASCII );
 	attr.override_redirect = True ;
 	attr.save_under = True ;
-    hw->w = create_screen_window( scr, None, 0, 0, 1, 1,
-					  				0, InputOutput,	CWOverrideRedirect|CWSaveUnder, &attr );
-    hw->canvas = create_ascanvas(hw->w);
-    XMapRaised( dpy, hw->w );
+	hw->w = create_screen_window( scr, None, 0, 0, 1, 1,
+									0, InputOutput,	CWOverrideRedirect|CWSaveUnder, &attr );
+	hw->canvas = create_ascanvas(hw->w);
+	XMapRaised( dpy, hw->w );
 	
 	update_ashint_text( hw, hint );
 
@@ -141,10 +141,10 @@ destroy_ashint_window( ASHintWindow **hw )
 	if( hw ) 
 		if( *hw ) 
 		{	  
-    		if( (*hw)->bar )
-        		destroy_astbar( &((*hw)->bar ) );
-    		if( (*hw)->canvas )
-        		destroy_ascanvas( &((*hw)->canvas ) );
+			if( (*hw)->bar )
+				destroy_astbar( &((*hw)->bar ) );
+			if( (*hw)->canvas )
+				destroy_ascanvas( &((*hw)->canvas ) );
 			if( (*hw)->w )
 				XDestroyWindow( dpy, (*hw)->w );
 			free( *hw );
@@ -203,11 +203,11 @@ Bool start_widget_moveresize( ASMoveResizeData * data, moveresize_event_func han
 Bool
 check_moveresize_event( ASEvent *event )
 {
-    LOCAL_DEBUG_OUT("data(%p)->handler(%p)", _as_curr_moveresize_data, _as_curr_moveresize_handler );
-    if( _as_curr_moveresize_data )
+	LOCAL_DEBUG_OUT("data(%p)->handler(%p)", _as_curr_moveresize_data, _as_curr_moveresize_handler );
+	if( _as_curr_moveresize_data )
 		if( _as_curr_moveresize_handler( _as_curr_moveresize_data, event ) == ASE_Consumed )
-            return True;
-    return False;
+			return True;
+	return False;
 }
 
 Bool stop_widget_moveresize()
@@ -224,28 +224,28 @@ Bool stop_widget_moveresize()
 /**********************************************************************/
 Bool grab_widget_pointer( ASWidget *widget, ASEvent *trigger,
 						  unsigned int event_mask,
-	                      int *x_return, int *y_return,
+						  int *x_return, int *y_return,
 						  int *root_x_return, int *root_y_return,
 						  unsigned int *mask_return)
 {
-    int i ;
-    Window wjunk;
-    ScreenInfo *scr = ASDefaultScr ;
+	int i ;
+	Window wjunk;
+	ScreenInfo *scr = ASDefaultScr ;
 
-    if( widget == NULL )
+	if( widget == NULL )
 		return False;
-    ASQueryPointerWinXYMask(AS_WIDGET_WINDOW(widget),root_x_return, root_y_return, x_return, y_return, mask_return);
+	ASQueryPointerWinXYMask(AS_WIDGET_WINDOW(widget),root_x_return, root_y_return, x_return, y_return, mask_return);
 LOCAL_DEBUG_OUT("grabbing pointer at window(%+d%+d) root(%+d%+d), mask = 0x%X, window(%lX)", *x_return, *y_return, *root_x_return, *root_y_return, *mask_return, AS_WIDGET_WINDOW(widget) );
-    if( trigger )
-    {
-        if( trigger->scr )
-            scr =  trigger->scr ;
-    }
+	if( trigger )
+	{
+		if( trigger->scr )
+			scr =  trigger->scr ;
+	}
 
 /*	XUngrabPointer( dpy, trigger->event_time ); */
-    if( _as_grab_screen_func == NULL ||
-    	_as_grab_screen_func( scr, scr->Feel.cursors[ASCUR_Move]))
-    {
+	if( _as_grab_screen_func == NULL ||
+		_as_grab_screen_func( scr, scr->Feel.cursors[ASCUR_Move]))
+	{
 SHOW_CHECKPOINT;
 		for( i = 0 ; i < 5 ; ++i )
 		{
@@ -255,7 +255,7 @@ LOCAL_DEBUG_OUT("comparing mask = 0x%X and 0x%X", *mask_return, (Button1Mask<<i)
 			{
 LOCAL_DEBUG_OUT("pressed widget[%d] = %p and widget = %p", i, _as_pressed_buttons[i].widget, widget );
 				if( _as_pressed_buttons[i].widget != NULL &&
-			    	_as_pressed_buttons[i].widget != widget )
+					_as_pressed_buttons[i].widget != widget )
 				{
 					ASEvent tmp = _as_pressed_buttons[i] ;
 SHOW_CHECKPOINT;
@@ -264,21 +264,21 @@ SHOW_CHECKPOINT;
 					tmp.x.xbutton.x_root = *root_x_return ;
 					tmp.x.xbutton.y_root = *root_y_return ;
 					XTranslateCoordinates( dpy, AS_WIDGET_SCREEN(tmp.widget)->Root,
-		    			               	AS_WIDGET_WINDOW(tmp.widget),
-									   	*x_return, *y_return,
-									   	&(tmp.x.xbutton.x), &(tmp.x.xbutton.y), &wjunk );
+										AS_WIDGET_WINDOW(tmp.widget),
+										*x_return, *y_return,
+										&(tmp.x.xbutton.x), &(tmp.x.xbutton.y), &wjunk );
 					tmp.x.xbutton.state = *mask_return ;
 #ifdef AS_DISPATCHER_H_HEADER_INCLUDED         /* in as-devel */
 					handle_widgets_event ( &tmp );
 #else
-                    XSendEvent( dpy, tmp.x.xany.window, False, ButtonReleaseMask, &(tmp.x));
+					XSendEvent( dpy, tmp.x.xany.window, False, ButtonReleaseMask, &(tmp.x));
 #endif
 				}
 			}
 		}
-    }else
-        return False;
-    return True;
+	}else
+		return False;
+	return True;
 }
 
 
@@ -291,7 +291,7 @@ SHOW_CHECKPOINT;
 static void
 prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr,
 						  ASEvent *trigger,
-                          as_interactive_apply_handler    apply_func,
+						  as_interactive_apply_handler    apply_func,
 						  as_interactive_complete_handler complete_func,
 						  int opaque_size )
 {
@@ -301,8 +301,8 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 
 	data->parent= parent;
 	data->mr 	= mr ;
-    data->feel  = AS_WIDGET_FEEL(mr);
-    data->look  = look = AS_WIDGET_LOOK(mr);
+	data->feel  = AS_WIDGET_FEEL(mr);
+	data->look  = look = AS_WIDGET_LOOK(mr);
 
 	if( apply_func != NULL  &&
 		AS_WIDGET_WIDTH(mr)*AS_WIDGET_HEIGHT(mr) < (opaque_size*AS_WIDGET_WIDTH(parent)*AS_WIDGET_HEIGHT(parent)) / 100)
@@ -314,31 +314,31 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 	}
 	data->complete_func = complete_func;
 
-    data->start.x = data->curr.x = data->last.x = AS_WIDGET_X(mr) - AS_WIDGET_X(parent);
-    data->start.y = data->curr.y = data->last.y = AS_WIDGET_Y(mr) - AS_WIDGET_Y(parent);
-    data->start.width  = data->curr.width  = data->last.width  = AS_WIDGET_WIDTH(mr);
-    data->start.height = data->curr.height = data->last.height = AS_WIDGET_HEIGHT(mr);
+	data->start.x = data->curr.x = data->last.x = AS_WIDGET_X(mr) - AS_WIDGET_X(parent);
+	data->start.y = data->curr.y = data->last.y = AS_WIDGET_Y(mr) - AS_WIDGET_Y(parent);
+	data->start.width  = data->curr.width  = data->last.width  = AS_WIDGET_WIDTH(mr);
+	data->start.height = data->curr.height = data->last.height = AS_WIDGET_HEIGHT(mr);
 	data->bw = AS_WIDGET_BW(mr);
 
 	grab_widget_pointer( parent, trigger,
 						 ButtonPressMask|ButtonReleaseMask|PointerMotionMask|EnterWindowMask|LeaveWindowMask,
-	                     &(data->last_x), &(data->last_y),
+						 &(data->last_x), &(data->last_y),
 						 &root_x, &root_y,
 						 &(data->pointer_state));
 
-    data->stop_on_button_press = ((data->pointer_state&ButtonAnyMask) == 0 );
+	data->stop_on_button_press = ((data->pointer_state&ButtonAnyMask) == 0 );
 
-    data->origin_x = parent->root_x + data->last_x - mr->root_x;
-    data->origin_y = parent->root_y + data->last_y - mr->root_y;
-    /* we should be using this methinks: */
-    /* data->last_x = root_x ;
-     * data->last_y = root_y ;
+	data->origin_x = parent->root_x + data->last_x - mr->root_x;
+	data->origin_y = parent->root_y + data->last_y - mr->root_y;
+	/* we should be using this methinks: */
+	/* data->last_x = root_x ;
+	 * data->last_y = root_y ;
 	 */
 
 	/* " %u x %u %+d %+d " */
 	data->geometry_string = safemalloc( 1+6+3+6+2+6+2+6+1+1 +30/*for the heck of it*/);
 	data->geometry_display = create_ashint_window( scr, look, "88888 x 88888 +88888 +88888 (-88888 -88888)" );
-    
+	
 	data->below_sibling = data->geometry_display->w ;
 	
 	LOCAL_DEBUG_OUT( "curr(%+d%+d)->last(%+d%+d)", data->curr.x, data->curr.y, data->last_x, data->last_y );
@@ -350,10 +350,10 @@ prepare_move_resize_data( ASMoveResizeData *data, ASWidget *parent, ASWidget *mr
 static void
 update_geometry_display( ASMoveResizeData *data )
 {
-    int display_width = (int)data->curr.width-(int)data->frame_width ;
-    int display_height = (int)data->curr.height-(int)data->frame_height ;
-    int display_x = data->curr.x - data->geom_x_origin;
-    int display_y = data->curr.y - data->geom_y_origin;
+	int display_width = (int)data->curr.width-(int)data->frame_width ;
+	int display_height = (int)data->curr.height-(int)data->frame_height ;
+	int display_x = data->curr.x - data->geom_x_origin;
+	int display_y = data->curr.y - data->geom_y_origin;
 	int east_x, south_y ; 
 	
 	if( display_height < 0 ) 
@@ -361,23 +361,23 @@ update_geometry_display( ASMoveResizeData *data )
 	if( display_width < 0 ) 
 		display_width = 0 ;
 
-    if( data->geom_x_mult > 0 && data->geom_x_div > 0 )
-    {
-        display_x = (display_x*data->geom_x_mult)/data->geom_x_div ;
-        display_width = (display_width*data->geom_x_mult)/data->geom_x_div ;
-    }
-    if( data->geom_y_mult > 0 && data->geom_y_div > 0 )
-    {
-        display_y = (display_y*data->geom_y_mult)/data->geom_y_div ;
-        display_height = (display_height*data->geom_y_mult)/data->geom_y_div ;
-    }
+	if( data->geom_x_mult > 0 && data->geom_x_div > 0 )
+	{
+		display_x = (display_x*data->geom_x_mult)/data->geom_x_div ;
+		display_width = (display_width*data->geom_x_mult)/data->geom_x_div ;
+	}
+	if( data->geom_y_mult > 0 && data->geom_y_div > 0 )
+	{
+		display_y = (display_y*data->geom_y_mult)/data->geom_y_div ;
+		display_height = (display_height*data->geom_y_mult)/data->geom_y_div ;
+	}
 	east_x  = display_x + display_width  - data->geometry_display->scr->MyDisplayWidth ;
 	south_y = display_y + display_height - data->geometry_display->scr->MyDisplayHeight;	
 	if( data->width_inc != 0 )
-        display_width /= (int)data->width_inc ;
-    if( data->height_inc != 0 )
-        display_height /= (int)data->height_inc ;
-    if( display_width == 0 && display_height != 0 ) 
+		display_width /= (int)data->width_inc ;
+	if( data->height_inc != 0 )
+		display_height /= (int)data->height_inc ;
+	if( display_width == 0 && display_height != 0 ) 
 		sprintf (data->geometry_string, "x %d %+d %+d", display_height, display_x, display_y  );
 	else if( display_width != 0 && display_height == 0 ) 
 		sprintf (data->geometry_string, "%d x  %+d %+d", display_width, display_x, display_y );
@@ -386,7 +386,7 @@ update_geometry_display( ASMoveResizeData *data )
 	else
 		sprintf (data->geometry_string, "%+d %+d",display_x, display_y );
 
-    update_ashint_text( data->geometry_display, data->geometry_string );
+	update_ashint_text( data->geometry_display, data->geometry_string );
 }
 
 static void
@@ -394,12 +394,12 @@ flush_move_resize_data( ASMoveResizeData *data )
 {
 
 #ifdef AS_WIDGET_H_HEADER_INCLUDED
-    XUngrabPointer( dpy, CurrentTime );
+	XUngrabPointer( dpy, CurrentTime );
 #else
 	if( _as_ungrab_screen_func )
-    	_as_ungrab_screen_func();
+		_as_ungrab_screen_func();
 #endif
-    destroy_ashint_window( &(data->geometry_display) );
+	destroy_ashint_window( &(data->geometry_display) );
 	if( data->geometry_string )
 		free( data->geometry_string );
 	if( data->outline )
@@ -425,23 +425,23 @@ void complete_interactive_action( ASMoveResizeData *data, Bool cancel )
 		data->complete_func(data, cancel);
 	if( !cancel && data->pointer_func == move_func )
 	{
-	    client_event.type = ConfigureNotify;
-  		client_event.xconfigure.display = dpy;
-	    client_event.xconfigure.event  = AS_WIDGET_WINDOW(data->mr);
-	    client_event.xconfigure.window = client_event.xconfigure.event ;
+		client_event.type = ConfigureNotify;
+		client_event.xconfigure.display = dpy;
+		client_event.xconfigure.event  = AS_WIDGET_WINDOW(data->mr);
+		client_event.xconfigure.window = client_event.xconfigure.event ;
 
-  		client_event.xconfigure.x = data->curr.x ;
-	    client_event.xconfigure.y = data->curr.y ;
-  		client_event.xconfigure.width = data->curr.width ;
-	    client_event.xconfigure.height = data->curr.height ;
+		client_event.xconfigure.x = data->curr.x ;
+		client_event.xconfigure.y = data->curr.y ;
+		client_event.xconfigure.width = data->curr.width ;
+		client_event.xconfigure.height = data->curr.height ;
 
-  		client_event.xconfigure.border_width = 0;
-	    /* Real ConfigureNotify events say we're above title window, so ... */
-  		/* what if we don't have a title ????? */
-	    client_event.xconfigure.above = AS_WIDGET_SCREEN(data->mr)->Root;
-  		client_event.xconfigure.override_redirect = False;
+		client_event.xconfigure.border_width = 0;
+		/* Real ConfigureNotify events say we're above title window, so ... */
+		/* what if we don't have a title ????? */
+		client_event.xconfigure.above = AS_WIDGET_SCREEN(data->mr)->Root;
+		client_event.xconfigure.override_redirect = False;
 		/* only send it ourselves */
-	    XSendEvent (dpy, client_event.xconfigure.event, False, 0, &client_event);
+		XSendEvent (dpy, client_event.xconfigure.event, False, 0, &client_event);
 	}
 
 	/* its a good idea to send out a syntetic ConfigureNotify */
@@ -462,7 +462,7 @@ SHOW_CHECKPOINT;
 	if( AS_ASSERT(event) || AS_ASSERT(data))
 		return False;
 LOCAL_DEBUG_OUT("widget(%p)->parent(%p)", event->widget, data->parent );
-    if( event->widget != data->parent )
+	if( event->widget != data->parent )
 		return False;
 
 	if( event->eclass&ASE_POINTER_EVENTS )
@@ -483,25 +483,25 @@ SHOW_CHECKPOINT;
 		{
 			while (ASCheckMaskEvent(PointerMotionMask | ButtonMotionMask |
 									ButtonPressMask | ButtonRelease, &(event->x)))
-            {
-                if( data->stop_on_button_press )
-                {
-                    if (event->x.type == ButtonRelease)
-                        break;
-                }else if (event->x.type == ButtonPress)
-                    break;
-            }
+			{
+				if( data->stop_on_button_press )
+				{
+					if (event->x.type == ButtonRelease)
+						break;
+				}else if (event->x.type == ButtonPress)
+					break;
+			}
 SHOW_CHECKPOINT;
-            if( data->stop_on_button_press )
-            {
-                if( get_flags(event->x.xmotion.state, ButtonAnyMask) )
-                {
-                    /* some button is pressed !!! */
-                    complete_interactive_action( data, True );
-                    return 0;
-                }
+			if( data->stop_on_button_press )
+			{
+				if( get_flags(event->x.xmotion.state, ButtonAnyMask) )
+				{
+					/* some button is pressed !!! */
+					complete_interactive_action( data, True );
+					return 0;
+				}
 SHOW_CHECKPOINT;
-            }else if( !get_flags(event->x.xmotion.state, AllButtonMask) )
+			}else if( !get_flags(event->x.xmotion.state, AllButtonMask) )
 			{/* all the buttons are depressed !!! */
 				complete_interactive_action( data, False );
 				return 0;
@@ -540,20 +540,20 @@ SHOW_CHECKPOINT;
 			
 			
 			XWarpPointer( dpy, Scr.Root, Scr.Root, 0, 0,
-				      Scr.MyDisplayWidth, Scr.MyDisplayHeight,
-				      new_x, new_y );
+					  Scr.MyDisplayWidth, Scr.MyDisplayHeight,
+					  new_x, new_y );
 			
 			if( !finished )
 				return ASE_Consumed;
 		}
 		/* Keyboard_shortcuts (&Event, ButtonRelease, 20); */
 			break;
-        case ButtonPress:
-        case ButtonRelease:
+		case ButtonPress:
+		case ButtonRelease:
 SHOW_CHECKPOINT;
-            if( (data->stop_on_button_press?1:0) == (event->x.type==ButtonPress?1:0))
-                finished = True;
-        case MotionNotify:
+			if( (data->stop_on_button_press?1:0) == (event->x.type==ButtonPress?1:0))
+				finished = True;
+		case MotionNotify:
 			/* update location of the pager_view window */
 			{
 				/* must get current pointer position as we may get late while
@@ -578,13 +578,13 @@ SHOW_CHECKPOINT;
 					}
 				}				
 
-          		new_x -= data->parent->root_x;
-          		new_y -= data->parent->root_y;
+				new_x -= data->parent->root_x;
+				new_y -= data->parent->root_y;
 LOCAL_DEBUG_OUT("new = %+d%+d, finished = %d", new_x, new_y, finished );
 			}
 			data->pointer_func (data, new_x, new_y);
 			break;
-        default:
+		default:
 SHOW_CHECKPOINT;
 			return 0;
 	}
@@ -606,7 +606,7 @@ SHOW_CHECKPOINT;
 #define ATTRACT_SIDE_BELOW(t,b,band,grav,size) \
 	if( (grav) > 0 ) \
 	{ 	if( (t) < (band)+(grav) && (t) > (band) )	(t) = (band) ; \
-	  	else if( size > 0 && (b) < (band)+(grav) && (b) > (band)) (t) = (band)-(size);} \
+		else if( size > 0 && (b) < (band)+(grav) && (b) > (band)) (t) = (band)-(size);} \
 
 int
 attract_side( register ASGridLine *l, int pos, int size, int lim1, int lim2 )
@@ -638,8 +638,8 @@ resist_west_side( register ASGridLine *l, int pos, int new_pos, int lim1,  int l
 	{
 /*LOCAL_DEBUG_OUT( "lim = %+d%+d, l = (%d,%d), pos = (%d,%d), band = %d, grav = %d", lim1, lim2, l->start, l->end, pos, new_pos, l->band, l->gravity_above );*/
 		if( lim2 >= l->start && lim1 <= l->end && l->gravity_above < 0 &&
-            l->band <= pos && l->band >= new_pos )
-            new_pos = l->band ;
+			l->band <= pos && l->band >= new_pos )
+			new_pos = l->band ;
 		l = l->next ;
 	}
 	return MIN(pos, new_pos);
@@ -651,8 +651,8 @@ resist_east_side( register ASGridLine *l, int pos, int new_pos, int lim1,  int l
 	while( l != NULL )
 	{
 		if( lim2 >= l->start && lim1 <= l->end && l->gravity_below < 0 &&
-            l->band >= pos && l->band <= new_pos )
-            new_pos = l->band ;
+			l->band >= pos && l->band <= new_pos )
+			new_pos = l->band ;
 		l = l->next ;
 	}
 	return MAX(pos, new_pos);
@@ -753,35 +753,35 @@ LOCAL_DEBUG_OUT( "pos = %d, new_pos = %d, lim1 = %d, lim2 = %d, dpos = %d, adjus
 
 int restrain_size( int size, int min_val, int incr, int max_val )
 {
-    if( size < min_val )
-        size = min_val ;
-    else if ( max_val > 0 && size > max_val )
-        size = max_val ;
-    else if( incr != 0 ) /* negative increment for growing windows, positive - for shrinking */
-        size = min_val+((size+(incr/2)-min_val)/incr)*incr ;
+	if( size < min_val )
+		size = min_val ;
+	else if ( max_val > 0 && size > max_val )
+		size = max_val ;
+	else if( incr != 0 ) /* negative increment for growing windows, positive - for shrinking */
+		size = min_val+((size+(incr/2)-min_val)/incr)*incr ;
 	return size ;
 }
 int restrain_east_side( int dpos, int *size_inout, int min_val, int incr, int max_val )
 {
 	int adjusted_dpos = dpos;
-    int size = restrain_size( *size_inout, min_val, (dpos < 0)?incr:-incr, max_val );
+	int size = restrain_size( *size_inout, min_val, (dpos < 0)?incr:-incr, max_val );
 
-    adjusted_dpos += size - (*size_inout);
+	adjusted_dpos += size - (*size_inout);
 LOCAL_DEBUG_OUT( "in_size = %d, out_size = %d, min_val = %d, incr = %d, max_val = %d, dpos = %d, adjusted_dpos = %d", *size_inout, size, min_val, incr, max_val, dpos, adjusted_dpos );
-    *size_inout = size ;
+	*size_inout = size ;
 	return adjusted_dpos;
 }
 
 int restrain_west_side( int dpos, int *wpos_inout, int *size_inout, int min_val, int incr, int max_val )
 {
 	int adjusted_dpos = dpos;
-    int size = restrain_size( *size_inout, min_val, (dpos > 0)?incr:-incr, max_val );
+	int size = restrain_size( *size_inout, min_val, (dpos > 0)?incr:-incr, max_val );
 	int delta = *size_inout - size ; 
 
-    adjusted_dpos += delta;
+	adjusted_dpos += delta;
 	*wpos_inout += delta ;
 LOCAL_DEBUG_OUT( "in_size = %d, out_size = %d, min_val = %d, incr = %d, max_val = %d, dpos = %d, adjusted_dpos = %d", *size_inout, size, min_val, incr, max_val, dpos, adjusted_dpos );
-    *size_inout = size ;
+	*size_inout = size ;
 	return adjusted_dpos;
 }
 
@@ -803,13 +803,13 @@ LOCAL_DEBUG_CALLER_OUT( "data = %p, pos = (%+d%+d)", data, x, y );
 	new_y = data->curr.y + dy ;
 LOCAL_DEBUG_OUT( "pointer_state = %X, no_snap_mod = %X", data->pointer_state&AllModifierMask, data->feel->no_snaping_mod );
 LOCAL_DEBUG_OUT( "pos(%+d%+d)->delta(%+d%+d)->new(%+d%+d)->lag(%+d%+d)->last(%+d%+d)", x, y, dx, dy, new_x, new_y, data->lag_x, data->lag_y, data->last_x, data->last_y );
-    if( data->grid && (data->pointer_state&AllModifierMask) != data->feel->no_snaping_mod )
+	if( data->grid && (data->pointer_state&AllModifierMask) != data->feel->no_snaping_mod )
 	{
 		attract_corner( data, &new_x, &new_y );
 		dx = new_x-data->curr.x ;
 		dy = new_y-data->curr.y ;
 	}
-    data->lag_x  = -(x - dx - data->last_x - data->lag_x) ;
+	data->lag_x  = -(x - dx - data->last_x - data->lag_x) ;
 	data->lag_y  = -(y - dy - data->last_y - data->lag_y) ;
 	data->curr.x = new_x ;
 	data->curr.y = new_y ;
@@ -853,16 +853,16 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		case FR_NW :
 			real_dy = adjust_west_side( h_lines, dy, &(data->curr.y), &(data->curr.height), 
 										lim1, lim2, data->title_north, data->title_west );
-            real_dy = restrain_west_side( real_dy, &(data->curr.y), &(data->curr.height), data->min_height, data->height_inc, data->max_height );
-            break ;
+			real_dy = restrain_west_side( real_dy, &(data->curr.y), &(data->curr.height), data->min_height, data->height_inc, data->max_height );
+			break ;
 
 		case FR_S :
 		case FR_SE:
 		case FR_SW:
 			real_dy = adjust_east_side( h_lines, dy, data->curr.y, &(data->curr.height), 
 										lim1, lim2, data->title_west  );
-            real_dy = restrain_east_side( real_dy, &(data->curr.height), data->min_height, data->height_inc, data->max_height );
-            break ;
+			real_dy = restrain_east_side( real_dy, &(data->curr.height), data->min_height, data->height_inc, data->max_height );
+			break ;
 	}
 	lim1 = data->curr.y+real_dy ; 
 	lim2 = lim1+data->curr.height+bw_addon ; 
@@ -873,14 +873,14 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		case FR_SE :
 			real_dx = adjust_east_side( v_lines, dx, data->curr.x, &(data->curr.width), 
 										lim1, lim2, data->title_west  );
-            real_dx = restrain_east_side( real_dx, &(data->curr.width), data->min_width, data->width_inc, data->max_width );
+			real_dx = restrain_east_side( real_dx, &(data->curr.width), data->min_width, data->width_inc, data->max_width );
 			break ;
 		case FR_W :
 		case FR_SW :
 		case FR_NW :
 			real_dx = adjust_west_side( v_lines, dx, &(data->curr.x), &(data->curr.width), 
 										lim1, lim2, data->title_west, data->title_north  );
-            real_dx = restrain_west_side( real_dx, &(data->curr.x), &(data->curr.width), data->min_width, data->width_inc, data->max_width );
+			real_dx = restrain_west_side( real_dx, &(data->curr.x), &(data->curr.width), data->min_width, data->width_inc, data->max_width );
 			break ;
 	}
 				
@@ -925,7 +925,7 @@ move_widget_interactively( ASWidget *parent, ASWidget *mr, ASEvent *trigger,
 
 ASMoveResizeData*
 resize_widget_interactively( ASWidget *parent, ASWidget *mr, ASEvent *trigger,
-	  						 as_interactive_apply_handler    apply_func,
+							 as_interactive_apply_handler    apply_func,
 							 as_interactive_complete_handler complete_func,
 							 int side )
 {
@@ -939,61 +939,61 @@ resize_widget_interactively( ASWidget *parent, ASWidget *mr, ASEvent *trigger,
 	{
 		data->pointer_func = resize_func ;
 		prepare_move_resize_data( data, parent, mr, trigger, apply_func, complete_func, AS_WIDGET_FEEL(mr)->OpaqueResize );
-        data->side = (side >= FR_N && side < FRAME_PARTS)?side:FR_SW ;
+		data->side = (side >= FR_N && side < FRAME_PARTS)?side:FR_SW ;
 LOCAL_DEBUG_OUT( "requested side = %d, using side = %d", side, data->side );
-    }
+	}
 	return data;
 }
 
 void
 set_moveresize_restrains( ASMoveResizeData *data, ASHints *hints, ASStatusHints *status )
 {
-    if( data )
-    {
-        Bool ignore_minmax_size = False ;
-        if( status )
-        {
-            data->frame_width = status->frame_size[FR_W]+status->frame_size[FR_E];
-            data->frame_height = status->frame_size[FR_N]+status->frame_size[FR_S];
-            ignore_minmax_size = get_flags( status->flags, AS_Shaded);
-        }
+	if( data )
+	{
+		Bool ignore_minmax_size = False ;
+		if( status )
+		{
+			data->frame_width = status->frame_size[FR_W]+status->frame_size[FR_E];
+			data->frame_height = status->frame_size[FR_N]+status->frame_size[FR_S];
+			ignore_minmax_size = get_flags( status->flags, AS_Shaded);
+		}
 
-        if( hints )
-        {
-            if( !ignore_minmax_size )
-            {
-                if( hints->min_width > 0 )
-                    data->min_width = hints->min_width+data->frame_width ;
-                if( hints->max_width > 0 )
-                    data->max_width = hints->max_width+data->frame_width ;
-                if( hints->min_height > 0 )
-                    data->min_height = hints->min_height+data->frame_height ;
-                if( hints->max_height > 0 )
-                    data->max_height = hints->max_height+data->frame_height ;
-            }
-            data->width_inc = hints->width_inc ;
-            data->height_inc = hints->height_inc ;
-        }
+		if( hints )
+		{
+			if( !ignore_minmax_size )
+			{
+				if( hints->min_width > 0 )
+					data->min_width = hints->min_width+data->frame_width ;
+				if( hints->max_width > 0 )
+					data->max_width = hints->max_width+data->frame_width ;
+				if( hints->min_height > 0 )
+					data->min_height = hints->min_height+data->frame_height ;
+				if( hints->max_height > 0 )
+					data->max_height = hints->max_height+data->frame_height ;
+			}
+			data->width_inc = hints->width_inc ;
+			data->height_inc = hints->height_inc ;
+		}
 
-        if( data->height_inc != 0 || data->width_inc != 0 ||
-            data->frame_width != 0 || data->frame_height != 0 )
-            update_geometry_display( data );
-    }
+		if( data->height_inc != 0 || data->width_inc != 0 ||
+			data->frame_width != 0 || data->frame_height != 0 )
+			update_geometry_display( data );
+	}
 }
 
 void
 set_moveresize_aspect( ASMoveResizeData *data, int x_mult, int x_div, int y_mult, int y_div, int x_origin, int y_origin  )
 {
-    if( data )
-    {
-        data->geom_x_mult = x_mult ;
-        data->geom_x_div  = x_div ;
-        data->geom_y_mult = y_mult ;
-        data->geom_y_div  = y_div ;
-        data->geom_x_origin = x_origin ;
-        data->geom_y_origin = y_origin ;
-        update_geometry_display( data );
-    }
+	if( data )
+	{
+		data->geom_x_mult = x_mult ;
+		data->geom_x_div  = x_div ;
+		data->geom_y_mult = y_mult ;
+		data->geom_y_div  = y_div ;
+		data->geom_x_origin = x_origin ;
+		data->geom_y_origin = y_origin ;
+		update_geometry_display( data );
+	}
 }
 
 

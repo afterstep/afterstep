@@ -34,29 +34,29 @@ struct ScreenInfo;
 /* look file flags */
 typedef enum
 {
-    TxtrMenuItmInd      = (0x01 << 0),
-    MenuMiniPixmaps     = (0x01 << 1),
-    GradientText        = (0x01 << 2),
-    TitlebarNoPush      = (0x01 << 3),
-    IconNoBorder        = (0x01 << 4),
-    SeparateButtonTitle = (0x01 << 5),    /* icon title is a separate window */
-    DecorateFrames      = (0x01 << 6),
-    DontDrawBackground	= (0x01 << 7),
-    IconsGrowVertically = (0x01 << 8),
+	TxtrMenuItmInd      = (0x01 << 0),
+	MenuMiniPixmaps     = (0x01 << 1),
+	GradientText        = (0x01 << 2),
+	TitlebarNoPush      = (0x01 << 3),
+	IconNoBorder        = (0x01 << 4),
+	SeparateButtonTitle = (0x01 << 5),    /* icon title is a separate window */
+	DecorateFrames      = (0x01 << 6),
+	DontDrawBackground	= (0x01 << 7),
+	IconsGrowVertically = (0x01 << 8),
 	MenuShowUnavailable = (0x01 << 9),
-    /* this flags add up to the above set for no-flag options, so we can track
-     what option was specifyed in config */
-    LOOK_TitleButtonSpacing = (0x01 << 16),
-    LOOK_TitleButtonStyle   = (0x01 << 17),
-    LOOK_TitleButtonXOffset = (0x01 << 18),
-    LOOK_TitleButtonYOffset = (0x01 << 19),
-    LOOK_ResizeMoveGeometry = (0x01 << 20),
-    LOOK_StartMenuSortMode  = (0x01 << 21),
-    LOOK_DrawMenuBorders    = (0x01 << 22),
-    LOOK_ButtonSize         = (0x01 << 23),
-    LOOK_RubberBand         = (0x01 << 24),
-    LOOK_ShadeAnimationSteps= (0x01 << 25),
-    LOOK_TitleTextAlign     = (0x01 << 26)
+	/* this flags add up to the above set for no-flag options, so we can track
+	 what option was specifyed in config */
+	LOOK_TitleButtonSpacing = (0x01 << 16),
+	LOOK_TitleButtonStyle   = (0x01 << 17),
+	LOOK_TitleButtonXOffset = (0x01 << 18),
+	LOOK_TitleButtonYOffset = (0x01 << 19),
+	LOOK_ResizeMoveGeometry = (0x01 << 20),
+	LOOK_StartMenuSortMode  = (0x01 << 21),
+	LOOK_DrawMenuBorders    = (0x01 << 22),
+	LOOK_ButtonSize         = (0x01 << 23),
+	LOOK_RubberBand         = (0x01 << 24),
+	LOOK_ShadeAnimationSteps= (0x01 << 25),
+	LOOK_TitleTextAlign     = (0x01 << 26)
 
 }LookFlags;
 
@@ -100,20 +100,20 @@ typedef struct MyBackground
 {
 	unsigned long magic ;
 	char 	  *name ;
-    enum {
-        MB_BackImage = 0,
-        MB_BackMyStyle,
-        MB_BackCmd
-    } type ;
-    char      *data ;
+	enum {
+		MB_BackImage = 0,
+		MB_BackMyStyle,
+		MB_BackCmd
+	} type ;
+	char      *data ;
 
-    ASGeometry cut;
-    ASGeometry scale;
-    ARGB32     tint;
-    ARGB32     pad_color;
-    ASFlagType align_flags;
+	ASGeometry cut;
+	ASGeometry scale;
+	ARGB32     tint;
+	ARGB32     pad_color;
+	ASFlagType align_flags;
 
-    int        ref_count ;
+	int        ref_count ;
 	
 	char *loaded_im_name ;
 	Pixmap loaded_pixmap ;
@@ -136,7 +136,7 @@ typedef struct MyDesktopConfig
 #define FR_SE_Mask          (0x01<<FR_SE)
 #define FR_SW_Mask          (0x01<<FR_SW)
 #define FRAME_PARTS_MASK    (FR_N_Mask|FR_E_Mask|FR_S_Mask|FR_W_Mask| \
-                             FR_NE_Mask|FR_NW_Mask|FR_SE_Mask|FR_SW_Mask)
+							 FR_NE_Mask|FR_NW_Mask|FR_SE_Mask|FR_SW_Mask)
 
 #define MYFRAME_TITLE_BACK_BTN				0
 #define MYFRAME_TITLE_BACK_SPACER			1
@@ -167,21 +167,21 @@ typedef struct MyDesktopConfig
 
 typedef struct MyFrame
 {
-    unsigned long magic ;
-    char      *name;
-    ASFlagType   set_parts;
-    ASFlagType   parts_mask; /* first 8 bits represent one enabled side/corner each */
-    struct icon_t    *parts[FRAME_PARTS];
-    char             *part_filenames[FRAME_PARTS];
-    char             *title_style_names[BACK_STYLES];
-    char             *frame_style_names[BACK_STYLES];
-    char             *title_back_filenames[MYFRAME_TITLE_BACKS];
-    struct icon_t    *title_backs[MYFRAME_TITLE_BACKS];
+	unsigned long magic ;
+	char      *name;
+	ASFlagType   set_parts;
+	ASFlagType   parts_mask; /* first 8 bits represent one enabled side/corner each */
+	struct icon_t    *parts[FRAME_PARTS];
+	char             *part_filenames[FRAME_PARTS];
+	char             *title_style_names[BACK_STYLES];
+	char             *frame_style_names[BACK_STYLES];
+	char             *title_back_filenames[MYFRAME_TITLE_BACKS];
+	struct icon_t    *title_backs[MYFRAME_TITLE_BACKS];
 	ASGeometry        title_back_slicing[MYFRAME_TITLE_BACKS];
-    ASFlagType   set_part_size ;
-    unsigned int part_width[FRAME_PARTS];
-    unsigned int part_length[FRAME_PARTS];
-    ASFlagType   set_part_bevel ;
+	ASFlagType   set_part_size ;
+	unsigned int part_width[FRAME_PARTS];
+	unsigned int part_length[FRAME_PARTS];
+	ASFlagType   set_part_bevel ;
 /* this must not be inline functions !!!! */
 #define SetPartFBevelMask(frame,mask)  ((frame)->set_part_bevel |= (mask))
 #define SetPartUBevelMask(frame,mask)  ((frame)->set_part_bevel |= ((mask)<<FRAME_PARTS))
@@ -194,12 +194,12 @@ typedef struct MyFrame
 #define IsPartFBevelSet(frame,part)  ((frame)->set_part_bevel&(0x01<<(part)))
 #define IsPartUBevelSet(frame,part)  ((frame)->set_part_bevel&((0x01<<FRAME_PARTS)<<(part)))
 #define IsPartSBevelSet(frame,part)  ((frame)->set_part_bevel&((0x01<<(FRAME_PARTS+FRAME_PARTS))<<(part)))
-    ASFlagType   part_fbevel[FRAME_PARTS];
-    ASFlagType   part_ubevel[FRAME_PARTS];
-    ASFlagType   part_sbevel[FRAME_PARTS];
-    ASFlagType   set_part_align ;
-    ASFlagType   part_align[FRAME_PARTS];
-    ASFlagType   set_title_attr ;
+	ASFlagType   part_fbevel[FRAME_PARTS];
+	ASFlagType   part_ubevel[FRAME_PARTS];
+	ASFlagType   part_sbevel[FRAME_PARTS];
+	ASFlagType   set_part_align ;
+	ASFlagType   part_align[FRAME_PARTS];
+	ASFlagType   set_title_attr ;
 	
 	ASGeometry   part_slicing[FRAME_SIDES];
 	
@@ -241,15 +241,15 @@ typedef struct MyFrame
 #define MYFRAME_TitleHSpacingSet     (0x01<<27)
 #define MYFRAME_TitleVSpacingSet     (0x01<<28)
 
-    ASFlagType   title_fbevel, title_ubevel, title_sbevel;
-    unsigned int title_fcm, title_ucm, title_scm ;
-    int 		 title_fhue, title_uhue, title_shue; 
+	ASFlagType   title_fbevel, title_ubevel, title_sbevel;
+	unsigned int title_fcm, title_ucm, title_scm ;
+	int 		 title_fhue, title_uhue, title_shue; 
 	unsigned int title_fsat, title_usat, title_ssat;
 	ASFlagType   title_align, title_backs_align[MYFRAME_TITLE_BACKS];
 	ASGeometry   title_backs_slicing[MYFRAME_TITLE_BACKS];
 	ASFlagType   left_btn_align, right_btn_align ;
 
-    ASFlagType   condense_titlebar ;
+	ASFlagType   condense_titlebar ;
 
 #define MYFRAME_HOR_MASK    ((0x01<<FR_N)|(0x01<<FR_S))
 #define MYFRAME_VERT_MASK   ((0x01<<FR_W)|(0x01<<FR_E))
@@ -257,7 +257,7 @@ typedef struct MyFrame
 #define IsFrameCorner(p)   ((p)>=FRAME_SIDES)
 #define IsFramePart(f,p)   (get_flags((f)->parts_mask,0x01<<(p))&&((f)->parts[(p)] || (((f)->part_width[(p)] || p >= FRAME_SIDES) && (f)->part_length[(p)])))
 
-    int title_h_spacing, title_v_spacing ;
+	int title_h_spacing, title_v_spacing ;
 
 	unsigned long left_layout, right_layout ;
 
@@ -279,97 +279,97 @@ extern int    _as_frame_corner_xref[FRAME_SIDES+1];
 /**********************************************************************/
 typedef struct MyLook
 {
-    unsigned long magic;
-    /* The following two things are mostly used by ASRenderer : */
-    char         *name;         /* filename of the look */
-    int           ref_count ;   /* number of times referenced */
-    /* Actuall Look data : */
-    unsigned long flags;
-    /* the rest of the stuff is related to windows.
-        Window gets values when its first initialized, and then we have
-        to go and update it whenever we move it from one desk to another.
-    */
-    unsigned short look_id;
-    unsigned short deskback_id_base ;
+	unsigned long magic;
+	/* The following two things are mostly used by ASRenderer : */
+	char         *name;         /* filename of the look */
+	int           ref_count ;   /* number of times referenced */
+	/* Actuall Look data : */
+	unsigned long flags;
+	/* the rest of the stuff is related to windows.
+		Window gets values when its first initialized, and then we have
+		to go and update it whenever we move it from one desk to another.
+	*/
+	unsigned short look_id;
+	unsigned short deskback_id_base ;
 
-    /* update mystyle_fix_styles() and InitLook() if you add a style */
-    struct ASHashTable *styles_list;  /* hash of MyStyles by name */
-    struct ASHashTable *backs_list;   /* hash of MyBackgrounds   by name */
-    struct ASHashTable *desk_configs; /* hash of MyDesktopConfig by desk number */
+	/* update mystyle_fix_styles() and InitLook() if you add a style */
+	struct ASHashTable *styles_list;  /* hash of MyStyles by name */
+	struct ASHashTable *backs_list;   /* hash of MyBackgrounds   by name */
+	struct ASHashTable *desk_configs; /* hash of MyDesktopConfig by desk number */
 
-    unsigned int    KillBackgroundThreshold ; /* if WIDTHxHEIGHT of the background image is greater then this value, then
-                                               * image will be destroyed when there are no windows on the desktop and desktop
-                                               * is switched */
+	unsigned int    KillBackgroundThreshold ; /* if WIDTHxHEIGHT of the background image is greater then this value, then
+											   * image will be destroyed when there are no windows on the desktop and desktop
+											   * is switched */
 
-    struct MyStyle *MSMenu[MENU_BACK_STYLES]; /* menu MyStyles */
+	struct MyStyle *MSMenu[MENU_BACK_STYLES]; /* menu MyStyles */
 
-    /* focussed, unfocussed, sticky window styles */
-    struct MyStyle *MSWindow[BACK_STYLES];
+	/* focussed, unfocussed, sticky window styles */
+	struct MyStyle *MSWindow[BACK_STYLES];
 
-    ASGeometry resize_move_geometry;  /* position of the size window */
+	ASGeometry resize_move_geometry;  /* position of the size window */
 
-    char *DefaultIcon;      /* Icon to use when no other icons are found */
+	char *DefaultIcon;      /* Icon to use when no other icons are found */
 
-    struct icon_t *MenuArrow;
+	struct icon_t *MenuArrow;
 
 	char *CursorFore, *CursorBack ;
 
-    /* here buttons are mentioned in the same order they are in look and feel file */
-    MyButton     buttons[TITLE_BUTTONS];
-    /* thes is compiled set of pointers to above buttons : */
-    unsigned int button_xref[TITLE_BUTTONS];   /* translates button numbering in look and feel into indexes in array */
-    MyButton    *ordered_buttons[TITLE_BUTTONS];
+	/* here buttons are mentioned in the same order they are in look and feel file */
+	MyButton     buttons[TITLE_BUTTONS];
+	/* thes is compiled set of pointers to above buttons : */
+	unsigned int button_xref[TITLE_BUTTONS];   /* translates button numbering in look and feel into indexes in array */
+	MyButton    *ordered_buttons[TITLE_BUTTONS];
 #define DEFAULT_FIRST_RIGHT_BUTTON  5
-    unsigned int button_first_right ;          /* index of pointer to the first right button in the above array */
+	unsigned int button_first_right ;          /* index of pointer to the first right button in the above array */
 
 
-    /* Menu parameters */
+	/* Menu parameters */
 #define DRAW_MENU_BORDERS_NONE          0
 #define DRAW_MENU_BORDERS_ITEM          1
 #define DRAW_MENU_BORDERS_OVERALL       2
 #define DRAW_MENU_BORDERS_FOCUSED_ITEM  3
 #define DRAW_MENU_BORDERS_O_AND_F       4
 
-    int DrawMenuBorders;
-    int StartMenuSortMode;
-    int menu_hcm, menu_icm, menu_scm;                    /* composition methods */
+	int DrawMenuBorders;
+	int StartMenuSortMode;
+	int menu_hcm, menu_icm, menu_scm;                    /* composition methods */
 
-    /* Icons parameters */
-    ASGeometry *configured_icon_areas ;
+	/* Icons parameters */
+	ASGeometry *configured_icon_areas ;
 	unsigned int configured_icon_areas_num ;
-    unsigned int ButtonWidth, ButtonHeight;
-    unsigned int ButtonIconSpacing;
+	unsigned int ButtonWidth, ButtonHeight;
+	unsigned int ButtonIconSpacing;
 	ASFlagType   ButtonAlign, ButtonBevel;
 
 	unsigned int minipixmap_width, minipixmap_height ;
 
-    /* misc stuff */
-    int RubberBand;
+	/* misc stuff */
+	int RubberBand;
 
-    /* these affect window placement : */
-    /* None of it should be used by placement related functions from this
-        structure - they should consult copies of it stored in ASWindow
-        structure.
-    */
-    int TitleButtonStyle;     /* 0 - afterstep, 1 - WM old, 2 - free hand */
+	/* these affect window placement : */
+	/* None of it should be used by placement related functions from this
+		structure - they should consult copies of it stored in ASWindow
+		structure.
+	*/
+	int TitleButtonStyle;     /* 0 - afterstep, 1 - WM old, 2 - free hand */
 	/* array of two elements cos we allow different values for buttons
 	 * on the right and on the left :*/
-    int TitleButtonSpacing[2];
-    int TitleButtonXOffset[2];
-    int TitleButtonYOffset[2];
+	int TitleButtonSpacing[2];
+	int TitleButtonXOffset[2];
+	int TitleButtonYOffset[2];
 
 /* title bar text alignment  */
 #define JUSTIFY_CENTER 0
 #define JUSTIFY_LEFT   1
 #define JUSTIFY_RIGHT  2
-    int TitleTextAlign;       /* alignment of title bar text */
+	int TitleTextAlign;       /* alignment of title bar text */
 
-    struct ASSupportedHints *supported_hints;
+	struct ASSupportedHints *supported_hints;
 
-    struct ASHashTable *FramesList ;/* hash table of named MyFrames */
+	struct ASHashTable *FramesList ;/* hash table of named MyFrames */
 	char *DefaultFrameName;
 
-    struct ASBalloonLook *balloon_look ;
+	struct ASBalloonLook *balloon_look ;
 
 	ARGB32	desktop_animation_tint ;
 

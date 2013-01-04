@@ -39,30 +39,30 @@ struct ASHintWindow;
 struct ASWindow;
 typedef struct ASInternalWindow
 {
-    ASMagic  *data;                             /* internal data structure */
-    struct ASWindow *owner;
+	ASMagic  *data;                             /* internal data structure */
+	struct ASWindow *owner;
 
-    /* adds all the subwindows to window->ASWindow xref */
-    void (*register_subwindows)( struct ASInternalWindow *asiw );
+	/* adds all the subwindows to window->ASWindow xref */
+	void (*register_subwindows)( struct ASInternalWindow *asiw );
 
-    void (*on_moveresize)( struct ASInternalWindow *asiw, Window w );
-    /* fwindow looses/gains focus : */
-    void (*on_hilite_changed)( struct ASInternalWindow *asiw, ASMagic *data, Bool focused );
-    /* ButtonPress/Release event on one of the contexts : */
-    void (*on_pressure_changed)( struct ASInternalWindow *asiw, int pressed_context );
-    /* Mouse wheel scrolling event : */
-    void (*on_scroll_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
-    /* Motion notify : */
-    void (*on_pointer_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
-    /* KeyPress/Release : */
-    void (*on_keyboard_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
+	void (*on_moveresize)( struct ASInternalWindow *asiw, Window w );
+	/* fwindow looses/gains focus : */
+	void (*on_hilite_changed)( struct ASInternalWindow *asiw, ASMagic *data, Bool focused );
+	/* ButtonPress/Release event on one of the contexts : */
+	void (*on_pressure_changed)( struct ASInternalWindow *asiw, int pressed_context );
+	/* Mouse wheel scrolling event : */
+	void (*on_scroll_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
+	/* Motion notify : */
+	void (*on_pointer_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
+	/* KeyPress/Release : */
+	void (*on_keyboard_event)( struct ASInternalWindow *asiw, struct ASEvent *event );
 
-    /* reconfiguration : */
-    void (*on_look_feel_changed)( struct ASInternalWindow *asiw, struct ASFeel *feel, struct MyLook *look, ASFlagType what );
-    void (*on_root_background_changed)( struct ASInternalWindow *asiw );
+	/* reconfiguration : */
+	void (*on_look_feel_changed)( struct ASInternalWindow *asiw, struct ASFeel *feel, struct MyLook *look, ASFlagType what );
+	void (*on_root_background_changed)( struct ASInternalWindow *asiw );
 
-    /* destruction */
-    void (*destroy)( struct ASInternalWindow *asiw );
+	/* destruction */
+	void (*destroy)( struct ASInternalWindow *asiw );
 
 }ASInternalWindow;
 
@@ -71,36 +71,36 @@ typedef struct ASInternalWindow
  */
 typedef struct ASWindow
   {
-    unsigned long magic ;
-    Window           w;     /* the child window */
-    Window           frame; /* the frame window */
+	unsigned long magic ;
+	Window           w;     /* the child window */
+	Window           frame; /* the frame window */
 #define get_window_frame(asw)   (asw->frame)
 
 	struct ASHints       *hints;
 
-    /* Window geometry:
-     *  3 different settings: anchor, status and canvas
-     * 1) anchor reflects anchor point of the client window according
-     *    to its size and gravity and requested position. It is calculated in virtual coordinates
-     *    for non-sticky windows. For example in case of SouthEastGravity anchor.x will be at the
-     *    right edge of the frame, and anchor.y will be at the bottom edge of the frame.
-     * 2) status reflects current size and position of the frame as calculated based upon anchor
-     *    point and frame decorations size. It is always in real screen coordinates.
-     *    status->viewport_x and status->viewport_y reflect viewport position at the time of such
-     *    calculation. Whenever viewport changes - this two must be changed and status recalculated.
-     * 3) canvases reflect window position as reported in last received ConfigureNotify event and
-     *    reflect exact position of window on screen as viewed by user.
-     *
-     * Anchor is needed so we could handle changing size of the frame decorations
-     * status represents desired geometry/state of the window
-     * canvases represent factual geometry/state of the window
-     */
+	/* Window geometry:
+	 *  3 different settings: anchor, status and canvas
+	 * 1) anchor reflects anchor point of the client window according
+	 *    to its size and gravity and requested position. It is calculated in virtual coordinates
+	 *    for non-sticky windows. For example in case of SouthEastGravity anchor.x will be at the
+	 *    right edge of the frame, and anchor.y will be at the bottom edge of the frame.
+	 * 2) status reflects current size and position of the frame as calculated based upon anchor
+	 *    point and frame decorations size. It is always in real screen coordinates.
+	 *    status->viewport_x and status->viewport_y reflect viewport position at the time of such
+	 *    calculation. Whenever viewport changes - this two must be changed and status recalculated.
+	 * 3) canvases reflect window position as reported in last received ConfigureNotify event and
+	 *    reflect exact position of window on screen as viewed by user.
+	 *
+	 * Anchor is needed so we could handle changing size of the frame decorations
+	 * status represents desired geometry/state of the window
+	 * canvases represent factual geometry/state of the window
+	 */
 	struct ASStatusHints *status;
-    XRectangle            anchor ;
-    XRectangle            saved_anchor; /* status prior to maximization */
+	XRectangle            anchor ;
+	XRectangle            saved_anchor; /* status prior to maximization */
 
-    struct ASWindow      *transient_owner,  *group_lead ;
-    struct ASVector      *transients,       *group_members ;
+	struct ASWindow      *transient_owner,  *group_lead ;
+	struct ASVector      *transients,       *group_members ;
 
 
 #define ASWIN_NAME(t)       ((t)->hints->names[0])
@@ -130,49 +130,49 @@ typedef struct ASWindow
 	/* window frame decoration consists of :
 	  Top level window
 		  4 canvases - one for each side :
-		  	  Top or left canvas contains titlebar+ adjusen frame side+corners if any
+			  Top or left canvas contains titlebar+ adjusen frame side+corners if any
 			  Bottom or right canvas contains sidebar which is the same as south frame side with corners
 			  Remaining two canvasses contain east and west frame sides only ( if any );
 		  Canvasses surround main window and its sizes are actually the frame size.
 	 */
 
-    struct ASCanvas   *frame_canvas ;
-    struct ASCanvas   *client_canvas ;
-    struct ASCanvas   *frame_sides[FRAME_SIDES] ;
-    struct ASCanvas   *icon_canvas ;
+	struct ASCanvas   *frame_canvas ;
+	struct ASCanvas   *client_canvas ;
+	struct ASCanvas   *frame_sides[FRAME_SIDES] ;
+	struct ASCanvas   *icon_canvas ;
 	struct ASCanvas   *icon_title_canvas ; /* same as icon_canvas if !SeparateButtonTitle */
 
-    struct MyFrame    *frame_data;  /* currently selected frame decorations for this window */
+	struct MyFrame    *frame_data;  /* currently selected frame decorations for this window */
 
-    struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
-    struct ASTBarData *tbar ;                    /* same as frame_bars[FRAME_PARTS] for convinience */
-    struct ASTBarData *icon_button ;
+	struct ASTBarData *frame_bars[FRAME_PARTS] ; /* regular sidebar is the same as frame with S, SE and SW parts */
+	struct ASTBarData *tbar ;                    /* same as frame_bars[FRAME_PARTS] for convinience */
+	struct ASTBarData *icon_button ;
 	struct ASTBarData *icon_title ;
 
-    int      shading_steps;
+	int      shading_steps;
 
-    ASInternalWindow *internal ;               /* optional related data structure,
-                                                * such as ASMenu or something else */
+	ASInternalWindow *internal ;               /* optional related data structure,
+												* such as ASMenu or something else */
 
-    enum {
+	enum {
 #define ASWT_FROM_WITHDRAWN (0x01<<0)
 #define ASWT_TO_ICONIC      (0x01<<1)
 #define ASWT_FROM_ICONIC    (0x01<<2)
 #define ASWT_TO_WITHDRAWN   (0x01<<3)
 
-        ASWT_StableState = 0,
-        ASWT_Withdrawn2Normal = ASWT_FROM_WITHDRAWN,
-        ASWT_Withdrawn2Iconic = ASWT_FROM_WITHDRAWN|ASWT_TO_ICONIC,
-        ASWT_Normal2Iconic    = ASWT_TO_ICONIC,
-        ASWT_Iconic2Normal    = ASWT_FROM_ICONIC,
-        ASWT_Normal2Withdrawn = ASWT_TO_WITHDRAWN,
+		ASWT_StableState = 0,
+		ASWT_Withdrawn2Normal = ASWT_FROM_WITHDRAWN,
+		ASWT_Withdrawn2Iconic = ASWT_FROM_WITHDRAWN|ASWT_TO_ICONIC,
+		ASWT_Normal2Iconic    = ASWT_TO_ICONIC,
+		ASWT_Iconic2Normal    = ASWT_FROM_ICONIC,
+		ASWT_Normal2Withdrawn = ASWT_TO_WITHDRAWN,
 		ASWT_Iconic2Withdrawn = ASWT_FROM_ICONIC|ASWT_TO_WITHDRAWN,
 		/* window may be unmapped/destroyed even prior to being withdrawn */
-        ASWT_Withdrawn2Withdrawn = ASWT_FROM_WITHDRAWN|ASWT_TO_WITHDRAWN
-    }wm_state_transition ;
+		ASWT_Withdrawn2Withdrawn = ASWT_FROM_WITHDRAWN|ASWT_TO_WITHDRAWN
+	}wm_state_transition ;
 
-    Time    last_restack_time ;
-    int DeIconifyDesk;  /* Desk to deiconify to, for StubbornIcons */
+	Time    last_restack_time ;
+	int DeIconifyDesk;  /* Desk to deiconify to, for StubbornIcons */
 
 	int     maximize_ratio_x, maximize_ratio_y ;
 
@@ -185,70 +185,70 @@ typedef struct ASWindow
   
   /* we use that to avoid excessive refreshes when property is updated with exact same contents */
 	XWMHints 	saved_wm_hints ; 
-  	XSizeHints 	saved_wm_normal_hints;
+	XSizeHints 	saved_wm_normal_hints;
 }ASWindow;
 
 typedef struct ASLayer
 {
-    int          layer ;
-    Window       w ;
-    struct ASVector    *members ;          /* vector of ASDesktopElems */
+	int          layer ;
+	Window       w ;
+	struct ASVector    *members ;          /* vector of ASDesktopElems */
 }ASLayer;
 
 typedef struct ASWindowList
 {
-    struct ASBiDirList *clients ;
-    struct ASHashTable *aswindow_xref;         /* xreference of window/resource IDs to ASWindow structures */
-    struct ASHashTable *layers ;               /* list of ASLayer structures from above hashed by layer num */
-    struct ASHashTable *bookmarks ;            /* list of windows with bookmark names assignet to them */
+	struct ASBiDirList *clients ;
+	struct ASHashTable *aswindow_xref;         /* xreference of window/resource IDs to ASWindow structures */
+	struct ASHashTable *layers ;               /* list of ASLayer structures from above hashed by layer num */
+	struct ASHashTable *bookmarks ;            /* list of windows with bookmark names assignet to them */
 
-    /* lists of pointers to the ASWindow structures */
-    struct ASVector    *circulate_list ;
-    struct ASVector    *sticky_list ;
+	/* lists of pointers to the ASWindow structures */
+	struct ASVector    *circulate_list ;
+	struct ASVector    *sticky_list ;
 
-    ASWindow *root ;         /* root window - special purpose ASWindow struct to
-                              * enable root window handling same way as any other window */
+	ASWindow *root ;         /* root window - special purpose ASWindow struct to
+							  * enable root window handling same way as any other window */
 
-    /* warping/circulation pointers : */
-    int       warp_curr_index;              /* last warped to window */
-    int       warp_init_dir;                /* initial warping direction */
-    int       warp_curr_dir, warp_user_dir; /* current warping direction
-                                             * - internal direction maybe different from
-                                             *  user direction in YOYO mode */
+	/* warping/circulation pointers : */
+	int       warp_curr_index;              /* last warped to window */
+	int       warp_init_dir;                /* initial warping direction */
+	int       warp_curr_dir, warp_user_dir; /* current warping direction
+											 * - internal direction maybe different from
+											 *  user direction in YOYO mode */
 
-    /* focus pointers : */
-    ASWindow *active;        /* currently active client
-                              *     - may not have focus during housekeeping operations
-                              *     - may be different from hilited/ungrabbed if we changed active
-                              *       client during house keeping operation */
-    ASWindow *focused;       /* currently focused client. Will be NULL during housekeeping */
-    /* needed for proper AutoRaise implementation : */
-    time_t last_focus_change_sec;
-    time_t last_focus_change_usec;
+	/* focus pointers : */
+	ASWindow *active;        /* currently active client
+							  *     - may not have focus during housekeeping operations
+							  *     - may be different from hilited/ungrabbed if we changed active
+							  *       client during house keeping operation */
+	ASWindow *focused;       /* currently focused client. Will be NULL during housekeeping */
+	/* needed for proper AutoRaise implementation : */
+	time_t last_focus_change_sec;
+	time_t last_focus_change_usec;
 
-    ASWindow *ungrabbed;     /* client that has no grab on mouse events */
-    ASWindow *hilited;       /* client who's frame decorations has been hilited
-                              * to show that it is focused. May not be same as focused/ungrabbed
-                              * right after focus is handed over and before FocusIn event */
-    ASWindow *previous_active;        /* last active client */
-    ASWindow *pressed;       /* the client wich has one of its frame parts pressed at the moment */
-    /* Focus management is somewhat tricky.
-     * Firstly, we have to track pointer movements to see when mouse enters the window
-     *          so we can switch focus to that window. ( or mouse clicked in the window
-     *          where ClickToFocus is requested ). To Accomplish that we grab mouse
-     *          events on all the windows but currently focused.
-     * Secondly we need to hilite currently active window with frame decorations, when window
-     *          gets focus. So right after focus is forced on window and before FocusIn event
-     *          we'll have : (focused == ungrabbed) != hilited
-     * Thirdly, we may need to steal focus for our own needs while we perform housekeeping
-     *          like desk switching, etc. ( GrabEm/UngrabEm ) In such situation window
-     *          remains hilited, but has no focus, and has no pointer event grabs.
-     *          (focused == NULL) != (ungrabbed == hilited)
-     * Fourthsly, When housekeeping is completed we want to give the focus back to it, but
-     *          in some situations housekeeping operations will make us give the focus to
-     *          some other window. To do that we substitute focused pointer to new window
-     *          right before UngrabEm. In this case focused != ( ungrabbed == hilited )
-     */
+	ASWindow *ungrabbed;     /* client that has no grab on mouse events */
+	ASWindow *hilited;       /* client who's frame decorations has been hilited
+							  * to show that it is focused. May not be same as focused/ungrabbed
+							  * right after focus is handed over and before FocusIn event */
+	ASWindow *previous_active;        /* last active client */
+	ASWindow *pressed;       /* the client wich has one of its frame parts pressed at the moment */
+	/* Focus management is somewhat tricky.
+	 * Firstly, we have to track pointer movements to see when mouse enters the window
+	 *          so we can switch focus to that window. ( or mouse clicked in the window
+	 *          where ClickToFocus is requested ). To Accomplish that we grab mouse
+	 *          events on all the windows but currently focused.
+	 * Secondly we need to hilite currently active window with frame decorations, when window
+	 *          gets focus. So right after focus is forced on window and before FocusIn event
+	 *          we'll have : (focused == ungrabbed) != hilited
+	 * Thirdly, we may need to steal focus for our own needs while we perform housekeeping
+	 *          like desk switching, etc. ( GrabEm/UngrabEm ) In such situation window
+	 *          remains hilited, but has no focus, and has no pointer event grabs.
+	 *          (focused == NULL) != (ungrabbed == hilited)
+	 * Fourthsly, When housekeeping is completed we want to give the focus back to it, but
+	 *          in some situations housekeeping operations will make us give the focus to
+	 *          some other window. To do that we substitute focused pointer to new window
+	 *          right before UngrabEm. In this case focused != ( ungrabbed == hilited )
+	 */
 
 	ASVector	*stacking_order ; 		/* array of pointers to ASWindow structures */
 	
@@ -266,24 +266,24 @@ typedef struct ASWindowList
 
 typedef struct ASOrientation
 {
-    unsigned int frame_contexts[FRAME_PARTS];
-    unsigned int frame_rotation[FRAME_PARTS];
-    unsigned int tbar2canvas_xref[FRAME_PARTS+1];
-    unsigned int tbar_side;
-    unsigned int tbar_corners[2];
-    unsigned int tbar_mirror_corners[2];               /* see note below */
-    unsigned int sbar_side;
-    unsigned int sbar_corners[2];
-    unsigned int sbar_mirror_corners[2];               /* see note below */
-    unsigned int left_side, right_side;
-    unsigned int left_mirror_side, right_mirror_side;  /* see note below */
-    unsigned long horz_side_mask;
-    int left_btn_order, right_btn_order;
-    int *in_x, *in_y;
-    unsigned int *in_width, *in_height;
-    int *out_x, *out_y;
-    unsigned int *out_width, *out_height;
-    int flip;
+	unsigned int frame_contexts[FRAME_PARTS];
+	unsigned int frame_rotation[FRAME_PARTS];
+	unsigned int tbar2canvas_xref[FRAME_PARTS+1];
+	unsigned int tbar_side;
+	unsigned int tbar_corners[2];
+	unsigned int tbar_mirror_corners[2];               /* see note below */
+	unsigned int sbar_side;
+	unsigned int sbar_corners[2];
+	unsigned int sbar_mirror_corners[2];               /* see note below */
+	unsigned int left_side, right_side;
+	unsigned int left_mirror_side, right_mirror_side;  /* see note below */
+	unsigned long horz_side_mask;
+	int left_btn_order, right_btn_order;
+	int *in_x, *in_y;
+	unsigned int *in_width, *in_height;
+	int *out_x, *out_y;
+	unsigned int *out_width, *out_height;
+	int flip;
 #define ASO_TBAR_ELEM_LBTN      	   	MYFRAME_TITLE_BACK_LBTN
 #define ASO_TBAR_ELEM_LSPACER		   	MYFRAME_TITLE_BACK_LSPACER
 #define ASO_TBAR_ELEM_LTITLE_SPACER    	MYFRAME_TITLE_BACK_LTITLE_SPACER
@@ -292,10 +292,10 @@ typedef struct ASOrientation
 #define ASO_TBAR_ELEM_RSPACER			MYFRAME_TITLE_BACK_RSPACER
 #define ASO_TBAR_ELEM_RBTN      		MYFRAME_TITLE_BACK_RBTN
 #define ASO_TBAR_ELEM_NUM       		MYFRAME_TITLE_BACKS
-    unsigned int default_tbar_elem_col[ASO_TBAR_ELEM_NUM];
-    unsigned int default_tbar_elem_row[ASO_TBAR_ELEM_NUM];
-    ASFlagType left_spacer_needed_align ;
-    ASFlagType right_spacer_needed_align ;
+	unsigned int default_tbar_elem_col[ASO_TBAR_ELEM_NUM];
+	unsigned int default_tbar_elem_row[ASO_TBAR_ELEM_NUM];
+	ASFlagType left_spacer_needed_align ;
+	ASFlagType right_spacer_needed_align ;
 }ASOrientation;
 
 
@@ -495,8 +495,8 @@ void SelectDecor (ASWindow *);
 void check_aswindow_shaped( ASWindow *asw );
 ASWindow *AddWindow (Window w, Bool from_map_request);
 ASWindow *AddInternalWindow (Window w,
-                             ASInternalWindow **pinternal,
-                             struct ASHints **phints, struct ASStatusHints *status);
+							 ASInternalWindow **pinternal,
+							 struct ASHints **phints, struct ASStatusHints *status);
 void Destroy (ASWindow *, Bool);
 void RestoreWithdrawnLocation (ASWindow *, Bool);
 void SetShape (ASWindow *, int);
@@ -652,8 +652,8 @@ void ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2);
 inline void ungrab_window_buttons( Window w );
 inline void ungrab_window_keys (Window w );
 void MyXGrabButton ( unsigned button, unsigned modifiers,
-                Window grab_window, Bool owner_events, unsigned event_mask,
-                int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor);
+				Window grab_window, Bool owner_events, unsigned event_mask,
+				int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor);
 void MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window);
 void grab_window_buttons (Window w, ASFlagType context_mask);
 void grab_window_keys (Window w, ASFlagType context_mask);
@@ -672,7 +672,7 @@ void SendVector (int channel, send_data_type msg_type, ASVector *vector);
 void SendPacket ( int channel, send_data_type msg_type, send_data_type num_datum, ...);
 void SendConfig (int module, send_data_type event_type, ASWindow * t);
 void SendString ( int channel, send_data_type msg_type,
-             Window w, Window frame, ASWindow *asw_ptr,
+			 Window w, Window frame, ASWindow *asw_ptr,
 			 char *string, send_data_type encoding );
 void SendStackingOrder (int channel, send_data_type msg_type, send_data_type desk, ASVector *ids);
 /* simplified specialized interface to above functions : */
@@ -711,7 +711,7 @@ void MoveOutline( struct MoveResizeData * pdata );
  * move when cursor reaches edge of the screen. :*/
 void MoveViewport (int newx, int newy, Bool grab);
 void HandlePaging (int HorWarpSize, int VertWarpSize, int *xl,
-                   int *yt, int *delta_x, int *delta_y, Bool Grab, struct ASEvent *event);
+				   int *yt, int *delta_x, int *delta_y, Bool Grab, struct ASEvent *event);
 void ChangeDesks (int new_desk);
 void ChangeDeskAndViewport ( int new_desk, int new_vx, int new_vy, Bool force_grab);
 MyBackground *get_desk_back_or_default( int desk, Bool old_desk );

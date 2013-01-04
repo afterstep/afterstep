@@ -20,9 +20,6 @@
 #define LOCAL_DEBUG
 #include "../configure.h"
 
-#include "../include/afterbase.h"
-#include "../libAfterImage/afterimage.h"
-#include "../libAfterImage/asvisual.h"
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/screen.h"
 #include "../libAfterStep/session.h"
@@ -31,6 +28,8 @@
 #include "../libAfterStep/mystyle.h"
 #include "../libAfterStep/session.h"
 #include "../libAfterConf/afterconf.h"
+#include "../libAfterImage/afterimage.h"
+#include "../libAfterImage/asvisual.h"
 
 #include <unistd.h>		   
 

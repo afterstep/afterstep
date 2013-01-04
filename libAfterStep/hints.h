@@ -137,7 +137,7 @@ struct ASImage;
 #define AS_LayerHighest          AS_LayerMenu
 
 #define ASHINTS_STATIC_DATA 	 28     /* number of elements below that are not */
-                                        /* dynamic arrays */
+										/* dynamic arrays */
 
 typedef struct ASHints
 {
@@ -177,7 +177,7 @@ typedef struct ASHints
   int base_width, base_height ;
   int gravity ;
   unsigned int border_width ; /* this is border width that will be used
-                               * in the frame decoration  - not to confuse with border width
+							   * in the frame decoration  - not to confuse with border width
 							   * of the initial withdrawn-to-normal transition  */
   unsigned int handle_width ;
   Window group_lead ;
@@ -212,22 +212,22 @@ ASHints;
 #define AS_HintChangeEverything ASFLAGS_EVERYTHING
 
 #define ASSTATUSHINTS_STATIC_DATA 11    /* number of elements below that are not */
-                                        /* dynamic arrays */
+										/* dynamic arrays */
 
 typedef struct ASStatusHints
 {
-    ASFlagType   flags ;
+	ASFlagType   flags ;
 
-    int             x, y;
-    unsigned int    width, height;
-    unsigned int    border_width ; /* this border width is needed only to calculate
-								    * reference point when we are starting up */
-    int    			viewport_x, viewport_y;
-    int             desktop ;
+	int             x, y;
+	unsigned int    width, height;
+	unsigned int    border_width ; /* this border width is needed only to calculate
+									* reference point when we are starting up */
+	int    			viewport_x, viewport_y;
+	int             desktop ;
 	int 			layer ;
 
-    /* get's set by window manager - not read from hints: */
-    Window          icon_window;
+	/* get's set by window manager - not read from hints: */
+	Window          icon_window;
 	unsigned int    frame_size[FRAME_SIDES];   /* size of the frame decoration */
 
 	unsigned int 	frame_border_width ;
@@ -240,14 +240,14 @@ typedef struct ASStatusHints
 typedef void (*hints_merge_func)(ASHints* clean, struct ASRawHints *raw,
 								 struct ASDatabaseRecord *db_rec,
 								 ASStatusHints *status,
-                                 ASFlagType what);  /* see HINT_ flags above */
+								 ASFlagType what);  /* see HINT_ flags above */
 
 typedef struct ASSupportedHints
 {
-    ASFlagType hints_flags ;  /* 0x1<<type */
+	ASFlagType hints_flags ;  /* 0x1<<type */
 	HintsTypes 	  hints_types[HINTS_Supported];
-    hints_merge_func merge_funcs[HINTS_Supported];
-    int 		  hints_num ;
+	hints_merge_func merge_funcs[HINTS_Supported];
+	int 		  hints_num ;
 }ASSupportedHints;
 
 
@@ -266,7 +266,7 @@ typedef struct ASSupportedHints
 
 unsigned char get_hint_name_encoding( ASHints *hints, int name_idx );
 ASHints *merge_hints( struct ASRawHints *raw, struct ASDatabase *db, ASStatusHints *status,
-                      ASSupportedHints *list, ASFlagType what, ASHints* reusable_memory, Window client );
+					  ASSupportedHints *list, ASFlagType what, ASHints* reusable_memory, Window client );
 void merge_asdb_hints (ASHints * clean, struct ASRawHints * raw, struct ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what);
 
 void check_motif_hints_sanity (struct MwmHints * motif_hints);
@@ -280,7 +280,7 @@ Bool update_protocols( struct ScreenInfo *scr, Window w, ASSupportedHints *list,
 Bool update_colormaps( struct ScreenInfo *scr, Window w, ASSupportedHints *list, CARD32 **pcmap_windows );
 Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHints *status );
 Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list,
-                                    struct ASDatabase * db, ASHints *hints, ASStatusHints *status );
+									struct ASDatabase * db, ASHints *hints, ASStatusHints *status );
 void update_cmd_line_hints (Window w, Atom property, 
 					   ASHints * hints, ASStatusHints * status);
 
@@ -293,7 +293,7 @@ Bool compare_names( ASHints *old, ASHints *hints );
 ASFlagType compare_hints( ASHints *old, ASHints *hints );
 ASFlagType function2mask( int function );
 void constrain_size ( ASHints *hints, ASStatusHints *status,
-                 	  int max_width, int max_height );
+					  int max_width, int max_height );
 void get_gravity_offsets (ASHints *hints, int *xp, int *yp);
 int translate_asgeometry( struct ScreenInfo *scr, ASGeometry *asg, int *px, int *py, unsigned int *pwidth, unsigned int *pheight );
 void real2virtual (ASStatusHints *status, int *x, int *y, int vx, int vy );

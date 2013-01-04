@@ -214,7 +214,7 @@ FrameSide;
 #define C_SIDEBAR           (C_FrameS|C_FrameSW|C_FrameSE)
 #define C_VERTICAL_SIDEBAR  (C_FrameW|C_FrameNW|C_FrameSW)
 #define C_FRAME             (C_FrameN|C_FrameE|C_FrameS|C_FrameW| \
-                             C_FrameNW|C_FrameNE|C_FrameSW|C_FrameSE)
+							 C_FrameNW|C_FrameNE|C_FrameSW|C_FrameSE)
 #define C_FrameStart    (C_FrameN)
 #define C_FrameEnd      (C_FrameSE)
 
@@ -236,7 +236,7 @@ FrameSide;
 #define C_TButton8      (0x01<<21)
 #define C_TButton9      (0x01<<22)
 #define C_TButtonAll    (C_TButton0|C_TButton1|C_TButton2|C_TButton3|C_TButton4| \
-                         C_TButton5|C_TButton6|C_TButton7|C_TButton8|C_TButton9)
+						 C_TButton5|C_TButton6|C_TButton7|C_TButton8|C_TButton9)
 #define C_ALL           (C_WINDOW|C_TITLE|C_ICON|C_ROOT|C_FRAME|C_SIDEBAR|C_TButtonAll)
 
 #define TITLE_BUTTONS       10
@@ -320,10 +320,10 @@ typedef struct ASCursor
 
 typedef struct fr_pos
   {
-    int x;
-    int y;
-    int w;
-    int h;
+	int x;
+	int y;
+	int w;
+	int h;
   }
 fr_pos;
 
@@ -337,19 +337,19 @@ struct ASTBarData;
 									 EnterWindowMask 	| \
 									 FocusChangeMask 	| \
 									 LeaveWindowMask 	| \
-                                     PropertyChangeMask | \
+									 PropertyChangeMask | \
 									 StructureNotifyMask )
 
 
 #define AS_FRAME_EVENT_MASK  		(ButtonPressMask 	| \
 									 ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
-                                     FocusChangeMask 	| \
+									 FocusChangeMask 	| \
 									 LeaveWindowMask 	| \
-                                     SubstructureRedirectMask| \
-                                     StructureNotifyMask| \
-								     KeyPressMask 		| \
-                                     PointerMotionMask)  /* needed for proper Balloons operation */
+									 SubstructureRedirectMask| \
+									 StructureNotifyMask| \
+									 KeyPressMask 		| \
+									 PointerMotionMask)  /* needed for proper Balloons operation */
 
 #define AS_CANVAS_EVENT_MASK 		(ButtonPressMask 	| \
 									 ButtonReleaseMask 	| \
@@ -358,37 +358,37 @@ struct ASTBarData;
 									 /*| StructureNotifyMask */ )  /* needed to be able to switch mouse pointers */
 
 #define AS_ICON_TITLE_EVENT_MASK 	(ButtonPressMask 	| \
-                                     ButtonReleaseMask 	| \
+									 ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
 									 FocusChangeMask 	| \
-                                     KeyPressMask       | \
-                                     StructureNotifyMask)
+									 KeyPressMask       | \
+									 StructureNotifyMask)
 
 #define AS_ICON_EVENT_MASK 	 		(ButtonPressMask 	| \
 									 ButtonReleaseMask 	| \
 									 EnterWindowMask 	| \
 									 FocusChangeMask 	| \
-								     KeyPressMask 		| \
-                                     LeaveWindowMask    | \
-                                     StructureNotifyMask)
+									 KeyPressMask 		| \
+									 LeaveWindowMask    | \
+									 StructureNotifyMask)
 
 #define AS_MENU_EVENT_MASK         ( ButtonPressMask    | \
 									 ButtonReleaseMask 	| \
-                                     PointerMotionMask  | \
+									 PointerMotionMask  | \
 									 EnterWindowMask 	| \
-								     KeyPressMask 		| \
-                                     LeaveWindowMask    | \
-                                     StructureNotifyMask)
+									 KeyPressMask 		| \
+									 LeaveWindowMask    | \
+									 StructureNotifyMask)
 
 
 #define AS_ROOT_EVENT_MASK          (LeaveWindowMask | \
-                                     EnterWindowMask | \
-                                     PropertyChangeMask | \
-                                     SubstructureRedirectMask |  \
-                                      /* SubstructureNotifyMask | */\
-                                     KeyPressMask | \
-                                     ButtonPressMask | \
-                                     ButtonReleaseMask )
+									 EnterWindowMask | \
+									 PropertyChangeMask | \
+									 SubstructureRedirectMask |  \
+									  /* SubstructureNotifyMask | */\
+									 KeyPressMask | \
+									 ButtonPressMask | \
+									 ButtonReleaseMask )
 
 #define AS_ICON_MYSTYLE					"ButtonPixmap"
 #define AS_ICON_TITLE_MYSTYLE			"ButtonTitleFocus"

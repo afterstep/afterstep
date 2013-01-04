@@ -120,7 +120,7 @@ freestorage_print(char *myname, SyntaxDef *syntax, FreeStorageElem * storage, in
 		{	
 			if( storage->term->sub_syntax->terminator == '\n' ) 
 				fputc( '\n', stderr );		
- 			freestorage_print(myname, storage->term->sub_syntax, storage->sub, level+1);	
+			freestorage_print(myname, storage->term->sub_syntax, storage->sub, level+1);	
 			sub_terminator = storage->term->sub_syntax->file_terminator ;
 			if( sub_terminator == '\0' ) 
 				sub_terminator = '\n' ;
@@ -488,7 +488,7 @@ args2FreeStorage (FreeStorageElem * pelem, char *data, int data_len)
 		} else
 		{
 			max_argc++;
-            if (get_flags(pelem->term->flags, (TF_INDEXED|TF_DIRECTION_INDEXED)))
+			if (get_flags(pelem->term->flags, (TF_INDEXED|TF_DIRECTION_INDEXED)))
 				max_argc++;
 		}
 
@@ -549,7 +549,7 @@ free_storage2func (FreeStorageElem * stored, int *ppos)
 	pfunc->func = stored->term->id;
 
 	/* setting up reasonable defaults */
-    set_func_val (pfunc, -1, default_func_val(pfunc->func));
+	set_func_val (pfunc, -1, default_func_val(pfunc->func));
 LOCAL_DEBUG_OUT("argv=%p, arc=%d, sub=%p", stored->argv, stored->argc, stored->sub );
 	if (stored->argv == NULL)
 		return pfunc;
@@ -562,10 +562,10 @@ LOCAL_DEBUG_OUT("argv=%p, arc=%d, sub=%p", stored->argv, stored->argc, stored->s
 		if (len > 2)
 		{									   /* we want to strip off those doubleqoutes */
 			pfunc->name = mystrndup (stored->argv[pos] + 1, len - 2);
-            pfunc->hotkey = scan_for_hotkey (pfunc->name);
+			pfunc->hotkey = scan_for_hotkey (pfunc->name);
 		}
-        /* otherwise - empty name, but we should still skip it */
-        ++pos ;
+		/* otherwise - empty name, but we should still skip it */
+		++pos ;
 	}
 	/* now storing the rest of parameters as text */
 	if (pos < stored->argc && stored->argv[pos])
@@ -589,7 +589,7 @@ LOCAL_DEBUG_OUT("argv=%p, arc=%d, sub=%p", stored->argv, stored->argc, stored->s
 	if (pos < stored->argc && stored->argv[pos])
 		parse_func_args (stored->argv[pos], &(pfunc->unit[1]), (int *)&(pfunc->func_val[1]));
 
-    decode_func_units (pfunc);
+	decode_func_units (pfunc);
 
 	*ppos = pos;
 	return pfunc;
@@ -631,7 +631,7 @@ free_storage2quoted_text (FreeStorageElem * stored, int *ppos)
 		ptr = find_doublequotes (ptr);
 	if( ptr == NULL && get_flags( stored->term->flags, TF_QUOTES_OPTIONAL) )
 	{
-	 	result = mystrdup(stored->argv[*ppos]);		
+		result = mystrdup(stored->argv[*ppos]);		
 		(*ppos)++;
 	}else if (ptr)
 	{
@@ -688,7 +688,7 @@ free_storage2geometry (FreeStorageElem * stored, int *ppos, ASGeometry * pgeomet
 		return False;
 	memset( pgeometry, 0x00, sizeof(ASGeometry)) ;
 	parse_geometry ( geom,
-	                &(pgeometry->x), &(pgeometry->y),
+					&(pgeometry->x), &(pgeometry->y),
 					&(pgeometry->width), &(pgeometry->height),
 					&(pgeometry->flags));
 	return True;
@@ -697,14 +697,14 @@ free_storage2geometry (FreeStorageElem * stored, int *ppos, ASGeometry * pgeomet
 ASButton     *
 free_storage2button (FreeStorageElem * stored, int *ppos)
 {
-    register ASButton *pbutton = NULL;
-    register int s ;
-    pbutton = safecalloc( 1, sizeof(ASButton));
+	register ASButton *pbutton = NULL;
+	register int s ;
+	pbutton = safecalloc( 1, sizeof(ASButton));
 	for( s = 0 ; s < ASB_StateCount && *ppos < stored->argc ; ++s )
 	{
-        pbutton->shapes[s] = mystrdup (stored->argv[(*ppos)++]);
+		pbutton->shapes[s] = mystrdup (stored->argv[(*ppos)++]);
 	}
-    return pbutton;
+	return pbutton;
 }
 
 
@@ -718,56 +718,56 @@ typedef struct charkey_xref
 /* The keys must be in lower case! */
 #ifdef C_TITLEBAR
 static charkey_xref as_contexts[] = {
-    {'1', C_TButton1},
-    {'2', C_TButton2},
-    {'3', C_TButton3},
-    {'4', C_TButton4},
-    {'5', C_TButton5},
-    {'6', C_TButton6},
-    {'7', C_TButton7},
-    {'8', C_TButton8},
-    {'9', C_TButton9},
-    {'0', C_TButton0},
-    {'B', C_TITLEBAR},
-    {'C', C_FRAME_N},
-    {'D', C_FRAME_E},
-    {'E', C_FRAME_W},
-    {'G', C_FRAME_NW},
-    {'H', C_FRAME_NE},
-    {'J', C_FRAME_SW},
-    {'I', C_ICON},
-    {'K', C_FRAME_SE},
-    {'N', C_NAME },
-    {'O', C_ICON_NAME },
-    {'P', C_CLASS_NAME },
-    {'Q', C_RES_NAME },
-    {'R', C_ROOT},
-    {'S', C_FRAME_S},
-    {'W', C_WINDOW},
-    {'F', C_FRAME},
-    {'T', C_TITLE},
-    {'A', C_ALL},
+	{'1', C_TButton1},
+	{'2', C_TButton2},
+	{'3', C_TButton3},
+	{'4', C_TButton4},
+	{'5', C_TButton5},
+	{'6', C_TButton6},
+	{'7', C_TButton7},
+	{'8', C_TButton8},
+	{'9', C_TButton9},
+	{'0', C_TButton0},
+	{'B', C_TITLEBAR},
+	{'C', C_FRAME_N},
+	{'D', C_FRAME_E},
+	{'E', C_FRAME_W},
+	{'G', C_FRAME_NW},
+	{'H', C_FRAME_NE},
+	{'J', C_FRAME_SW},
+	{'I', C_ICON},
+	{'K', C_FRAME_SE},
+	{'N', C_NAME },
+	{'O', C_ICON_NAME },
+	{'P', C_CLASS_NAME },
+	{'Q', C_RES_NAME },
+	{'R', C_ROOT},
+	{'S', C_FRAME_S},
+	{'W', C_WINDOW},
+	{'F', C_FRAME},
+	{'T', C_TITLE},
+	{'A', C_ALL},
 	{0, 0}
 };
 #else
 struct charkey_xref as_contexts[] = {
-    {'W', C_WINDOW},
-    {'T', C_TITLE},
-    {'I', C_ICON},
-    {'R', C_ROOT},
-    {'F', C_FRAME},
-    {'S', C_SIDEBAR},
-    {'1', C_TButton1},
-    {'2', C_TButton2},
-    {'3', C_TButton3},
-    {'4', C_TButton4},
-    {'5', C_TButton5},
-    {'6', C_TButton6},
-    {'7', C_TButton7},
-    {'8', C_TButton8},
-    {'9', C_TButton9},
-    {'0', C_TButton0},
-    {'A', C_WINDOW | C_TITLE | C_ICON | C_ROOT | C_FRAME | C_SIDEBAR | C_TButtonAll},
+	{'W', C_WINDOW},
+	{'T', C_TITLE},
+	{'I', C_ICON},
+	{'R', C_ROOT},
+	{'F', C_FRAME},
+	{'S', C_SIDEBAR},
+	{'1', C_TButton1},
+	{'2', C_TButton2},
+	{'3', C_TButton3},
+	{'4', C_TButton4},
+	{'5', C_TButton5},
+	{'6', C_TButton6},
+	{'7', C_TButton7},
+	{'8', C_TButton8},
+	{'9', C_TButton9},
+	{'0', C_TButton0},
+	{'A', C_WINDOW | C_TITLE | C_ICON | C_ROOT | C_FRAME | C_SIDEBAR | C_TButtonAll},
 	{0, 0}
 };
 
@@ -796,15 +796,15 @@ static charkey_xref key_modifiers[] = {
 static void
 string2context (char *string, int *output, charkey_xref *table)
 {
-    register int  i, j;
+	register int  i, j;
 	int          tmp1;
 
 	*output = 0;
-    for (i = 0 ; string[i] ; i++)
+	for (i = 0 ; string[i] ; i++)
 	{
 		/* in some BSD implementations, tolower(c) is not defined
 		 * unless isupper(c) is true */
-        tmp1 = string[i];
+		tmp1 = string[i];
 		if (islower (tmp1))
 			tmp1 = toupper (tmp1);
 		/* end of ugly BSD patch */
@@ -815,7 +815,7 @@ string2context (char *string, int *output, charkey_xref *table)
 				break;
 			}
 		if (table[j].key == 0)
-            show_error("undefined context [%c] requested in [%s].", string[i], string);
+			show_error("undefined context [%c] requested in [%s].", string[i], string);
 	}
 }
 
@@ -839,8 +839,8 @@ parse_context (char *string, int *output, charkey_xref *table)
 		/* in some BSD implementations, tolower(c) is not defined
 		 * unless isupper(c) is true */
 		tmp1 = *ptr;
-        if (islower (tmp1))
-            tmp1 = toupper (tmp1);
+		if (islower (tmp1))
+			tmp1 = toupper (tmp1);
 		/* end of ugly BSD patch */
 		for (j = 0; table[j].key != 0; j++)
 			if (tmp1 == table[j].key)
@@ -850,7 +850,7 @@ parse_context (char *string, int *output, charkey_xref *table)
 			}
 		if (table[j].key == 0)
 		{
-            show_error("undefined context specifyer [%c] encountered in [%s].", *ptr, string);
+			show_error("undefined context specifyer [%c] encountered in [%s].", *ptr, string);
 		}
 	}
 	return ptr;
@@ -859,35 +859,35 @@ parse_context (char *string, int *output, charkey_xref *table)
 int
 parse_modifier( char *tline )
 {
-    int mods = 0;
-    parse_context (tline, &mods, key_modifiers);
-    return mods;
+	int mods = 0;
+	parse_context (tline, &mods, key_modifiers);
+	return mods;
 }
 
 int parse_win_context (char *tline)
 {
-    int ctxs = 0;
-    parse_context (tline, &ctxs, as_contexts);
+	int ctxs = 0;
+	parse_context (tline, &ctxs, as_contexts);
 	LOCAL_DEBUG_OUT( "tline = \"%s\", ctxs = %X", tline, ctxs ); 
-    return ctxs;
+	return ctxs;
 }
 
 char *parse_modifier_str( char *tline, int *mods_ret )
 {
-    int mods = 0;
+	int mods = 0;
 	LOCAL_DEBUG_OUT( "tline = \"%s\"", tline ); 
-    tline = parse_context (tline, &mods, key_modifiers);
+	tline = parse_context (tline, &mods, key_modifiers);
 	LOCAL_DEBUG_OUT( "tline = \"%s\", mods = %X", tline, mods ); 
 	*mods_ret = mods;
-    return tline;
+	return tline;
 }
 
 char *parse_win_context_str (char *tline, int *ctxs_ret)
 {
-    int ctxs = 0;
+	int ctxs = 0;
 	LOCAL_DEBUG_OUT( "tline = \"%s\"", tline ); 
-    tline = parse_context (tline, &ctxs, as_contexts);
-    *ctxs_ret = ctxs ;
+	tline = parse_context (tline, &ctxs, as_contexts);
+	*ctxs_ret = ctxs ;
 	LOCAL_DEBUG_OUT( "tline = \"%s\", ctxs = %X", tline, ctxs ); 
 	return tline;
 }
@@ -895,98 +895,98 @@ char *parse_win_context_str (char *tline, int *ctxs_ret)
 static void
 context2string (char *string, int input, charkey_xref *table, Bool terminate)
 {
-    register int  i, j = 0;
+	register int  i, j = 0;
 
-    i = 0 ;
-    if( input != 0 || !terminate )
+	i = 0 ;
+	if( input != 0 || !terminate )
 		for (j = 0; table[j].key != 'A'; j++)
-            if( input & table[j].value )
-                string[i++] = table[j].key ;
+			if( input & table[j].value )
+				string[i++] = table[j].key ;
 	if( terminate )
-    {
-        while ( string[i] != '\0' && !isspace((int)string[i])) i++;
-	    string[i] = '\0' ;
-    }else
-	    string[j] = '\0' ;
+	{
+		while ( string[i] != '\0' && !isspace((int)string[i])) i++;
+		string[i] = '\0' ;
+	}else
+		string[j] = '\0' ;
 }
 
 char     *
 free_storage2binding (FreeStorageElem * stored, int *ppos, int *context, int *mods )
 {
-    char *sym = NULL ;
-    if (*ppos < stored->argc)
-        sym = mystrdup (stored->argv[(*ppos)++]);
-    if( sym )
-    {
-        if (*ppos < stored->argc && context )
-            string2context( stored->argv[(*ppos)++], context, as_contexts );
-        if (*ppos < stored->argc && mods )
-            string2context( stored->argv[(*ppos)++], mods, key_modifiers );
-    }
-    return sym;
+	char *sym = NULL ;
+	if (*ppos < stored->argc)
+		sym = mystrdup (stored->argv[(*ppos)++]);
+	if( sym )
+	{
+		if (*ppos < stored->argc && context )
+			string2context( stored->argv[(*ppos)++], context, as_contexts );
+		if (*ppos < stored->argc && mods )
+			string2context( stored->argv[(*ppos)++], mods, key_modifiers );
+	}
+	return sym;
 }
 
 ASCursor     *
 free_storage2cursor (FreeStorageElem * stored, int *ppos)
 {
-    register ASCursor *pcursor = safecalloc( 1, sizeof(ASCursor));
+	register ASCursor *pcursor = safecalloc( 1, sizeof(ASCursor));
 
 	if (*ppos < stored->argc)
-        pcursor->image_file = mystrdup (stored->argv[(*ppos)++]);
+		pcursor->image_file = mystrdup (stored->argv[(*ppos)++]);
 	if (*ppos < stored->argc)
-        pcursor->mask_file = mystrdup (stored->argv[(*ppos)++]);
-    return pcursor;
+		pcursor->mask_file = mystrdup (stored->argv[(*ppos)++]);
+	return pcursor;
 }
 
 long
 free_storage2bitlist (FreeStorageElem * stored, int *ppos )
 {
-    long bits = 0 ;
-    int  bit_num ;
-    Bool valid ;
-    register int i ;
-    register char *ptr ;
+	long bits = 0 ;
+	int  bit_num ;
+	Bool valid ;
+	register int i ;
+	register char *ptr ;
 
-    if( *ppos == stored->argc )                 /* by default - everything is set */
-        return 0xFFFFFFFF;
+	if( *ppos == stored->argc )                 /* by default - everything is set */
+		return 0xFFFFFFFF;
 
-    for( i = *ppos; i < stored->argc ; i++ )
-    {
-        ptr = stored->argv[i] ;
-        while ( *ptr )
-        {
-            while( *ptr && !isdigit((int)*ptr)) ptr++ ;
-            bit_num = 0 ;
-            valid = False ;
-            while( *ptr && isdigit((int)*ptr))
-            {
-                valid = True ;
-                bit_num = bit_num*10+((*ptr)-'0');
-                ptr++ ;
-            }
-            if( valid && bit_num < sizeof(long)*8 )
-                bits |= (0x01<<bit_num) ;
-        }
-    }
+	for( i = *ppos; i < stored->argc ; i++ )
+	{
+		ptr = stored->argv[i] ;
+		while ( *ptr )
+		{
+			while( *ptr && !isdigit((int)*ptr)) ptr++ ;
+			bit_num = 0 ;
+			valid = False ;
+			while( *ptr && isdigit((int)*ptr))
+			{
+				valid = True ;
+				bit_num = bit_num*10+((*ptr)-'0');
+				ptr++ ;
+			}
+			if( valid && bit_num < sizeof(long)*8 )
+				bits |= (0x01<<bit_num) ;
+		}
+	}
 
-    return bits;
+	return bits;
 }
 
 #ifndef ASCURSOR_H_HEADER_INCLUDED
 void
 destroy_ascursor (ASCursor ** cursor)
 {
-    if (cursor)
-        if (*cursor)
+	if (cursor)
+		if (*cursor)
 		{
 			register ASCursor *c = *cursor ;
 
-            if (c->image_file)
-                free (c->image_file);
-            if (c->mask_file)
-                free (c->mask_file);
-            free (*cursor);
-            *cursor = NULL;
+			if (c->image_file)
+				free (c->image_file);
+			if (c->mask_file)
+				free (c->mask_file);
+			free (*cursor);
+			*cursor = NULL;
 		}
 }
 
@@ -996,22 +996,22 @@ FreeConfigItem (ConfigItem * item)
 {
 	switch (item->type)
 	{
-     case TT_INTARRAY:
-         item->data.int_array.array = NULL;
+	 case TT_INTARRAY:
+		 item->data.int_array.array = NULL;
 		 item->data.int_array.size = 0;
-     case TT_BINDING :
-         item->data.binding.sym = NULL ;
-     case TT_COLOR:
+	 case TT_BINDING :
+		 item->data.binding.sym = NULL ;
+	 case TT_COLOR:
 	 case TT_FONT:
 	 case TT_FILENAME:
 	 case TT_TEXT:
 	 case TT_PATHNAME:
-     case TT_QUOTED_TEXT:
-     case TT_OPTIONAL_PATHNAME:
-         item->data.string = NULL;
-         if( item->memory )
-            free (item->memory);
-         break;
+	 case TT_QUOTED_TEXT:
+	 case TT_OPTIONAL_PATHNAME:
+		 item->data.string = NULL;
+		 if( item->memory )
+			free (item->memory);
+		 break;
 
 	 case TT_FUNCTION:
 		 free_func_data (item->data.function);
@@ -1024,10 +1024,10 @@ FreeConfigItem (ConfigItem * item)
 		 destroy_asbutton (item->data.button, False);
 #endif
 		 break;
-     case TT_CURSOR:
-         destroy_ascursor (&(item->data.cursor));
+	 case TT_CURSOR:
+		 destroy_ascursor (&(item->data.cursor));
 		 break;
-    }
+	}
 	item->memory = NULL;
 }
 
@@ -1046,47 +1046,47 @@ int
 direction2index(const char *ptr)	
 {
 	int index = 0;             
-    /* custom code to parse frame sides very fast :*/
+	/* custom code to parse frame sides very fast :*/
 
 	if( ptr[0] == 'W' || ptr[0] == 'w' )
-        index = FR_W ;
-    else if( ptr[0] == 'E' || ptr[0] == 'e' )
-        index = FR_E ;
-    else if( ptr[0] == 'N' || ptr[0] == 'n' )
-    {
-        if( ptr[1] == 'W' || ptr[1] == 'w' )
-            index = FR_NW ;
-        else if( ptr[1] == 'E' || ptr[1] == 'e' )
-            index = FR_NE ;
-        else 
-        {
-            register int i = 0;
-            while( i < 5 && ptr[i] != '\0' ) ++i;
-            if( ptr[i] == 'W' || ptr[i] == 'w' )
-                index = FR_NW ;
-            else if( ptr[i] == 'E' || ptr[i] == 'e' )
-                index = FR_NE ;
-            else
-                index = FR_N ;
-        }
-    }else if( ptr[0] == 'S' || ptr[0] == 's' )
-    {
-        if( ptr[1] == 'W' || ptr[1] == 'w' )
-            index = FR_SW ;
-        else if( ptr[1] == 'E' || ptr[1] == 'e' )
-            index = FR_SE ;
-        else
-        {
-            register int i = 0;
-            while( i < 5 && ptr[i] != '\0' ) ++i;
-            if( ptr[i] == 'W' || ptr[i] == 'w' )
-                index = FR_SW ;
-            else if( ptr[i] == 'E' || ptr[i] == 'e' )
-                index = FR_SE ;
-            else
-                index = FR_S ;
-        }
-    }
+		index = FR_W ;
+	else if( ptr[0] == 'E' || ptr[0] == 'e' )
+		index = FR_E ;
+	else if( ptr[0] == 'N' || ptr[0] == 'n' )
+	{
+		if( ptr[1] == 'W' || ptr[1] == 'w' )
+			index = FR_NW ;
+		else if( ptr[1] == 'E' || ptr[1] == 'e' )
+			index = FR_NE ;
+		else 
+		{
+			register int i = 0;
+			while( i < 5 && ptr[i] != '\0' ) ++i;
+			if( ptr[i] == 'W' || ptr[i] == 'w' )
+				index = FR_NW ;
+			else if( ptr[i] == 'E' || ptr[i] == 'e' )
+				index = FR_NE ;
+			else
+				index = FR_N ;
+		}
+	}else if( ptr[0] == 'S' || ptr[0] == 's' )
+	{
+		if( ptr[1] == 'W' || ptr[1] == 'w' )
+			index = FR_SW ;
+		else if( ptr[1] == 'E' || ptr[1] == 'e' )
+			index = FR_SE ;
+		else
+		{
+			register int i = 0;
+			while( i < 5 && ptr[i] != '\0' ) ++i;
+			if( ptr[i] == 'W' || ptr[i] == 'w' )
+				index = FR_SW ;
+			else if( ptr[i] == 'E' || ptr[i] == 'e' )
+				index = FR_SE ;
+			else
+				index = FR_S ;
+		}
+	}
 	return index;
 }
 
@@ -1110,17 +1110,17 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 			ret_code = 1;
 		}
 
-        if (get_flags(stored->term->flags, TF_INDEXED))
+		if (get_flags(stored->term->flags, TF_INDEXED))
 		{
 			if (!check_avail_args (stored, pos, 1))
 				return ret_code;
 			item->index = atoi (stored->argv[pos++]);
-        }else if (get_flags(stored->term->flags, TF_DIRECTION_INDEXED))
-        {
+		}else if (get_flags(stored->term->flags, TF_DIRECTION_INDEXED))
+		{
 			if (!check_avail_args (stored, pos, 1))
 				return ret_code;
-            item->index = direction2index(stored->argv[pos++]);
-        }
+			item->index = direction2index(stored->argv[pos++]);
+		}
 		switch (item->type)
 		{
 		 case TT_FLAG:
@@ -1138,27 +1138,27 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 
 
 			 }else
-			 	item->data.integer = atol (stored->argv[pos]);
+				item->data.integer = atol (stored->argv[pos]);
 #endif
 			 item->data.integer = parse_math(stored->argv[pos], NULL, 0);
 			 ++pos ;
 			 if (stored->term->type == TT_UINTEGER && item->data.integer < 0)
 			 {
 				 show_warning("negative value %ld assigned to %s, that accepts only positive numbers! Ignoring!\n",
-						    item->data.integer, stored->term->keyword);
+							item->data.integer, stored->term->keyword);
 				 return 0;
 			 }
 			 break;
-	         case TT_BITLIST :
-           		  item->data.integer = free_storage2bitlist(stored,&pos);
-		          break;
-         case TT_OPTIONAL_PATHNAME:
-             if (!check_avail_args (stored, pos, 1))
-             {
-                item->data.string = NULL;
-                return 1;
-             }
-         case TT_COLOR:
+			 case TT_BITLIST :
+				  item->data.integer = free_storage2bitlist(stored,&pos);
+				  break;
+		 case TT_OPTIONAL_PATHNAME:
+			 if (!check_avail_args (stored, pos, 1))
+			 {
+				item->data.string = NULL;
+				return 1;
+			 }
+		 case TT_COLOR:
 		 case TT_FONT:
 		 case TT_FILENAME:
 		 case TT_TEXT:
@@ -1172,9 +1172,9 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 			 {
 				 item->memory = safemalloc (strlen (stored->argv[pos]) + 1);
 				 item->data.string = (char *)(item->memory);
-                 strcpy (item->data.string, stored->argv[pos]);
+				 strcpy (item->data.string, stored->argv[pos]);
 			 }
-             ++pos;
+			 ++pos;
 			 break;
 		 case TT_QUOTED_TEXT:
 			 if (!check_avail_args (stored, pos, 1))
@@ -1208,17 +1208,17 @@ ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 				 item->data.int_array.array = free_storage2int_array (stored, &pos);
 				 item->data.int_array.size = pos - item->data.int_array.size;
 				 item->memory = (void *)item->data.int_array.array;
-                 break;
+				 break;
 			 }
-         case TT_BINDING :
-             item->data.binding.sym = free_storage2binding (stored, &pos, &(item->data.binding.context), &(item->data.binding.mods));
-             item->memory = (void *)item->data.binding.sym;
-             break;
-         case TT_CURSOR:
-             item->data.cursor = free_storage2cursor (stored, &pos);
-             item->memory = (void *)item->data.cursor;
+		 case TT_BINDING :
+			 item->data.binding.sym = free_storage2binding (stored, &pos, &(item->data.binding.context), &(item->data.binding.mods));
+			 item->memory = (void *)item->data.binding.sym;
 			 break;
-        }
+		 case TT_CURSOR:
+			 item->data.cursor = free_storage2cursor (stored, &pos);
+			 item->memory = (void *)item->data.cursor;
+			 break;
+		}
 		return 1;
 	}
 	return 0;
@@ -1268,7 +1268,7 @@ ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorag
 		if( !ReadConfigItem( &item, stored ) )
 			return False ;
 
-        if (get_flags(stored->term->flags, TF_INDEXED))
+		if (get_flags(stored->term->flags, TF_INDEXED))
 			index =	item.index ;
 	
 		handled = True;
@@ -1278,29 +1278,29 @@ ReadConfigItemToStruct( void *struct_ptr, ptrdiff_t set_flags_offset, FreeStorag
 		 case TT_FLAG: 		((Bool*) data_ptr)[index] = item.data.flag;		 break;
 		 case TT_INTEGER:	((int*)  data_ptr)[index] = item.data.integer;	 break;
 		 case TT_UINTEGER:	((unsigned int*)  data_ptr)[index] = item.data.integer;	 break;
-         case TT_BITLIST :	((int*)  data_ptr)[index] = item.data.integer;	 break;
-         case TT_OPTIONAL_PATHNAME:
-         case TT_COLOR:
+		 case TT_BITLIST :	((int*)  data_ptr)[index] = item.data.integer;	 break;
+		 case TT_OPTIONAL_PATHNAME:
+		 case TT_COLOR:
 		 case TT_FONT:
 		 case TT_FILENAME:
 		 case TT_TEXT:
 		 case TT_PATHNAME:
 		 case TT_QUOTED_TEXT:
-						 	set_string(&(((char**)data_ptr)[index]), item.data.string);	 item.memory = NULL ; break;
+							set_string(&(((char**)data_ptr)[index]), item.data.string);	 item.memory = NULL ; break;
 		 case TT_BOX:		((ASBox*)  data_ptr)[index] = item.data.box;	 break;
 		 case TT_GEOMETRY:	((ASGeometry*)  data_ptr)[index] = item.data.geometry;	 break;
 		 case TT_FUNCTION:  ((FunctionData**)data_ptr)[index] = item.data.function; item.memory = NULL ; break;
 		 case TT_BUTTON:	((ASButton**)data_ptr)[index] = item.data.button; item.memory = NULL; break;
-         case TT_CURSOR: 	((ASCursor**)data_ptr)[index] = item.data.cursor; item.memory = NULL ; break;
+		 case TT_CURSOR: 	((ASCursor**)data_ptr)[index] = item.data.cursor; item.memory = NULL ; break;
 
 		 case TT_INTARRAY:	
-         case TT_BINDING :	
-		 		handled = False ; 
-		 		break;
+		 case TT_BINDING :	
+				handled = False ; 
+				break;
 
-		 	default : 
+			default : 
 				handled = False ;
-        }
+		}
 		ReadConfigItem(&item, NULL);
 	}
 /* fprintf( stderr, "handled = %d, set_flags_offset = %d, field_offset = %d\n", handled, set_flags_offset, stored->term->struct_field_offset); */
@@ -1322,7 +1322,7 @@ ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * 
 	{
 		Bool          value = True;
 
-        if (stored->term->type != TT_FLAG || 
+		if (stored->term->type != TT_FLAG || 
 			get_flags (stored->term->flags, (TF_INDEXED|TF_DIRECTION_INDEXED)) ||
 			stored->sub != NULL )
 			return 0;
@@ -1332,22 +1332,22 @@ ReadFlagItem (unsigned long *set_flags, unsigned long *flags, FreeStorageElem * 
 
 		while (xref->flag != 0)
 		{
-            if (xref->id_on == stored->term->id || xref->id_off == stored->term->id )
-            {
-                if (set_flags)
-                    set_flags (*set_flags, xref->flag);
-                if (flags)
-                {
-                    if ((value && xref->id_on == stored->term->id) ||
-                        (!value && xref->id_off == stored->term->id))
-                        set_flags (*flags, xref->flag);
-                    else
-                        clear_flags (*flags, xref->flag);
-                }
-            }
+			if (xref->id_on == stored->term->id || xref->id_off == stored->term->id )
+			{
+				if (set_flags)
+					set_flags (*set_flags, xref->flag);
+				if (flags)
+				{
+					if ((value && xref->id_on == stored->term->id) ||
+						(!value && xref->id_off == stored->term->id))
+						set_flags (*flags, xref->flag);
+					else
+						clear_flags (*flags, xref->flag);
+				}
+			}
 			xref++;
 		}
-        return 1;
+		return 1;
 	}
 	return 0;
 }
@@ -1359,7 +1359,7 @@ ReadFlagItemAuto (void *config_struct, ptrdiff_t default_set_flags_offset, FreeS
 	{
 		Bool          value = True;
 
-        if (stored->term->type != TT_FLAG || 
+		if (stored->term->type != TT_FLAG || 
 			get_flags (stored->term->flags, (TF_INDEXED|TF_DIRECTION_INDEXED)) ||
 			stored->sub != NULL )
 			return 0;
@@ -1369,26 +1369,26 @@ ReadFlagItemAuto (void *config_struct, ptrdiff_t default_set_flags_offset, FreeS
 
 		while (xref->flag != 0)
 		{
-            if (xref->id_on == stored->term->id || xref->id_off == stored->term->id )
-            {
+			if (xref->id_on == stored->term->id || xref->id_off == stored->term->id )
+			{
 				unsigned long *flags = (xref->flag_field_offset>0)?config_struct+xref->flag_field_offset:NULL;
 				unsigned long *set_flags  = (xref->set_flag_field_offset>0)?config_struct+xref->set_flag_field_offset:
 											(default_set_flags_offset>0)?config_struct+default_set_flags_offset:NULL ;
-                
+				
 				if (set_flags)
-                    set_flags (*set_flags, xref->flag);
-                if (flags)
-                {
-                    if ((value && xref->id_on == stored->term->id) ||
-                        (!value && xref->id_off == stored->term->id))
-                        set_flags (*flags, xref->flag);
-                    else
-                        clear_flags (*flags, xref->flag);
-                }
-            }
+					set_flags (*set_flags, xref->flag);
+				if (flags)
+				{
+					if ((value && xref->id_on == stored->term->id) ||
+						(!value && xref->id_off == stored->term->id))
+						set_flags (*flags, xref->flag);
+					else
+						clear_flags (*flags, xref->flag);
+				}
+			}
 			xref++;
 		}
-        return 1;
+		return 1;
 	}
 	return 0;
 }
@@ -1553,7 +1553,7 @@ FreeStorageElem **
 ASButton2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int index, ASButton * b, int id)
 {
 #if 0
-    TermDef      *pterm = FindTerm (syntax, TT_ANY, id);
+	TermDef      *pterm = FindTerm (syntax, TT_ANY, id);
 	char         *list[ASB_StateCount+1];
 	char         *string;
 	char         *ind_str;
@@ -1563,7 +1563,7 @@ ASButton2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int index, AS
 		int i ;
 
 		for( i =0; i < ASB_StateCount ; ++i )
-            list[i] = b->shapes[i]? b->shapes[i]: _as_nothing_ ;
+			list[i] = b->shapes[i]? b->shapes[i]: _as_nothing_ ;
 		list[i] = NULL ;
 
 		ind_str = string_from_int (index);
@@ -1661,13 +1661,13 @@ Box2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASBox * box, int i
 FreeStorageElem **
 Binding2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char *sym, int context, int mods, int id)
 {
-    char         *strings[3];
-    char         context_string[sizeof(int)*8+1+1] ;
-    char         mods_string[sizeof(int)*8+1+1] ;
+	char         *strings[3];
+	char         context_string[sizeof(int)*8+1+1] ;
+	char         mods_string[sizeof(int)*8+1+1] ;
 
-    if (sym)
+	if (sym)
 	{
-        strings[0] = sym;
+		strings[0] = sym;
 		memset( context_string, ' ', sizeof(int)*8+1 );
 		context_string[sizeof(int)*8+1] = '\0' ;
 		memset( mods_string, ' ', sizeof(int)*8+1 );
@@ -1677,7 +1677,7 @@ Binding2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char *sym, int
 			context_string[0] ='A' ;
 			context = 0 ;
 		}
-        context2string( &(context_string[0]), context, as_contexts, True );
+		context2string( &(context_string[0]), context, as_contexts, True );
 
 		strings[1] = &(context_string[0]);
 		if( mods == 0 )
@@ -1688,11 +1688,11 @@ Binding2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, char *sym, int
 			mods_string[0] ='A' ;
 			mods = 0 ;
 		}
-        context2string( &(mods_string[0]), mods, key_modifiers, True );
-        strings[2] = &(mods_string[0]);
+		context2string( &(mods_string[0]), mods, key_modifiers, True );
+		strings[2] = &(mods_string[0]);
 
-        tail = Strings2FreeStorage (syntax, tail, strings, 3, id);
-    }
+		tail = Strings2FreeStorage (syntax, tail, strings, 3, id);
+	}
 	return tail;
 }
 
@@ -1702,24 +1702,24 @@ ASCursor2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, int index, AS
 	TermDef      *pterm = FindTerm (syntax, TT_ANY, id);
 	char         *ind_str;
 
-    if (pterm && c)
+	if (pterm && c)
 	{
-        if( c->image_file == NULL || c->mask_file == NULL)
-            return tail;
+		if( c->image_file == NULL || c->mask_file == NULL)
+			return tail;
 
-        ind_str = string_from_int (index);
+		ind_str = string_from_int (index);
 
-        if (ind_str != NULL)
+		if (ind_str != NULL)
 		{
 			FreeStorageElem *new_elem = NULL;
 			if ((new_elem = AddFreeStorageElem (syntax, tail, pterm, id, ind_str, 
 												c->image_file, c->mask_file, NULL)) != NULL)
 			{
-                tail = &(new_elem->next);
+				tail = &(new_elem->next);
 			}
-            free (ind_str);
-        }
-    }
+			free (ind_str);
+		}
+	}
 	return tail;
 }
 
@@ -1727,15 +1727,15 @@ FreeStorageElem **
 Bitlist2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, long bits, int id)
 {
 	/* TODO */
-    return NULL;
+	return NULL;
 }
 
 void
 init_asgeometry (ASGeometry * geometry)
 {
 	geometry->flags = XValue | YValue;
-    geometry->x = geometry->y = 0;
-    geometry->width = geometry->height = 1;
+	geometry->x = geometry->y = 0;
+	geometry->width = geometry->height = 1;
 }
 
 FreeStorageElem * 
@@ -1798,7 +1798,7 @@ StructFlags2FreeStorage (void *struct_ptr, ptrdiff_t default_set_flags_offset, S
 	if (handled_return)
 		*handled_return = handled;
 		
-    return storage;
+	return storage;
 }
 
 FreeStorageElem *
@@ -1820,7 +1820,7 @@ StructToFreeStorage( void *struct_ptr, ptrdiff_t set_flags_offset, SyntaxDef *sy
 		char *val_str = NULL;
 
 		if (T->struct_field_offset == 0 
-		    || get_flags(T->flags, TF_INDEXED)
+			|| get_flags(T->flags, TF_INDEXED)
 			|| !get_flags(set_flags, T->flags_on)
 			|| get_flags(set_flags, T->flags_off))
 			continue;
@@ -1842,33 +1842,33 @@ StructToFreeStorage( void *struct_ptr, ptrdiff_t set_flags_offset, SyntaxDef *sy
 		 case TT_FLAG: 		val_str = string_from_int(*((Bool*) data_ptr)?1:0);		break;
 		 case TT_INTEGER:	val_str = string_from_int(*((int*)  data_ptr));	 		break;
 		 case TT_UINTEGER:	val_str = string_from_int(*((unsigned int*)  data_ptr));break;
-         case TT_BITLIST :	val_str = string_from_int(*((int*)  data_ptr));	 		break;
-         case TT_OPTIONAL_PATHNAME:
-         case TT_COLOR:
+		 case TT_BITLIST :	val_str = string_from_int(*((int*)  data_ptr));	 		break;
+		 case TT_OPTIONAL_PATHNAME:
+		 case TT_COLOR:
 		 case TT_FONT:
 		 case TT_FILENAME:
 		 case TT_TEXT:
 		 case TT_PATHNAME:  val_str = mystrdup ( *((char**)data_ptr) ); 	break;
 		 case TT_QUOTED_TEXT:
-		 					val_str = quote_str( *((char**)data_ptr) ); 	break;
+							val_str = quote_str( *((char**)data_ptr) ); 	break;
 		 case TT_BOX:		
-		 					val_str = format_ASBox (((ASBox*)  data_ptr));	break;
+							val_str = format_ASBox (((ASBox*)  data_ptr));	break;
 		 case TT_GEOMETRY:	
-		 		{ 	ASGeometry *g = (ASGeometry*)data_ptr;
+				{ 	ASGeometry *g = (ASGeometry*)data_ptr;
 					val_str = format_geometry (g->x, g->y, g->width, g->height, g->flags);
 				}
 				break;
 		 case TT_FUNCTION:  
-		 					val_str = format_FunctionData( *((FunctionData**)data_ptr)); break;
+							val_str = format_FunctionData( *((FunctionData**)data_ptr)); break;
 		 case TT_BUTTON:	val_str = format_ASButton (*((ASButton**)data_ptr));  break;
-         case TT_CURSOR: 	val_str = format_ASCursor (*((ASCursor**)data_ptr)); break;
+		 case TT_CURSOR: 	val_str = format_ASCursor (*((ASCursor**)data_ptr)); break;
 
 		 case TT_INTARRAY:	
-         case TT_BINDING :	
-		 		break;
+		 case TT_BINDING :	
+				break;
 
-		 	default : ;
-        }
+			default : ;
+		}
 		
 		if (val_str)
 		{

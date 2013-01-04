@@ -49,30 +49,30 @@
 char *_as_config_tags[TT_VALUE_TYPES] = 
 {
 	"unknown",
- 	"flag",
- 	"int",
- 	"uint",
- 	"color",	
- 	"font",
- 	"filename",
- 	"pathname",
- 	"geometry",
- 	"text",
+	"flag",
+	"int",
+	"uint",
+	"color",	
+	"font",
+	"filename",
+	"pathname",
+	"geometry",
+	"text",
 
 	"quoted_text",
- 	"optional_pathname",
- 	"icon_list",
- 	"direction",
- 	"function",
- 	"box",	
- 	"button",
- 	"binding",
- 	"bitlist",
- 	"intarray",
- 	
+	"optional_pathname",
+	"icon_list",
+	"direction",
+	"function",
+	"box",	
+	"button",
+	"binding",
+	"bitlist",
+	"intarray",
+	
 	"cursor",
- 	"comment",
- 	"inline_comment"
+	"comment",
+	"inline_comment"
 };	 
 
 
@@ -156,7 +156,7 @@ statement2xml_elem (ConfigDef * config)
 	item->tag = pterm->keyword[0]?mystrdup(pterm->keyword):mystrdup("item");
 	LOCAL_DEBUG_OUT( "adding storage ... pterm is \"%s\" (%s)", item->tag, get_flags(pterm->flags, TF_NAMED)?"named":"");
 	item->tag_id = pterm->id ;
-    
+	
 	if( get_flags( config->current_flags, CF_FOREIGN_OPTION ) ) 
 	{
 		int token_len ;
@@ -189,7 +189,7 @@ statement2xml_elem (ConfigDef * config)
 			while( isdigit(ptr[i]) ) ++i;
 			if( i > 0 ) 
 			{	
-        		index = mystrndup(ptr, i);
+				index = mystrndup(ptr, i);
 				ptr = tokenskip( ptr, 1 );
 			}
 		}	 
@@ -241,8 +241,8 @@ statement2xml_elem (ConfigDef * config)
 		if(!get_flags(pterm->flags, TF_DONT_REMOVE_COMMENTS) )
 		{
 			ptr = stripcomments2 (ptr, &comments);
-		    /* stripcomments2 modifies original string by 0-terminating 
-		     * it at comments point - kinda nasty */
+			/* stripcomments2 modifies original string by 0-terminating 
+			 * it at comments point - kinda nasty */
 			config->current_data_len = strlen (config->current_data);
 		}
 	}
@@ -259,15 +259,15 @@ statement2xml_elem (ConfigDef * config)
 			{
 				char *token = NULL;
 				ptr = parse_token( ptr, &token );
-		 			  
+					  
 				append_asconfig_value_tag( item, pterm->type, &token );		   
 				--max_tokens;
 			}
 		}
 	}
 	/* otherwise value will be present in child tags */
-    print_trimmed_str( "config->current_data", config->current_data );
-    //LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
+	print_trimmed_str( "config->current_data", config->current_data );
+	//LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
 
 	if( comments ) 
 		append_asconfig_value_tag( item, TT_INLINE_COMMENT, &comments );		

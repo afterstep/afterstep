@@ -30,25 +30,25 @@
 void
 mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 {
-    CARD32 *prop;
+	CARD32 *prop;
 	int           i, nelements;
-    ASHashIterator iterator ;
+	ASHashIterator iterator ;
 
 	nelements = 0;
-    if( !start_hash_iteration( list, &iterator ) ) return ;
+	if( !start_hash_iteration( list, &iterator ) ) return ;
 	do
 	{
 #define MYSTYLE_STATIC_ELEM_NUM (9 + 4 + 2 + 7)
-        nelements += MYSTYLE_STATIC_ELEM_NUM + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
-    }while( next_hash_item(&iterator));
+		nelements += MYSTYLE_STATIC_ELEM_NUM + ((MyStyle*)curr_hash_data(&iterator))->gradient.npoints * 4;
+	}while( next_hash_item(&iterator));
 
 	prop = safemalloc (sizeof (CARD32) * nelements);
 
 	i = 0;
-    start_hash_iteration( list, &iterator );
+	start_hash_iteration( list, &iterator );
 	do
 	{
-        MyStyle *style = (MyStyle*)curr_hash_data(&iterator);
+		MyStyle *style = (MyStyle*)curr_hash_data(&iterator);
 /*    show_warning( "style \"%s\" set_flags = %X", style->name, style->set_flags );
  */
 		prop[i++] = style->set_flags;
@@ -83,21 +83,21 @@ mystyle_list_set_property (ASWMProps *wmprops, ASHashTable *list )
 				prop[i++] = style->gradient.color[k];
 				prop[i++] = style->gradient.color[k];	/* for compatibility with older version */
 				prop[i++] = style->gradient.color[k];	/* for compatibility with older version */
-                LOCAL_DEBUG_OUT ("gradient color at offset %f is %lX", style->gradient.offset[k],
+				LOCAL_DEBUG_OUT ("gradient color at offset %f is %lX", style->gradient.offset[k],
 								 style->gradient.color[k]);
 				prop[i++] = style->gradient.offset[k] * 0x1000000;
 			}
 		}
-    }while( next_hash_item(&iterator));
+	}while( next_hash_item(&iterator));
 	/* set the property version to 1.2 */
-    set_as_style (wmprops, nelements *  sizeof (CARD32), (1 << 8) + 5, prop );
-    free (prop);
+	set_as_style (wmprops, nelements *  sizeof (CARD32), (1 << 8) + 5, prop );
+	free (prop);
 }
 
 void
 mystyle_set_property (ASWMProps *wmprops)
 {
-    mystyle_list_set_property (wmprops,ASDefaultScr->Look.styles_list);
+	mystyle_list_set_property (wmprops,ASDefaultScr->Look.styles_list);
 }
 
 
@@ -108,18 +108,18 @@ mystyle_get_property (ASWMProps *wmprops)
 	size_t        i, n;
 	CARD32 version;
 
-    if ( (prop = wmprops->as_styles_data) == NULL )
+	if ( (prop = wmprops->as_styles_data) == NULL )
 		return;
 	/* do we know how to handle this version? */
-    version = wmprops->as_styles_version ;
-    /* do we know how to handle this version? */
+	version = wmprops->as_styles_version ;
+	/* do we know how to handle this version? */
 	if (version != (1 << 8) + 5)
 	{
-        show_error("style property has unknown version %d.%d", (int)version >> 8, (int)version & 0xff);
+		show_error("style property has unknown version %d.%d", (int)version >> 8, (int)version & 0xff);
 		return;
 	}
 
-    n = wmprops->as_styles_size/sizeof (CARD32);
+	n = wmprops->as_styles_size/sizeof (CARD32);
 	for (i = 0; i < n;)
 	{
 		MyStyle      *style;
@@ -134,17 +134,17 @@ mystyle_get_property (ASWMProps *wmprops)
 
 		/* free up any resources that are already in use */
 		if (style->user_flags & F_FONT)
-            unload_font (&style->font);
+			unload_font (&style->font);
 		if (style->user_flags & F_BACKGRADIENT)
 		{
 			free (style->gradient.color);
 			free (style->gradient.offset);
 		}
-        if (style->back_icon.image)
-        {
-            safe_asimage_destroy (style->back_icon.image);
-            style->back_icon.image = NULL ;
-        }
+		if (style->back_icon.image)
+		{
+			safe_asimage_destroy (style->back_icon.image);
+			style->back_icon.image = NULL ;
+		}
 
 		style->user_flags = 0;
 		style->inherit_flags = flags;
@@ -171,13 +171,13 @@ mystyle_get_property (ASWMProps *wmprops)
 			load_font( name, &(style->font) );
 #endif			
 			XFree (name);
-            style->user_flags |= F_FONT;
-            style->inherit_flags &= ~F_FONT;
+			style->user_flags |= F_FONT;
+			style->inherit_flags &= ~F_FONT;
 #endif
 		}
 		style->colors.fore = prop[i + 4];
 		style->colors.back = prop[i + 5];
-        LOCAL_DEBUG_OUT( "style(%p:\"%s\")->colors(#%lX,#%lX)->flags(0x%lX)->inherit_flags(0x%lX)", style, style->name, style->colors.fore, style->colors.back, flags, style->inherit_flags );
+		LOCAL_DEBUG_OUT( "style(%p:\"%s\")->colors(#%lX,#%lX)->flags(0x%lX)->inherit_flags(0x%lX)", style, style->name, style->colors.fore, style->colors.back, flags, style->inherit_flags );
 		style->relief.fore = prop[i + 6];
 		style->relief.back = prop[i + 7];
 		style->texture_type = prop[i + 8];
@@ -192,9 +192,9 @@ LOCAL_DEBUG_OUT( "style(%p:\"%s\")->slicing( x: %d to %d, y: %d to %d )", style,
 		back_mask = prop[i + 16];
 		style->tint = prop[i + 17];
 		back_alpha = prop[i + 18];
-        set_flags(style->user_flags, F_EXTERNAL_BACKPIX|F_EXTERNAL_BACKMASK);
-        LOCAL_DEBUG_OUT( "overlay props = %lu, 0x%lX", prop[i + 19], prop[i + 20] );
-	    style->overlay_type = prop[i + 19];
+		set_flags(style->user_flags, F_EXTERNAL_BACKPIX|F_EXTERNAL_BACKMASK);
+		LOCAL_DEBUG_OUT( "overlay props = %lu, 0x%lX", prop[i + 19], prop[i + 20] );
+		style->overlay_type = prop[i + 19];
 		if( prop[i + 20] != None ) 
 		{
 			name = XGetAtomName (dpy, prop[i + 20]);
@@ -215,14 +215,14 @@ LOCAL_DEBUG_OUT( "style(%p:\"%s\")->slicing( x: %d to %d, y: %d to %d )", style,
 			style->gradient.offset = NEW_ARRAY (double, style->gradient.npoints);
 
 			for (k = 0; k < style->gradient.npoints; k++)
- 			{
+			{
 				style->gradient.color[k] = prop[i + MYSTYLE_STATIC_ELEM_NUM + k * 4 + 0];
 				/*
 				   style->gradient.color[k].green = prop[i + 16 + k * 4 + 1];
 				   style->gradient.color[k].blue = prop[i + 16 + k * 4 + 2];
 				 */
 				style->gradient.offset[k] = (double)prop[i + MYSTYLE_STATIC_ELEM_NUM+ k * 4 + 3] / 0x1000000;
-                LOCAL_DEBUG_OUT ("gradient color at offset %f is %lX", style->gradient.offset[k],
+				LOCAL_DEBUG_OUT ("gradient color at offset %f is %lX", style->gradient.offset[k],
 								 style->gradient.color[k]);
 			}
 			style->user_flags |= F_BACKGRADIENT;
@@ -231,7 +231,7 @@ LOCAL_DEBUG_OUT( "style(%p:\"%s\")->slicing( x: %d to %d, y: %d to %d )", style,
 		/* if there's a backpixmap, make sure it's valid and get its geometry */
 		if (back_pix != None)
 		{
- 			icon_from_pixmaps( &(style->back_icon), back_pix, back_mask, back_alpha );
+			icon_from_pixmaps( &(style->back_icon), back_pix, back_mask, back_alpha );
 			if( style->back_icon.image != NULL ) 
 				clear_flags (style->inherit_flags, F_BACKPIXMAP|F_BACKTRANSPIXMAP);
 		}
@@ -259,7 +259,7 @@ LOCAL_DEBUG_OUT( "style(%p:\"%s\")->slicing( x: %d to %d, y: %d to %d )", style,
 	}
 
 	/* force update of global gcs */
-    mystyle_fix_styles ();
+	mystyle_fix_styles ();
 }
 
 void 

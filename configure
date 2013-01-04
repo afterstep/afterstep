@@ -1494,7 +1494,7 @@ Optional Features:
   --enable-glx            support for OpenGL extention [yes]
   --enable-staticlibs     enable linking to libafterstep statically [yes]
   --enable-sharedlibs     enable linking to libafterstep dynamically [no]
-  --enable-gdb            add gdb symbols (-g) (for debugging) [no]
+  --enable-gdb            add gdb symbols (-g -w) (for debugging) [no]
   --enable-sigsegv        enable internal handler of Segmentation Fault (for self-diagnostics) [yes]
   --enable-warn           turn on more compiler warnings (for debugging) [no]
   --enable-gprof          add gprof symbols (-pg) (for debugging) [no]
@@ -3939,11 +3939,6 @@ export prefix
 export exec_prefix
 
 
-if test "x$GCC" = "xyes"; then
-  if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
-    CFLAGS="$CFLAGS -Wall"
-  fi
-fi
 
 # Make sure we can run config.sub.
 $SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
@@ -4034,8 +4029,14 @@ if test "x$enable_gdb" = "xyes"; then
   if ! test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
 	CFLAGS="$CFLAGS -g"
   fi
+  if ! test -n "`echo $CFLAGS' ' | grep '\-w ' 2> /dev/null`" ; then
+	CFLAGS="$CFLAGS -w"
+  fi
   if ! test -n "`echo $LDFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
 	LDFLAGS="$LDFLAGS -g"
+  fi
+  if ! test -n "`echo $LDFLAGS' ' | grep '\-w ' 2> /dev/null`" ; then
+	LDFLAGS="$LDFLAGS -w"
   fi
 else
   STRIP_BINARIES="-s"
@@ -4054,7 +4055,7 @@ if test "x$enable_gprof" = "xyes"; then
 fi
 
 if test "x$enable_warn" = "xyes"; then
-  CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls"
+  CFLAGS="$CFLAGS -Wall -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls"
 fi
 
 export CFLAGS

@@ -8,7 +8,10 @@
 		session.h \
 		balloon.h \
 		mystyle.h \
+		mylook.h \
 		wmprops.h \
+		desktop_category.h \
+		../libAfterImage/asimage.h \
 		../libAfterImage/xpm.h \
 		../libAfterImage/char2uni.h
 
@@ -152,7 +155,19 @@
 		screen.h \
 		functions.h \
 		clientprops.h \
-		hints.h
+		hints.h \
+		desktop_category.h \
+		freestor.h \
+		../libAfterImage/afterimage.h
+
+./kde.o : \
+		../configure.h \
+		asapp.h \
+		../libAfterBase/xml.h \
+		afterstep.h \
+		wmprops.h \
+		desktop_category.h \
+		kde.h
 
 ./module.o : \
 		../configure.h \
@@ -252,7 +267,26 @@
 		afterstep.h \
 		parser.h \
 		freestor.h \
-		functions.h
+		functions.h \
+		../libAfterBase/xml.h
+
+./parser_fs.o : \
+		../configure.h \
+		asapp.h \
+		afterstep.h \
+		parser.h \
+		freestor.h \
+		functions.h \
+		../libAfterConf/afterconf.h
+
+./parser_xml.o : \
+		../configure.h \
+		asapp.h \
+		afterstep.h \
+		functions.h \
+		parser.h \
+		../libAfterBase/xml.h \
+		../libAfterConf/afterconf.h
 
 ./screen.o : \
 		../configure.h \

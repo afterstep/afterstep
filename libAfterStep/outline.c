@@ -212,38 +212,38 @@ make_hash_segments (ASOutlineSegment *s, struct MRRectangle *geom, unsigned int 
 int
 make_twm_segments (ASOutlineSegment *s, struct MRRectangle *geom, unsigned int scr_width, unsigned int scr_height)
 {
-       int count = 0 ;
-       /* Outline box : */
-       count += make_rectangle_segments(s, geom->x, geom->y, geom->width, geom->height);
-       /* Inside grid : */
-       if(s) {
-               s = &(s[count]);
-               s[0].y = geom->y + geom->height/3;
-               s[1].y = geom->y + geom->height - geom->height/3;
-               s[1].x = s[0].x = geom->x + 1;
-               s[1].size = s[0].size = geom->width - 1;
-               s[1].vertical = s[0].vertical = False;
+	   int count = 0 ;
+	   /* Outline box : */
+	   count += make_rectangle_segments(s, geom->x, geom->y, geom->width, geom->height);
+	   /* Inside grid : */
+	   if(s) {
+			   s = &(s[count]);
+			   s[0].y = geom->y + geom->height/3;
+			   s[1].y = geom->y + geom->height - geom->height/3;
+			   s[1].x = s[0].x = geom->x + 1;
+			   s[1].size = s[0].size = geom->width - 1;
+			   s[1].vertical = s[0].vertical = False;
 
-               s[2].x = geom->x + geom->width/3;
-               s[3].x = geom->x + geom->width - geom->width/3;
-               s[3].y = s[2].y = geom->y + 1;
-               s[3].size = s[2].size = geom->height - 1;
-               s[3].vertical = s[2].vertical = True;
-       }
-       return count + 4;
+			   s[2].x = geom->x + geom->width/3;
+			   s[3].x = geom->x + geom->width - geom->width/3;
+			   s[3].y = s[2].y = geom->y + 1;
+			   s[3].size = s[2].size = geom->height - 1;
+			   s[3].vertical = s[2].vertical = True;
+	   }
+	   return count + 4;
 }
 
 
 as_outline_handler outline_handlers[MAX_RUBBER_BAND+1] =
 {
-    make_fvwm_segments,         /* 0 is the old default FVWM style look                                */
-    make_box_segments,          /* 1 is a single rectangle the size of the window.                     */
-    make_wmaker_segments,       /* 2 is a WindowMaker style outline, showing the titlebar and handles, if the window has them.*/
-    make_tek_segments,          /* 3 is a cool tech-looking outline.                                   */
-    make_tek2_segments,         /* 4 is another cool tech-looking outline.                             */
-    make_corner_segments,       /* 5 is the corners of the window with a crosshair in the middle.      */
-    make_hash_segments,         /* 6 is lines spanning the whole screen framing the window. (CAD style)*/
-    make_twm_segments           /* 7 is the old twm style look.                                        */
+	make_fvwm_segments,         /* 0 is the old default FVWM style look                                */
+	make_box_segments,          /* 1 is a single rectangle the size of the window.                     */
+	make_wmaker_segments,       /* 2 is a WindowMaker style outline, showing the titlebar and handles, if the window has them.*/
+	make_tek_segments,          /* 3 is a cool tech-looking outline.                                   */
+	make_tek2_segments,         /* 4 is another cool tech-looking outline.                             */
+	make_corner_segments,       /* 5 is the corners of the window with a crosshair in the middle.      */
+	make_hash_segments,         /* 6 is lines spanning the whole screen framing the window. (CAD style)*/
+	make_twm_segments           /* 7 is the old twm style look.                                        */
 };
 
 /***********************************************************************
@@ -257,7 +257,7 @@ make_outline_segments( ASWidget *parent, MyLook *look )
 	XSetWindowAttributes attr;           /* attributes for create */
 	int count = 0, i ;
 	ScreenInfo *scr ;
-    MRRectangle rdum = {0, 0, 10, 10};
+	MRRectangle rdum = {0, 0, 10, 10};
 
 	count = outline_handlers[look->RubberBand%(MAX_RUBBER_BAND+1)](NULL, &rdum, 0, 0 );
 
@@ -265,20 +265,20 @@ LOCAL_DEBUG_OUT( "outline should have %d segments", count );
 	if( count <= 0 )
 		return NULL;
 
-    s = safecalloc( count+1, sizeof(ASOutlineSegment) );
+	s = safecalloc( count+1, sizeof(ASOutlineSegment) );
 	scr = AS_WIDGET_SCREEN(parent);
 	attr.background_pixel 	= scr->asv->black_pixel ;
 	attr.border_pixel 		= scr->asv->white_pixel ;
 	attr.save_under 		= True ;
-    attr.event_mask         = 0;/*ButtonPressMask | ButtonReleaseMask | ButtonMotionMask |
-           PointerMotionMask | EnterWindowMask | LeaveWindowMask; */
+	attr.event_mask         = 0;/*ButtonPressMask | ButtonReleaseMask | ButtonMotionMask |
+		   PointerMotionMask | EnterWindowMask | LeaveWindowMask; */
 	for( i = count-1 ; i >= 0 ; --i )
 	{
 		s[i].w = create_screen_window( AS_WIDGET_SCREEN(parent),
-                                       AS_WIDGET_WINDOW(parent),
+									   AS_WIDGET_WINDOW(parent),
 									   -20, -20, 10, 1, 1,  /* 1 pixel wide border */
-		                               InputOutput,
-                                       (CWBackPixel|CWBorderPixel|CWSaveUnder|CWEventMask), &attr);
+									   InputOutput,
+									   (CWBackPixel|CWBorderPixel|CWSaveUnder|CWEventMask), &attr);
 		XMapRaised( dpy, s[i].w );
 SHOW_CHECKPOINT;
 	}
@@ -291,7 +291,7 @@ move_outline( ASMoveResizeData * data )
 
 	if( data && data->outline )
 	{
-        unsigned int mask = CWStackMode ;
+		unsigned int mask = CWStackMode ;
 		XWindowChanges xwc;
 		register int i ;
 		int rband = data->look->RubberBand%(MAX_RUBBER_BAND+1);
@@ -304,13 +304,13 @@ move_outline( ASMoveResizeData * data )
 		if( (xwc.sibling = data->below_sibling) != None )
 		{
 			mask |= CWSibling ;
-            xwc.stack_mode = Below ;
+			xwc.stack_mode = Below ;
 		}else
 			xwc.stack_mode = Above ;
-        XConfigureWindow( dpy, data->geometry_display->w, mask, &xwc );
-        xwc.sibling = data->geometry_display->w;
-        mask |= CWSibling|CWX|CWY|CWWidth|CWHeight ;
-        xwc.stack_mode = Below ;
+		XConfigureWindow( dpy, data->geometry_display->w, mask, &xwc );
+		xwc.sibling = data->geometry_display->w;
+		mask |= CWSibling|CWX|CWY|CWWidth|CWHeight ;
+		xwc.stack_mode = Below ;
 		for( i = 0 ; i < count ; ++i )
 		{
 			xwc.x = s[i].x;
@@ -319,7 +319,7 @@ move_outline( ASMoveResizeData * data )
 			xwc.height = s[i].vertical? MAX(s[i].size-2,1): 1;
 			XConfigureWindow( dpy, s[i].w, mask, &xwc );
 			xwc.sibling = s[i].w ;
-        }
+		}
 		/* hiding the rest of the frame : */
 		while( s[i].w != None )
 			XMoveResizeWindow( dpy, s[i++].w, -20, -20, -10, -10 );

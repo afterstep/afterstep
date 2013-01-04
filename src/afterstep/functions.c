@@ -109,53 +109,53 @@ void modulelist_func_handler( FunctionData *data, ASEvent *event, int module );
 /* handlers initialization function : */
 void SetupFunctionHandlers()
 {
-    memset( &(function_handlers[0]), 0x00, sizeof( function_handlers ) );
-    function_handlers[F_BEEP] = beep_func_handler ;
+	memset( &(function_handlers[0]), 0x00, sizeof( function_handlers ) );
+	function_handlers[F_BEEP] = beep_func_handler ;
 
-    function_handlers[F_RESIZE] =
+	function_handlers[F_RESIZE] =
 	function_handlers[F_MOVE] = moveresize_func_handler ;
 
 #ifndef NO_VIRTUAL
-    function_handlers[F_SCROLL] = scroll_func_handler ;
-    function_handlers[F_MOVECURSOR] = movecursor_func_handler ;
+	function_handlers[F_SCROLL] = scroll_func_handler ;
+	function_handlers[F_MOVECURSOR] = movecursor_func_handler ;
 #endif
 
-    function_handlers[F_RAISE] =
+	function_handlers[F_RAISE] =
 	function_handlers[F_LOWER] =
 	function_handlers[F_RAISELOWER]     = raiselower_func_handler;
 
-    function_handlers[F_PUTONTOP] =
+	function_handlers[F_PUTONTOP] =
 	function_handlers[F_PUTONBACK] =
 	function_handlers[F_TOGGLELAYER]=
 	function_handlers[F_SETLAYER]       = setlayer_func_handler   ;
 
-    function_handlers[F_CHANGE_WINDOWS_DESK]= change_desk_func_handler;
+	function_handlers[F_CHANGE_WINDOWS_DESK]= change_desk_func_handler;
 
-    function_handlers[F_MAXIMIZE]       =
-    function_handlers[F_FULLSCREEN]     =
+	function_handlers[F_MAXIMIZE]       =
+	function_handlers[F_FULLSCREEN]     =
 	function_handlers[F_SHADE]          =
 	function_handlers[F_STICK]          = toggle_status_func_handler;
 
-    function_handlers[F_ICONIFY]            = iconify_func_handler;
+	function_handlers[F_ICONIFY]            = iconify_func_handler;
 
-    function_handlers[F_FOCUS]              = focus_func_handler;
-    function_handlers[F_CHANGEWINDOW_UP] =
+	function_handlers[F_FOCUS]              = focus_func_handler;
+	function_handlers[F_CHANGEWINDOW_UP] =
 	function_handlers[F_WARP_F] =
 	function_handlers[F_CHANGEWINDOW_DOWN]  =
 	function_handlers[F_WARP_B]         = warp_func_handler ;
 
-    function_handlers[F_PASTE_SELECTION]    = paste_selection_func_handler ;
-    function_handlers[F_GOTO_BOOKMARK]      = goto_bookmark_func_handler ;
-    function_handlers[F_BOOKMARK_WINDOW]    = bookmark_window_func_handler ;
-    function_handlers[F_PIN_MENU]           = pin_menu_func_handler ;
-    function_handlers[F_DESTROY] =
+	function_handlers[F_PASTE_SELECTION]    = paste_selection_func_handler ;
+	function_handlers[F_GOTO_BOOKMARK]      = goto_bookmark_func_handler ;
+	function_handlers[F_BOOKMARK_WINDOW]    = bookmark_window_func_handler ;
+	function_handlers[F_PIN_MENU]           = pin_menu_func_handler ;
+	function_handlers[F_DESTROY] =
 	function_handlers[F_DELETE] =
 	function_handlers[F_CLOSE]          	= close_func_handler ;
-    function_handlers[F_RESTART]            = restart_func_handler ;
+	function_handlers[F_RESTART]            = restart_func_handler ;
 
-    function_handlers[F_DesktopEntry]		= desktop_entry_func_handler;
+	function_handlers[F_DesktopEntry]		= desktop_entry_func_handler;
 
-    function_handlers[F_EXEC] 				=
+	function_handlers[F_EXEC] 				=
 		function_handlers[F_Swallow] 		=
 		function_handlers[F_MaxSwallow] 	= exec_func_handler ;
 
@@ -166,10 +166,10 @@ void SetupFunctionHandlers()
 	function_handlers[F_ExecBrowser]       	= 
 		function_handlers[F_ExecEditor]     = exec_tool_func_handler ;
 
-    function_handlers[F_CHANGE_BACKGROUND]  = change_background_func_handler;
+	function_handlers[F_CHANGE_BACKGROUND]  = change_background_func_handler;
 	function_handlers[F_CHANGE_BACKGROUND_FOREIGN]  = change_back_foreign_func_handler;
 
-    function_handlers[F_CHANGE_LOOK] =
+	function_handlers[F_CHANGE_LOOK] =
 	function_handlers[F_CHANGE_FEEL]    =
 		function_handlers[F_CHANGE_COLORSCHEME] =
 	function_handlers[F_CHANGE_THEME_FILE] = change_config_func_handler ;
@@ -191,36 +191,36 @@ void SetupFunctionHandlers()
 	function_handlers[F_SIGNAL_RELOAD_GTK_RCFILE] = signal_reload_GTKRC_file_handler;
 	function_handlers[F_KIPC_SEND_MESSAGE_ALL] = KIPC_send_message_all_handler;
 
-    function_handlers[F_REFRESH]            = refresh_func_handler ;
+	function_handlers[F_REFRESH]            = refresh_func_handler ;
 #ifndef NO_VIRTUAL
-    function_handlers[F_GOTO_PAGE]          = goto_page_func_handler ;
-    function_handlers[F_TOGGLE_PAGE]        = toggle_page_func_handler ;
+	function_handlers[F_GOTO_PAGE]          = goto_page_func_handler ;
+	function_handlers[F_TOGGLE_PAGE]        = toggle_page_func_handler ;
 #endif
-    function_handlers[F_GETHELP]            = gethelp_func_handler ;
-    function_handlers[F_WAIT]               = wait_func_handler ;
-    function_handlers[F_RAISE_IT]           = raise_it_func_handler ;
-    function_handlers[F_DESK]               = desk_func_handler ;
-    function_handlers[F_GOTO_DESKVIEWPORT]  = deskviewport_func_handler ;
+	function_handlers[F_GETHELP]            = gethelp_func_handler ;
+	function_handlers[F_WAIT]               = wait_func_handler ;
+	function_handlers[F_RAISE_IT]           = raise_it_func_handler ;
+	function_handlers[F_DESK]               = desk_func_handler ;
+	function_handlers[F_GOTO_DESKVIEWPORT]  = deskviewport_func_handler ;
 
-    function_handlers[F_MODULE] =
+	function_handlers[F_MODULE] =
 	function_handlers[F_SwallowModule] =
 	function_handlers[F_MaxSwallowModule]= module_func_handler ;
 
-    function_handlers[F_KILLMODULEBYNAME]   = killmodule_func_handler ;
+	function_handlers[F_KILLMODULEBYNAME]   = killmodule_func_handler ;
 	function_handlers[F_RESTARTMODULEBYNAME]= restartmodule_func_handler ;
 	function_handlers[F_KILLALLMODULESBYNAME] = killallmodules_func_handler ;
-    function_handlers[F_POPUP]              = popup_func_handler ;
-    function_handlers[F_QUIT]               = quit_func_handler ;
+	function_handlers[F_POPUP]              = popup_func_handler ;
+	function_handlers[F_QUIT]               = quit_func_handler ;
 #ifndef NO_WINDOWLIST
-    function_handlers[F_WINDOWLIST]         = windowlist_func_handler ;
+	function_handlers[F_WINDOWLIST]         = windowlist_func_handler ;
 #endif /* ! NO_WINDOWLIST */
 	function_handlers[F_STOPMODULELIST]     = 
 	function_handlers[F_RESTARTMODULELIST]  = modulelist_func_handler ;
 
-    function_handlers[F_QUICKRESTART]       = quickrestart_func_handler ;
-    function_handlers[F_SEND_WINDOW_LIST]   = send_window_list_func_handler ;
-    function_handlers[F_SET]                = set_func_handler ;
-    function_handlers[F_Test]               = test_func_handler ;
+	function_handlers[F_QUICKRESTART]       = quickrestart_func_handler ;
+	function_handlers[F_SEND_WINDOW_LIST]   = send_window_list_func_handler ;
+	function_handlers[F_SET]                = set_func_handler ;
+	function_handlers[F_Test]               = test_func_handler ;
 
 	function_handlers[F_TAKE_WINDOWSHOT]    =
 	function_handlers[F_TAKE_FRAMESHOT]    =
@@ -232,7 +232,7 @@ void SetupFunctionHandlers()
 ComplexFunction *
 get_complex_function( char *name )
 {
-    return find_complex_func( Scr.Feel.ComplexFunctions, name );
+	return find_complex_func( Scr.Feel.ComplexFunctions, name );
 }
 
 /* WE need to implement functions queue, so that ExecuteFunction
@@ -243,13 +243,13 @@ get_complex_function( char *name )
  */
 typedef struct ASScheduledFunction
 {
-    FunctionData fdata ;
-    int module ;
-    ASEvent event ;
-    /* we do not want to keep pointers to data structures here,
-     * since they may change by the time function is run : */
-    Window client ;
-    Window canvas ;
+	FunctionData fdata ;
+	int module ;
+	ASEvent event ;
+	/* we do not want to keep pointers to data structures here,
+	 * since they may change by the time function is run : */
+	Window client ;
+	Window canvas ;
 
 	Bool defered ;
 }ASScheduledFunction;
@@ -258,12 +258,12 @@ ASBiDirList *FunctionQueue = NULL ;
 
 void destroy_scheduled_function_handler( void *data )
 {
-    ASScheduledFunction *sf = data ;
-    if( sf )
-    {
+	ASScheduledFunction *sf = data ;
+	if( sf )
+	{
 	free_func_data (&(sf->fdata));
 	free( sf );
-    }
+	}
 }
 #define destroy_scheduled_function(sf)  destroy_scheduled_function_handler((void*)sf)
 
@@ -282,20 +282,20 @@ ExecuteFunctionExt (FunctionData *data, ASEvent *event, int module, Bool defered
 {
 	ASScheduledFunction *sf = NULL;
 
-    if( data == NULL )
+	if( data == NULL )
 	return ;
-    if( FunctionQueue == NULL )
+	if( FunctionQueue == NULL )
 	FunctionQueue = create_asbidirlist(destroy_scheduled_function_handler);
 
-    sf = safecalloc( 1, sizeof(ASScheduledFunction ) );
-    dup_func_data (&(sf->fdata), data);
-    sf->module = module ;
+	sf = safecalloc( 1, sizeof(ASScheduledFunction ) );
+	dup_func_data (&(sf->fdata), data);
+	sf->module = module ;
 
-    sf->event.event_time = Scr.last_Timestamp ;
-    sf->event.scr = ASDefaultScr ;
+	sf->event.event_time = Scr.last_Timestamp ;
+	sf->event.scr = ASDefaultScr ;
 	sf->defered = defered ;
-    if( event )
-    {
+	if( event )
+	{
 	sf->event.mask              = event->mask           ;
 	sf->event.eclass            = event->eclass         ;
 	sf->event.last_time         = event->last_time      ;
@@ -307,15 +307,15 @@ ExecuteFunctionExt (FunctionData *data, ASEvent *event, int module, Bool defered
 	sf->event.x                 = event->x ;
 		/* may become freed when it comes to running the function - can't keep a pointer ! */
 	if( event->client && event->client->magic == MAGIC_ASWINDOW )
-	    sf->client              = event->client->w ;
+		sf->client              = event->client->w ;
 	if( event->widget )
-	    sf->canvas              = event->widget->w ;
-    }
+		sf->canvas              = event->widget->w ;
+	}
 	/* we may end up deadlocked if we wait for modules who wait for window list : */
 	if( data->func == F_SEND_WINDOW_LIST ) 
 		DoExecuteFunction ( sf );
 	else
-	    append_bidirelem( FunctionQueue, sf );
+		append_bidirelem( FunctionQueue, sf );
 }
 
 void
@@ -323,7 +323,7 @@ ExecuteFunctionForClient(FunctionData *data, Window client)
 {
 	ASEvent dummy ;
 	LOCAL_DEBUG_CALLER_OUT( "client_window(%lX)", client );
-    if( data == NULL )
+	if( data == NULL )
 	return ;
 	memset( &dummy, 0x00, sizeof( dummy ) );
 	dummy.client = window2ASWindow( client );
@@ -347,7 +347,7 @@ ExecuteFunction (FunctionData *data, ASEvent *event, int module)
 			 event?event->client:NULL,
 			 event?(event->client?ASWIN_NAME(event->client):"none"):"none",
 			 module );
-    if( data == NULL )
+	if( data == NULL )
 	return ;
 	ExecuteFunctionExt( data, event, module, False );
 }
@@ -358,27 +358,27 @@ ExecuteFunction (FunctionData *data, ASEvent *event, int module)
 static Bool
 is_interactive_action(FunctionData *data)
 {
-    if( data->func == F_MOVE || data->func == F_RESIZE )
+	if( data->func == F_MOVE || data->func == F_RESIZE )
 	return (data->func_val[0] == INVALID_POSITION && data->func_val[1] == INVALID_POSITION);
-    return False;
+	return False;
 }
 
 static void
 DoExecuteFunction ( ASScheduledFunction *sf )
 {
-    FunctionData *data = &(sf->fdata) ;
-    ASEvent *event = &(sf->event);
-    register FunctionCode  func = data->func;
+	FunctionData *data = &(sf->fdata) ;
+	ASEvent *event = &(sf->event);
+	register FunctionCode  func = data->func;
 
 #if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
-    if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+	if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
 #endif
 	{
-	    print_func_data(__FILE__, "DoExecuteFunction", __LINE__, data);
+		print_func_data(__FILE__, "DoExecuteFunction", __LINE__, data);
 	}
 
-    if( sf->client != None )
-    {
+	if( sf->client != None )
+	{
 	ASWindow *asw = window2ASWindow( sf->client );
 		if( asw == NULL )
 		{	                   /* window had died by now - let go on with our lives */
@@ -390,42 +390,42 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 
 	if( sf->canvas )
 	{
-	    ASCanvas  *canvas = NULL ;
-	    if( sf->canvas == asw->client_canvas->w )
+		ASCanvas  *canvas = NULL ;
+		if( sf->canvas == asw->client_canvas->w )
 		canvas = asw->client_canvas ;
-	    else if( sf->canvas == asw->frame_canvas->w )
+		else if( sf->canvas == asw->frame_canvas->w )
 		canvas = asw->frame_canvas ;
-	    else if( asw->icon_canvas && sf->canvas == asw->icon_canvas->w )
+		else if( asw->icon_canvas && sf->canvas == asw->icon_canvas->w )
 		canvas = asw->icon_canvas ;
-	    else if( asw->icon_title_canvas && sf->canvas == asw->icon_title_canvas->w )
+		else if( asw->icon_title_canvas && sf->canvas == asw->icon_title_canvas->w )
 		canvas = asw->icon_title_canvas ;
-	    else
-	    {
+		else
+		{
 		int i = FRAME_SIDES ;
 		while( --i >= 0 )
-		    if( asw->frame_sides[i] != NULL &&
+			if( asw->frame_sides[i] != NULL &&
 			asw->frame_sides[i]->w == sf->canvas )
-		    {
+			{
 			canvas = asw->frame_sides[i];
 			break;
-		    }
-	    }
-	    event->widget = canvas ;
+			}
+		}
+		event->widget = canvas ;
 	}
-    }
+	}
 
-    /* Defer Execution may wish to alter this value */
+	/* Defer Execution may wish to alter this value */
 	LOCAL_DEBUG_OUT( "client = %p, IsWindowFunc() = %s", event->client, IsWindowFunc (func)?"Yes":"No" );
-    if (IsWindowFunc (func))
+	if (IsWindowFunc (func))
 	{
 		int           do_defer = !(sf->defered), fin_event;
 
 		if( event->x.type == ButtonPress )
-	    	fin_event = ButtonRelease ;
+			fin_event = ButtonRelease ;
 		else if ( event->x.type == MotionNotify )
-	    	fin_event = (event->x.xmotion.state&AllButtonMask) != 0 ? ButtonRelease : ButtonPress ;
+			fin_event = (event->x.xmotion.state&AllButtonMask) != 0 ? ButtonRelease : ButtonPress ;
 		else
-	    	fin_event = ButtonPress ;
+			fin_event = ButtonPress ;
 
 		if (data->text != NULL && event->client == NULL && 
 			func != F_SWALLOW_WINDOW )/* SWallowWindow has module name as its text ! */
@@ -446,11 +446,11 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 
 		if( do_defer && (fin_event != ButtonRelease || !is_interactive_action(data)) )
 		{
-	    	int cursor = ASCUR_Move ;
-	    	if (func != F_RESIZE && func != F_MOVE)
+			int cursor = ASCUR_Move ;
+			if (func != F_RESIZE && func != F_MOVE)
 				cursor = (func!=F_DESTROY && func!=F_DELETE && func!=F_CLOSE)?ASCUR_Select:ASCUR_Destroy;
 
-	    	if (DeferExecution (event, cursor, fin_event))
+			if (DeferExecution (event, cursor, fin_event))
 				func = F_NOP;
 		}
 
@@ -459,8 +459,8 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 
 	}
 
-    if( function_handlers[func] || func == F_FUNCTION || func == F_CATEGORY)
-    {
+	if( function_handlers[func] || func == F_FUNCTION || func == F_CATEGORY)
+	{
 		char *complex_func_name = COMPLEX_FUNCTION_NAME(data);
 
 		data->func = func ;
@@ -474,15 +474,15 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 				LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the Fullscreen window",COMPLEX_FUNCTION_NAME(data));
 				func = data->func = F_BEEP ;				                     
 			}else if( !check_allowed_function2( data->func, event->client->hints) )
-	    	{
+			{
 				LOCAL_DEBUG_OUT( "function \"%s\" is not allowed for the specifyed window (mask 0x%lX)", COMPLEX_FUNCTION_NAME(data), ASWIN_FUNC_MASK(event->client));
 				func = data->func = F_BEEP ;
-	    	}
+			}
 		}
 
 		if( get_flags( AfterStepState, ASS_WarpingMode ) &&
-	    	function_handlers[func] != warp_func_handler )
-	    	EndWarping();
+			function_handlers[func] != warp_func_handler )
+			EndWarping();
 
 		if( func == F_CATEGORY )
 		{
@@ -507,26 +507,26 @@ DoExecuteFunction ( ASScheduledFunction *sf )
 		}
 			 
 		if( func == F_FUNCTION )
-		    ExecuteComplexFunction (event, complex_func_name);
+			ExecuteComplexFunction (event, complex_func_name);
 		else
-		    function_handlers[func]( data, event, sf->module );
+			function_handlers[func]( data, event, sf->module );
 		if( complex_func_name && complex_func_name != data->name && complex_func_name != data->text )
 			free( complex_func_name );
-    }
-    destroy_scheduled_function(sf);
+	}
+	destroy_scheduled_function(sf);
 }
 
 void ExecutePendingFunctions()
 {
-    ASScheduledFunction *sf ;
-    if( FunctionQueue )
+	ASScheduledFunction *sf ;
+	if( FunctionQueue )
 	while( (sf = extract_first_bidirelem( FunctionQueue ) ) != NULL )
-	    DoExecuteFunction( sf );
+		DoExecuteFunction( sf );
 }
 
 void DestroyPendingFunctionsQueue()
 {
-    if( FunctionQueue )
+	if( FunctionQueue )
 		destroy_asbidirlist( &FunctionQueue );
 }
 
@@ -547,47 +547,47 @@ void DestroyPendingFunctionsQueue()
 int
 DeferExecution ( ASEvent *event, int cursor, int finish_event)
 {
-    Bool res = False ;
+	Bool res = False ;
 LOCAL_DEBUG_CALLER_OUT( "cursor %d, event %d, window 0x%lX, window_name \"%s\", finish event %d",
 			cursor, event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none", finish_event );
 
 /*    if (event->context != C_ROOT && event->context != C_NO_CONTEXT)
 	if ( finish_event == ButtonPress ||
-	    (finish_event == ButtonRelease && event->x.type != ButtonPress))
-	    return False;
+		(finish_event == ButtonRelease && event->x.type != ButtonPress))
+		return False;
 */
-    if (!(res = !GrabEm (ASDefaultScr, Scr.Feel.cursors[cursor])))
+	if (!(res = !GrabEm (ASDefaultScr, Scr.Feel.cursors[cursor])))
 	{
 		ASHintWindow *hint = create_ashint_window( ASDefaultScr,  &(Scr.Look), "Please select target window");
-   		WaitEventLoop( event, finish_event, -1, hint );
+		WaitEventLoop( event, finish_event, -1, hint );
 		destroy_ashint_window( &hint );
 
 		LOCAL_DEBUG_OUT( "window(%lX)->root(%lX)->subwindow(%lX)", event->x.xbutton.window, event->x.xbutton.root, event->x.xbutton.subwindow );
 		if (event->client == NULL)
 		{
-	    	res = True ;
-	    	/* since we grabbed cursor we may get clicks over client windows as reported
-	     	* relative to the root window, in which case we have to check subwindow to
-	     	* see what client was clicked */
-	    	if( event->x.xbutton.subwindow != event->w )
-	    	{
+			res = True ;
+			/* since we grabbed cursor we may get clicks over client windows as reported
+			* relative to the root window, in which case we have to check subwindow to
+			* see what client was clicked */
+			if( event->x.xbutton.subwindow != event->w )
+			{
 				event->client = window2ASWindow( event->x.xbutton.subwindow );
 				if( event->client != NULL )
 				{
-		    		res = False ;
-		    		event->w = event->x.xbutton.subwindow ;
+					res = False ;
+					event->w = event->x.xbutton.subwindow ;
 				}
-	    	}
+			}
 		}
 		UngrabEm ();
-    }
-    if( res )
+	}
+	if( res )
 	XBell (dpy, event->scr->screen);
 
 LOCAL_DEBUG_OUT( "result %d, event %d, window 0x%lX, window_name \"%s\"",
 		  res, event?event->x.type:-1, event?(unsigned long)event->w:0, event->client?ASWIN_NAME(event->client):"none" );
 
-    return res;
+	return res;
 }
 
 /*****************************************************************************
@@ -596,15 +596,15 @@ LOCAL_DEBUG_OUT( "result %d, event %d, window 0x%lX, window_name \"%s\"",
 void
 ExecuteComplexFunction ( ASEvent *event, char *name )
 {
-    ComplexFunction *func = NULL;
-    int              clicks = 0 ;
-    register int     i ;
-    Bool             persist = False;
-    Bool             need_window = False;
-    char             c ;
-    static char clicks_upper[MAX_CLICKS_HANDLED+1] = {CLICKS_TRIGGERS_UPPER};
-    static char clicks_lower[MAX_CLICKS_HANDLED+1] = {CLICKS_TRIGGERS_LOWER};
-    LOCAL_DEBUG_CALLER_OUT( "event %d, window 0x%lX, asw(%p), window_name \"%s\", function name \"%s\"",
+	ComplexFunction *func = NULL;
+	int              clicks = 0 ;
+	register int     i ;
+	Bool             persist = False;
+	Bool             need_window = False;
+	char             c ;
+	static char clicks_upper[MAX_CLICKS_HANDLED+1] = {CLICKS_TRIGGERS_UPPER};
+	static char clicks_lower[MAX_CLICKS_HANDLED+1] = {CLICKS_TRIGGERS_LOWER};
+	LOCAL_DEBUG_CALLER_OUT( "event %d, window 0x%lX, asw(%p), window_name \"%s\", function name \"%s\"",
 			event?event->x.type:-1, event?(unsigned long)event->w:0, event->client, event->client?ASWIN_NAME(event->client):"none", name);
 
 
@@ -613,15 +613,15 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
 			if( (func = get_complex_function( &(name[2]) ) ) == NULL )
 			return ;
 	if( func == NULL )
-	    if( (func = get_complex_function( name ) ) == NULL )
+		if( (func = get_complex_function( name ) ) == NULL )
 			return ;
 
-    LOCAL_DEBUG_OUT( "function data found  %p ...\n   proceeding to execution of immidiate items...", func );
-    if( event->w == None && event->client != NULL )
+	LOCAL_DEBUG_OUT( "function data found  %p ...\n   proceeding to execution of immidiate items...", func );
+	if( event->w == None && event->client != NULL )
 	event->w = get_window_frame(event->client);
-    /* first running all the Imediate actions : */
-    for( i = 0 ; i < func->items_num ; i++ )
-    {
+	/* first running all the Imediate actions : */
+	for( i = 0 ; i < func->items_num ; i++ )
+	{
 	c = func->items[i].name ? *(func->items[i].name): 'i' ;
 	if( c == IMMEDIATE || c == IMMEDIATE_UPPER )
 	{
@@ -654,66 +654,66 @@ ExecuteComplexFunction ( ASEvent *event, char *name )
 				ExecuteFunctionExt (&(func->items[i]), event, -1, True);
 	}else
 	{
-	    persist = True ;
-	    if( IsWindowFunc( func->items[i].func ) )
+		persist = True ;
+		if( IsWindowFunc( func->items[i].func ) )
 		need_window = True ;
 	}
-    }
-    /* now lets count clicks : */
-    LOCAL_DEBUG_OUT( "done with immidiate items - persisting ?: %s", persist?"True":"False" );
-    if( !persist )
+	}
+	/* now lets count clicks : */
+	LOCAL_DEBUG_OUT( "done with immidiate items - persisting ?: %s", persist?"True":"False" );
+	if( !persist )
 	return ;
 
-    if (need_window && event->client == NULL )
-    {
+	if (need_window && event->client == NULL )
+	{
 	if (DeferExecution (event, ASCUR_Select, ButtonPress))
 		{
 /*            WaitForButtonsUpLoop (); */
 			return;
 		}
-    }
-    if (!GrabEm (ASDefaultScr, Scr.Feel.cursors[ASCUR_Select]))
+	}
+	if (!GrabEm (ASDefaultScr, Scr.Feel.cursors[ASCUR_Select]))
 	{
 	show_warning( "failed to grab pointer while executing complex function \"%s\"", name );
 	XBell (dpy, Scr.screen);
 		return;
 	}
 
-    clicks = 0 ;
-    while( IsClickLoop( event, ButtonReleaseMask, Scr.Feel.ClickTime ) )
-    {
+	clicks = 0 ;
+	while( IsClickLoop( event, ButtonReleaseMask, Scr.Feel.ClickTime ) )
+	{
 	clicks++ ;
 	if( !IsClickLoop( event, ButtonPressMask, Scr.Feel.ClickTime ) )
-	    break;
+		break;
 	clicks++ ;
-    }
-    if( clicks <= MAX_CLICKS_HANDLED )
-    {
+	}
+	if( clicks <= MAX_CLICKS_HANDLED )
+	{
 	/* some functions operate on button release instead of
 	 * presses. These gets really weird for complex functions ... */
 /*        if (event->x.type == ButtonPress)
-	    event->x.type = ButtonRelease;
+		event->x.type = ButtonRelease;
  */
 	/* first running all the Imediate actions : */
 	for( i = 0 ; i < func->items_num ; i++ )
-	    if( func->items[i].name )
-	    {
+		if( func->items[i].name )
+		{
 		c = func->items[i].name[0];
 		if( c == clicks_upper[clicks] || c == clicks_lower[clicks] )
 					ExecuteFunctionExt (&(func->items[i]), event, -1, True);
-	    }
-    }
+		}
+	}
 /*    WaitForButtonsUpLoop (); */
 	UngrabEm ();
-    LOCAL_DEBUG_OUT( "at the end : event %d, window 0x%lX, asw(%p), window_name \"%s\", function name \"%s\"",
+	LOCAL_DEBUG_OUT( "at the end : event %d, window 0x%lX, asw(%p), window_name \"%s\", function name \"%s\"",
 			event?event->x.type:-1, event?(unsigned long)event->w:0, event->client, event->client?ASWIN_NAME(event->client):"none", name);
 }
 
 void
 ExecuteBatch ( ComplexFunction *batch )
 {
-    ASEvent event = { 0 };
-    register int     i ;
+	ASEvent event = { 0 };
+	register int     i ;
 
 	LOCAL_DEBUG_CALLER_OUT( "event %p", batch);
 
@@ -735,7 +735,7 @@ Bool desktop_category2complex_function( const char *name, const char *category_n
 {
 	ASCategoryTree *ct = NULL ;  
 	ASDesktopCategory *dc = NULL ;
-    ComplexFunction *func ;
+	ComplexFunction *func ;
 	char **entries ; 
 	int i, entries_num ; 
 
@@ -746,7 +746,7 @@ Bool desktop_category2complex_function( const char *name, const char *category_n
 	if( entries_num == 0 ) 
 		return False;
 	entries = PVECTOR_HEAD(char*, dc->entries );
-    
+	
 	if( (func = new_complex_func( Scr.Feel.ComplexFunctions, (char*)name)) == NULL ) 
 		return False;
 	
@@ -764,9 +764,9 @@ Bool desktop_category2complex_function( const char *name, const char *category_n
 		++(func->items_num);
 		init_func_data( fdata );
 		fdata->name = mystrdup("I");  /* for immidiate execution */ 
-	 	fdata->func = desktop_entry2function_code( de );	
+		fdata->func = desktop_entry2function_code( de );	
 		if( de->clean_exec ) 
-	        fdata->text = mystrdup( de->clean_exec );
+			fdata->text = mystrdup( de->clean_exec );
 	}	
 
 	return True;	   
@@ -783,17 +783,17 @@ Bool desktop_category2complex_function( const char *name, const char *category_n
 
 void beep_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    XBell (dpy, event->scr->screen);
+	XBell (dpy, event->scr->screen);
 }
 
 void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 {   /* gotta have a window */
-    ASWindow *asw = event->client ;
-    if (asw == NULL)
+	ASWindow *asw = event->client ;
+	if (asw == NULL)
 		return;
 
-    if ( !is_interactive_action(data) )
-    {
+	if ( !is_interactive_action(data) )
+	{
 	int new_val1 = 0, new_val2 = 0;
 	int x = asw->status->x ;
 	int y = asw->status->y ;
@@ -805,13 +805,13 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 	new_val2 = APPLY_VALUE_UNIT(Scr.MyDisplayHeight,data->func_val[1],data->unit_val[1]);
 	if( data->func == F_MOVE )
 	{
-	    if( data->func_val[0] != INVALID_POSITION )
+		if( data->func_val[0] != INVALID_POSITION )
 		{
 			x = new_val1;
 			if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
 				x -= asw->status->viewport_x ;
 		}
-	    if( data->func_val[1] != INVALID_POSITION )
+		if( data->func_val[1] != INVALID_POSITION )
 		{
 			y = new_val2;
 			if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
@@ -819,40 +819,40 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 		}
 	}else
 	{
-	    if( data->func_val[0] != INVALID_POSITION )
+		if( data->func_val[0] != INVALID_POSITION )
 		width = new_val1;
-	    if( data->func_val[1] != INVALID_POSITION )
+		if( data->func_val[1] != INVALID_POSITION )
 		height = new_val2;
 	}
 	moveresize_aswindow_wm( asw, x, y, width, height, False );
 
-    }else
-    {
+	}else
+	{
 		ASMoveResizeData *mvrdata;
 		/*release_pressure(); */
 		if( data->func == F_MOVE )
 		{
-	    	mvrdata = move_widget_interactively(Scr.RootCanvas,
+			mvrdata = move_widget_interactively(Scr.RootCanvas,
 							asw->frame_canvas,
 							event,
 							apply_aswindow_move,
 							complete_aswindow_move );
 		}else
 		{
-	    	int side = 0 ;
-	    	register unsigned long context = (event->context&C_FRAME);
+			int side = 0 ;
+			register unsigned long context = (event->context&C_FRAME);
 
-	    	if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
-	    	{
+			if( ASWIN_GET_FLAGS( asw, AS_Shaded ) )
+			{
 			XBell (dpy, Scr.screen);
 			return;
-	    	}
+			}
 
-	    	while( (0x01&context) == 0 && side <= FR_SE)
-	    	{
+			while( (0x01&context) == 0 && side <= FR_SE)
+			{
 			++side ;
 			context = context>>1 ;
-	    	}
+			}
 
 				if( side > FR_SE )
 				{
@@ -870,104 +870,104 @@ void moveresize_func_handler( FunctionData *data, ASEvent *event, int module )
 						side = FR_NW ;
 				}
 
-	    	mvrdata = resize_widget_interactively(  Scr.RootCanvas,
-						    	asw->frame_canvas,
-						    	event,
-						    	apply_aswindow_moveresize,
-						    	complete_aswindow_moveresize,
-						    	side );
+			mvrdata = resize_widget_interactively(  Scr.RootCanvas,
+								asw->frame_canvas,
+								event,
+								apply_aswindow_moveresize,
+								complete_aswindow_moveresize,
+								side );
 		}
 		if( mvrdata )
 		{
 			mvrdata->move_only = (data->func == F_MOVE) ;
 			setup_aswindow_moveresize(asw, mvrdata );
-	    	ASWIN_SET_FLAGS( asw, AS_MoveresizeInProgress );
+			ASWIN_SET_FLAGS( asw, AS_MoveresizeInProgress );
 		}
-    }
+	}
 }
 
 
 static inline int
 make_scroll_pos( int val, int unit, int curr, int max, int size )
 {
-    int pos = curr ;
-    if ( val > -100000 && val < 100000 )
-    {
+	int pos = curr ;
+	if ( val > -100000 && val < 100000 )
+	{
 	pos += APPLY_VALUE_UNIT(size,val,unit);
 	if( pos < 0 )
-	    pos = 0 ;
+		pos = 0 ;
 	if( pos > max )
-	    pos = max ;
-    }else
-    {
+		pos = max ;
+	}else
+	{
 	pos += APPLY_VALUE_UNIT(size,val/1000, unit);
 	while( pos < 0 )
-	    pos += max ;
+		pos += max ;
 	while( pos > max )
-	    pos -= max ;
-    }
-    return pos;
+		pos -= max ;
+	}
+	return pos;
 }
 
 static inline int
 make_edge_scroll( int curr_pos, int curr_view, int view_size, int max_view, int edge_scroll )
 {
-    int new_view = curr_view;
+	int new_view = curr_view;
 	edge_scroll = (edge_scroll*view_size)/100 ;
-    if( curr_pos >= new_view+view_size - 2 )
-    {
+	if( curr_pos >= new_view+view_size - 2 )
+	{
 	while ( curr_pos >= new_view+view_size - 2)
-	    new_view += edge_scroll ;
+		new_view += edge_scroll ;
 	if( new_view > max_view )
-	    new_view = max_view ;
-    }else
-    {
+		new_view = max_view ;
+	}else
+	{
 	while ( curr_pos < new_view+2)
-	    new_view -= edge_scroll ;
+		new_view -= edge_scroll ;
 	if( new_view < 0 )
-	    new_view = 0 ;
-    }
-    return new_view;
+		new_view = 0 ;
+	}
+	return new_view;
 }
 
 void scroll_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_VIRTUAL
-    int x, y ;
+	int x, y ;
 	register ScreenInfo *scr = event->scr;
 
-    x = make_scroll_pos( data->func_val[0], data->unit_val[0], scr->Vx, scr->VxMax, scr->MyDisplayWidth );
-    y = make_scroll_pos( data->func_val[1], data->unit_val[1], scr->Vy, scr->VyMax, scr->MyDisplayHeight );
+	x = make_scroll_pos( data->func_val[0], data->unit_val[0], scr->Vx, scr->VxMax, scr->MyDisplayWidth );
+	y = make_scroll_pos( data->func_val[1], data->unit_val[1], scr->Vy, scr->VyMax, scr->MyDisplayHeight );
 
-    MoveViewport ( x, y, True);
+	MoveViewport ( x, y, True);
 #endif
 }
 
 void movecursor_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    int curr_x, curr_y ;
-    int x, y ;
-    register ScreenInfo *scr = ASDefaultScr;
+	int curr_x, curr_y ;
+	int x, y ;
+	register ScreenInfo *scr = ASDefaultScr;
 
-    ASQueryPointerRootXY(&curr_x, &curr_y);
-    x = make_scroll_pos( data->func_val[0], data->unit_val[0], scr->Vx+curr_x, scr->VxMax+scr->MyDisplayWidth ,scr->MyDisplayWidth );
-    y = make_scroll_pos( data->func_val[1], data->unit_val[1], scr->Vy+curr_y, scr->VyMax+scr->MyDisplayHeight,scr->MyDisplayHeight);
+	ASQueryPointerRootXY(&curr_x, &curr_y);
+	x = make_scroll_pos( data->func_val[0], data->unit_val[0], scr->Vx+curr_x, scr->VxMax+scr->MyDisplayWidth ,scr->MyDisplayWidth );
+	y = make_scroll_pos( data->func_val[1], data->unit_val[1], scr->Vy+curr_y, scr->VyMax+scr->MyDisplayHeight,scr->MyDisplayHeight);
 
 #ifndef NO_VIRTUAL
-    {
+	{
 	int new_vx = 0, new_vy = 0;
 
 	new_vx = make_edge_scroll( x, scr->Vx, scr->MyDisplayWidth,  scr->VxMax, scr->Feel.EdgeScrollX );
 	new_vy = make_edge_scroll( y, scr->Vy, scr->MyDisplayHeight, scr->VyMax, scr->Feel.EdgeScrollY );
 	if( new_vx != scr->Vx || new_vy != scr->Vy )
-	    MoveViewport (new_vx, new_vy, True);
-    }
+		MoveViewport (new_vx, new_vy, True);
+	}
 #endif
-    x -= scr->Vx ;
-    y -= scr->Vy ;
-    if( x != curr_x || y != curr_y )
+	x -= scr->Vx ;
+	y -= scr->Vy ;
+	if( x != curr_x || y != curr_y )
 	XWarpPointer (dpy, scr->Root, scr->Root, 0, 0, scr->MyDisplayWidth,
-		      scr->MyDisplayHeight, x, y);
+			  scr->MyDisplayHeight, x, y);
 }
 
 void iconify_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -988,36 +988,36 @@ LOCAL_DEBUG_CALLER_OUT( "function %d (val0 = %d), event %d, window 0x%lX, window
 
 void raiselower_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    if( event->client )
-    {
+	if( event->client )
+	{
 		if( event->client->last_restack_time != CurrentTime &&
-	    	event->event_time != CurrentTime &&
-	    	event->client->last_restack_time >= event->event_time )
-	    	return ;
+			event->event_time != CurrentTime &&
+			event->client->last_restack_time >= event->event_time )
+			return ;
 
 		restack_window (event->client,None,(data->func==F_RAISE)?Above:
-					   	((data->func==F_RAISELOWER)?Opposite:Below));
-    }
+						((data->func==F_RAISELOWER)?Opposite:Below));
+	}
 }
 
 void raise_it_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 	ASWindow *asw = window2ASWindow( data->func_val[1] );
-    activate_aswindow( asw, True, True );
+	activate_aswindow( asw, True, True );
 }
 
 void setlayer_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    if( event->client )
+	if( event->client )
 	{
-    	register int func = data->func ;
-	    int layer = 0 ;
+		register int func = data->func ;
+		int layer = 0 ;
 
-    	if( func == F_PUTONTOP )
+		if( func == F_PUTONTOP )
 			layer = AS_LayerTop ;
-    	else if( func == F_PUTONBACK )
+		else if( func == F_PUTONBACK )
 			layer = AS_LayerBack ;
-    	else if( func == F_TOGGLELAYER )
+		else if( func == F_TOGGLELAYER )
 		{
 			layer = ASWIN_LAYER(event->client) ;
 			if( data->func_val[0] == 0 ) 
@@ -1026,22 +1026,22 @@ void setlayer_func_handler( FunctionData *data, ASEvent *event, int module )
 				layer += data->func_val[0];
 		}else
 			layer = data->func_val[0] ;
-    	change_aswindow_layer( event->client, layer );
+		change_aswindow_layer( event->client, layer );
 	}
 }
 
 void change_desk_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    if( event->client )
+	if( event->client )
 		change_aswindow_desktop( event->client, data->func_val[0], False );
 }
 
 void toggle_status_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    ASFlagType toggle_flags = 0;
-    if( data->func == F_STICK )
+	ASFlagType toggle_flags = 0;
+	if( data->func == F_STICK )
 		toggle_flags = AS_Sticky ;
-    else if( data->func == F_MAXIMIZE )
+	else if( data->func == F_MAXIMIZE )
 	{
 		if( data->func_val[0] > 0 || data->func_val[1] == 0  )
 		toggle_flags = AS_MaximizedX ;
@@ -1052,42 +1052,42 @@ void toggle_status_func_handler( FunctionData *data, ASEvent *event, int module 
 			event->client->maximize_ratio_x = (data->unit_val[0] == 0 )? data->func_val[0]: (data->func_val[0]*data->unit_val[0]*100)/Scr.MyDisplayWidth ;
 			event->client->maximize_ratio_y = (data->unit_val[1] == 0 )? data->func_val[1]: (data->func_val[1]*data->unit_val[1]*100)/Scr.MyDisplayHeight ;
 		}
-    }else if( data->func == F_SHADE )
+	}else if( data->func == F_SHADE )
 		toggle_flags = AS_Shaded ;
-    else if( data->func == F_FULLSCREEN )
+	else if( data->func == F_FULLSCREEN )
 		toggle_flags = AS_Fullscreen ;
 	else
 		return ;
-    toggle_aswindow_status( event->client, toggle_flags );
+	toggle_aswindow_status( event->client, toggle_flags );
 }
 
 void focus_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    activate_aswindow( event->client, True, False );
+	activate_aswindow( event->client, True, False );
 }
 
 void warp_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    register ASWindow *t = NULL;
+	register ASWindow *t = NULL;
 
-    if (data->text != NULL )
+	if (data->text != NULL )
 	if (*(data->text) != '\0')
-	    t = pattern2ASWindow (data->text);
-    if( t == NULL )
+		t = pattern2ASWindow (data->text);
+	if( t == NULL )
 	t = warp_aswindow_list (Scr.Windows, (data->func == F_CHANGEWINDOW_DOWN ||
-					      data->func == F_WARP_B));
-    if ( t != NULL)
-    {
+						  data->func == F_WARP_B));
+	if ( t != NULL)
+	{
 	event->client = t;
 	event->w = get_window_frame(t);
 	StartWarping(ASDefaultScr);
 	warp_to_aswindow(t, (data->func == F_WARP_F || data->func == F_WARP_B));
-    }
+	}
 }
 
 void paste_selection_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    PasteSelection (event->scr);
+	PasteSelection (event->scr);
 }
 
 void goto_bookmark_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -1104,21 +1104,21 @@ void bookmark_window_func_handler( FunctionData *data, ASEvent *event, int modul
 
 void pin_menu_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    ASMenu *menu = NULL;
+	ASMenu *menu = NULL;
 	char * menu_name = data->text? data->text:data->name ;
 	LOCAL_DEBUG_OUT( "menu_name = \"%s\", client = %p, internal = %p", menu_name?"NULL":menu_name, event->client, event->client->internal );
-    if( menu_name && menu_name[0] != '\0' )
+	if( menu_name && menu_name[0] != '\0' )
 		menu = find_asmenu( menu_name );
-    else if( event->client && event->client->internal )
-    {
+	else if( event->client && event->client->internal )
+	{
 		ASMagic *data = event->client->internal->data ;
 		LOCAL_DEBUG_OUT( "data = %p, magic = %lX", data, data->magic );
 		if( data->magic == MAGIC_ASMENU )
-	    	menu = (ASMenu*)data;
-    }
-    if( menu == NULL )
+			menu = (ASMenu*)data;
+	}
+	if( menu == NULL )
 		XBell (dpy, event->scr->screen);
-    else
+	else
 		pin_asmenu( menu );
 }
 
@@ -1150,14 +1150,14 @@ void close_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void restart_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    Done (True, data->text);
+	Done (True, data->text);
 }
 
 void exec_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 	/* no sense in grabbing Pointer here as fork will return rather fast not creating 
 	   much of the delay */
-    spawn_child( data->text, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
+	spawn_child( data->text, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
 }
 
 void exec_in_dir_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -1172,7 +1172,7 @@ void exec_in_dir_func_handler( FunctionData *data, ASEvent *event, int module )
 		parse_token (data->text, &dirname);
 		fulldirname = put_file_home (dirname);
 		if (chdir (fulldirname) == 0)
-	    spawn_child( cmd, -1, -1, NULL, None, C_NO_CONTEXT, False, False, NULL );
+		spawn_child( cmd, -1, -1, NULL, None, C_NO_CONTEXT, False, False, NULL );
 	}
 }
 
@@ -1281,8 +1281,8 @@ void exec_in_term_func_handler( FunctionData *data, ASEvent *event, int module )
 		{	
 			LOCAL_DEBUG_OUT( "full_cmdl = [%s]", full_cmdl );
 			/* no sense in grabbing Pointer here as fork will return rather fast not creating 
-	   		   much of the delay */
-    		spawn_child( full_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
+			   much of the delay */
+			spawn_child( full_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
 			free( full_cmdl );
 		}
 	}
@@ -1355,8 +1355,8 @@ void exec_tool_func_handler( FunctionData *data, ASEvent *event, int module )
 		}else
 		{
 			/* no sense in grabbing Pointer here as fork will return rather fast not creating 
-	   		   much of the delay */
-    		spawn_child( full_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
+			   much of the delay */
+			spawn_child( full_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
 		}
 		free( full_cmdl );
 	}
@@ -1390,7 +1390,7 @@ commit_config_change( int func )
 	{
 		if( _as_background_change_count  > 0 )
 		{
-		    MyBackground *new_back = get_desk_back_or_default( Scr.CurrentDesk, False );
+			MyBackground *new_back = get_desk_back_or_default( Scr.CurrentDesk, False );
 			/* we want to display selected background even if that was disabled in look,
 			   this may cause problems, since when user loads AfterStep the next time - he/she 
 			   will see what was configured in look again, and not what was selected from 
@@ -1402,40 +1402,40 @@ commit_config_change( int func )
 				free( new_back->loaded_im_name );
 				new_back->loaded_im_name = NULL ;
 			}
-		    change_desktop_background( Scr.CurrentDesk );
-		    SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
+			change_desktop_background( Scr.CurrentDesk );
+			SendPacket( -1, M_NEW_BACKGROUND, 1, 1);
 			_as_background_change_count = 0 ;
-	    }
-		if ( _as_config_change_count > 0 )
-	    {
-		    if( func == F_CHANGE_THEME )
-			    QuickRestart ("theme");
-    		else if( func == F_CHANGE_COLORSCHEME )
-	    		QuickRestart ("look");
-		    else
-		        QuickRestart ((func == F_CHANGE_LOOK)?"look":"feel");
-    		_as_config_change_count = 0 ;
 		}
-    }
+		if ( _as_config_change_count > 0 )
+		{
+			if( func == F_CHANGE_THEME )
+				QuickRestart ("theme");
+			else if( func == F_CHANGE_COLORSCHEME )
+				QuickRestart ("look");
+			else
+				QuickRestart ((func == F_CHANGE_LOOK)?"look":"feel");
+			_as_config_change_count = 0 ;
+		}
+	}
 }
 
 static void change_background_internal( FunctionData *data, Bool autoscale )
 {
-    char tmpfile[256], *realfilename ;
+	char tmpfile[256], *realfilename ;
 	Bool success = False ;
 
 	++_as_config_change_recursion;
-    XGrabPointer (dpy, Scr.Root, True, ButtonPressMask | ButtonReleaseMask,
+	XGrabPointer (dpy, Scr.Root, True, ButtonPressMask | ButtonReleaseMask,
 		  GrabModeAsync, GrabModeAsync, Scr.Root, Scr.Feel.cursors[ASCUR_Wait], CurrentTime);
-    XSync (dpy, 0);
+	XSync (dpy, 0);
 
-    if (Scr.screen == 0)
+	if (Scr.screen == 0)
 		sprintf (tmpfile, BACK_FILE, Scr.CurrentDesk);
-    else
+	else
 		sprintf (tmpfile, BACK_FILE ".scr%ld", Scr.CurrentDesk, Scr.screen);
 
-    realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
-    cover_desktop();
+	realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
+	cover_desktop();
 	if( autoscale ) 
 	{
 		ASImage *src_im = get_asimage( Scr.image_manager, data->text, 0xFFFFFFFF, 0 );
@@ -1450,11 +1450,11 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 				if( clip_width*Scr.MyDisplayHeight > ((clip_height*5)/4)*Scr.MyDisplayWidth ) 
 					clip_width = (((clip_height*5)/4)*Scr.MyDisplayWidth)/Scr.MyDisplayHeight ;	
 				else if( ((clip_width*5)/4)*Scr.MyDisplayHeight < clip_height*Scr.MyDisplayWidth ) 
-				 	clip_height = (((clip_width*5)/4)*Scr.MyDisplayHeight)/Scr.MyDisplayWidth ;
+					clip_height = (((clip_width*5)/4)*Scr.MyDisplayHeight)/Scr.MyDisplayWidth ;
 				if( clip_width != src_im->width || clip_height != src_im->height ) 
 				{
 					display_progress( True, "Croping background to %dx%d ...", clip_width, clip_height);
-   					LOCAL_DEBUG_OUT( "Croping background to %dx%d ...", clip_width, clip_height);
+					LOCAL_DEBUG_OUT( "Croping background to %dx%d ...", clip_width, clip_height);
 					tiled = tile_asimage( Scr.asv, src_im, 
 											(src_im->width-clip_width)/2, 
 											(src_im->height-clip_height)/2, 
@@ -1467,7 +1467,7 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 					if( tiled->width != Scr.MyDisplayWidth || tiled->height != Scr.MyDisplayHeight ) 
 					{
 						display_progress( True, "Scaling background to %dx%d ...", Scr.MyDisplayWidth, Scr.MyDisplayHeight);
-    					LOCAL_DEBUG_OUT( "Scaling background to %dx%d ...", Scr.MyDisplayWidth, Scr.MyDisplayHeight);
+						LOCAL_DEBUG_OUT( "Scaling background to %dx%d ...", Scr.MyDisplayWidth, Scr.MyDisplayHeight);
 						scaled = scale_asimage( Scr.asv, tiled, 
 												Scr.MyDisplayWidth, 
 												Scr.MyDisplayHeight, 
@@ -1476,7 +1476,7 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 					if( scaled && scaled != src_im )
 					{
 						display_progress( True, "Saving transformed background into \"%s\" ...", realfilename);
-    					LOCAL_DEBUG_OUT( "Saving transformed background into \"%s\" ...", realfilename);
+						LOCAL_DEBUG_OUT( "Saving transformed background into \"%s\" ...", realfilename);
 						success = save_asimage_to_file(	realfilename, scaled, 
 														"png", "9", NULL, 0, True);			   
 					}
@@ -1493,12 +1493,12 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 	if( !success )	           /* just tile as usuall */
 	{
 		display_progress( True, "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
-    	LOCAL_DEBUG_OUT( "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
+		LOCAL_DEBUG_OUT( "Copying selected background \"%s\" into \"%s\" ...", data->text, realfilename);
 		success = (CopyFile (data->text, realfilename) == 0);
 	}
 
-    if ( success )
-    {
+	if ( success )
+	{
 		++_as_background_change_count ;
 		if( Scr.CurrentDesk == 0 )
 		update_default_session ( Session, F_CHANGE_BACKGROUND );
@@ -1507,10 +1507,10 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 	free (realfilename);
 
 	commit_config_change( F_CHANGE_BACKGROUND );
-    remove_desktop_cover();
+	remove_desktop_cover();
 
-    XUngrabPointer (dpy, CurrentTime);
-    XSync (dpy, 0);
+	XUngrabPointer (dpy, CurrentTime);
+	XSync (dpy, 0);
 	--_as_config_change_recursion ;
 }
 
@@ -1518,33 +1518,24 @@ static void change_background_internal( FunctionData *data, Bool autoscale )
 typedef struct {
 	char *url;
 	char *cachedName;
-	char *logName;
 	time_t downloadStart;
 	FunctionData fdata;
+	int pid;
 } WebBackgroundDownloadAuxData;
 
-static WebBackgroundDownloadAuxData webBackgroundDownloadAuxData = {NULL,NULL,NULL,0,{0}};
+static WebBackgroundDownloadAuxData webBackgroundDownloadAuxData = {NULL,NULL,0,{0},0};
+
 
 static void
 webBackgroundDownloadHandler (void *data)
 {
 	WebBackgroundDownloadAuxData *wb = (WebBackgroundDownloadAuxData*)data;
-	Bool downloadComplete = False;
-	char *log = load_file (wb->logName);
-	if (log && log[0] != '\0') {
-		int s1 = 0, s2 = 1;
-		
-		char *openBracket = strchr (log, '[');
-		LOCAL_DEBUG_OUT ("Open Bracket:%s", openBracket);
-		if (openBracket) {
-			sscanf (openBracket+1, "%d/%d", &s1, &s2);
-			LOCAL_DEBUG_OUT ("s1 = %d, s2 = %d", s1, s2);
-		}
-		free (log);
-		if (s1 > 0 && s1 == s2)
-			downloadComplete = True;
-		else {
-			show_warning ("Failed to download \"%s\", see \"%s\" for details", wb->url, wb->logName);
+	int s1, s2;
+	Bool downloadComplete = check_download_complete (wb->pid, wb->cachedName, &s1, &s2);
+	if (downloadComplete) {
+		if (s1 == 0 || s1 != s2) {
+			downloadComplete = False;
+			show_warning ("Failed to download \"%s\", see \"%s.log\" for details", wb->url, wb->cachedName);
 			return; /* download failed */
 		}
 	}
@@ -1567,28 +1558,17 @@ void change_back_foreign_func_handler( FunctionData *data, ASEvent *event, int m
 
 	if (data->text != NULL && is_web_background(data)){
 		char *cachedFileName = make_session_webcache_file (Session, data->text);
-		/* cmdl: wget -b -nv -o <escaped_url>.log -O <cache_file> <url> */
-#define WGET_CMDL_HEADER "wget -b -nv -o "
-		int cacheFNLen = strlen(cachedFileName);
-		char *logFileName = safemalloc (cacheFNLen+4+1);
-		
-		sprintf (logFileName, "%s.log", cachedFileName);
 
 		set_string (&(webBackgroundDownloadAuxData.url), mystrdup(data->text));
 		set_string (&(webBackgroundDownloadAuxData.cachedName), cachedFileName);
-		set_string (&(webBackgroundDownloadAuxData.logName), logFileName);
 		webBackgroundDownloadAuxData.downloadStart = time(NULL);
 		webBackgroundDownloadAuxData.fdata = *data;		
 		webBackgroundDownloadAuxData.fdata.text = cachedFileName;
+
 		if (CheckFile (cachedFileName) == 0)
 			change_background_internal (&(webBackgroundDownloadAuxData.fdata), True );			
-		else {
-			char *wget_cmdl = safemalloc (sizeof(WGET_CMDL_HEADER)+cacheFNLen+4+1+2+1+cacheFNLen+1+strlen(data->text)+1);
-			sprintf (wget_cmdl, WGET_CMDL_HEADER "%s.log -O %s %s", cachedFileName, cachedFileName, data->text);
- 			spawn_child( wget_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
-			free (wget_cmdl);
-	  	timer_new (300, &webBackgroundDownloadHandler, (void *)&webBackgroundDownloadAuxData);
-		}
+		else if ((webBackgroundDownloadAuxData.pid = spawn_download (data->text, cachedFileName)) != 0)
+			timer_new (300, &webBackgroundDownloadHandler, (void *)&webBackgroundDownloadAuxData);
 	}else
 		change_background_internal( data, True );
 }	 
@@ -1613,15 +1593,15 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
 {
 
 	char *file_template ;
-    char tmpfile[256], *realfilename = NULL ;
-    int desk = 0 ;
+	char tmpfile[256], *realfilename = NULL ;
+	int desk = 0 ;
 
 	++_as_config_change_recursion ;
 #ifdef DIFFERENTLOOKNFEELFOREACHDESKTOP
-    desk = Scr.CurrentDesk ;
+	desk = Scr.CurrentDesk ;
 #endif
-    if (Scr.screen == 0)
-    {
+	if (Scr.screen == 0)
+	{
 		switch( data->func )
 		{
 			case F_CHANGE_LOOK : file_template = LOOK_FILE ;   break ;
@@ -1630,8 +1610,8 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
 			default: file_template = THEME_FILE ;   break ;
 		}
 	sprintf (tmpfile, file_template, desk);
-    }else
-    {
+	}else
+	{
 		switch( data->func )
 		{
 			case F_CHANGE_LOOK : file_template = LOOK_FILE  ".scr%ld" ;   break ;
@@ -1640,18 +1620,18 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
 			default: file_template = THEME_FILE  ".scr%ld" ;   break ;
 		}
 	sprintf (tmpfile, file_template, desk, Scr.screen);
-    }
+	}
 
-    realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
+	realfilename = make_session_data_file(Session, False, 0, tmpfile, NULL );
 
-    cover_desktop();
-    display_progress( True, "Copying selected config file \"%s\" into \"%s\" ...", data->text, realfilename);
+	cover_desktop();
+	display_progress( True, "Copying selected config file \"%s\" into \"%s\" ...", data->text, realfilename);
 
 	if( CopyFile (data->text, realfilename) == 0 )
 	{
 		++_as_config_change_count ;
 		if( Scr.CurrentDesk == 0 )
-		    update_default_session ( Session, data->func );
+			update_default_session ( Session, data->func );
 		change_desk_session (Session, Scr.CurrentDesk, realfilename, data->func);
 	}
 	free( realfilename );
@@ -1660,7 +1640,7 @@ void change_config_func_handler( FunctionData *data, ASEvent *event, int module 
 	 * don't want those to cause any restarts or config reloads.
 	 */
 	commit_config_change( data->func );
-    remove_desktop_cover();
+	remove_desktop_cover();
 
 	--_as_config_change_recursion ;
 }
@@ -1693,13 +1673,13 @@ void install_file_func_handler( FunctionData *data, ASEvent *event, int module )
 	if( desktop_resource )
 		{
 			realfilename = make_session_data_file  (Session, False, 0, DESKTOP_DIR, NULL );
-	    CheckOrCreate(realfilename);
-		    free( realfilename );
+		CheckOrCreate(realfilename);
+			free( realfilename );
 		}
 
 		realfilename = make_session_data_file  (Session, False, 0, dir_name, NULL );
 	CheckOrCreate(realfilename);
-	    free( realfilename );
+		free( realfilename );
 
 		realfilename = make_session_data_file  (Session, False, 0, dir_name, file, NULL );
 		CopyFile (data->text, realfilename);
@@ -1742,19 +1722,19 @@ void install_theme_file_func_handler( FunctionData *data, ASEvent *event, int mo
 
 void save_workspace_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    save_aswindow_list( Scr.Windows, data->text?data->text:NULL );
+	save_aswindow_list( Scr.Windows, data->text?data->text:NULL );
 }
 
 Bool
 send_client_message_iter_func(void *data, void *aux_data)
 {
-    XClientMessageEvent *ev = (XClientMessageEvent *)aux_data;
-    ASWindow *asw = (ASWindow *)data ;
+	XClientMessageEvent *ev = (XClientMessageEvent *)aux_data;
+	ASWindow *asw = (ASWindow *)data ;
 	
 	ev->window = asw->w;
-    XSendEvent (dpy, asw->w, False, 0, (XEvent *) ev);
+	XSendEvent (dpy, asw->w, False, 0, (XEvent *) ev);
 
-    return True;
+	return True;
 }
 
 
@@ -1774,17 +1754,17 @@ void signal_reload_GTKRC_file_handler( FunctionData *data, ASEvent *event, int m
 Bool
 send_kipc_client_message_iter_func(void *data, void *aux_data)
 {
-    XClientMessageEvent *ev = (XClientMessageEvent *)aux_data;
-    ASWindow *asw = (ASWindow *)data ;
+	XClientMessageEvent *ev = (XClientMessageEvent *)aux_data;
+	ASWindow *asw = (ASWindow *)data ;
 	
 	/* KDE not always sets this flag ??? */
 	if(  get_flags(asw->hints->protocols, AS_DoesKIPC ) )
 	{	
 		ev->window = asw->w; 
-    	XSendEvent (dpy, asw->w, False, 0, (XEvent *) ev);
+		XSendEvent (dpy, asw->w, False, 0, (XEvent *) ev);
 	}
 
-    return True;
+	return True;
 }
 
 void KIPC_sendMessageAll(KIPC_Message msg, int data)
@@ -1792,12 +1772,12 @@ void KIPC_sendMessageAll(KIPC_Message msg, int data)
 	XClientMessageEvent ev;
 	
 	memset( &ev, 0x00, sizeof(ev));
-    ev.type = ClientMessage;
-    ev.display = dpy;
-    ev.message_type = _KIPC_COMM_ATOM;
-    ev.format = 32;
-    ev.data.l[0] = msg;
-    ev.data.l[1] = data;
+	ev.type = ClientMessage;
+	ev.display = dpy;
+	ev.message_type = _KIPC_COMM_ATOM;
+	ev.format = 32;
+	ev.data.l[0] = msg;
+	ev.data.l[1] = data;
 	
 	iterate_asbidirlist( Scr.Windows->clients, send_client_message_iter_func, &ev, NULL, False );
 	/*	iterate_asbidirlist( Scr.Windows->clients, send_kipc_client_message_iter_func, &ev, NULL, False ); */
@@ -1813,7 +1793,7 @@ void KIPC_send_message_all_handler( FunctionData *data, ASEvent *event, int modu
 
 void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    XSetWindowAttributes attributes;
+	XSetWindowAttributes attributes;
 	unsigned long valuemask;
 	Window        w;
 
@@ -1822,14 +1802,14 @@ void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
 	attributes.backing_store = NotUseful;
 	attributes.override_redirect = True;
 
-    w = create_visual_window(Scr.asv, Scr.Root, 0, 0,
-			       Scr.MyDisplayWidth, Scr.MyDisplayHeight,
-			       0, InputOutput, valuemask, &attributes);
+	w = create_visual_window(Scr.asv, Scr.Root, 0, 0,
+				   Scr.MyDisplayWidth, Scr.MyDisplayHeight,
+				   0, InputOutput, valuemask, &attributes);
 
 	XMapRaised (dpy, w);
-    XSync (dpy, False);
-    XDestroyWindow (dpy, w);
-    XFlush (dpy);
+	XSync (dpy, False);
+	XDestroyWindow (dpy, w);
+	XFlush (dpy);
 	
 	spool_unfreed_mem( "afterstep.allocs.refresh", NULL );
 }
@@ -1837,23 +1817,23 @@ void refresh_func_handler( FunctionData *data, ASEvent *event, int module )
 void goto_page_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_VIRTUAL
-    int newvx = data->func_val[0]*event->scr->MyDisplayWidth;
-    int newvy = data->func_val[1]*event->scr->MyDisplayHeight;
+	int newvx = data->func_val[0]*event->scr->MyDisplayWidth;
+	int newvy = data->func_val[1]*event->scr->MyDisplayHeight;
 LOCAL_DEBUG_OUT( "val(%d,%d)->scr(%d,%d)->newv(%d,%d)", (int)data->func_val[0], (int)data->func_val[1], event->scr->MyDisplayWidth, event->scr->MyDisplayHeight, newvx, newvy );
-    MoveViewport ( newvx, newvy, True);
+	MoveViewport ( newvx, newvy, True);
 #endif
 }
 
 void toggle_page_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_VIRTUAL
-    if( get_flags( Scr.Feel.flags, DoHandlePageing ) )
+	if( get_flags( Scr.Feel.flags, DoHandlePageing ) )
 	clear_flags( Scr.Feel.flags, DoHandlePageing );
 	else
 	set_flags( Scr.Feel.flags, DoHandlePageing );
 
-    SendPacket( -1, M_TOGGLE_PAGING, 1, get_flags( Scr.Feel.flags, DoHandlePageing ));
-    check_screen_panframes(ASDefaultScr);
+	SendPacket( -1, M_TOGGLE_PAGING, 1, get_flags( Scr.Feel.flags, DoHandlePageing ));
+	check_screen_panframes(ASDefaultScr);
 #endif
 }
 
@@ -1863,8 +1843,8 @@ void gethelp_func_handler( FunctionData *data, ASEvent *event, int module )
 		if (ASWIN_RES_NAME(event->client)!= NULL)
 		{
 		char         *realfilename = PutHome(HELPCOMMAND);
-	    spawn_child( realfilename, -1, -1, NULL, None, C_NO_CONTEXT, True, False, ASWIN_RES_NAME(event->client), NULL);
-	    free (realfilename);
+		spawn_child( realfilename, -1, -1, NULL, None, C_NO_CONTEXT, True, False, ASWIN_RES_NAME(event->client), NULL);
+		free (realfilename);
 	}
 }
 
@@ -1927,7 +1907,7 @@ void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 
 			if( !ASWIN_GET_FLAGS(asw,AS_Sticky) )
 			{	
-			 	if(	get_flags (style->set_data_flags, STYLE_STARTUP_DESK) )
+				if(	get_flags (style->set_data_flags, STYLE_STARTUP_DESK) )
 						change_aswindow_desktop( asw, style->Desk, False );
 			}else
 			{
@@ -1969,20 +1949,20 @@ void wait_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void desk_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    long new_desk ;
+	long new_desk ;
 
-    if ( data->func_val[0] != 0 )
+	if ( data->func_val[0] != 0 )
 		new_desk = Scr.CurrentDesk + data->func_val[0];
 	else if( IsValidDesk (data->func_val[1]) )
 		new_desk = data->func_val[1];
 	else 
 		return ;
-    ChangeDesks (new_desk);
+	ChangeDesks (new_desk);
 }
 
 void deskviewport_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    unsigned int new_desk1, new_desk2 ;
+	unsigned int new_desk1, new_desk2 ;
 	int new_vx, new_vy, flags ;
 	int new_desk ;
 
@@ -2004,23 +1984,23 @@ void deskviewport_func_handler( FunctionData *data, ASEvent *event, int module )
 	else
 		new_desk = Scr.CurrentDesk ;
 
-    ChangeDeskAndViewport (new_desk, new_vx, new_vy, False);
+	ChangeDeskAndViewport (new_desk, new_vx, new_vy, False);
 }
 
 void module_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    UngrabEm ();
-    ExecModule (data->text, event->client ? event->client->w : None, event->context);
+	UngrabEm ();
+	ExecModule (data->text, event->client ? event->client->w : None, event->context);
 }
 
 void killmodule_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    KillModuleByName (data->text);
+	KillModuleByName (data->text);
 }
 
 void killallmodules_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    KillAllModulesByName (data->text);
+	KillAllModulesByName (data->text);
 }
 
 void restartmodule_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -2028,33 +2008,33 @@ void restartmodule_func_handler( FunctionData *data, ASEvent *event, int module 
 	char *cmd_line = GetModuleCmdLineByName(data->text);
 	KillModuleByName (data->text);	
 	
-    UngrabEm ();
-   	ExecModule (cmd_line?cmd_line:data->text, event->client ? event->client->w : None, event->context);
+	UngrabEm ();
+	ExecModule (cmd_line?cmd_line:data->text, event->client ? event->client->w : None, event->context);
 	if( cmd_line )
 		free( cmd_line );
 }
 
 void popup_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    run_menu( data->text?data->text:data->name, event->client?event->client->w:None );
+	run_menu( data->text?data->text:data->name, event->client?event->client->w:None );
 }
 
 void quit_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    Done (0, NULL);
+	Done (0, NULL);
 }
 
 void windowlist_func_handler( FunctionData *data, ASEvent *event, int module )
 {
 #ifndef NO_WINDOWLIST
-    MenuData *md =  make_desk_winlist_menu( Scr.Windows, data->text == NULL ? event->scr->CurrentDesk: data->func_val[0], Scr.Feel.winlist_sort_order, False );
-    if( md != NULL )
+	MenuData *md =  make_desk_winlist_menu( Scr.Windows, data->text == NULL ? event->scr->CurrentDesk: data->func_val[0], Scr.Feel.winlist_sort_order, False );
+	if( md != NULL )
 	{	
 		ASMenu *menu = run_menu_data( md );
 			/* attaching menu data to menu, so that we can destroy it when menu closes.
 			   This is to accomodate those dynamically generated menus, 
 			   such as window list and module list */
-		   	/* Crude! should implement reference counting instead  */
+			/* Crude! should implement reference counting instead  */
 		
 		if( menu ) 
 			menu->volitile_menu_data = md ; 
@@ -2064,10 +2044,10 @@ void windowlist_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void modulelist_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    MenuData *md =  (data->func == F_STOPMODULELIST)?
+	MenuData *md =  (data->func == F_STOPMODULELIST)?
 						make_stop_module_menu(Scr.Feel.winlist_sort_order ):
 						make_restart_module_menu(Scr.Feel.winlist_sort_order );
-    if( md != NULL )
+	if( md != NULL )
 	{	
 		ASMenu *menu = run_menu_data( md );
 		if( menu ) 
@@ -2078,30 +2058,30 @@ void modulelist_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void quickrestart_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    QuickRestart (data->text);
+	QuickRestart (data->text);
 }
 
 Bool
 send_aswindow_data_iter_func(void *data, void *aux_data)
 {
-    union { void *ptr ; int id; } module_id;
-    ASWindow *asw = (ASWindow *)data ;
+	union { void *ptr ; int id; } module_id;
+	ASWindow *asw = (ASWindow *)data ;
 
 	module_id.ptr = aux_data ;
 
-    SendConfig (module_id.id, M_CONFIGURE_WINDOW, asw);
+	SendConfig (module_id.id, M_CONFIGURE_WINDOW, asw);
 	/* always start with RES_CLASS to let module know if this is a DockApp or not */
-    SendString (module_id.id, M_RES_CLASS, asw->w, asw->frame, asw, asw->hints->res_class, get_hint_name_encoding(asw->hints, asw->hints->res_class_idx));
-    SendString (module_id.id, M_RES_NAME,  asw->w, asw->frame, asw, asw->hints->res_name, get_hint_name_encoding(asw->hints, asw->hints->res_name_idx));
-    SendString (module_id.id, M_ICON_NAME, asw->w, asw->frame, asw, asw->hints->icon_name, get_hint_name_encoding(asw->hints, asw->hints->icon_name_idx));
+	SendString (module_id.id, M_RES_CLASS, asw->w, asw->frame, asw, asw->hints->res_class, get_hint_name_encoding(asw->hints, asw->hints->res_class_idx));
+	SendString (module_id.id, M_RES_NAME,  asw->w, asw->frame, asw, asw->hints->res_name, get_hint_name_encoding(asw->hints, asw->hints->res_name_idx));
+	SendString (module_id.id, M_ICON_NAME, asw->w, asw->frame, asw, asw->hints->icon_name, get_hint_name_encoding(asw->hints, asw->hints->icon_name_idx));
 	SendString (module_id.id, M_WINDOW_NAME, asw->w,asw->frame, asw, asw->hints->names[0], get_hint_name_encoding(asw->hints, 0));
-    return True;
+	return True;
 }
 
 void send_window_list_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-    if (module >= 0)
-    {
+	if (module >= 0)
+	{
 		union { void *ptr ; int id; } module_id;
 		module_id.id = module ;
 		SendPacket (module, M_TOGGLE_PAGING, 1, DoHandlePageing);
@@ -2110,7 +2090,7 @@ void send_window_list_func_handler( FunctionData *data, ASEvent *event, int modu
 		SendPacket (module, M_END_WINDOWLIST, 0);
 		if( IsValidDesk(Scr.CurrentDesk) )
 			send_stacking_order( Scr.CurrentDesk );
-    }
+	}
 }
 
 void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -2147,9 +2127,9 @@ void screenshot_func_handler( FunctionData *data, ASEvent *event, int module )
 			char *capture_file_name = DEFAULT_CAPTURE_SCREEN_FILE;
 			char *default_template;
 			if (data->func == F_TAKE_WINDOWSHOT)
-			    capture_file_name = DEFAULT_CAPTURE_WINDOW_FILE;
+				capture_file_name = DEFAULT_CAPTURE_WINDOW_FILE;
 			else if (data->func == F_TAKE_FRAMESHOT)
-			    capture_file_name = DEFAULT_CAPTURE_FRAMEDWINDOW_FILE;
+				capture_file_name = DEFAULT_CAPTURE_FRAMEDWINDOW_FILE;
 			default_template = safemalloc(strlen(capture_file_name)+100);
 			sprintf(default_template, "%s.%lu.png", capture_file_name, time(NULL));
 			realfilename = PutHome(default_template);
@@ -2172,7 +2152,7 @@ void swallow_window_func_handler( FunctionData *data, ASEvent *event, int module
 		if( data->text ) 
 			module = FindModuleByName( data->text );
 		SendPacket( module, M_SWALLOW_WINDOW, 2, event->client->w, event->client->frame);
- 	}	
+	}	
 }	 
 
 void set_func_handler( FunctionData *data, ASEvent *event, int module )
@@ -2234,29 +2214,29 @@ void test_func_handler( FunctionData *data, ASEvent *event, int module )
 void
 QuickRestart (char *what)
 {
-    unsigned long what_flags = 0;
-    Bool          update_background = False;
+	unsigned long what_flags = 0;
+	Bool          update_background = False;
 
 	if (what == NULL)
 		return;
 
-    if (strcasecmp (what, "all") == 0 || strcasecmp (what, "theme") == 0)
+	if (strcasecmp (what, "all") == 0 || strcasecmp (what, "theme") == 0)
 	what_flags = PARSE_EVERYTHING;
-    else if (strcasecmp (what, "look&feel") == 0)
+	else if (strcasecmp (what, "look&feel") == 0)
 	what_flags = PARSE_LOOK_CONFIG|PARSE_FEEL_CONFIG;
-    else if (strcasecmp (what, "startmenu") == 0 || strcasecmp (what, "feel") == 0)
+	else if (strcasecmp (what, "startmenu") == 0 || strcasecmp (what, "feel") == 0)
 	what_flags = PARSE_FEEL_CONFIG;
-    else if (strcasecmp (what, "look") == 0)
+	else if (strcasecmp (what, "look") == 0)
 	what_flags = PARSE_LOOK_CONFIG;
-    else if (strcasecmp (what, "base") == 0)
+	else if (strcasecmp (what, "base") == 0)
 	what_flags = PARSE_BASE_CONFIG;
-    else if (strcasecmp (what, "database") == 0)
+	else if (strcasecmp (what, "database") == 0)
 	what_flags = PARSE_DATABASE_CONFIG;
-    else if (strcasecmp (what, "background") == 0)
+	else if (strcasecmp (what, "background") == 0)
 		update_background = True;
 
 	/* Force reinstall */
-    if (what)
+	if (what)
 	{
 	InstallRootColormap();
 	GrabEm (ASDefaultScr, Scr.Feel.cursors[ASCUR_Wait]);

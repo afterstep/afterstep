@@ -30,29 +30,29 @@ struct ASGradient;
 
 typedef struct MyStyle
 {
-    unsigned long magic;
+	unsigned long magic;
 
-    ASHashTable *owner;
+	ASHashTable *owner;
 
-    ASFlagType set_flags;		/* == (user_flags | inherit_flags) */
-    ASFlagType user_flags;		/* options the user set */
-    ASFlagType inherit_flags;		/* inherited options */
+	ASFlagType set_flags;		/* == (user_flags | inherit_flags) */
+	ASFlagType user_flags;		/* options the user set */
+	ASFlagType inherit_flags;		/* inherited options */
 
-    ASFlagType flags;			/* options that consist of flags only */
-    char *name;
-    int text_style;
-    MyFont font;
-    ColorPair colors;
-    ColorPair relief;
-    int texture_type;
-    icon_t back_icon;		/* background pixmap */
-    ASGradient gradient;	/* background gradient */
-    ARGB32 tint;
+	ASFlagType flags;			/* options that consist of flags only */
+	char *name;
+	int text_style;
+	MyFont font;
+	ColorPair colors;
+	ColorPair relief;
+	int texture_type;
+	icon_t back_icon;		/* background pixmap */
+	ASGradient gradient;	/* background gradient */
+	ARGB32 tint;
 	int slice_x_start, slice_x_end, slice_y_start, slice_y_end;
 	int blur_x, blur_y;
 		
 	struct MyStyle *overlay;
-    int overlay_type;
+	int overlay_type;
 
 }MyStyle;
 
@@ -62,21 +62,21 @@ typedef struct MyStyle
  */
 enum				/* MyStyle options */
 {
-    F_ERROR         = 0,        /* error condition */
-    F_DONE          = 1,         /* done parsing body */
-    F_INHERIT       = 2,      /* inherit from another style */
-    F_FONT          = (1 << 4),
-    F_FORECOLOR     = (1 << 5),
-    F_BACKCOLOR     = (1 << 6),
-    F_SLICE	     	= (1 << 7),
-    F_BACKGRADIENT  = (1 << 8),
-    F_BACKPIXMAP    = (1 << 9),
-    F_TEXTSTYLE     = (1 << 10),
-    F_DRAWTEXTBACKGROUND = (1 << 11),
-    F_BACKMULTIGRADIENT  = (1 << 12),
-    F_BACKTRANSPIXMAP    = (1 << 13),   /* should never be set unless F_BACKPIXMAP is set!! */
-    F_EXTERNAL_BACKPIX   = (1 << 14),   /* indicates that pixmap has been created by some other application and should not be freed */
-    F_EXTERNAL_BACKMASK  = (1 << 15),
+	F_ERROR         = 0,        /* error condition */
+	F_DONE          = 1,         /* done parsing body */
+	F_INHERIT       = 2,      /* inherit from another style */
+	F_FONT          = (1 << 4),
+	F_FORECOLOR     = (1 << 5),
+	F_BACKCOLOR     = (1 << 6),
+	F_SLICE	     	= (1 << 7),
+	F_BACKGRADIENT  = (1 << 8),
+	F_BACKPIXMAP    = (1 << 9),
+	F_TEXTSTYLE     = (1 << 10),
+	F_DRAWTEXTBACKGROUND = (1 << 11),
+	F_BACKMULTIGRADIENT  = (1 << 12),
+	F_BACKTRANSPIXMAP    = (1 << 13),   /* should never be set unless F_BACKPIXMAP is set!! */
+	F_EXTERNAL_BACKPIX   = (1 << 14),   /* indicates that pixmap has been created by some other application and should not be freed */
+	F_EXTERNAL_BACKMASK  = (1 << 15),
 	F_TRANSPARENT		 = (1 << 16),   /* if set MyStyle is transparent, and everything that is drawn with it,
 										 * must be updated on background changes */
   
@@ -89,29 +89,29 @@ enum				/* MyStyle options */
 
 enum				/* texture types */
 {
-    TEXTURE_SOLID = 0,
+	TEXTURE_SOLID = 0,
 
 	TEXTURE_GRADIENT_START,
-    TEXTURE_GRADIENT = TEXTURE_GRADIENT_START,
-    TEXTURE_HGRADIENT,
-    TEXTURE_HCGRADIENT,
-    TEXTURE_VGRADIENT,
-    TEXTURE_VCGRADIENT,
+	TEXTURE_GRADIENT = TEXTURE_GRADIENT_START,
+	TEXTURE_HGRADIENT,
+	TEXTURE_HCGRADIENT,
+	TEXTURE_VGRADIENT,
+	TEXTURE_VCGRADIENT,
 	TEXTURE_OLD_GRADIENT_END = TEXTURE_VCGRADIENT,
-    TEXTURE_GRADIENT_TL2BR, /* 6 */
-    TEXTURE_GRADIENT_BL2TR,
-    TEXTURE_GRADIENT_T2B,
-    TEXTURE_GRADIENT_L2R,  /* 9 */
-    TEXTURE_GRADIENT_END = TEXTURE_GRADIENT_L2R,
+	TEXTURE_GRADIENT_TL2BR, /* 6 */
+	TEXTURE_GRADIENT_BL2TR,
+	TEXTURE_GRADIENT_T2B,
+	TEXTURE_GRADIENT_L2R,  /* 9 */
+	TEXTURE_GRADIENT_END = TEXTURE_GRADIENT_L2R,
 
 	TEXTURE_TEXTURED_START = 125,
-    TEXTURE_SHAPED_SCALED_PIXMAP = TEXTURE_TEXTURED_START,
-    TEXTURE_SHAPED_PIXMAP,
-    TEXTURE_SCALED_PIXMAP = 127,
-    TEXTURE_PIXMAP,
-    TEXTURE_TRANSPARENT = 129, /* tninted really */
-    TEXTURE_TRANSPIXMAP = 130, /* 130-145 represent different
-	                              blending methods from libAfterImage */
+	TEXTURE_SHAPED_SCALED_PIXMAP = TEXTURE_TEXTURED_START,
+	TEXTURE_SHAPED_PIXMAP,
+	TEXTURE_SCALED_PIXMAP = 127,
+	TEXTURE_PIXMAP,
+	TEXTURE_TRANSPARENT = 129, /* tninted really */
+	TEXTURE_TRANSPIXMAP = 130, /* 130-145 represent different
+								  blending methods from libAfterImage */
 	TEXTURE_TRANSPIXMAP_ALLANON = TEXTURE_TRANSPIXMAP,
 	TEXTURE_TRANSPIXMAP_ALPHA,
 	TEXTURE_TRANSPIXMAP_TINT,
@@ -130,7 +130,7 @@ enum				/* texture types */
 
 	TEXTURE_TRANSPIXMAP_END = 148,
 
-    TEXTURE_TRANSPARENT_TWOWAY = 149, /* tinted both ways - lightened or darkened */
+	TEXTURE_TRANSPARENT_TWOWAY = 149, /* tinted both ways - lightened or darkened */
 
 	TEXTURE_SCALED_TRANSPIXMAP = 150,
 	TEXTURE_SCALED_TPM_ALLANON = TEXTURE_SCALED_TRANSPIXMAP,
@@ -151,7 +151,7 @@ enum				/* texture types */
 	TEXTURE_SCALED_TRANSPIXMAP_END = 168,
 	TEXTURE_TEXTURED_END = TEXTURE_SCALED_TRANSPIXMAP_END,
 
-    TEXTURE_BUILTIN = 255
+	TEXTURE_BUILTIN = 255
   };
 
 

@@ -19,4 +19,5 @@
 		../../libAfterStep/wmprops.h \
 		../../libAfterStep/functions.h \
 		../../libAfterStep/shape.h \
+		../../libAfterStep/desktop_category.h \
 		../../libAfterConf/afterconf.h

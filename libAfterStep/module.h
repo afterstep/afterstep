@@ -107,8 +107,8 @@ int ReadASPacket (int, send_data_type *, send_data_type **);
 
 typedef struct
   {
-    send_data_type header[3];
-    send_data_type *body;
+	send_data_type header[3];
+	send_data_type *body;
   }
 ASMessage;
 

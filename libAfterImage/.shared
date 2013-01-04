@@ -13,6 +13,7 @@ LIBAFTERIMAGE_OBJS = \
 		$(LIBAFTERIMAGE_PATH)/imencdec.c \
 		$(LIBAFTERIMAGE_PATH)/import.c \
 		$(LIBAFTERIMAGE_PATH)/pixmap.c \
+		$(LIBAFTERIMAGE_PATH)/scanline.c \
 		$(LIBAFTERIMAGE_PATH)/transform.c \
 		$(LIBAFTERIMAGE_PATH)/ungif.c \
 		$(LIBAFTERIMAGE_PATH)/xcf.c \
@@ -21,7 +22,6 @@ LIBAFTERIMAGE_OBJS = \
 
 LIBAFTERIMAGE_INCS = \
 		$(LIBAFTERIMAGE_PATH)/afterimage.h \
-		$(LIBAFTERIMAGE_PATH)/config.h \
 		$(LIBAFTERIMAGE_PATH)/afterbase.h \
 		$(LIBAFTERIMAGE_PATH)/ascmap.h \
 		$(LIBAFTERIMAGE_PATH)/asfont.h \
@@ -38,9 +38,11 @@ LIBAFTERIMAGE_INCS = \
 		$(LIBAFTERIMAGE_PATH)/imencdec.h \
 		$(LIBAFTERIMAGE_PATH)/import.h \
 		$(LIBAFTERIMAGE_PATH)/pixmap.h \
+		$(LIBAFTERIMAGE_PATH)/scanline.h \
 		$(LIBAFTERIMAGE_PATH)/transform.h \
 		$(LIBAFTERIMAGE_PATH)/ungif.h \
 		$(LIBAFTERIMAGE_PATH)/xcf.h \
 		$(LIBAFTERIMAGE_PATH)/ximage.h \
 		$(LIBAFTERIMAGE_PATH)/xpm.h \
-		$(LIBAFTERIMAGE_PATH)/xwrap.h
+		$(LIBAFTERIMAGE_PATH)/xwrap.h \
+		$(LIBAFTERIMAGE_PATH)/config.h

@@ -1,5 +1,13 @@
 ./interface.h:
 
+./main.o: \
+		../../../configure.h \
+		../../../libAfterStep/asapp.h \
+		../../../libAfterStep/module.h \
+		../../../libAfterConf/afterconf.h \
+		../../../libASGTK/asgtk.h \
+		interface.h
+
 ./interface.o: \
 		../../../configure.h \
 		../../../libAfterStep/asapp.h \
@@ -7,13 +15,5 @@
 		../../../libAfterStep/screen.h \
 		../../../libAfterStep/colorscheme.h \
 		../../../libAfterStep/module.h \
-		../../../libASGTK/asgtk.h \
-		interface.h
-
-./main.o: \
-		../../../configure.h \
-		../../../libAfterStep/asapp.h \
-		../../../libAfterStep/module.h \
-		../../../libAfterConf/afterconf.h \
 		../../../libASGTK/asgtk.h \
 		interface.h

@@ -100,11 +100,11 @@ void
 do_anim_shape_blocks( void *vdata )
 {
 #ifdef SHAPE
- 	struct ASDeskAniBlocks *data = (struct ASDeskAniBlocks*) vdata ; 
+	struct ASDeskAniBlocks *data = (struct ASDeskAniBlocks*) vdata ; 
 	XRectangle    main_b = { 0, 0, Scr.MyDisplayWidth, Scr.MyDisplayHeight };
 	int           ratio = MAX_MY_RND32 / LEVELS_NUM;
 	int           x_dim = Scr.MyDisplayWidth / BLOCKS_NUM;
-    int           y_dim = Scr.MyDisplayHeight / data->steps;
+	int           y_dim = Scr.MyDisplayHeight / data->steps;
 	int           level, th;
 	unsigned char *tmp;
 
@@ -113,9 +113,9 @@ do_anim_shape_blocks( void *vdata )
 
 
 	th = MAX_MY_RND32;
-        
+		
 	level = LEVELS_NUM ; 
-    while ( --level >= 0 )
+	while ( --level >= 0 )
 	{
 		int           blocks_used;
 		int  i = 0;
@@ -201,7 +201,7 @@ do_anim_slide( void *vdata )
 {
 	struct ASDeskAniMove *data = (struct ASDeskAniMove*)vdata ;
 		
-    int           inc = Scr.MyDisplayWidth / data->steps;
+	int           inc = Scr.MyDisplayWidth / data->steps;
 	
 	if (inc == 0)
 		inc = 1;
@@ -222,7 +222,7 @@ do_anim_slide( void *vdata )
 void
 desk_anim_shrink (ScreenInfo *scr, Window cover, int dirx, int diry, unsigned int steps)
 {
-    
+	
 	struct ASDeskAniMove *data = safecalloc( 1, sizeof(struct ASDeskAniMove)); 	
 
 	data->cover = cover ;
@@ -360,83 +360,83 @@ static void   (*DeskAnimations[ANIMATIONS_NUM]) (ScreenInfo *,Window,unsigned in
 void
 remove_desktop_cover()
 {
-    
-    if (_as_desktop_cover )
+	
+	if (_as_desktop_cover )
 	{
-        --_as_desktop_cover_recursion ;
-        if(  _as_desktop_cover_recursion == 0 )
-        {    
-            int steps = Scr.Feel.desk_cover_animation_steps ; 
-            int type = Scr.Feel.desk_cover_animation_type ;
-            
-            XSync (dpy, False);
+		--_as_desktop_cover_recursion ;
+		if(  _as_desktop_cover_recursion == 0 )
+		{    
+			int steps = Scr.Feel.desk_cover_animation_steps ; 
+			int type = Scr.Feel.desk_cover_animation_type ;
+			
+			XSync (dpy, False);
 
-            if (steps > 0 && type >= 0 && DeskAnimations[type % ANIMATIONS_NUM])
+			if (steps > 0 && type >= 0 && DeskAnimations[type % ANIMATIONS_NUM])
 				DeskAnimations[type % ANIMATIONS_NUM] (ASDefaultScr, _as_desktop_cover, steps);
 			else
-            	XDestroyWindow (dpy, _as_desktop_cover);
-            _as_desktop_cover = None ;
-            
-            _as_progress_line = 0 ;
-            _as_progress_cursor = 0 ;
+				XDestroyWindow (dpy, _as_desktop_cover);
+			_as_desktop_cover = None ;
+			
+			_as_progress_line = 0 ;
+			_as_progress_cursor = 0 ;
 
-            XSync (dpy, False);
-        }
+			XSync (dpy, False);
+		}
 	}
 }
 
 Window 
 get_desktop_cover_window()
 {
-    return _as_desktop_cover;    
+	return _as_desktop_cover;    
 }    
 
 void 
 restack_desktop_cover()
 {
-    if( _as_desktop_cover )
-        XRaiseWindow( dpy, _as_desktop_cover );
+	if( _as_desktop_cover )
+		XRaiseWindow( dpy, _as_desktop_cover );
 }    
 
 void cover_desktop()
 {
-    XSetWindowAttributes attributes;
+	XSetWindowAttributes attributes;
 	unsigned long valuemask;
 	Window        w;
-    XGCValues       gcvalue;
+	XGCValues       gcvalue;
 
 	if( get_flags( Scr.Feel.flags, DontCoverDesktop ) )
 		return;
 		
-    ++_as_desktop_cover_recursion ;
+	++_as_desktop_cover_recursion ;
 
-    if( _as_desktop_cover != None ) 
-        return ;
+	if( _as_desktop_cover != None ) 
+		return ;
 
 	valuemask = (CWBackPixmap | CWBackingStore | CWOverrideRedirect);
 	attributes.background_pixmap = None;
 	attributes.backing_store = NotUseful;
 	attributes.override_redirect = True;
 
-    w = create_visual_window(Scr.asv, Scr.Root, 0, 0,
-                               Scr.MyDisplayWidth, Scr.MyDisplayHeight,
-                               0, InputOutput, valuemask, &attributes);
+	w = create_visual_window(Scr.asv, Scr.Root, 0, 0,
+							   Scr.MyDisplayWidth, Scr.MyDisplayHeight,
+							   0, InputOutput, valuemask, &attributes);
 
 	XMapRaised (dpy, w);
-    XSync (dpy, False);
-    if( _as_desktop_cover_gc == NULL ) 
-    {
-        unsigned long mask = GCFunction|GCForeground|GCBackground|GCGraphicsExposures ;
+	XSync (dpy, False);
+	if( _as_desktop_cover_gc == NULL ) 
+	{
+		unsigned long mask = GCFunction|GCForeground|GCBackground|GCGraphicsExposures ;
 		CARD32 r16, g16, b16 ;
 
-        if( _as_desktop_cover_xfs == NULL ) 
-            _as_desktop_cover_xfs = XLoadQueryFont( dpy, "fixed" );
+		if( _as_desktop_cover_xfs == NULL ) 
+			_as_desktop_cover_xfs = XLoadQueryFont( dpy, "fixed" );
 
-        if( _as_desktop_cover_xfs )
-        {    
-            gcvalue.font = _as_desktop_cover_xfs->fid;
-            mask |= GCFont ;
-        }
+		if( _as_desktop_cover_xfs )
+		{    
+			gcvalue.font = _as_desktop_cover_xfs->fid;
+			mask |= GCFont ;
+		}
 		
 		LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", Scr.Look.desktop_animation_tint );
 		r16 = ARGB32_RED16(Scr.Look.desktop_animation_tint);
@@ -444,56 +444,56 @@ void cover_desktop()
 		b16 = ARGB32_BLUE16(Scr.Look.desktop_animation_tint);
 		if( ASCS_BLACK_O_WHITE_CRITERIA16(r16,g16,b16) )
 		{
-	        gcvalue.foreground = Scr.asv->black_pixel;
-    	    gcvalue.background = Scr.asv->white_pixel;
+			gcvalue.foreground = Scr.asv->black_pixel;
+			gcvalue.background = Scr.asv->white_pixel;
 		}else
 		{			  
-	        gcvalue.foreground = Scr.asv->white_pixel;
-    	    gcvalue.background = Scr.asv->black_pixel;
+			gcvalue.foreground = Scr.asv->white_pixel;
+			gcvalue.background = Scr.asv->black_pixel;
 		}
-        gcvalue.function = GXcopy;
-        gcvalue.graphics_exposures = 0;
-    
-        _as_desktop_cover_gc = create_visual_gc( Scr.asv, Scr.Root, mask, &gcvalue);
-    }        
-    if( _as_desktop_cover_gc )
-    {
-        unsigned long pixel ;
-        ARGB2PIXEL(Scr.asv,Scr.Look.desktop_animation_tint,&pixel);
-        gcvalue.foreground = pixel;
-        gcvalue.function = GXand;
-        XChangeGC( dpy, _as_desktop_cover_gc, GCFunction|GCForeground, &gcvalue );
-        XFillRectangle(dpy, w, _as_desktop_cover_gc,
-                        0, 0,
-                        Scr.MyDisplayWidth, Scr.MyDisplayHeight);            
-        gcvalue.foreground = Scr.asv->white_pixel;
-        gcvalue.function = GXcopy;
-        XChangeGC( dpy, _as_desktop_cover_gc, GCFunction|GCForeground, &gcvalue );
-    }
-    _as_desktop_cover = w ; 
+		gcvalue.function = GXcopy;
+		gcvalue.graphics_exposures = 0;
+	
+		_as_desktop_cover_gc = create_visual_gc( Scr.asv, Scr.Root, mask, &gcvalue);
+	}        
+	if( _as_desktop_cover_gc )
+	{
+		unsigned long pixel ;
+		ARGB2PIXEL(Scr.asv,Scr.Look.desktop_animation_tint,&pixel);
+		gcvalue.foreground = pixel;
+		gcvalue.function = GXand;
+		XChangeGC( dpy, _as_desktop_cover_gc, GCFunction|GCForeground, &gcvalue );
+		XFillRectangle(dpy, w, _as_desktop_cover_gc,
+						0, 0,
+						Scr.MyDisplayWidth, Scr.MyDisplayHeight);            
+		gcvalue.foreground = Scr.asv->white_pixel;
+		gcvalue.function = GXcopy;
+		XChangeGC( dpy, _as_desktop_cover_gc, GCFunction|GCForeground, &gcvalue );
+	}
+	_as_desktop_cover = w ; 
 }
 
 void desktop_cover_cleanup()
 {
-    if( _as_desktop_cover_gc )
-    {
-        XFreeGC( dpy, _as_desktop_cover_gc );
-        _as_desktop_cover_gc = NULL ;            
-    }    
+	if( _as_desktop_cover_gc )
+	{
+		XFreeGC( dpy, _as_desktop_cover_gc );
+		_as_desktop_cover_gc = NULL ;            
+	}    
 
-    if( _as_desktop_cover_xfs )
-    {    
-        XFreeFont( dpy, _as_desktop_cover_xfs );
-        _as_desktop_cover_xfs = NULL ;
-    }
+	if( _as_desktop_cover_xfs )
+	{    
+		XFreeFont( dpy, _as_desktop_cover_xfs );
+		_as_desktop_cover_xfs = NULL ;
+	}
 
-    if( _as_desktop_cover )
-    {    
-        XDestroyWindow (dpy, _as_desktop_cover);
-        _as_desktop_cover = None ;
-    }
+	if( _as_desktop_cover )
+	{    
+		XDestroyWindow (dpy, _as_desktop_cover);
+		_as_desktop_cover = None ;
+	}
 
-    _as_desktop_cover_recursion = 0 ;
+	_as_desktop_cover_recursion = 0 ;
 }    
 
 static char buffer[8192] ;
@@ -501,30 +501,30 @@ static char buffer[8192] ;
 void 
 display_progress( Bool new_line, const char *msg_format, ... )
 {
-    if( _as_desktop_cover && _as_desktop_cover_xfs && _as_desktop_cover_gc )
-    {
-        int x, y ; 
-        int height ; 
-        int len ; 
-        
-        va_list ap;
-        va_start (ap, msg_format);
-        vsnprintf (&buffer[0], 256, msg_format, ap);
-        va_end (ap);
-        
-        len = strlen( &buffer[0] );
-        if( _as_progress_cursor > 0 && new_line ) 
-        {    
-            ++_as_progress_line ;
-            _as_progress_cursor = 0 ; 
-        }
-        /* and now we need to display the text on the screen */
-        x = Scr.MyDisplayWidth/20 + _as_progress_cursor ; 
-        height = _as_desktop_cover_xfs->ascent + _as_desktop_cover_xfs->descent + 5;
-        y = Scr.MyDisplayHeight/5 + height * _as_progress_line ;
-        _as_progress_cursor += XTextWidth( _as_desktop_cover_xfs, &buffer[0], len) + 10;
-        XDrawString (dpy, _as_desktop_cover, _as_desktop_cover_gc, x, y, &buffer[0], len);
+	if( _as_desktop_cover && _as_desktop_cover_xfs && _as_desktop_cover_gc )
+	{
+		int x, y ; 
+		int height ; 
+		int len ; 
+		
+		va_list ap;
+		va_start (ap, msg_format);
+		vsnprintf (&buffer[0], 256, msg_format, ap);
+		va_end (ap);
+		
+		len = strlen( &buffer[0] );
+		if( _as_progress_cursor > 0 && new_line ) 
+		{    
+			++_as_progress_line ;
+			_as_progress_cursor = 0 ; 
+		}
+		/* and now we need to display the text on the screen */
+		x = Scr.MyDisplayWidth/20 + _as_progress_cursor ; 
+		height = _as_desktop_cover_xfs->ascent + _as_desktop_cover_xfs->descent + 5;
+		y = Scr.MyDisplayHeight/5 + height * _as_progress_line ;
+		_as_progress_cursor += XTextWidth( _as_desktop_cover_xfs, &buffer[0], len) + 10;
+		XDrawString (dpy, _as_desktop_cover, _as_desktop_cover_gc, x, y, &buffer[0], len);
 		ASSync(False);		
-    }        
+	}        
 }    
 

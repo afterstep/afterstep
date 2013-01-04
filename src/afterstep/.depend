@@ -1,3 +1,6 @@
+./menus.h: \
+		../../libAfterStep/functions.h
+
 ./asinternals.h: \
 		../../libAfterStep/asapp.h \
 		../../libAfterImage/afterimage.h \
@@ -18,13 +21,22 @@
 ./dirtree.h: \
 		../../libAfterStep/functions.h
 
-./menus.h: \
-		../../libAfterStep/functions.h
-
-./add_window.o: \
+./module.o: \
 		../../configure.h \
 		asinternals.h \
-		../../libAfterStep/moveresize.h
+		../../libAfterStep/desktop_category.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/wmprops.h
+
+./theme.o: \
+		../../configure.h \
+		asinternals.h \
+		../../libAfterStep/session.h \
+		../../libAfterConf/afterconf.h
+
+./dbus.o: \
+		../../configure.h \
+		asinternals.h
 
 ./afterstep.o: \
 		../../configure.h \
@@ -40,9 +52,43 @@
 		../../libAfterStep/session.h \
 		../../libAfterStep/wmprops.h
 
-./colormaps.o: \
+./add_window.o: \
+		../../configure.h \
+		asinternals.h \
+		../../libAfterStep/moveresize.h
+
+./pager.o: \
+		../../configure.h \
+		asinternals.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/session.h \
+		../../libAfterStep/moveresize.h
+
+./decorations.o: \
+		../../configure.h \
+		asinternals.h \
+		../../libAfterConf/afterconf.h
+
+./events.o: \
+		../../configure.h \
+		asinternals.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/moveresize.h
+
+./icons.o: \
 		../../configure.h \
 		asinternals.h
+
+./functions.o: \
+		../../configure.h \
+		asinternals.h \
+		../../libAfterStep/session.h \
+		../../libAfterStep/moveresize.h \
+		../../libAfterStep/mylook.h \
+		../../libAfterStep/desktop_category.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterConf/afterconf.h \
+		../../libAfterStep/kde.h
 
 ./configure.o: \
 		../../configure.h \
@@ -52,6 +98,7 @@
 		../../libAfterStep/mystyle_property.h \
 		../../libAfterStep/wmprops.h \
 		../../libAfterStep/desktop_category.h \
+		../../libAfterStep/kde.h \
 		../../libAfterConf/afterconf.h
 
 ./cover.o: \
@@ -59,7 +106,7 @@
 		asinternals.h \
 		../../libAfterStep/colorscheme.h
 
-./decorations.o: \
+./colormaps.o: \
 		../../configure.h \
 		asinternals.h
 
@@ -67,28 +114,8 @@
 		../../configure.h \
 		../../libAfterStep/asapp.h \
 		../../libAfterStep/desktop_category.h \
+		../../libAfterConf/afterconf.h \
 		dirtree.h
-
-./events.o: \
-		../../configure.h \
-		asinternals.h \
-		../../libAfterStep/wmprops.h \
-		../../libAfterStep/moveresize.h
-
-./functions.o: \
-		../../configure.h \
-		asinternals.h \
-		../../libAfterStep/session.h \
-		../../libAfterStep/moveresize.h \
-		../../libAfterStep/mylook.h
-
-./housekeeping.o: \
-		../../configure.h \
-		asinternals.h
-
-./icons.o: \
-		../../configure.h \
-		asinternals.h
 
 ./menuitem.o: \
 		../../configure.h \
@@ -96,40 +123,25 @@
 		../../libAfterStep/desktop_category.h \
 		dirtree.h
 
-./menus.o: \
+./winstatus.o: \
 		../../configure.h \
 		asinternals.h \
-		menus.h
-
-./misc.o: \
-		../../configure.h \
-		asinternals.h
-
-./module.o: \
-		../../configure.h \
-		asinternals.h \
-		../../libAfterStep/module.h \
 		../../libAfterStep/wmprops.h
 
-./pager.o: \
+./housekeeping.o: \
 		../../configure.h \
-		asinternals.h \
-		../../libAfterStep/wmprops.h \
-		../../libAfterStep/session.h \
-		../../libAfterStep/moveresize.h
+		asinternals.h
 
 ./placement.o: \
 		../../configure.h \
 		asinternals.h \
 		../../libAfterStep/moveresize.h
 
-./theme.o: \
+./misc.o: \
 		../../configure.h \
-		asinternals.h \
-		../../libAfterStep/session.h \
-		../../libAfterConf/afterconf.h
+		asinternals.h
 
-./winstatus.o: \
+./menus.o: \
 		../../configure.h \
 		asinternals.h \
-		../../libAfterStep/wmprops.h
+		menus.h

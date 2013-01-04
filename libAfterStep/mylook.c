@@ -33,8 +33,8 @@
 int _as_frame_corner_xref[FRAME_SIDES+1] = {FR_NW, FR_NE, FR_SE, FR_SW, FR_NW};
 
 unsigned int _as_default_button_xref[TITLE_BUTTONS] =
-    { C_TButton1, C_TButton3, C_TButton5, C_TButton7, C_TButton9,
-      C_TButton0, C_TButton8, C_TButton6, C_TButton4, C_TButton2 };
+	{ C_TButton1, C_TButton3, C_TButton5, C_TButton7, C_TButton9,
+	  C_TButton0, C_TButton8, C_TButton6, C_TButton4, C_TButton2 };
 
 
 
@@ -102,17 +102,17 @@ myobj_destroy (ASHashableValue value, void *data)
 		switch( variant.obj->magic )
 		{
 			case MAGIC_MYFRAME       :
-                destroy_myframe( &variant.myframe );
+				destroy_myframe( &variant.myframe );
 				break ;
-            case MAGIC_MYBACKGROUND :
+			case MAGIC_MYBACKGROUND :
 				myback_delete ( &variant.myback, NULL );
-			    break ;
+				break ;
 			case MAGIC_MYDESKTOPCONFIG :
 				mydeskconfig_delete ( &variant.mydesk );
-			    break ;
+				break ;
 			case MAGIC_MYLOOK :
 				mylook_destroy ( &variant.mylook );
-			    break ;
+				break ;
 		}
 	}
 }
@@ -137,8 +137,8 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 
 	if (look == NULL)
 		return;
-    if( look->magic != MAGIC_MYLOOK )
-        return;
+	if( look->magic != MAGIC_MYLOOK )
+		return;
 
 	if( look->scr ) 
 		scr = look->scr ;
@@ -148,11 +148,11 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 		display_dpcmx = (scr->MyDisplayWidth * 10 )/ DisplayWidthMM(dpy, scr->screen );
 		display_dpcmy = (scr->MyDisplayHeight * 10 )/ DisplayHeightMM(dpy, scr->screen );
 	}	 
-    
+	
 	if (get_flags (what_flags, LL_Balloons) && free_resources )
 		cleanup_default_balloons();
 
-    if (free_resources)
+	if (free_resources)
 	{
 		if (get_flags (what_flags, LL_MyStyles) && look->styles_list)
 		{
@@ -167,40 +167,40 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 
 		if (get_flags (what_flags, LL_MenuIcons))
 		{
-            if (look->MenuArrow != NULL)
-            {
-                destroy_icon( &(look->MenuArrow) );
-                look->MenuArrow = NULL;
-            }
-        }
+			if (look->MenuArrow != NULL)
+			{
+				destroy_icon( &(look->MenuArrow) );
+				look->MenuArrow = NULL;
+			}
+		}
 
 		if (get_flags (what_flags, LL_Buttons))
 		{
-            for (i = 0; i < TITLE_BUTTONS; i++)
-                free_button_resources( &(look->buttons[i]) );
-        }
-        if (get_flags (what_flags, LL_SupportedHints) && look->supported_hints)
-            destroy_hints_list ( &(look->supported_hints) );
+			for (i = 0; i < TITLE_BUTTONS; i++)
+				free_button_resources( &(look->buttons[i]) );
+		}
+		if (get_flags (what_flags, LL_SupportedHints) && look->supported_hints)
+			destroy_hints_list ( &(look->supported_hints) );
 
-        if (get_flags (what_flags, LL_Layouts) )
-        {
-            if( look->DefaultFrameName )
-                free( look->DefaultFrameName );
-            if( look->FramesList )
-                destroy_ashash( &(look->FramesList));
-        }
-        if( look->configured_icon_areas && get_flags (what_flags, LL_Icons) )
+		if (get_flags (what_flags, LL_Layouts) )
 		{
-            free( look->configured_icon_areas );
+			if( look->DefaultFrameName )
+				free( look->DefaultFrameName );
+			if( look->FramesList )
+				destroy_ashash( &(look->FramesList));
+		}
+		if( look->configured_icon_areas && get_flags (what_flags, LL_Icons) )
+		{
+			free( look->configured_icon_areas );
 			if( look->DefaultIcon )
 				free( look->DefaultIcon );
 		}
 
-        if( look->balloon_look && get_flags (what_flags, LL_Balloons))
-        {
-            destroy_balloon_look( look->balloon_look );
+		if( look->balloon_look && get_flags (what_flags, LL_Balloons))
+		{
+			destroy_balloon_look( look->balloon_look );
 			look->balloon_look = NULL ;
-        }
+		}
 
 		if (get_flags (what_flags, LL_Misc))
 		{
@@ -208,7 +208,7 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 				free( look->CursorFore );
 			if(	look->CursorBack )
 				free( look->CursorBack );
-    	}
+		}
 	}/* free_resources */
 
 	if (get_flags (what_flags, LL_MyStyles))
@@ -244,59 +244,59 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 			look->minipixmap_height = display_dpcmy-20 ;
 		else if( display_dpcmy > 0 ) 
 			look->minipixmap_height = max(display_dpcmy/2,12);
-    }
+	}
 
 	if (get_flags (what_flags, LL_Buttons))
 	{										   /* TODO: Titlebuttons - we 'll move them into  MyStyles */
 		/* we will translate button numbers from the user input */
-        look->TitleButtonSpacing[0] = look->TitleButtonSpacing[1] = 2;
-        look->TitleButtonStyle = 0;
-        for (i = 0; i < TITLE_BUTTONS; i++)
-        {
-            memset(&(look->buttons[i]), 0x00, sizeof(MyButton));
-            look->button_xref[i] = _as_default_button_xref[i] ;
-            look->ordered_buttons[i] = NULL ;
-        }
-        look->button_first_right = DEFAULT_FIRST_RIGHT_BUTTON ;
-    }
+		look->TitleButtonSpacing[0] = look->TitleButtonSpacing[1] = 2;
+		look->TitleButtonStyle = 0;
+		for (i = 0; i < TITLE_BUTTONS; i++)
+		{
+			memset(&(look->buttons[i]), 0x00, sizeof(MyButton));
+			look->button_xref[i] = _as_default_button_xref[i] ;
+			look->ordered_buttons[i] = NULL ;
+		}
+		look->button_first_right = DEFAULT_FIRST_RIGHT_BUTTON ;
+	}
 
 	if (get_flags (what_flags, LL_Layouts))
-    {
-        look->DefaultFrameName = NULL ;
-        look->FramesList = NULL ;
-        look->TitleTextAlign = 0;
+	{
+		look->DefaultFrameName = NULL ;
+		look->FramesList = NULL ;
+		look->TitleTextAlign = 0;
 		look->TitleButtonStyle = 0;
 		look->TitleButtonSpacing[0] = look->TitleButtonSpacing[1] = 0;
 		look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 0;
 		look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 0;
-    }
+	}
 
 	if (get_flags (what_flags, LL_SizeWindow))
 	{
-        memset( &(look->resize_move_geometry), 0x00, sizeof(ASGeometry));
+		memset( &(look->resize_move_geometry), 0x00, sizeof(ASGeometry));
 	}
 
-    if (get_flags (what_flags, LL_MenuParams))
+	if (get_flags (what_flags, LL_MenuParams))
 	{
 		look->DrawMenuBorders = 1;
 		look->StartMenuSortMode = DEFAULTSTARTMENUSORT;
-        look->menu_icm = TEXTURE_TRANSPIXMAP_ALPHA ;
-        look->menu_hcm = TEXTURE_TRANSPIXMAP_ALPHA ;
-        look->menu_scm = TEXTURE_TRANSPIXMAP_ALPHA ;
+		look->menu_icm = TEXTURE_TRANSPIXMAP_ALPHA ;
+		look->menu_hcm = TEXTURE_TRANSPIXMAP_ALPHA ;
+		look->menu_scm = TEXTURE_TRANSPIXMAP_ALPHA ;
 	}
 
 	if (get_flags (what_flags, LL_Icons))
 	{
-        look->configured_icon_areas = NULL ;
-        look->configured_icon_areas_num = 0;
+		look->configured_icon_areas = NULL ;
+		look->configured_icon_areas_num = 0;
 		look->ButtonWidth = (display_dpcmx>0 && display_dpcmx < 50)?48:64;
 		look->ButtonHeight = (display_dpcmy>0 && display_dpcmy < 50)?48:64;
 		look->ButtonIconSpacing = 2;
 		look->ButtonAlign  = ALIGN_CENTER|RESIZE_H_SCALE|RESIZE_V_SCALE;
 		look->ButtonBevel  = DEFAULT_TBAR_HILITE;
 
-        look->DefaultIcon = NULL;
-    }
+		look->DefaultIcon = NULL;
+	}
 
 	if (get_flags (what_flags, LL_Misc))
 	{
@@ -314,19 +314,19 @@ mylook_init (MyLook * look, Bool free_resources, unsigned long what_flags /*see 
 			else if( Base_hue < 90  ) 	look->desktop_animation_tint = 0xFFFFFF00;
 			else if( Base_hue < 150  ) 	look->desktop_animation_tint = 0xFF00FF00;
 			else if( Base_hue < 210  ) 	look->desktop_animation_tint = 0xFF00FFFF;
- 			else if( Base_hue < 270  ) 	look->desktop_animation_tint = 0xFF0000FF;
+			else if( Base_hue < 270  ) 	look->desktop_animation_tint = 0xFF0000FF;
 			else look->desktop_animation_tint = 0xFFFF00FF;
 		}
-    }
+	}
 	LOCAL_DEBUG_OUT( "desk_anime_tint = %lX", look->desktop_animation_tint );
 	if (get_flags (what_flags, LL_Flags))
 		look->flags = SeparateButtonTitle | TxtrMenuItmInd;
 
-    if (get_flags (what_flags, LL_SupportedHints))
-        look->supported_hints = NULL ;
+	if (get_flags (what_flags, LL_SupportedHints))
+		look->supported_hints = NULL ;
 
-    if( look->balloon_look && get_flags (what_flags, LL_Balloons))
-        look->balloon_look = create_balloon_look();
+	if( look->balloon_look && get_flags (what_flags, LL_Balloons))
+		look->balloon_look = create_balloon_look();
 }
 
 MyLook       *
@@ -336,7 +336,7 @@ mylook_create ()
 	static unsigned long   next_look_id = 0 ;
 
 	look = (MyLook *) safecalloc (1, sizeof (MyLook));
-    look->magic = MAGIC_MYLOOK ;
+	look->magic = MAGIC_MYLOOK ;
 	look->look_id = next_look_id++ ;
 	mylook_init (look, False, LL_Everything);
 	return look;
@@ -351,7 +351,7 @@ mylook_destroy (MyLook ** look)
 			mylook_init (*look, True, LL_Everything);
 			if( (*look)->name )
 				free( (*look)->name );
-            (*look)->magic = 0 ;                  /* invalidating object */
+			(*look)->magic = 0 ;                  /* invalidating object */
 			free (*look);
 			*look = NULL;
 		}
@@ -378,8 +378,8 @@ mylook_set_font_size_var (MyLook * look)
 MyFrame *
 create_myframe()
 {
-    MyFrame *frame = safecalloc( 1, sizeof(MyFrame));
-    frame->magic = MAGIC_MYFRAME ;
+	MyFrame *frame = safecalloc( 1, sizeof(MyFrame));
+	frame->magic = MAGIC_MYFRAME ;
 	
 	frame->left_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
 	frame->right_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
@@ -387,188 +387,188 @@ create_myframe()
 	frame->title_fsat = frame->title_usat = frame->title_ssat = -1 ;
 	frame->title_fhue = frame->title_uhue = frame->title_shue = -1 ;
 
-    frame->title_h_spacing = DEFAULT_TBAR_HSPACING;
+	frame->title_h_spacing = DEFAULT_TBAR_HSPACING;
 	frame->title_v_spacing = DEFAULT_TBAR_VSPACING;
 
-    return frame;
+	return frame;
 
 }
 
 MyFrame *
 create_default_myframe(ASFlagType default_title_align)
 {
-    MyFrame *frame = create_myframe();
-    frame->set_parts = 0xFFFFFFFF ;
-    frame->parts_mask = C_SIDEBAR ;
-    frame->set_part_size = C_SIDEBAR ;
-    frame->part_width[FR_S] = BOUNDARY_WIDTH ;
-    frame->part_width[FR_SW] = 0 ;
-    frame->part_width[FR_SE] = 0 ;
-    frame->part_length[FR_S] = 1;
-    frame->part_length[FR_SW] = BOUNDARY_WIDTH ;
-    frame->part_length[FR_SE] = BOUNDARY_WIDTH ;
-    frame->set_part_align = C_SIDEBAR ;
-    frame->part_align[FR_S]  = 0;
-    frame->part_align[FR_SW] = 0 ;
-    frame->part_align[FR_SE] = 0 ;
-    SetPartFBevelMask(frame,C_SIDEBAR);
-    SetPartUBevelMask(frame,C_SIDEBAR);
-    SetPartSBevelMask(frame,C_SIDEBAR);
-    frame->part_fbevel[FR_S]  = DEFAULT_TBAR_HILITE;
-    frame->part_fbevel[FR_SW] = DEFAULT_TBAR_HILITE;
-    frame->part_fbevel[FR_SE] = DEFAULT_TBAR_HILITE;
-    frame->part_ubevel[FR_S]  = DEFAULT_TBAR_HILITE ;
-    frame->part_ubevel[FR_SE] = DEFAULT_TBAR_HILITE ;
-    frame->part_ubevel[FR_SW] = DEFAULT_TBAR_HILITE ;
-    frame->part_sbevel[FR_S]  = DEFAULT_TBAR_HILITE ;
-    frame->part_sbevel[FR_SW] = DEFAULT_TBAR_HILITE ;
-    frame->part_sbevel[FR_SE] = DEFAULT_TBAR_HILITE ;
-    set_flags( frame->set_title_attr, MYFRAME_TitleFBevelSet|
-                                      MYFRAME_TitleUBevelSet|
-                                      MYFRAME_TitleSBevelSet|
-                                      MYFRAME_TitleAlignSet|
-                                      MYFRAME_TitleFCMSet|
-                                      MYFRAME_TitleUCMSet|
-                                      MYFRAME_TitleSCMSet );
+	MyFrame *frame = create_myframe();
+	frame->set_parts = 0xFFFFFFFF ;
+	frame->parts_mask = C_SIDEBAR ;
+	frame->set_part_size = C_SIDEBAR ;
+	frame->part_width[FR_S] = BOUNDARY_WIDTH ;
+	frame->part_width[FR_SW] = 0 ;
+	frame->part_width[FR_SE] = 0 ;
+	frame->part_length[FR_S] = 1;
+	frame->part_length[FR_SW] = BOUNDARY_WIDTH ;
+	frame->part_length[FR_SE] = BOUNDARY_WIDTH ;
+	frame->set_part_align = C_SIDEBAR ;
+	frame->part_align[FR_S]  = 0;
+	frame->part_align[FR_SW] = 0 ;
+	frame->part_align[FR_SE] = 0 ;
+	SetPartFBevelMask(frame,C_SIDEBAR);
+	SetPartUBevelMask(frame,C_SIDEBAR);
+	SetPartSBevelMask(frame,C_SIDEBAR);
+	frame->part_fbevel[FR_S]  = DEFAULT_TBAR_HILITE;
+	frame->part_fbevel[FR_SW] = DEFAULT_TBAR_HILITE;
+	frame->part_fbevel[FR_SE] = DEFAULT_TBAR_HILITE;
+	frame->part_ubevel[FR_S]  = DEFAULT_TBAR_HILITE ;
+	frame->part_ubevel[FR_SE] = DEFAULT_TBAR_HILITE ;
+	frame->part_ubevel[FR_SW] = DEFAULT_TBAR_HILITE ;
+	frame->part_sbevel[FR_S]  = DEFAULT_TBAR_HILITE ;
+	frame->part_sbevel[FR_SW] = DEFAULT_TBAR_HILITE ;
+	frame->part_sbevel[FR_SE] = DEFAULT_TBAR_HILITE ;
+	set_flags( frame->set_title_attr, MYFRAME_TitleFBevelSet|
+									  MYFRAME_TitleUBevelSet|
+									  MYFRAME_TitleSBevelSet|
+									  MYFRAME_TitleAlignSet|
+									  MYFRAME_TitleFCMSet|
+									  MYFRAME_TitleUCMSet|
+									  MYFRAME_TitleSCMSet );
 
-    frame->title_fbevel = DEFAULT_TBAR_HILITE;
-    frame->title_ubevel = DEFAULT_TBAR_HILITE;
-    frame->title_sbevel = DEFAULT_TBAR_HILITE;
-    frame->title_align = default_title_align;
+	frame->title_fbevel = DEFAULT_TBAR_HILITE;
+	frame->title_ubevel = DEFAULT_TBAR_HILITE;
+	frame->title_sbevel = DEFAULT_TBAR_HILITE;
+	frame->title_align = default_title_align;
 	frame->left_btn_align = ALIGN_VCENTER ;
 	frame->right_btn_align = ALIGN_VCENTER ;
-    frame->title_fcm = TEXTURE_TRANSPIXMAP_ALPHA;
-    frame->title_ucm = TEXTURE_TRANSPIXMAP_ALPHA;
-    frame->title_scm = TEXTURE_TRANSPIXMAP_ALPHA;
-    frame->condense_titlebar = 0 ;
+	frame->title_fcm = TEXTURE_TRANSPIXMAP_ALPHA;
+	frame->title_ucm = TEXTURE_TRANSPIXMAP_ALPHA;
+	frame->title_scm = TEXTURE_TRANSPIXMAP_ALPHA;
+	frame->condense_titlebar = 0 ;
 	frame->left_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
 	frame->right_layout = MYFRAME_DEFAULT_TITLE_LAYOUT ;
-    frame->title_h_spacing = DEFAULT_TBAR_HSPACING;
+	frame->title_h_spacing = DEFAULT_TBAR_HSPACING;
 	frame->title_v_spacing = DEFAULT_TBAR_VSPACING;
-    return frame ;
+	return frame ;
 }
 
 void
 inherit_myframe( MyFrame *frame, MyFrame *ancestor )
 {
-    if( frame && ancestor )
-    {
-        int i ;
-        frame->parts_mask = (frame->parts_mask&(~ancestor->set_parts))|ancestor->parts_mask ;
-        frame->set_parts |= ancestor->set_parts ;
+	if( frame && ancestor )
+	{
+		int i ;
+		frame->parts_mask = (frame->parts_mask&(~ancestor->set_parts))|ancestor->parts_mask ;
+		frame->set_parts |= ancestor->set_parts ;
 
-        for( i = 0 ; i < FRAME_PARTS ; ++i )
-        {
-            if( ancestor->part_filenames[i] )
-                set_string( &(frame->part_filenames[i]), mystrdup(ancestor->part_filenames[i]) );
-            if( get_flags(ancestor->set_part_size, 0x01<<i ) )
-            {
-                frame->part_width[i] = ancestor->part_width[i] ;
-                frame->part_length[i] = ancestor->part_length[i] ;
-            }
-            if( IsPartFBevelSet(ancestor, i) )
-                frame->part_fbevel[i] = ancestor->part_fbevel[i];
-            if( IsPartUBevelSet(ancestor, i) )
-                frame->part_ubevel[i] = ancestor->part_ubevel[i];
-            if( IsPartSBevelSet(ancestor, i) )
-                frame->part_sbevel[i] = ancestor->part_sbevel[i];
-            if( get_flags(ancestor->set_part_align, 0x01<<i ) )
-                frame->part_align[i] = ancestor->part_align[i];
-        }
-
-        for( i = 0 ; i < FRAME_SIDES ; ++i )
-        {
-	        if( ancestor->part_slicing[i].flags != 0 )
-    	        frame->part_slicing[i] = ancestor->part_slicing[i];
+		for( i = 0 ; i < FRAME_PARTS ; ++i )
+		{
+			if( ancestor->part_filenames[i] )
+				set_string( &(frame->part_filenames[i]), mystrdup(ancestor->part_filenames[i]) );
+			if( get_flags(ancestor->set_part_size, 0x01<<i ) )
+			{
+				frame->part_width[i] = ancestor->part_width[i] ;
+				frame->part_length[i] = ancestor->part_length[i] ;
+			}
+			if( IsPartFBevelSet(ancestor, i) )
+				frame->part_fbevel[i] = ancestor->part_fbevel[i];
+			if( IsPartUBevelSet(ancestor, i) )
+				frame->part_ubevel[i] = ancestor->part_ubevel[i];
+			if( IsPartSBevelSet(ancestor, i) )
+				frame->part_sbevel[i] = ancestor->part_sbevel[i];
+			if( get_flags(ancestor->set_part_align, 0x01<<i ) )
+				frame->part_align[i] = ancestor->part_align[i];
 		}
 
-        frame->set_part_size |= ancestor->set_part_size ;
-        frame->set_part_bevel |= ancestor->set_part_bevel ;
-        frame->set_part_align |= ancestor->set_part_align ;
+		for( i = 0 ; i < FRAME_SIDES ; ++i )
+		{
+			if( ancestor->part_slicing[i].flags != 0 )
+				frame->part_slicing[i] = ancestor->part_slicing[i];
+		}
 
-        for( i = 0 ; i < BACK_STYLES ; ++i )
-        {
-            if( ancestor->title_style_names )
-                set_string( &(frame->title_style_names[i]), mystrdup(ancestor->title_style_names[i]) );
-            if( ancestor->frame_style_names )
-                set_string( &(frame->frame_style_names[i]), mystrdup(ancestor->frame_style_names[i]) );
-        }
+		frame->set_part_size |= ancestor->set_part_size ;
+		frame->set_part_bevel |= ancestor->set_part_bevel ;
+		frame->set_part_align |= ancestor->set_part_align ;
+
+		for( i = 0 ; i < BACK_STYLES ; ++i )
+		{
+			if( ancestor->title_style_names )
+				set_string( &(frame->title_style_names[i]), mystrdup(ancestor->title_style_names[i]) );
+			if( ancestor->frame_style_names )
+				set_string( &(frame->frame_style_names[i]), mystrdup(ancestor->frame_style_names[i]) );
+		}
 
 		for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
 		{
-        	if( ancestor->title_back_filenames[i] )
-            	set_string( &(frame->title_back_filenames[i]), mystrdup(ancestor->title_back_filenames[i]) );
-	        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )
-    	        frame->title_backs_align[i] = ancestor->title_backs_align[i];
-	        if( ancestor->title_backs_slicing[i].flags != 0 )
-    	        frame->title_backs_slicing[i] = ancestor->title_backs_slicing[i];
+			if( ancestor->title_back_filenames[i] )
+				set_string( &(frame->title_back_filenames[i]), mystrdup(ancestor->title_back_filenames[i]) );
+			if( get_flags( ancestor->set_title_attr, MYFRAME_TitleBackAlignSet_Start<<i ) )
+				frame->title_backs_align[i] = ancestor->title_backs_align[i];
+			if( ancestor->title_backs_slicing[i].flags != 0 )
+				frame->title_backs_slicing[i] = ancestor->title_backs_slicing[i];
 		}
 
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFBevelSet ) )
-            frame->title_fbevel = ancestor->title_fbevel;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUBevelSet ) )
-            frame->title_ubevel = ancestor->title_ubevel;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSBevelSet ) )
-            frame->title_sbevel = ancestor->title_sbevel;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFBevelSet ) )
+			frame->title_fbevel = ancestor->title_fbevel;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUBevelSet ) )
+			frame->title_ubevel = ancestor->title_ubevel;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSBevelSet ) )
+			frame->title_sbevel = ancestor->title_sbevel;
 
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleAlignSet ) )
-            frame->title_align = ancestor->title_align;
-        
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleAlignSet ) )
+			frame->title_align = ancestor->title_align;
+		
 		if( get_flags( ancestor->set_title_attr, MYFRAME_LeftBtnAlignSet ) )
-            frame->left_btn_align = ancestor->left_btn_align;
+			frame->left_btn_align = ancestor->left_btn_align;
 		if( get_flags( ancestor->set_title_attr, MYFRAME_RightBtnAlignSet ) )
-            frame->right_btn_align = ancestor->right_btn_align;
+			frame->right_btn_align = ancestor->right_btn_align;
 
-        if( get_flags( ancestor->set_title_attr, MYFRAME_CondenseTitlebarSet ) )
-            frame->condense_titlebar = ancestor->condense_titlebar;
-        
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFCMSet ) )
-            frame->title_fcm = ancestor->title_fcm;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUCMSet ) )
-            frame->title_ucm = ancestor->title_ucm;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSCMSet ) )
-            frame->title_scm = ancestor->title_scm;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_CondenseTitlebarSet ) )
+			frame->condense_titlebar = ancestor->condense_titlebar;
+		
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFCMSet ) )
+			frame->title_fcm = ancestor->title_fcm;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUCMSet ) )
+			frame->title_ucm = ancestor->title_ucm;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSCMSet ) )
+			frame->title_scm = ancestor->title_scm;
 
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFHueSet ) )
-            frame->title_fhue = ancestor->title_fhue;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUHueSet ) )
-            frame->title_uhue = ancestor->title_uhue;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSHueSet ) )
-            frame->title_shue = ancestor->title_shue;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFSatSet ) )
-            frame->title_fsat = ancestor->title_fsat;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUSatSet ) )
-            frame->title_usat = ancestor->title_uhue;
-        if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSSatSet ) )
-            frame->title_ssat = ancestor->title_ssat;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFHueSet ) )
+			frame->title_fhue = ancestor->title_fhue;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUHueSet ) )
+			frame->title_uhue = ancestor->title_uhue;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSHueSet ) )
+			frame->title_shue = ancestor->title_shue;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleFSatSet ) )
+			frame->title_fsat = ancestor->title_fsat;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleUSatSet ) )
+			frame->title_usat = ancestor->title_uhue;
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleSSatSet ) )
+			frame->title_ssat = ancestor->title_ssat;
 
-	    if( get_flags( ancestor->set_title_attr, MYFRAME_TitleHSpacingSet ) )
+		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleHSpacingSet ) )
 			frame->title_h_spacing = ancestor->title_h_spacing;
 		if( get_flags( ancestor->set_title_attr, MYFRAME_TitleVSpacingSet ) )
 			frame->title_v_spacing = ancestor->title_v_spacing;
 
-        frame->set_title_attr |= ancestor->set_title_attr ;
+		frame->set_title_attr |= ancestor->set_title_attr ;
 
 		clear_flags( frame->flags, ~ancestor->set_flags );
 		set_flags( frame->flags, ancestor->flags );
 		frame->set_flags |= ancestor->set_flags ;
-    }
+	}
 }
 
 MyFrame *
 myframe_find( const char *name )
 {
-    ASHashData hdata;
+	ASHashData hdata;
 	hdata.vptr = NULL ;
-    if(  ASDefaultScr->Look.FramesList )
+	if(  ASDefaultScr->Look.FramesList )
 	{
 		if( name )
-        	if( get_hash_item( ASDefaultScr->Look.FramesList, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
-            	hdata.vptr = NULL ;
+			if( get_hash_item( ASDefaultScr->Look.FramesList, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+				hdata.vptr = NULL ;
 		if( hdata.vptr == NULL && ASDefaultScr->Look.DefaultFrameName != NULL )
 			get_hash_item( ASDefaultScr->Look.FramesList, AS_HASHABLE(ASDefaultScr->Look.DefaultFrameName), &hdata.vptr);
 	}
-    return (MyFrame *)hdata.vptr ;
+	return (MyFrame *)hdata.vptr ;
 }
 
 void
@@ -579,144 +579,144 @@ myframe_load ( MyFrame * frame, ASImageManager *imman )
 	if (frame == NULL)
 		return;
 	for (i = 0; i < FRAME_PARTS; i++)
-        if( frame->part_filenames[i] )
-        {
-            frame->parts[i] = safecalloc( 1, sizeof(icon_t));
-            if( !load_icon (frame->parts[i], frame->part_filenames[i], imman) )
-            {
-                free( frame->parts[i] );
-                frame->parts[i] = NULL;
-            }
+		if( frame->part_filenames[i] )
+		{
+			frame->parts[i] = safecalloc( 1, sizeof(icon_t));
+			if( !load_icon (frame->parts[i], frame->part_filenames[i], imman) )
+			{
+				free( frame->parts[i] );
+				frame->parts[i] = NULL;
+			}
 #ifdef LOCAL_DEBUG
-    LOCAL_DEBUG_OUT( "syncing %s","");
-    ASSync(False);
+	LOCAL_DEBUG_OUT( "syncing %s","");
+	ASSync(False);
 #endif
 
-        }
+		}
 	for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
 	{
-    	if( frame->title_back_filenames[i] )
-    	{
-        	frame->title_backs[i] = safecalloc( 1, sizeof(icon_t));
-        	if( !load_icon (frame->title_backs[i], frame->title_back_filenames[i], imman) )
-        	{
-            	free( frame->title_backs[i] );
-            	frame->title_backs[i] = NULL;
-        	}
+		if( frame->title_back_filenames[i] )
+		{
+			frame->title_backs[i] = safecalloc( 1, sizeof(icon_t));
+			if( !load_icon (frame->title_backs[i], frame->title_back_filenames[i], imman) )
+			{
+				free( frame->title_backs[i] );
+				frame->title_backs[i] = NULL;
+			}
 #ifdef LOCAL_DEBUG
-	    	LOCAL_DEBUG_OUT( "syncing %s","");
-    		ASSync(False);
+			LOCAL_DEBUG_OUT( "syncing %s","");
+			ASSync(False);
 #endif
 		}
-    }
+	}
 }
 
 Bool
 filename2myframe_part (MyFrame *frame, int part, char *filename)
 {
-    char **dst = NULL ;
-    if (filename && frame && part>= 0 && part < FRAME_PARTS)
-        dst = &(frame->part_filenames[part]);
-    if( dst )
-    {
-        if( *dst )
-            free( *dst );
-        *dst = mystrdup(filename);
-        return True;
-    }
-    return False;
+	char **dst = NULL ;
+	if (filename && frame && part>= 0 && part < FRAME_PARTS)
+		dst = &(frame->part_filenames[part]);
+	if( dst )
+	{
+		if( *dst )
+			free( *dst );
+		*dst = mystrdup(filename);
+		return True;
+	}
+	return False;
 }
 
 Bool
 set_myframe_style (MyFrame *frame, unsigned int style, Bool title, char *stylename)
 {
-    char **dst = NULL ;
-    if( style >= BACK_STYLES )
-        style = BACK_DEFAULT ;
-    if( title )
-        dst = &(frame->title_style_names[style]);
-    else
-        dst = &(frame->frame_style_names[style]);
-    if( dst )
-    {
-        if( *dst )
-            free( *dst );
-        *dst = mystrdup(stylename);
-        return True;
-    }
-    return False;
+	char **dst = NULL ;
+	if( style >= BACK_STYLES )
+		style = BACK_DEFAULT ;
+	if( title )
+		dst = &(frame->title_style_names[style]);
+	else
+		dst = &(frame->frame_style_names[style]);
+	if( dst )
+	{
+		if( *dst )
+			free( *dst );
+		*dst = mystrdup(stylename);
+		return True;
+	}
+	return False;
 }
 
 
 Bool
 myframe_has_parts(const MyFrame *frame, ASFlagType mask)
 {
-    if( frame )
-    {
-        register int i ;
-        for( i = 0 ; i < FRAME_PARTS ; ++i )
+	if( frame )
+	{
+		register int i ;
+		for( i = 0 ; i < FRAME_PARTS ; ++i )
 		{	
-            if( get_flags(mask,(0x01<<i)) )
+			if( get_flags(mask,(0x01<<i)) )
 			{	
 				LOCAL_DEBUG_OUT( "i = %d", i );
-                if( get_flags(frame->parts_mask,(0x01<<i)) )
+				if( get_flags(frame->parts_mask,(0x01<<i)) )
 				{	
 					LOCAL_DEBUG_OUT( "parts[i] = %p", frame->parts[i] );
 					if(frame->parts[i] || ((frame->part_width[i] || i >= FRAME_SIDES) && frame->part_length[i]))
 					{	
-	                    return True;
+						return True;
 					}
 				}
 			}
 		}
-    }
-    return False;
+	}
+	return False;
 }
 
 void
 destroy_myframe( MyFrame **pframe )
 {
-    MyFrame *pf = *pframe ;
-    if( pf )
-    {
-        register int i = FRAME_PARTS;
-        while( --i >= 0 )
-        {
-            if( pf->parts[i] )
-                destroy_icon( &(pf->parts[i]) );
-            if( pf->part_filenames[i] )
-                free( pf->part_filenames[i] );
-        }
+	MyFrame *pf = *pframe ;
+	if( pf )
+	{
+		register int i = FRAME_PARTS;
+		while( --i >= 0 )
+		{
+			if( pf->parts[i] )
+				destroy_icon( &(pf->parts[i]) );
+			if( pf->part_filenames[i] )
+				free( pf->part_filenames[i] );
+		}
 		for( i = 0 ; i < MYFRAME_TITLE_BACKS ; ++i )
 		{
-        	if( pf->title_backs[i] )
-            	destroy_icon( &(pf->title_backs[i]) );
+			if( pf->title_backs[i] )
+				destroy_icon( &(pf->title_backs[i]) );
 			if( pf->title_back_filenames[i] )
-            	free( pf->title_back_filenames[i] );
+				free( pf->title_back_filenames[i] );
 		}
 
-        for( i = 0 ; i < BACK_STYLES ; ++i )
-        {
-            if( pf->title_style_names[i] )
-                free( pf->title_style_names[i] );
-            if( pf->frame_style_names[i] )
-                free( pf->frame_style_names[i] );
-        }
-        if( pf->name )
-            free( pf->name );
+		for( i = 0 ; i < BACK_STYLES ; ++i )
+		{
+			if( pf->title_style_names[i] )
+				free( pf->title_style_names[i] );
+			if( pf->frame_style_names[i] )
+				free( pf->frame_style_names[i] );
+		}
+		if( pf->name )
+			free( pf->name );
 
-        pf->magic = 0 ;
-        free( pf );
-        *pframe = NULL ;
-    }
+		pf->magic = 0 ;
+		free( pf );
+		*pframe = NULL ;
+	}
 }
 
 void check_myframes_list( MyLook *look )
 {
-    if( look->FramesList == NULL )
-    {
-        look->FramesList = create_ashash( 5, string_hash_value, string_compare, myobj_destroy );
-    }
+	if( look->FramesList == NULL )
+	{
+		look->FramesList = create_ashash( 5, string_hash_value, string_compare, myobj_destroy );
+	}
 }
 
 
@@ -728,8 +728,8 @@ MyBackground *create_myback( char *name )
 {
 	MyBackground *myback = safecalloc( 1, sizeof(MyBackground));
 	myback->magic = MAGIC_MYBACKGROUND ;
-    if( name )
-        myback->name = mystrdup(name);
+	if( name )
+		myback->name = mystrdup(name);
 	return myback;
 }
 
@@ -742,7 +742,7 @@ char *make_myback_image_name( MyLook *look, char *name )
 	if( name )
 	{
 		int len = strlen(name) ;
-	 	im_name = safemalloc( len+1+4+2+1+4+2+1 );
+		im_name = safemalloc( len+1+4+2+1+4+2+1 );
 		sprintf( im_name, "%s#%4.4dAB.%4.4dML", name, look->look_id%10000, look->deskback_id_base%10000 );
 	}
 	return im_name;
@@ -754,7 +754,7 @@ void myback_delete( MyBackground **myback, ASImageManager *imman )
 	{
 		if( (*myback)->name )
 		{
-            free( (*myback)->name );
+			free( (*myback)->name );
 			if( (*myback)->data )
 				free( (*myback)->data );
 		}
@@ -776,12 +776,12 @@ void myback_delete( MyBackground **myback, ASImageManager *imman )
 
 MyDesktopConfig *create_mydeskconfig( int desk, char *data )
 {
-    MyDesktopConfig *dc = safecalloc( 1, sizeof(MyDesktopConfig));
-    dc->magic = MAGIC_MYDESKTOPCONFIG ;
-    dc->desk = desk ;
-    if( data )
-        dc->back_name = mystrdup(data);
-    return dc;
+	MyDesktopConfig *dc = safecalloc( 1, sizeof(MyDesktopConfig));
+	dc->magic = MAGIC_MYDESKTOPCONFIG ;
+	dc->desk = desk ;
+	if( data )
+		dc->back_name = mystrdup(data);
+	return dc;
 }
 
 
@@ -801,11 +801,11 @@ void mydeskconfig_delete( MyDesktopConfig **dc )
 
 void check_mybacks_list( MyLook *look )
 {
-    if( look->backs_list == NULL )
-    {
-        look->deskback_id_base++ ;
-        look->backs_list = create_ashash( 5, string_hash_value, string_compare, myobj_destroy );
-    }
+	if( look->backs_list == NULL )
+	{
+		look->deskback_id_base++ ;
+		look->backs_list = create_ashash( 5, string_hash_value, string_compare, myobj_destroy );
+	}
 }
 
 inline MyBackground *
@@ -820,8 +820,8 @@ add_myback_to_list( ASHashTable *list, MyBackground *back, ASImageManager *imman
 MyBackground *
 add_myback( MyLook *look, MyBackground *back )
 {
-    check_mybacks_list( look );
-    return add_myback_to_list( look->backs_list, back, ASDefaultScr->image_manager );
+	check_mybacks_list( look );
+	return add_myback_to_list( look->backs_list, back, ASDefaultScr->image_manager );
 }
 
 
@@ -842,9 +842,9 @@ add_deskconfig_to_list( ASHashTable *list, MyDesktopConfig *dc )
 MyDesktopConfig *
 add_deskconfig( MyLook *look, MyDesktopConfig *dc )
 {
-    if( look->desk_configs == NULL )
-        init_deskconfigs_list( look );
-    return add_deskconfig_to_list(look->desk_configs, dc );
+	if( look->desk_configs == NULL )
+		init_deskconfigs_list( look );
+	return add_deskconfig_to_list(look->desk_configs, dc );
 }
 
 /********************************************************************************/
@@ -854,22 +854,22 @@ add_deskconfig( MyLook *look, MyDesktopConfig *dc )
 MyStyle *
 mylook_get_style(MyLook *look, const char *name)
 {
-    if( look )
-        if( look->magic == MAGIC_MYLOOK )
-            return mystyle_list_find_or_default (look->styles_list, name?name:"default");
+	if( look )
+		if( look->magic == MAGIC_MYLOOK )
+			return mystyle_list_find_or_default (look->styles_list, name?name:"default");
 
-    return NULL;
+	return NULL;
 }
 
 inline MyDesktopConfig *
 mylook_get_desk_config(MyLook *look, long desk)
 {
-    if( look )
+	if( look )
 	{
 		ASHashData hdata = {0} ;
 		LOCAL_DEBUG_OUT( "looking for desk_config for dekstop %ld...", desk );
 		if( get_hash_item( look->desk_configs, AS_HASHABLE(desk), &hdata.vptr) == ASH_Success )
-		    return hdata.vptr ;
+			return hdata.vptr ;
 	}
 	return NULL;
 }
@@ -879,13 +879,13 @@ inline MyBackground *
 mylook_get_desk_back(MyLook *look, long desk)
 {
 	MyBackground *myback = NULL ;
-    if( look )
+	if( look )
 	{
 		ASHashData hdata = {0} ;
 LOCAL_DEBUG_OUT( "looking for desk_config for dekstop %ld...", desk );
 		if( get_hash_item( look->desk_configs, AS_HASHABLE(desk), &hdata.vptr) == ASH_Success )
 		{
-		    MyDesktopConfig *dc = hdata.vptr ;
+			MyDesktopConfig *dc = hdata.vptr ;
 LOCAL_DEBUG_OUT( "found desk_config %p for dekstop %ld...", dc, desk );
 			if( dc->back_name )
 			{
@@ -905,10 +905,10 @@ LOCAL_DEBUG_OUT( "found desk_config %p for dekstop %ld...", dc, desk );
 inline MyBackground *
 mylook_get_back(MyLook *look, char *name)
 {
-    ASHashData hdata = {0};
-    if( look && name )
-        if( get_hash_item( look->backs_list, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+	ASHashData hdata = {0};
+	if( look && name )
+		if( get_hash_item( look->backs_list, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
 			hdata.vptr = NULL ;
-    return (MyBackground *)hdata.vptr ;
+	return (MyBackground *)hdata.vptr ;
 }
 

@@ -84,7 +84,8 @@
 		xwrap.h \
 		parse.h \
 		audit.h \
-		output.h
+		output.h \
+		xml.h
 
 ./regexp.o : \
 		config.h \
@@ -133,6 +134,17 @@
 		astypes.h \
 		trace.h \
 		trace.h
+
+./xml.o : \
+		config.h \
+		astypes.h \
+		output.h \
+		safemalloc.h \
+		mystring.h \
+		xml.h \
+		selfdiag.h \
+		ashash.h \
+		audit.h
 
 ./xprop.o : \
 		config.h \

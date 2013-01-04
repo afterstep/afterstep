@@ -107,8 +107,8 @@ BackgroundSetPixmap (Pixmap pix)
 	{
 		XChangeProperty (dpy, ASDefaultRoot, RootPixmapProperty, XA_PIXMAP, 32, PropModeReplace, (char *)&pix, 1);
 		XFlush (dpy);						   /* so that everyone has time to process this change
-											      * before we go ahead and delete old background
-											    */
+												  * before we go ahead and delete old background
+												*/
 	}
 }
 
@@ -122,7 +122,7 @@ BackgroundSetMyStyle (char *style_name)
 	if ((style = mystyle_find (style_name)) != NULL)
 	{
 		LOG2 ("\nBackgroundSetMyStyle( %s ) ", style_name)
-	  	if ((style->set_flags & F_BACKPIXMAP) && style->texture_type != 129)
+		if ((style->set_flags & F_BACKPIXMAP) && style->texture_type != 129)
 		{
 			/* we don't want to free this pixmap ourselves */
 			BackgroundSetPixmap (style->back_icon.pix);
@@ -334,12 +334,12 @@ FreeDeskBackArray (ASDeskBackArray * backs, int free_pixmaps)
 								break;
 
 					if (k >= i)
-                        XFreePixmap(dpy,backs->desks[i].data.pixmap);
+						XFreePixmap(dpy,backs->desks[i].data.pixmap);
 				}
 		}
 		free (backs->desks);
 		backs->desks = NULL;
-    }
+	}
 	backs->desks_num = 0;
 }
 

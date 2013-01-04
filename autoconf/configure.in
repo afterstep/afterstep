@@ -94,7 +94,7 @@ AC_ARG_ENABLE(sharedlibs,       [  --enable-sharedlibs     enable linking to lib
 AC_ARG_WITH(dbus1,           [  --with-dbus1         make use of DBus for interprocess communications[[yes]] ], with_dbus1=$withval,with_dbus1="")
 AC_ARG_WITH(readline,           [  --with-readline         make WinCommand use readline library for interactive mode[[yes]] ], with_readline=$withval,with_readline="")
 AC_ARG_WITH(libefence,		[  --with-libefence        compile with libefence to debug buffer overruns [[no]] ],with_libefence=$withval,with_libefence="")
-AC_ARG_ENABLE(gdb,		[  --enable-gdb            add gdb symbols (-g) (for debugging) [[no]] ],enable_gdb=$enableval,enable_gdb="no")
+AC_ARG_ENABLE(gdb,		[  --enable-gdb            add gdb symbols (-g -w) (for debugging) [[no]] ],enable_gdb=$enableval,enable_gdb="no")
 AC_ARG_ENABLE(sigsegv,		[  --enable-sigsegv        enable internal handler of Segmentation Fault (for self-diagnostics) [[yes]] ],enable_sigsegv=$enableval,enable_sigsegv="yes")
 AC_ARG_ENABLE(warn,		[  --enable-warn           turn on more compiler warnings (for debugging) [[no]] ],enable_warn=$enableval,enable_warn="no")
 AC_ARG_ENABLE(gprof,		[  --enable-gprof          add gprof symbols (-pg) (for debugging) [[no]] ],enable_gprof=$enableval,enable_gprof="no")
@@ -132,11 +132,6 @@ export exec_prefix
 dnl# now we need to play abot with CFLAGS :
 
 dnl# Add -Wall
-if test "x$GCC" = "xyes"; then
-  if test -z "`echo $CFLAGS | grep '\-Wall' 2> /dev/null`" ; then
-    CFLAGS="$CFLAGS -Wall"
-  fi
-fi
 
 dnl# Add -fPIC for IA64 compilation
 AC_CYGWIN
@@ -153,8 +148,14 @@ if test "x$enable_gdb" = "xyes"; then
   if ! test -n "`echo $CFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
 	CFLAGS="$CFLAGS -g"
   fi
+  if ! test -n "`echo $CFLAGS' ' | grep '\-w ' 2> /dev/null`" ; then
+	CFLAGS="$CFLAGS -w"
+  fi
   if ! test -n "`echo $LDFLAGS' ' | grep '\-g ' 2> /dev/null`" ; then
 	LDFLAGS="$LDFLAGS -g"
+  fi
+  if ! test -n "`echo $LDFLAGS' ' | grep '\-w ' 2> /dev/null`" ; then
+	LDFLAGS="$LDFLAGS -w"
   fi
 else
   STRIP_BINARIES="-s"
@@ -175,7 +176,7 @@ fi
 
 dnl# Add lots more warnings
 if test "x$enable_warn" = "xyes"; then
-  CFLAGS="$CFLAGS -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls"
+  CFLAGS="$CFLAGS -Wall -Wuninitialized -Wwrite-strings -Wcast-qual -Wbad-function-cast -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wconversion -Wcomment -Wcast-align -Winline -Wshadow -Wredundant-decls"
 fi
 
 dnl# done with flags - lets export those for our children to use :

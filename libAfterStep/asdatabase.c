@@ -53,7 +53,7 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 		db_rec->set_data_flags = nl->set_data_flags;
 		/* TODO: implement set_buttons/buttons in name_list as well */
 		db_rec->set_buttons = nl->on_buttons | nl->off_buttons;
-        db_rec->buttons = nl->on_buttons;
+		db_rec->buttons = nl->on_buttons;
 
 		if (db_rec->set_buttons != 0)
 			set_flags (db_rec->set_flags, STYLE_BUTTONS);
@@ -67,7 +67,7 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 		db_rec->border_width = nl->border_width;
 		db_rec->resize_width = nl->resize_width;
 		db_rec->gravity = nl->gravity;
-        db_rec->window_opacity = nl->window_opacity;
+		db_rec->window_opacity = nl->window_opacity;
 
 		if (nl->icon_file)
 		{
@@ -79,12 +79,12 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 			db_rec->frame_name = nl->frame_name;
 			nl->frame_name = NULL;
 		}
-        if (nl->windowbox_name)
+		if (nl->windowbox_name)
 		{
-            db_rec->windowbox_name = nl->windowbox_name;
-            nl->windowbox_name = NULL;
+			db_rec->windowbox_name = nl->windowbox_name;
+			nl->windowbox_name = NULL;
 		}
-        for (i = 0; i < BACK_STYLES; i++)
+		for (i = 0; i < BACK_STYLES; i++)
 			if (nl->window_styles[i])
 			{
 				db_rec->window_styles[i] = nl->window_styles[i];
@@ -140,8 +140,8 @@ typedef enum
 
 	MATCH_Icon = STYLE_ICON,
 	MATCH_Frame = STYLE_FRAME,
-    MATCH_Windowbox = STYLE_WINDOWBOX,
-    MATCH_MyStyle = STYLE_MYSTYLES
+	MATCH_Windowbox = STYLE_WINDOWBOX,
+	MATCH_MyStyle = STYLE_MYSTYLES
 }
 DBMatchType;
 
@@ -222,8 +222,8 @@ match_int (ASDatabase * db, DBMatchType type)
 			 case MATCH_Desk:		 	value = db_rec->desk; break;
 			 case MATCH_layer:		 	value = db_rec->layer; break;
 			 case MATCH_ViewportX:
-			 	 LOCAL_DEBUG_OUT( "viewport_x = %d", db_rec->viewport_x );
-                 value = db_rec->viewport_x;
+				 LOCAL_DEBUG_OUT( "viewport_x = %d", db_rec->viewport_x );
+				 value = db_rec->viewport_x;
 				  break;
 			 case MATCH_ViewportY:   	value = db_rec->viewport_y; break;
 			 case MATCH_border_width: 	value = db_rec->border_width; break;
@@ -278,8 +278,8 @@ match_string (ASDatabase * db, DBMatchType type, unsigned int index, Bool dup_st
 			{
 			 case MATCH_Icon:	 res = db_rec->icon_file;	 break;
 			 case MATCH_Frame:	 res = db_rec->frame_name;	 break;
-             case MATCH_Windowbox: res = db_rec->windowbox_name; break;
-             case MATCH_MyStyle: res = db_rec->window_styles[(index < BACK_STYLES) ? index : 0];
+			 case MATCH_Windowbox: res = db_rec->windowbox_name; break;
+			 case MATCH_MyStyle: res = db_rec->window_styles[(index < BACK_STYLES) ? index : 0];
 				  break;
 			 default:
 				 break;
@@ -347,8 +347,8 @@ fill_asdb_record (ASDatabase * db, char **names, ASDatabaseRecord * reusable_mem
 				db_rec->icon_file = match_string (db, MATCH_Icon, 0, dup_strings);
 			if (get_flags (db_rec->set_data_flags, STYLE_FRAME))
 				db_rec->frame_name = match_string (db, MATCH_Frame, 0, dup_strings);
-            if (get_flags (db_rec->set_data_flags, STYLE_WINDOWBOX))
-                db_rec->windowbox_name = match_string (db, MATCH_Windowbox, 0, dup_strings);
+			if (get_flags (db_rec->set_data_flags, STYLE_WINDOWBOX))
+				db_rec->windowbox_name = match_string (db, MATCH_Windowbox, 0, dup_strings);
 			if (get_flags (db_rec->set_flags, STYLE_MYSTYLES))
 				for (i = 0; i < BACK_STYLES; i++)
 					if (db_rec->window_styles[i])
@@ -376,9 +376,9 @@ destroy_asdb_record (ASDatabaseRecord * rec, Bool reusable)
 			free (rec->icon_file);
 		if (rec->frame_name)
 			free (rec->frame_name);
-        if (rec->windowbox_name)
-            free (rec->windowbox_name);
-        for (i = 0; i < BACK_STYLES; i++)
+		if (rec->windowbox_name)
+			free (rec->windowbox_name);
+		for (i = 0; i < BACK_STYLES; i++)
 			if (rec->window_styles[i])
 				free (rec->window_styles[i]);
 	}
@@ -419,7 +419,7 @@ place_new_record (ASDatabase * db, wild_reg_exp * regexp)
 		 * Otherwise we reallocate space as needed.
 		 */
 		 /* No we fucking don't! DB entries should be stored in the same order 
-		    as they are in the file ! I can't belive I was so fucking stupid ! 
+			as they are in the file ! I can't belive I was so fucking stupid ! 
 			All we should check for is if the regexp is already in the list. */
 			
 		for (i = 0; i < db->styles_num; i++)
@@ -604,9 +604,9 @@ print_asdb_record (stream_func func, void *stream, ASDatabaseRecord * db_rec, co
 		func (stream, "%s.icon_file = \"%s\";\n", prompt, db_rec->icon_file);
 	if (db_rec->frame_name)
 		func (stream, "%s.frame_name = \"%s\";\n", prompt, db_rec->frame_name);
-    if (db_rec->windowbox_name)
-        func (stream, "%s.windowbox_name = \"%s\";\n", prompt, db_rec->windowbox_name);
-    for (i = 0; i < BACK_STYLES; i++)
+	if (db_rec->windowbox_name)
+		func (stream, "%s.windowbox_name = \"%s\";\n", prompt, db_rec->windowbox_name);
+	for (i = 0; i < BACK_STYLES; i++)
 		if (db_rec->window_styles[i])
 			func (stream, "%s.MyStyle[%d] = \"%s\";\n", prompt, i, db_rec->window_styles[i]);
 

@@ -138,23 +138,23 @@ AtomXref  _WMPropAtoms[] = {
 	{"_AS_VIRTUAL_ROOT", &_AS_VIRTUAL_ROOT},
 	/* these are root properties : */
 	{"_AS_DESK_NUMBERS", &_AS_DESK_NUMBERS},   /* translation of the continuous range of */
-    {"_AS_CURRENT_DESK", &_AS_CURRENT_DESK},   /* current afterstep desk */
-    {"_AS_CURRENT_VIEWPORT", &_AS_CURRENT_VIEWPORT},   /* current afterstep viewport */
-    {"_AS_SERVICE_WINDOW", &_AS_SERVICE_WINDOW},   /* current afterstep Scr.ServiceWin */
-    
+	{"_AS_CURRENT_DESK", &_AS_CURRENT_DESK},   /* current afterstep desk */
+	{"_AS_CURRENT_VIEWPORT", &_AS_CURRENT_VIEWPORT},   /* current afterstep viewport */
+	{"_AS_SERVICE_WINDOW", &_AS_SERVICE_WINDOW},   /* current afterstep Scr.ServiceWin */
+	
 #define WMPROPS_ATOM_DESC(a)   { #a, &a }
 
-    WMPROPS_ATOM_DESC(_AS_TBAR_PROPS),
-    WMPROPS_ATOM_DESC(_AS_BUTTON_CLOSE),
-    WMPROPS_ATOM_DESC(_AS_BUTTON_CLOSE_PRESSED),
-    WMPROPS_ATOM_DESC(_AS_BUTTON_MAXIMIZE),
-    WMPROPS_ATOM_DESC(_AS_BUTTON_MAXIMIZE_PRESSED),
-    WMPROPS_ATOM_DESC(_AS_BUTTON_MINIMIZE),
+	WMPROPS_ATOM_DESC(_AS_TBAR_PROPS),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_CLOSE),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_CLOSE_PRESSED),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_MAXIMIZE),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_MAXIMIZE_PRESSED),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_MINIMIZE),
 	WMPROPS_ATOM_DESC(_AS_BUTTON_MINIMIZE_PRESSED),
 	WMPROPS_ATOM_DESC(_AS_BUTTON_SHADE),
-    WMPROPS_ATOM_DESC(_AS_BUTTON_SHADE_PRESSED),
-    WMPROPS_ATOM_DESC(_AS_BUTTON_MENU),
-    WMPROPS_ATOM_DESC(_AS_BUTTON_MENU_PRESSED),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_SHADE_PRESSED),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_MENU),
+	WMPROPS_ATOM_DESC(_AS_BUTTON_MENU_PRESSED),
 	
 	WMPROPS_ATOM_DESC(_GTK_READ_RCFILES),
 	WMPROPS_ATOM_DESC(_KIPC_COMM_ATOM),
@@ -203,10 +203,10 @@ accure_wm_selection (ASWMProps * wmprops)
 	intern_selection_atom (wmprops);
 
 	{										   /* now we need to obtain a valid timestamp : */
-        CARD32          data = 0xAAAAAAAA;
+		CARD32          data = 0xAAAAAAAA;
 
-        XChangeProperty (dpy, w, wmprops->_XA_WM_S, wmprops->_XA_WM_S, 32, PropModeAppend, (unsigned char *)&data, 1);
-        XSync( dpy, False );
+		XChangeProperty (dpy, w, wmprops->_XA_WM_S, wmprops->_XA_WM_S, 32, PropModeAppend, (unsigned char *)&data, 1);
+		XSync( dpy, False );
 		/* now lets sit quiet and wait for event to come back : */
 		if (wait_event (&event, w, PropertyChangeMask, 100))
 			wmprops->selection_time = event.xproperty.time;
@@ -221,8 +221,8 @@ accure_wm_selection (ASWMProps * wmprops)
 	/* give old owner 30 seconds to release selection : */
 	for (tick_count = 0; tick_count < 300; tick_count++)
 	{
-        Window present_owner = XGetSelectionOwner (dpy, wmprops->_XA_WM_S);
-        if ( present_owner == w)
+		Window present_owner = XGetSelectionOwner (dpy, wmprops->_XA_WM_S);
+		if ( present_owner == w)
 		{
 			accured = True ;
 			break;
@@ -339,7 +339,7 @@ setup_volitile_wmprops (ASWMProps * wmprops)
 	/* Ext WM specs compatibility indicator : */
 	set_32bit_property (wmprops->scr->Root, _XA_NET_SUPPORTING_WM_CHECK, XA_WINDOW, w);
 	set_32bit_property (w, _XA_NET_SUPPORTING_WM_CHECK, XA_WINDOW, w);
-    set_text_property (w, _XA_NET_WM_NAME, &_as_afterstep_name, 1, TPE_UTF8);
+	set_text_property (w, _XA_NET_WM_NAME, &_as_afterstep_name, 1, TPE_UTF8);
 	return True;
 }
 
@@ -373,7 +373,7 @@ read_mit_priority_colors (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        CARD32  *list = NULL;
+		CARD32  *list = NULL;
 		long          items = 0;
 
 		if (wmprops->preserved_colors)
@@ -408,7 +408,7 @@ read_xrootpmap_id (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        CARD32 pmap_id = None;
+		CARD32 pmap_id = None;
 
 		if (deleted)
 			return False;
@@ -426,13 +426,13 @@ read_xrootpmap_id (ASWMProps * wmprops, Bool deleted)
 Bool
 read_extwm_current_desk (ASWMProps * wmprops, Bool deleted)
 {
-    if (wmprops && !deleted )
+	if (wmprops && !deleted )
 	{
-        CARD32        desk_no = None;
+		CARD32        desk_no = None;
 
-        if (read_32bit_property (wmprops->scr->Root, _XA_NET_CURRENT_DESKTOP, &desk_no))
+		if (read_32bit_property (wmprops->scr->Root, _XA_NET_CURRENT_DESKTOP, &desk_no))
 		{
-            wmprops->desktop_current = (CARD32)desk_no;
+			wmprops->desktop_current = (CARD32)desk_no;
 			return True;
 		}
 	}
@@ -442,33 +442,33 @@ read_extwm_current_desk (ASWMProps * wmprops, Bool deleted)
 Bool
 read_extwm_desk_viewport (ASWMProps * wmprops, Bool deleted)
 {
-    Bool success = False;
-    if (wmprops && !deleted )
+	Bool success = False;
+	if (wmprops && !deleted )
 	{
-        CARD32       *raw_data = NULL ;
-        long          nitems = 0;
+		CARD32       *raw_data = NULL ;
+		long          nitems = 0;
 
-        if (!read_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_VIEWPORT, 8, &raw_data, &nitems))
+		if (!read_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_VIEWPORT, 8, &raw_data, &nitems))
 			nitems = 0;
 
-        if (wmprops->desktop_viewport)
-        {
-            free(wmprops->desktop_viewport);
-            wmprops->desktop_viewport = NULL;
-        }
-        wmprops->desktop_viewports_num = nitems>>1 ;
-        if (nitems >= 2)
+		if (wmprops->desktop_viewport)
 		{
-            register int i = nitems;
-            wmprops->desktop_viewport = safemalloc( nitems*sizeof(CARD32));
-            while( --i >= 0 )
-                wmprops->desktop_viewport[i] = raw_data[i] ;
-            success = True ;
-        }
-        if( raw_data )
+			free(wmprops->desktop_viewport);
+			wmprops->desktop_viewport = NULL;
+		}
+		wmprops->desktop_viewports_num = nitems>>1 ;
+		if (nitems >= 2)
+		{
+			register int i = nitems;
+			wmprops->desktop_viewport = safemalloc( nitems*sizeof(CARD32));
+			while( --i >= 0 )
+				wmprops->desktop_viewport[i] = raw_data[i] ;
+			success = True ;
+		}
+		if( raw_data )
 			free (raw_data);
-    }
-    return success;
+	}
+	return success;
 }
 
 /* AfterSTep own properties **********************************************/
@@ -478,7 +478,7 @@ read_as_current_desk (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        CARD32        desk_no = 0;
+		CARD32        desk_no = 0;
 
 		if (deleted)
 			return False;
@@ -494,49 +494,49 @@ read_as_current_desk (ASWMProps * wmprops, Bool deleted)
 Bool
 read_as_current_viewport (ASWMProps * wmprops, Bool deleted)
 {
-    Bool success = False;
+	Bool success = False;
 
-    if (wmprops && !deleted )
+	if (wmprops && !deleted )
 	{
-        CARD32       *raw_data = NULL ;
-        long          nitems = 0;
+		CARD32       *raw_data = NULL ;
+		long          nitems = 0;
 
-        if (!read_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, 2, &raw_data, &nitems))
+		if (!read_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, 2, &raw_data, &nitems))
 			nitems = 0;
-        if( nitems == 2 )
-        {
-            wmprops->as_current_vx = raw_data[0] ;
-            wmprops->as_current_vy = raw_data[1] ;
-        }
+		if( nitems == 2 )
+		{
+			wmprops->as_current_vx = raw_data[0] ;
+			wmprops->as_current_vy = raw_data[1] ;
+		}
 
-        if( raw_data )
+		if( raw_data )
 			free (raw_data);
 	}
-    return success;
+	return success;
 }
 
 Bool
 read_net_desktop_geometry (ASWMProps * wmprops, Bool deleted)
 {
-    Bool success = False;
+	Bool success = False;
 
-    if (wmprops && !deleted )
+	if (wmprops && !deleted )
 	{
-        CARD32       *raw_data = NULL ;
-        long          nitems = 0;
+		CARD32       *raw_data = NULL ;
+		long          nitems = 0;
 
-        if (!read_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, 2, &raw_data, &nitems))
+		if (!read_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, 2, &raw_data, &nitems))
 			nitems = 0;
-        if( nitems == 2 )
-        {
-            wmprops->desktop_width = raw_data[0] ;
-            wmprops->desktop_height = raw_data[1] ;
-        }
+		if( nitems == 2 )
+		{
+			wmprops->desktop_width = raw_data[0] ;
+			wmprops->desktop_height = raw_data[1] ;
+		}
 
-        if( raw_data )
+		if( raw_data )
 			free (raw_data);
 	}
-    return success;
+	return success;
 }
 
 Bool
@@ -567,7 +567,7 @@ read_as_background (ASWMProps * wmprops, Bool deleted)
 
 	if (wmprops)
 	{
-        CARD32 pmap_id = None;
+		CARD32 pmap_id = None;
 
 		if (deleted)
 			return False;
@@ -630,7 +630,7 @@ read_as_virtual_root (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        CARD32        vroot_id = None;
+		CARD32        vroot_id = None;
 
 		if (deleted)
 			return False;
@@ -648,7 +648,7 @@ read_as_service_window (ASWMProps * wmprops, Bool deleted)
 {
 	if (wmprops)
 	{
-        CARD32        swin_id = None;
+		CARD32        swin_id = None;
 
 		if (deleted)
 			return False;
@@ -695,7 +695,7 @@ intern_wmprop_atoms ()
 typedef struct prop_description_struct
 {
 	Atom         *id_variable;
-	              Bool (*read_func) (ASWMProps *, Bool deleted);
+				  Bool (*read_func) (ASWMProps *, Bool deleted);
 	WMPropClass   prop_class;
 
 #define WMP_NeedsCleanup    (0x01<<0)
@@ -722,9 +722,9 @@ prop_description_struct WMPropsDescriptions_root[] = {
 	{&_XA_NET_CLIENT_LIST, NULL, WMC_ClientList, WMP_NeedsCleanup},
 	{&_XA_NET_CLIENT_LIST_STACKING, NULL, WMC_ClientList, WMP_NeedsCleanup},
 	{&_XA_NET_NUMBER_OF_DESKTOPS, NULL, WMC_Desktops, 0},
-    {&_XA_NET_DESKTOP_GEOMETRY, read_net_desktop_geometry, WMC_Desktops, 0},
-    {&_XA_NET_DESKTOP_VIEWPORT, read_extwm_desk_viewport, WMC_DesktopViewport, 0},
-    {&_XA_NET_CURRENT_DESKTOP, read_extwm_current_desk, WMC_DesktopCurrent, 0},
+	{&_XA_NET_DESKTOP_GEOMETRY, read_net_desktop_geometry, WMC_Desktops, 0},
+	{&_XA_NET_DESKTOP_VIEWPORT, read_extwm_desk_viewport, WMC_DesktopViewport, 0},
+	{&_XA_NET_CURRENT_DESKTOP, read_extwm_current_desk, WMC_DesktopCurrent, 0},
 	{&_XA_NET_DESKTOP_NAMES, NULL, WMC_DesktopNames, 0},
 	{&_XA_NET_ACTIVE_WINDOW, NULL, WMC_ActiveWindow, WMP_NeedsCleanup},
 	{&_XA_NET_WORKAREA, NULL, WMC_WorkArea, WMP_NeedsCleanup},
@@ -732,8 +732,8 @@ prop_description_struct WMPropsDescriptions_root[] = {
 	{&_XA_NET_VIRTUAL_ROOTS, NULL, WMC_Desktops, WMP_NeedsCleanup},
 	{&_AS_DESK_NUMBERS, NULL, WMC_ASDesks, 0},
 	{&_AS_CURRENT_DESK, read_as_current_desk, WMC_ASDesks, 0},
-    {&_AS_CURRENT_VIEWPORT, read_as_current_viewport, WMC_ASViewport, 0},
-    {NULL, NULL, 0, 0}
+	{&_AS_CURRENT_VIEWPORT, read_as_current_viewport, WMC_ASViewport, 0},
+	{NULL, NULL, 0, 0}
 };
 
 prop_description_struct WMPropsDescriptions_volitile[] = {
@@ -846,8 +846,8 @@ LOCAL_DEBUG_OUT( "XListProperties returned %d volitile props", props_num );
 		{
 			ASHashData hdata ;
 LOCAL_DEBUG_OUT( "checking property %d [%s]...", props_num, XGetAtomName (dpy, all_props[props_num]) );
-            if (get_hash_item (wmprop_volitile_handlers, (ASHashableValue) all_props[props_num], &hdata.vptr) == ASH_Success)
-            {
+			if (get_hash_item (wmprop_volitile_handlers, (ASHashableValue) all_props[props_num], &hdata.vptr) == ASH_Success)
+			{
 LOCAL_DEBUG_OUT( "\tfound description %p", hdata.vptr );
 				if ((descr = hdata.vptr) != NULL)
 					if (descr->read_func != NULL)
@@ -856,7 +856,7 @@ LOCAL_DEBUG_OUT( "\tfound description %p", hdata.vptr );
 							set_flags (wmprops->set_props, descr->prop_class);
 							clear_flags (wmprops->my_props, descr->prop_class);
 						}
-            }
+			}
 		}
 		XFree (all_props);
 	}
@@ -946,10 +946,10 @@ destroy_wmprops (ASWMProps * wmprops, Bool reusable)
 		if (wmprops->as_tbar_props_data)
 			free (wmprops->as_tbar_props_data);
 
-        /* we are being paranoid : */
-        memset (wmprops, 0x00, sizeof (ASWMProps));
-        if (!reusable)
-            free (wmprops);
+		/* we are being paranoid : */
+		memset (wmprops, 0x00, sizeof (ASWMProps));
+		if (!reusable)
+			free (wmprops);
 	}
 }
 
@@ -972,9 +972,9 @@ void
 set_prop_updated (ASHashTable * handlers, Atom prop)
 {											   /* useless really for now */
 /*    prop_description_struct *descr ;
-    ASHashableValue  hprop = (ASHashableValue)((unsigned long)prop);
-    if( get_hash_item( handlers, hprop, (void**)&descr ) == ASH_Success )
-        descr->update_time = ASDefaultScr->last_Timestamp ;
+	ASHashableValue  hprop = (ASHashableValue)((unsigned long)prop);
+	if( get_hash_item( handlers, hprop, (void**)&descr ) == ASH_Success )
+		descr->update_time = ASDefaultScr->last_Timestamp ;
  */
 }
 
@@ -1028,10 +1028,10 @@ set_as_background (ASWMProps * wmprops, Pixmap new_pmap)
 	{
 		if (wmprops->selection_window == None)
 			return;
-        
+		
 		set_32bit_property (wmprops->selection_window, _AS_BACKGROUND, XA_PIXMAP, new_pmap);
 		XFlush (dpy);
-        wmprops->as_root_pixmap = new_pmap;
+		wmprops->as_root_pixmap = new_pmap;
 	}
 }
 
@@ -1040,15 +1040,15 @@ set_xrootpmap_id (ASWMProps * wmprops, Pixmap new_pmap)
 {
 	if (wmprops)
 	{
-        CARD32 esetroot_pmap_id = None;
+		CARD32 esetroot_pmap_id = None;
 
 		if (read_32bit_property (wmprops->scr->Root, ESETROOT_PMAP_ID, &esetroot_pmap_id))
 			if (esetroot_pmap_id == wmprops->root_pixmap && wmprops->root_pixmap != None)
-	           	XKillClient(dpy, esetroot_pmap_id);
+				XKillClient(dpy, esetroot_pmap_id);
 	
-        set_32bit_property (wmprops->scr->Root, _XROOTPMAP_ID, XA_PIXMAP, new_pmap);
+		set_32bit_property (wmprops->scr->Root, _XROOTPMAP_ID, XA_PIXMAP, new_pmap);
 		XFlush (dpy);
-        wmprops->root_pixmap = new_pmap;
+		wmprops->root_pixmap = new_pmap;
 	}
 }
 
@@ -1060,12 +1060,12 @@ validate_rootpmap_props(ASWMProps *wmprops)
 		if( wmprops->root_pixmap )
 		{	
 			if( !validate_drawable( wmprops->root_pixmap, NULL, NULL ) )
-	    		set_xrootpmap_id (wmprops, None );
+				set_xrootpmap_id (wmprops, None );
 		}
 		if( wmprops->as_root_pixmap ) 
 		{	
 			if( !validate_drawable( wmprops->as_root_pixmap, NULL, NULL ) )
-	    		set_as_background (wmprops, None );
+				set_as_background (wmprops, None );
 		}
 	}
 }
@@ -1074,7 +1074,7 @@ validate_rootpmap_props(ASWMProps *wmprops)
 CARD32
 as_desk2ext_desk (ASWMProps * wmprops, INT32 as_desk)
 {
-    register CARD32 i;
+	register CARD32 i;
 
 	if (wmprops->as_desk_numbers)
 	{
@@ -1108,8 +1108,8 @@ set_desktop_num_prop (ASWMProps * wmprops, INT32 new_desk, Window vroot, Bool ad
 			wmprops->desktop_num = wmprops->as_desk_num;
 			wmprops->as_desk_numbers = realloc (wmprops->as_desk_numbers, wmprops->as_desk_num * sizeof(long) );
 			wmprops->virtual_roots = realloc (wmprops->virtual_roots, wmprops->as_desk_num * sizeof(Window));
-            k = wmprops->as_desk_num-1 ;
-            while ( k > i && k > 0 )
+			k = wmprops->as_desk_num-1 ;
+			while ( k > i && k > 0 )
 			{
 				wmprops->as_desk_numbers[k] = wmprops->as_desk_numbers[k - 1];
 				wmprops->virtual_roots[k] = wmprops->virtual_roots[k - 1];
@@ -1122,15 +1122,15 @@ set_desktop_num_prop (ASWMProps * wmprops, INT32 new_desk, Window vroot, Bool ad
 		{									   /* removing old desk */
 			wmprops->as_desk_num--;
 			wmprops->desktop_num = wmprops->as_desk_num;
-            k = index ;
-            while (++k < wmprops->as_desk_num)
+			k = index ;
+			while (++k < wmprops->as_desk_num)
 			{
-                wmprops->as_desk_numbers[k-1] = wmprops->as_desk_numbers[k];
-                wmprops->virtual_roots[k-1] = wmprops->virtual_roots[k];
+				wmprops->as_desk_numbers[k-1] = wmprops->as_desk_numbers[k];
+				wmprops->virtual_roots[k-1] = wmprops->virtual_roots[k];
 			}
 		} else
 			return;							   /* nothing to do */
-        if (is_output_level_under_threshold (OUTPUT_LEVEL_VROOT))
+		if (is_output_level_under_threshold (OUTPUT_LEVEL_VROOT))
 			fprintf (stderr, "%s: %s desktop with AfterStep number %ld and public number %lu (virtual root 0x%lX)\n",
 					 MyName, add ? "added" : "removed", (long)new_desk, (unsigned long)index, (unsigned long)vroot);
 
@@ -1156,7 +1156,7 @@ set_current_desk_prop (ASWMProps * wmprops, INT32 new_desk)
 {
 	if (wmprops)
 	{
-        CARD32        ext_desk_no;
+		CARD32        ext_desk_no;
 
 		if (wmprops->as_current_desk == new_desk)
 			return True;
@@ -1182,9 +1182,9 @@ set_current_viewport_prop (ASWMProps * wmprops, CARD32 vx, CARD32 vy, Bool norma
 {
 	if (wmprops)
 	{
-        CARD32        viewport[2];
+		CARD32        viewport[2];
 
-        if (wmprops->as_current_vx == vx && wmprops->as_current_vy == vy )
+		if (wmprops->as_current_vx == vx && wmprops->as_current_vy == vy )
 			return True;
 		/* adding desktops has to be handled in different function, since we need to update
 		 * bunch of other things as well - virtual roots etc. */
@@ -1201,22 +1201,22 @@ set_current_viewport_prop (ASWMProps * wmprops, CARD32 vx, CARD32 vy, Bool norma
 			}
 			wmprops->desktop_viewports_num = wmprops->desktop_current+1 ;
 		}	 
-        if( wmprops->desktop_current < wmprops->desktop_viewports_num )
-        {
-            int pos = wmprops->desktop_current<<1 ;
-            wmprops->desktop_viewport[pos] = vx ;
-            wmprops->desktop_viewport[pos+1] = vy ;
-            set_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_VIEWPORT, XA_CARDINAL, &(wmprops->desktop_viewport[0]),
-                                wmprops->desktop_viewports_num*2);
-        }
-        if( normal )
-        {
-            wmprops->as_current_vx = viewport[0] = vx ;
-            wmprops->as_current_vy = viewport[1] = vy ;
-            set_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, XA_CARDINAL, &viewport[0], 2);
-        }
-        return True;
-    }
+		if( wmprops->desktop_current < wmprops->desktop_viewports_num )
+		{
+			int pos = wmprops->desktop_current<<1 ;
+			wmprops->desktop_viewport[pos] = vx ;
+			wmprops->desktop_viewport[pos+1] = vy ;
+			set_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_VIEWPORT, XA_CARDINAL, &(wmprops->desktop_viewport[0]),
+								wmprops->desktop_viewports_num*2);
+		}
+		if( normal )
+		{
+			wmprops->as_current_vx = viewport[0] = vx ;
+			wmprops->as_current_vy = viewport[1] = vy ;
+			set_32bit_proplist (wmprops->scr->Root, _AS_CURRENT_VIEWPORT, XA_CARDINAL, &viewport[0], 2);
+		}
+		return True;
+	}
 	return False;
 }
 
@@ -1225,16 +1225,16 @@ set_desktop_geometry_prop (ASWMProps * wmprops, CARD32 width, CARD32 height)
 {
 	if (wmprops)
 	{
-        CARD32        size[2];
+		CARD32        size[2];
 
-        if (wmprops->desktop_width == width && wmprops->desktop_width == height )
+		if (wmprops->desktop_width == width && wmprops->desktop_width == height )
 			return True;
-        wmprops->desktop_width = size[0] = width ;
-        wmprops->desktop_height = size[1] = height ;
-        set_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_GEOMETRY, XA_CARDINAL, &size[0], 2);
-        
+		wmprops->desktop_width = size[0] = width ;
+		wmprops->desktop_height = size[1] = height ;
+		set_32bit_proplist (wmprops->scr->Root, _XA_NET_DESKTOP_GEOMETRY, XA_CARDINAL, &size[0], 2);
+		
 		return True;
-    }
+	}
 	return False;
 }
 
@@ -1243,11 +1243,11 @@ set_service_window_prop (ASWMProps * wmprops, Window service_win)
 {
 	if (wmprops)
 	{
-        if ( wmprops->as_service_window == service_win )
+		if ( wmprops->as_service_window == service_win )
 			return ;
-        wmprops->as_service_window = service_win ;
-        set_32bit_property (wmprops->selection_window, _AS_SERVICE_WINDOW, XA_WINDOW, service_win);
-    }
+		wmprops->as_service_window = service_win ;
+		set_32bit_property (wmprops->selection_window, _AS_SERVICE_WINDOW, XA_WINDOW, service_win);
+	}
 }
 
 
@@ -1304,7 +1304,7 @@ realloc_clients_list( ASWMProps * wmprops, int nclients )
 		wmprops->clients_num = 0;
 	}else
 	{
-    	if( wmprops->clients_num < nclients ) 
+		if( wmprops->clients_num < nclients ) 
 		{
 			wmprops->client_list = realloc( wmprops->client_list, nclients*sizeof(Window) );
 			wmprops->stacking_order = realloc( wmprops->stacking_order, nclients*sizeof(Window) );
@@ -1343,11 +1343,11 @@ set_stacking_order (ASWMProps * wmprops, Window *list, int nclients)
 			XDeleteProperty (dpy, wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING);
 		else
 		{
-	 		set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING, XA_WINDOW, (CARD32*)list, nclients);	
+			set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST_STACKING, XA_WINDOW, (CARD32*)list, nclients);	
 			memcpy( wmprops->stacking_order, list, nclients*sizeof(Window) );
 		}
 		XFlush (dpy);
-    }
+	}
 }
 
 void
@@ -1355,10 +1355,10 @@ set_active_window_prop (ASWMProps * wmprops, Window active)
 {
 	if (wmprops)
 	{
-    	if( wmprops->active_window != active ) 
+		if( wmprops->active_window != active ) 
 		{
 			wmprops->active_window = active;
-	 		set_32bit_property (wmprops->scr->Root, _XA_NET_ACTIVE_WINDOW, XA_WINDOW, active );	
+			set_32bit_property (wmprops->scr->Root, _XA_NET_ACTIVE_WINDOW, XA_WINDOW, active );	
 			XFlush (dpy);
 		}
 	}

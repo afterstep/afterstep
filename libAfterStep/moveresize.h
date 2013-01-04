@@ -60,9 +60,9 @@ typedef	void (*as_interactive_apply_handler)    (struct ASMoveResizeData *data);
 typedef void (*as_interactive_subwindow_handler)(struct ASMoveResizeData *data, struct ASEvent *event);
 typedef	void (*as_interactive_complete_handler) (struct ASMoveResizeData *data, Bool cancelled);
 typedef int  (*as_outline_handler)              (struct ASOutlineSegment *s,
-	                                             struct MRRectangle *geom,
-	                                             unsigned int scr_width,
-									             unsigned int scr_height);
+												 struct MRRectangle *geom,
+												 unsigned int scr_width,
+												 unsigned int scr_height);
 
 extern Bool (*_as_grab_screen_func)( struct ScreenInfo *scr, Cursor cursor );
 extern void (*_as_ungrab_screen_func) ();
@@ -78,8 +78,8 @@ typedef struct ASOutlineSegment
 typedef struct ASHintWindow
 {
 	Window           w;
-    ASCanvas        *canvas ;
-    ASTBarData      *bar ;
+	ASCanvas        *canvas ;
+	ASTBarData      *bar ;
 	struct ScreenInfo 	*scr;
 	struct MyLook   *look ;
 }ASHintWindow;
@@ -92,8 +92,8 @@ void update_ashint_geometry( ASHintWindow *hw, Bool force_redraw );
 typedef struct ASMoveResizeData
 {
 	/* mandatrory things : */
-    struct ASWidget *parent;
-    struct ASWidget *mr;
+	struct ASWidget *parent;
+	struct ASWidget *mr;
 	struct ASFeel   *feel ;
 	struct MyLook   *look ;
 	as_interactive_apply_handler    apply_func;
@@ -109,11 +109,11 @@ typedef struct ASMoveResizeData
 	
 	char 	   	    *geometry_string;
 	struct ASHintWindow *geometry_display;
-    
+	
 	/* ratios to be applied to geometry before displaying : */
-    unsigned int     geom_x_mult, geom_x_div ;
-    unsigned int     geom_y_mult, geom_y_div ;
-    int              geom_x_origin, geom_y_origin ;
+	unsigned int     geom_x_mult, geom_x_div ;
+	unsigned int     geom_y_mult, geom_y_div ;
+	int              geom_x_origin, geom_y_origin ;
 
 	int 			 origin_x, origin_y ;       /* parent's window root
 												* coordinates */
@@ -131,10 +131,10 @@ typedef struct ASMoveResizeData
 											   * just below this sibling */
 	struct ASGrid   *grid ;
 	/* optional size constraints : */
-    unsigned int min_width,  width_inc,  max_width, frame_width;
-    unsigned int min_height, height_inc, max_height, frame_height;
+	unsigned int min_width,  width_inc,  max_width, frame_width;
+	unsigned int min_height, height_inc, max_height, frame_height;
 
-    Bool stop_on_button_press; /* when true operation will complete on ButtonPress event - not on ButtonRelease */
+	Bool stop_on_button_press; /* when true operation will complete on ButtonPress event - not on ButtonRelease */
 	Bool move_only ;
 
 	int title_north, title_west ; 
@@ -146,15 +146,15 @@ void destroy_outline_segments( ASOutlineSegment **psegments );
 
 ASMoveResizeData *
 move_widget_interactively(struct ASWidget *parent,
-                          struct ASWidget *mr,
+						  struct ASWidget *mr,
 						  struct ASEvent *trigger,
-  						  as_interactive_apply_handler    apply_func,
+						  as_interactive_apply_handler    apply_func,
 						  as_interactive_complete_handler complete_func );
 ASMoveResizeData*
 resize_widget_interactively( struct ASWidget *parent,
 							 struct ASWidget *mr,
 							 struct ASEvent *trigger,
-	  						 as_interactive_apply_handler    apply_func,
+							 as_interactive_apply_handler    apply_func,
 							 as_interactive_complete_handler complete_func,
 							 int side );
 void set_moveresize_restrains( ASMoveResizeData *data, struct ASHints *hints, struct ASStatusHints *status );

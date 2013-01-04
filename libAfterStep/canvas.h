@@ -33,14 +33,14 @@ typedef struct ASCanvas
 
 /* these are not really a states but rather flags : */
 #define CANVAS_CONTAINER            (0x01<<16) /* user drawn - should not maintain our canvas Pixmap,
-                                                * also should monitor chnages in user defined shape,
-                                                * and update mask pixmap accordingly */
+												* also should monitor chnages in user defined shape,
+												* and update mask pixmap accordingly */
 #define CANVAS_FORCE_MASK           (0x01<<18)  /* forces rendering of the canvas mask even if MyStyle is not shaped */
 #define CANVAS_SHAPE_SET            (0x01<<19)  /* */
 
 #define IsCanvasShaped(pc)            get_flags((pc)->state,CANVAS_SHAPE_SET)
 
-    ASFlagType  state ;
+	ASFlagType  state ;
 	Window w;
 	int root_x, root_y;
 	unsigned short width, height ;
@@ -52,7 +52,7 @@ typedef struct ASCanvas
 	/* these two are shortcuts to above values */
 	Pixmap canvas;
 	struct ASVector *shape;                     /* vector of XRectangles */
-    /* 32 bytes */
+	/* 32 bytes */
 }ASCanvas;
 
 /* synonim for backporting of parts of as-devel */

@@ -14,26 +14,26 @@ struct ASCursor ;
 typedef struct FreeStorageElem
 {
 	struct FreeStorageElem *next;
-  	struct FreeStorageElem *sub;
-  	/* points to the chain of sub-elements, for representation of the complex
-     config constructs.
-     for example if following is encountered :
-     MyStyle "some_style"
-     BackPixmap "some_pixmap"
-     ForeColor  blue
-     ~MyStyle
-     it will be read in to the following :
-     ...->{MyStyle_term,"some_style", sub, next->}...
-     |
-     ---------------------------------
-     |
-     V
-     { BackPixmap_term,"some_pixmap", sub=NULL, next }
-     |
-     ---------------------------------------------
-     |
-     V
-     { ForeColor_term,"blue", sub=NULL, next=NULL }
+	struct FreeStorageElem *sub;
+	/* points to the chain of sub-elements, for representation of the complex
+	 config constructs.
+	 for example if following is encountered :
+	 MyStyle "some_style"
+	 BackPixmap "some_pixmap"
+	 ForeColor  blue
+	 ~MyStyle
+	 it will be read in to the following :
+	 ...->{MyStyle_term,"some_style", sub, next->}...
+	 |
+	 ---------------------------------
+	 |
+	 V
+	 { BackPixmap_term,"some_pixmap", sub=NULL, next }
+	 |
+	 ---------------------------------------------
+	 |
+	 V
+	 { ForeColor_term,"blue", sub=NULL, next=NULL }
    */
   struct TermDef *term;
   unsigned long flags;		/* see current_flags for possible values */
@@ -63,12 +63,12 @@ void args2FreeStorage (FreeStorageElem * pelem, char *data, int data_len);
 void ReverseFreeStorageOrder (FreeStorageElem ** storage);
 FreeStorageElem *DupFreeStorageElem (FreeStorageElem * source);
 FreeStorageElem *AddFreeStorageElem (struct SyntaxDef * syntax,
-				     FreeStorageElem ** tail, struct TermDef * pterm,
-				     int id, ...);
+					 FreeStorageElem ** tail, struct TermDef * pterm,
+					 int id, ...);
 void CopyFreeStorage (FreeStorageElem ** to, FreeStorageElem * from);
 void DestroyFreeStorage (FreeStorageElem ** storage);
 void StorageCleanUp (FreeStorageElem ** storage,
-		     FreeStorageElem ** garbadge_bin, unsigned long mask);
+			 FreeStorageElem ** garbadge_bin, unsigned long mask);
 
 void freestorage_print(char *myname, struct SyntaxDef *syntax, FreeStorageElem * storage, int level);
 
@@ -90,36 +90,36 @@ typedef struct ConfigItem
   int index;			/* valid only for those that has TF_INDEXED set */
   union
   {
-    ASGeometry geometry;
-    long integer;
-    Bool flag;
-    struct
-    {
-      int size;
-      int *array;
-    }
-    int_array;
-    char *string;
-    struct FunctionData *function;
-    struct ASButton *button;
-    ASBox box;
-    struct
-    {
-        char *sym ;
-        int context ;
-        int mods ;
-    }binding;
-    struct ASCursor *cursor ;
+	ASGeometry geometry;
+	long integer;
+	Bool flag;
+	struct
+	{
+	  int size;
+	  int *array;
+	}
+	int_array;
+	char *string;
+	struct FunctionData *function;
+	struct ASButton *button;
+	ASBox box;
+	struct
+	{
+		char *sym ;
+		int context ;
+		int mods ;
+	}binding;
+	struct ASCursor *cursor ;
   }
   data;
 }ConfigItem;
 
 typedef struct flag_options_xref
 {
-  	unsigned long flag;
-  	int id_on, id_off;
+	unsigned long flag;
+	int id_on, id_off;
   
-  	ptrdiff_t	flag_field_offset ; 
+	ptrdiff_t	flag_field_offset ; 
 	ptrdiff_t	set_flag_field_offset ; 
 }
 flag_options_xref;
@@ -165,37 +165,37 @@ void AddStringToArray (int *argc, char ***argv, char *new_string);
 
 /* they all return pointer to the storage's tail */
 FreeStorageElem **Flag2FreeStorage (struct SyntaxDef * syntax,
-				    FreeStorageElem ** tail, int id);
+					FreeStorageElem ** tail, int id);
 
 /* you can add all your flags at once : */
 FreeStorageElem **Flags2FreeStorage (struct SyntaxDef * syntax,
-				     FreeStorageElem ** tail,
-				     flag_options_xref * xref,
-				     unsigned long set_flags,
-				     unsigned long flags);
+					 FreeStorageElem ** tail,
+					 flag_options_xref * xref,
+					 unsigned long set_flags,
+					 unsigned long flags);
 
 #define ADD_SET_FLAG(syntax,tail,flags,flag,id)	\
-    ((get_flags((flags),(flag)))?Flag2FreeStorage((syntax),(tail),(id)):(tail))
+	((get_flags((flags),(flag)))?Flag2FreeStorage((syntax),(tail),(id)):(tail))
 
 FreeStorageElem **Integer2FreeStorage (struct SyntaxDef * syntax,
-                       FreeStorageElem ** tail,
-                       int *index, int value, int id);
+					   FreeStorageElem ** tail,
+					   int *index, int value, int id);
 FreeStorageElem **Strings2FreeStorage (struct SyntaxDef * syntax,
-				       FreeStorageElem ** tail,
-				       char **strings, unsigned int num,
-				       int id);
+					   FreeStorageElem ** tail,
+					   char **strings, unsigned int num,
+					   int id);
 #define String2FreeStorage(syntax,t,s,id) Strings2FreeStorage(syntax,t,&(s), 1, id)
 
 FreeStorageElem **QuotedString2FreeStorage (struct SyntaxDef * syntax,
-					    FreeStorageElem ** tail,
-					    int *index, char *string, int id);
+						FreeStorageElem ** tail,
+						int *index, char *string, int id);
 FreeStorageElem **StringArray2FreeStorage (struct SyntaxDef * syntax,
 					   FreeStorageElem ** tail,
 					   char **strings, int index1,
 					   int index2, int id, char *iformat);
 FreeStorageElem **Path2FreeStorage (struct SyntaxDef * syntax,
-				    FreeStorageElem ** tail,
-				    int *index, char *string, int id);
+					FreeStorageElem ** tail,
+					int *index, char *string, int id);
 FreeStorageElem **Geometry2FreeStorage (struct SyntaxDef * syntax,
 					FreeStorageElem ** tail,
 					ASGeometry * geometry, int id);
@@ -206,14 +206,14 @@ FreeStorageElem **Box2FreeStorage (struct SyntaxDef * syntax,
 				   FreeStorageElem ** tail,
 				   ASBox * box, int id);
 FreeStorageElem **Binding2FreeStorage (struct SyntaxDef * syntax,
-                    FreeStorageElem ** tail,
-                    char *sym, int context, int mods, int id);
+					FreeStorageElem ** tail,
+					char *sym, int context, int mods, int id);
 FreeStorageElem **ASCursor2FreeStorage (struct SyntaxDef * syntax,
-                    FreeStorageElem ** tail,
-                    int index, struct ASCursor *c, int id);
+					FreeStorageElem ** tail,
+					int index, struct ASCursor *c, int id);
 FreeStorageElem **Bitlist2FreeStorage (struct SyntaxDef * syntax,
-                    FreeStorageElem ** tail,
-                    long bits, int id);
+					FreeStorageElem ** tail,
+					long bits, int id);
 
 /* the following function automagically creates FreeStorage for the data structure and Syntax,
    it returns created storage and flags will be set in handled_return for any item handled */

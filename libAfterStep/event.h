@@ -32,11 +32,11 @@ struct ScreenInfo;
 
 typedef enum
 {
-    ASE_NotSupported     = 0,
-    ASE_MouseMotionEvent = (0x01<<0),
-    ASE_MousePressEvent  = (0x01<<1),
-    ASE_KeyboardEvent    = (0x01<<2),
-    ASE_Expose           = (0x01<<3),
+	ASE_NotSupported     = 0,
+	ASE_MouseMotionEvent = (0x01<<0),
+	ASE_MousePressEvent  = (0x01<<1),
+	ASE_KeyboardEvent    = (0x01<<2),
+	ASE_Expose           = (0x01<<3),
 	ASE_Config           = (0x01<<4),
 	ASE_Redirection      = (0x01<<5),
 #define ASE_SUBWINDOW_EVENTS     (ASE_MouseMotionEvent|ASE_MousePressEvent|ASE_KeyboardEvent)
@@ -58,9 +58,9 @@ typedef struct ASEventDescription
 /* Event Handling return codes: */
 #define ASE_Usefull		(0x01<<0)      /* event was processed */
 #define ASE_Consumed 	(0x01<<1)      /* event was consumed by
-                                        * processing function, and
-								   		* should not be handled by
-								   		* anything else */
+										* processing function, and
+										* should not be handled by
+										* anything else */
 
 typedef struct ASEvent
 {
@@ -73,9 +73,9 @@ typedef struct ASEvent
 
 	Window 	 	 		w ;
 	struct ScreenInfo  *scr;
-    struct ASWindow    *client ;
-    struct ASCanvas    *widget ;
-    int                 context ;
+	struct ASWindow    *client ;
+	struct ASCanvas    *widget ;
+	int                 context ;
 	XEvent 		 		x ;
 }ASEvent;
 
@@ -134,10 +134,10 @@ void quietly_reparent_window( Window w, Window new_parent, int x, int y, long ev
 void safely_destroy_window (Window w);
 /* convinience function : all the parameters are optional ! */
 Bool query_pointer( Window w,
-                    Window *root_return, Window *child_return,
-                    int *root_x_return, int *root_y_return,
-                    int *win_x_return, int *win_y_return,
-                    unsigned int *mask_return );
+					Window *root_return, Window *child_return,
+					int *root_x_return, int *root_y_return,
+					int *win_x_return, int *win_y_return,
+					unsigned int *mask_return );
 #define ASQueryPointerXY(pchild,prx,pry,px,py)   query_pointer(None,NULL,(pchild),(prx),(pry),(px),(py),NULL)
 #define ASQueryPointerWinXY(w,px,py)   query_pointer(w,NULL,NULL,NULL,NULL,(px),(py),NULL)
 #define ASQueryPointerWinXYMask(w,prx,pry,px,py,pmask)   query_pointer(w,NULL,NULL,(prx),(pry),(px),(py),(pmask))
@@ -153,7 +153,7 @@ void handle_ShmCompletion(ASEvent *event);
 
 #if !defined(EVENT_TRACE) || defined(NO_DEBUG_OUTPUT)
 #define SHOW_EVENT_TRACE(event) \
-    do{ if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG ){ \
+	do{ if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG ){ \
 			if( event->x.type == PropertyNotify ) { \
 				char *atom_name = XGetAtomName(dpy, event->x.xproperty.atom); \
 				show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->property(%s)->client(%p)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name((event)->x.type), (event)->x.xany.window, atom_name, (event)->client, (event)->x.xany.send_event); \
@@ -163,7 +163,7 @@ void handle_ShmCompletion(ASEvent *event);
 #else
 #define SHOW_EVENT_TRACE(event) \
 	do{ 	show_progress("****************************************************************"); \
-        	show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name((event)->x.type), (event)->x.xany.window, (event)->w, (event)->client, context2text((event)->context), (event)->x.xany.send_event); \
+			show_progress("%s:%s:%d><<EVENT type(%d(%s))->x.window(%lx)->event.w(%lx)->client(%p)->context(%s)->send_event(%d)", __FILE__, __FUNCTION__, __LINE__, event->x.type, event_type2name((event)->x.type), (event)->x.xany.window, (event)->w, (event)->client, context2text((event)->context), (event)->x.xany.send_event); \
 			if( event->x.type == PropertyNotify ) { \
 				char *atom_name = XGetAtomName(dpy, event->x.xproperty.atom); \
 				LOCAL_DEBUG_OUT( "\tproperty %s(%lX), _XROOTPMAP_ID = %lX, event->w = %lX, root = %lX", atom_name, event->x.xproperty.atom, _XROOTPMAP_ID, event->w, Scr.Root ); \

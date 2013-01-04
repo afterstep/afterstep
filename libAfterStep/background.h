@@ -22,25 +22,25 @@ extern "C" {
 
 typedef union
   {
-    Atom atom;
-    Pixmap pixmap;
+	Atom atom;
+	Pixmap pixmap;
   }
 StoredBackData;
 
 typedef struct ASDeskBack
   {
-    unsigned long desk;
-    Atom data_type;		/* XA_PIXMAP if Pixmap 0 if InternAtom */
-    StoredBackData data;
-    Atom MyStyle;		/* we should watch for MyStyles's updates
+	unsigned long desk;
+	Atom data_type;		/* XA_PIXMAP if Pixmap 0 if InternAtom */
+	StoredBackData data;
+	Atom MyStyle;		/* we should watch for MyStyles's updates
 				   if this is not NULL */
   }
 ASDeskBack;
 
 typedef struct
   {
-    ASDeskBack *desks;
-    unsigned long desks_num;
+	ASDeskBack *desks;
+	unsigned long desks_num;
   }
 ASDeskBackArray;
 

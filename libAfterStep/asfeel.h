@@ -36,12 +36,12 @@ enum ASCursorTypes
 #define SORTBYDATE  2
 
 typedef enum ASWinListSortOrderVals {
-    ASO_Circulation = 0,
-    ASO_Alpha,
-    /* TODO: */
-    ASO_Stacking,
-    ASO_Creation,
-    ASO_Default = ASO_Circulation
+	ASO_Circulation = 0,
+	ASO_Alpha,
+	/* TODO: */
+	ASO_Stacking,
+	ASO_Creation,
+	ASO_Default = ASO_Circulation
 }ASWinListSortOrderVals;
 
 struct name2const {
@@ -52,31 +52,31 @@ struct name2const {
 /* for the flags value - these used to be separate Bool's */
 typedef enum                /* feel file flags */
 {
-    ClickToFocus            = (1 << 0), /* Focus follows or click to focus */
-    DecorateTransients      = (1 << 1), /* decorate transient windows? */
-    DontMoveOff             = (1 << 2), /* make sure windows stay on desk */
-    SuppressIcons           = (1 << 3), /* prevent generating icon win */
-    StickyIcons             = (1 << 4), /* Icons always sticky? */
-    EdgeWrapX               = (1 << 5), /* Should EdgeScroll wrap around? */
-    EdgeWrapY               = (1 << 6),
-    CenterOnCirculate       = (1 << 7), /* center window on circulate ? */
-    KeepIconWindows         = (1 << 8),
-    ClickToRaise            = (1 << 9),
-    EatFocusClick           = (1 << 10),
-    NoPPosition             = (1 << 11),
-    CirculateSkipIcons      = (1 << 12),
-    StubbornIcons           = (1 << 13),
-    StubbornPlacement       = (1 << 14),
-    StubbornIconPlacement   = (1 << 15),
-    BackingStore            = (1 << 16),
-    AppsBackingStore        = (1 << 17),
-    SaveUnders              = (1 << 18),
-    SloppyFocus             = (1 << 19),
-    IconTitle               = (1 << 20),
-    FollowTitleChanges      = (1 << 21),
-    AutoTabThroughDesks     = (1 << 22),
-    DoHandlePageing         = (1 << 23),
-    DontRestoreFocus        = (1 << 24),
+	ClickToFocus            = (1 << 0), /* Focus follows or click to focus */
+	DecorateTransients      = (1 << 1), /* decorate transient windows? */
+	DontMoveOff             = (1 << 2), /* make sure windows stay on desk */
+	SuppressIcons           = (1 << 3), /* prevent generating icon win */
+	StickyIcons             = (1 << 4), /* Icons always sticky? */
+	EdgeWrapX               = (1 << 5), /* Should EdgeScroll wrap around? */
+	EdgeWrapY               = (1 << 6),
+	CenterOnCirculate       = (1 << 7), /* center window on circulate ? */
+	KeepIconWindows         = (1 << 8),
+	ClickToRaise            = (1 << 9),
+	EatFocusClick           = (1 << 10),
+	NoPPosition             = (1 << 11),
+	CirculateSkipIcons      = (1 << 12),
+	StubbornIcons           = (1 << 13),
+	StubbornPlacement       = (1 << 14),
+	StubbornIconPlacement   = (1 << 15),
+	BackingStore            = (1 << 16),
+	AppsBackingStore        = (1 << 17),
+	SaveUnders              = (1 << 18),
+	SloppyFocus             = (1 << 19),
+	IconTitle               = (1 << 20),
+	FollowTitleChanges      = (1 << 21),
+	AutoTabThroughDesks     = (1 << 22),
+	DoHandlePageing         = (1 << 23),
+	DontRestoreFocus        = (1 << 24),
 	PersistentMenus			= (1 << 25),
 	DontAnimateBackground   = (1 << 26),
 	WinListHideIcons	    = (1 << 27),
@@ -89,32 +89,32 @@ typedef enum                /* feel file flags */
   feel set flags, that will indicate which option is set ny user */
 typedef enum			/* feel file set flags */
 {
-    FEEL_ClickTime              = (0x01<<0),
-    FEEL_OpaqueMove             = (0x01<<1),
-    FEEL_OpaqueResize           = (0x01<<2),
-    FEEL_AutoRaise              = (0x01<<3),
-    FEEL_AutoReverse            = (0x01<<4),
-    FEEL_DeskAnimationType      = (0x01<<5),
-    FEEL_DeskAnimationSteps     = (0x01<<6),
+	FEEL_ClickTime              = (0x01<<0),
+	FEEL_OpaqueMove             = (0x01<<1),
+	FEEL_OpaqueResize           = (0x01<<2),
+	FEEL_AutoRaise              = (0x01<<3),
+	FEEL_AutoReverse            = (0x01<<4),
+	FEEL_DeskAnimationType      = (0x01<<5),
+	FEEL_DeskAnimationSteps     = (0x01<<6),
 
-    FEEL_XorValue               = (0x01<<7),
-    FEEL_Xzap                   = (0x01<<8),
-    FEEL_Yzap                   = (0x01<<9),
+	FEEL_XorValue               = (0x01<<7),
+	FEEL_Xzap                   = (0x01<<8),
+	FEEL_Yzap                   = (0x01<<9),
 
-    FEEL_ClickToRaise           = (0x01<<10),
+	FEEL_ClickToRaise           = (0x01<<10),
 
-    FEEL_EdgeScroll             = (0x01<<11),
-    FEEL_EdgeResistance         = (0x01<<12),
-    FEEL_ShadeAnimationSteps    = (0x01<<13),
+	FEEL_EdgeScroll             = (0x01<<11),
+	FEEL_EdgeResistance         = (0x01<<12),
+	FEEL_ShadeAnimationSteps    = (0x01<<13),
 	FEEL_ExternalMenus			= (0x01<<14),
-    FEEL_EdgeResistanceToDragging = (0x01<<15)
+	FEEL_EdgeResistanceToDragging = (0x01<<15)
 
 }FeelSetValFlags;
 
 
 
 typedef enum{
-    ASP_SmartPlacement = 0,
+	ASP_SmartPlacement = 0,
 	ASP_RandomPlacement,
 	ASP_Tile,
 	ASP_Cascade,
@@ -124,8 +124,8 @@ typedef enum{
 
 typedef enum
 {
-    ASP_UseMainStrategy = 0,
-    ASP_UseBackupStrategy
+	ASP_UseMainStrategy = 0,
+	ASP_UseBackupStrategy
 }ASUsePlacementStrategy ;
 
 typedef struct ASWindowBox
@@ -160,101 +160,101 @@ typedef struct ASWindowBox
 												* sufficient size exists: Random, Cascade or Manual*/
 	unsigned int min_width, min_height ;
 	unsigned int max_width, max_height ;
-    int min_layer, max_layer ;
+	int min_layer, max_layer ;
 
-    int desk ;
+	int desk ;
 
 	int x_spacing, y_spacing ;
-    /* this store status : */
-    unsigned int cascade_pos ;                 /* gets incremented every time window is cascaded */
+	/* this store status : */
+	unsigned int cascade_pos ;                 /* gets incremented every time window is cascaded */
 
 }ASWindowBox;
 
 typedef enum {
-    AST_OneDirection = 0,
-    AST_ClosedLoop = 1,
-    AST_OpenLoop = 2
+	AST_OneDirection = 0,
+	AST_ClosedLoop = 1,
+	AST_OpenLoop = 2
 }ASTabbingReverse;
 
 typedef struct MouseButton
 {
-    int Button;
-    int Context;
-    int Modifier;
-    struct MouseButton *NextButton;
-    struct FunctionData *fdata;
+	int Button;
+	int Context;
+	int Modifier;
+	struct MouseButton *NextButton;
+	struct FunctionData *fdata;
 }MouseButton;
 
 typedef struct FuncKey
 {
-    struct FuncKey *next;	/* next in the list of function keys */
-    char *name;			/* key name */
-    KeyCode keycode;		/* X keycode */
-    int cont;			/* context */
-    int mods;			/* modifiers */
+	struct FuncKey *next;	/* next in the list of function keys */
+	char *name;			/* key name */
+	KeyCode keycode;		/* X keycode */
+	int cont;			/* context */
+	int mods;			/* modifiers */
 
 	struct FunctionData *fdata ;
 }FuncKey;
 
 typedef struct ASFeel
 {
-    unsigned long magic;
+	unsigned long magic;
 
-    unsigned long set_flags;  /* what options were set by user */
-    unsigned long flags;      /* feel file flags */
+	unsigned long set_flags;  /* what options were set by user */
+	unsigned long flags;      /* feel file flags */
 
 	/* for compatibility with old configs : */
 #define FEEL_DEPRECATED_RandomPlacement (0x01 << 0)  /* random windows placement */
 #define FEEL_DEPRECATED_SmartPlacement	(0x01 << 1)  /* smart placement */
-    ASFlagType 	deprecated_flags; 
+	ASFlagType 	deprecated_flags; 
 
 	ASFlagType 	set_val_flags;                 /* see  enum FeelSetValFlags */
 
-    unsigned int ClickTime;        /* Max buttonclickdelay for Function built-in */
-    unsigned int OpaqueMove;       /* Keep showing window while being moved if size<N% */
-    unsigned int OpaqueResize;     /* Keep showing window while being resized if size<N% */
-    int AutoRaiseDelay;            /* Delay between setting focus and raisingwin */
+	unsigned int ClickTime;        /* Max buttonclickdelay for Function built-in */
+	unsigned int OpaqueMove;       /* Keep showing window while being moved if size<N% */
+	unsigned int OpaqueResize;     /* Keep showing window while being resized if size<N% */
+	int AutoRaiseDelay;            /* Delay between setting focus and raisingwin */
 
 #define FEEL_WARP_ONEWAY       0
 #define FEEL_WARP_YOYO         1
 #define FEEL_WARP_ENDLESS      2
-    unsigned int AutoReverse;
+	unsigned int AutoReverse;
 
-    int XorValue ;
-    int Xzap, Yzap;
+	int XorValue ;
+	int Xzap, Yzap;
 
-    long RaiseButtons;     /* The buttons to do click-to-raise */
+	long RaiseButtons;     /* The buttons to do click-to-raise */
 
-    int EdgeScrollX;      /* % of the screen width to scroll on screen edge */
-    int EdgeScrollY;      /* % of the screen height to scroll on screen edge */
-    int EdgeResistanceScroll;      /* #pixels to scroll on screen edge */
-    int EdgeAttractionScreen;      /* #pixels to scroll on screen edge */
-    int EdgeAttractionWindow;      /* #pixels to scroll on screen edge */
-    int EdgeResistanceMove;        /* #pixels to scroll on screen edge */
-    int EdgeResistanceDragScroll;      /* #pixels to scroll on screen edge while dragging the window */
-    int ShadeAnimationSteps;
+	int EdgeScrollX;      /* % of the screen width to scroll on screen edge */
+	int EdgeScrollY;      /* % of the screen height to scroll on screen edge */
+	int EdgeResistanceScroll;      /* #pixels to scroll on screen edge */
+	int EdgeAttractionScreen;      /* #pixels to scroll on screen edge */
+	int EdgeAttractionWindow;      /* #pixels to scroll on screen edge */
+	int EdgeResistanceMove;        /* #pixels to scroll on screen edge */
+	int EdgeResistanceDragScroll;      /* #pixels to scroll on screen edge while dragging the window */
+	int ShadeAnimationSteps;
 
-    struct ASHashTable *Popups ;
-    struct ASHashTable *ComplexFunctions ;
+	struct ASHashTable *Popups ;
+	struct ASHashTable *ComplexFunctions ;
 
-    struct MouseButton *MouseButtonRoot;
-    struct FuncKey *FuncKeyRoot;
+	struct MouseButton *MouseButtonRoot;
+	struct FuncKey *FuncKeyRoot;
 
-    Cursor    cursors[MAX_CURSORS];
+	Cursor    cursors[MAX_CURSORS];
 
-    ASFlagType          buttons2grab ;           /* calculated after all the mouse bindings are set */
-      /* TODO: add no_snaping_mod to Feel parsing code : */
-    unsigned int        no_snaping_mod ;         /* modifyer mask that disables snapping to edges whle move/resizing the window */
+	ASFlagType          buttons2grab ;           /* calculated after all the mouse bindings are set */
+	  /* TODO: add no_snaping_mod to Feel parsing code : */
+	unsigned int        no_snaping_mod ;         /* modifyer mask that disables snapping to edges whle move/resizing the window */
 
 	ASWindowBox		   *window_boxes ;
 	ASWindowBox        *default_window_box ;
-    char               *default_window_box_name ;
+	char               *default_window_box_name ;
 	unsigned int        window_boxes_num ;
 
-    unsigned int        recent_submenu_items;
+	unsigned int        recent_submenu_items;
 
-    unsigned int        desk_cover_animation_steps ;
-    unsigned int        desk_cover_animation_type ;
+	unsigned int        desk_cover_animation_steps ;
+	unsigned int        desk_cover_animation_type ;
 
 	int 				conserve_memory ;
 	

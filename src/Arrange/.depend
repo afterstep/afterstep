@@ -15,5 +15,7 @@
 		../../libAfterStep/balloon.h \
 		../../libAfterStep/event.h \
 		../../libAfterStep/shape.h \
+		../../libAfterStep/ascommand.h \
+		../../libAfterStep/operations.h \
 		../../libAfterBase/aslist.h \
 		../../libAfterConf/afterconf.h

@@ -57,7 +57,7 @@ as_socket_write_string (ASSocketBuffer *sb, const char *string)
 
 		if (string != NULL)
 			len = strlen ((char*)string);
-        ASSocketWriteInt32 (sb, &len, 1);
+		ASSocketWriteInt32 (sb, &len, 1);
 		if (len)
 			socket_buffered_write (sb, string, len);
 	}
@@ -116,22 +116,22 @@ get_module_in_fd()
 static inline void
 send_module_msg_header (Window w, CARD32 bytes)
 {
-    if( as_module_out_buffer.fd >= 0 ) 
+	if( as_module_out_buffer.fd >= 0 ) 
 	{	
 		CARD32 w32 = w ;
-    	ASSocketWriteInt32 ( &as_module_out_buffer, &w32, 1 );
-    	ASSocketWriteInt32 ( &as_module_out_buffer, &bytes, 1 );
+		ASSocketWriteInt32 ( &as_module_out_buffer, &w32, 1 );
+		ASSocketWriteInt32 ( &as_module_out_buffer, &bytes, 1 );
 	}
 }
 
 static inline void
 send_module_msg_tail ()
 {
-    if( as_module_out_buffer.fd >= 0 ) 
+	if( as_module_out_buffer.fd >= 0 ) 
 	{	
 		CARD32           cont = F_FUNCTIONS_NUM;
 
-    	ASSocketWriteInt32 ( &as_module_out_buffer, &cont, 1 );
+		ASSocketWriteInt32 ( &as_module_out_buffer, &cont, 1 );
 		socket_write_flush ( &as_module_out_buffer );
 	}
 }
@@ -139,7 +139,7 @@ send_module_msg_tail ()
 static inline void
 send_module_msg_raw ( void *data, size_t bytes )
 {
-    if( as_module_out_buffer.fd >= 0 ) 
+	if( as_module_out_buffer.fd >= 0 ) 
 	{	
 		socket_buffered_write(&as_module_out_buffer, data, bytes);
 	}
@@ -149,14 +149,14 @@ static inline void
 send_module_msg_function (CARD32 func,
 						  const char *name, const char *text, const send_signed_data_type *func_val, const send_signed_data_type *unit_val)
 {
-    if( as_module_out_buffer.fd >= 0 ) 
+	if( as_module_out_buffer.fd >= 0 ) 
 	{	
 		CARD32        spare_func_val[2] = { 0, 0 };
 		CARD32        spare_unit_val[2] = { 0, 0 };
 
-    	ASSocketWriteInt32 (&as_module_out_buffer, &func, 1 );
-    	ASSocketWriteString(&as_module_out_buffer , name);
-    	ASSocketWriteString(&as_module_out_buffer , text);
+		ASSocketWriteInt32 (&as_module_out_buffer, &func, 1 );
+		ASSocketWriteString(&as_module_out_buffer , name);
+		ASSocketWriteString(&as_module_out_buffer , text);
 		if (func_val != NULL)
 		{
 			spare_func_val[0] = func_val[0] ;
@@ -167,8 +167,8 @@ send_module_msg_function (CARD32 func,
 			spare_unit_val[0] = unit_val[0] ;
 			spare_unit_val[1] = unit_val[1] ;
 		}
-    	ASSocketWriteInt32 (&as_module_out_buffer, &(spare_func_val[0]), 2);
-    	ASSocketWriteInt32 (&as_module_out_buffer, &(spare_unit_val[0]), 2);
+		ASSocketWriteInt32 (&as_module_out_buffer, &(spare_func_val[0]), 2);
+		ASSocketWriteInt32 (&as_module_out_buffer, &(spare_unit_val[0]), 2);
 	}
 }
 
@@ -178,11 +178,11 @@ send_module_msg_function (CARD32 func,
 void
 SendInfo ( char *message, send_ID_type window)
 {
-    if( as_module_out_buffer.fd >= 0 ) 
+	if( as_module_out_buffer.fd >= 0 ) 
 	{	
 		size_t        len;
 	LOCAL_DEBUG_OUT( "message to afterstep:\"%s\"", message );
-    	if (message != NULL)
+		if (message != NULL)
 		{
 			if ((len = strlen (message)) > 0)
 			{
@@ -202,7 +202,7 @@ LOCAL_DEBUG_OUT( "sending command %p to the astep", pfunc );
 	if (pfunc != NULL && as_module_out_buffer.fd >= 0 ) 
 	{
 		send_module_msg_header(window, 0);
-        send_module_msg_function(pfunc->func, pfunc->name, pfunc->text, pfunc->func_val, pfunc->unit_val);
+		send_module_msg_function(pfunc->func, pfunc->name, pfunc->text, pfunc->func_val, pfunc->unit_val);
 		send_module_msg_tail ();
 	}
 }
@@ -316,7 +316,7 @@ CheckASMessageFine (int t_sec, int t_usec)
 	fd_set        in_fdset;
 	ASMessage    *msg = NULL;
 	struct timeval tv;
-    int           fd = get_module_in_fd();
+	int           fd = get_module_in_fd();
 
 	if( fd < 0 ) 
 		return NULL;
@@ -362,43 +362,43 @@ DestroyASMessage (ASMessage * msg)
 void
 module_wait_pipes_input ( void (*as_msg_handler) (send_data_type type, send_data_type *body) )
 {
-    fd_set        in_fdset, out_fdset;
+	fd_set        in_fdset, out_fdset;
 	int           retval;
 	struct timeval tv;
 	struct timeval *t = NULL;
-    int           max_fd = 0;
-    ASMessage     msg;
-    int as_fd = get_module_in_fd();
+	int           max_fd = 0;
+	ASMessage     msg;
+	int as_fd = get_module_in_fd();
 
 	FD_ZERO (&in_fdset);
 	FD_ZERO (&out_fdset);
 
 	FD_SET (x_fd, &in_fdset);
-    max_fd = x_fd ;
+	max_fd = x_fd ;
 
-    if (as_fd >= 0)
-    {
-        FD_SET (as_fd, &in_fdset);
-        if (max_fd < as_fd)
-            max_fd = as_fd;
-    }
+	if (as_fd >= 0)
+	{
+		FD_SET (as_fd, &in_fdset);
+		if (max_fd < as_fd)
+			max_fd = as_fd;
+	}
 
-    if (timer_delay_till_next_alarm ((time_t *) & tv.tv_sec, (time_t *) & tv.tv_usec))
-        t = &tv;
+	if (timer_delay_till_next_alarm ((time_t *) & tv.tv_sec, (time_t *) & tv.tv_usec))
+		t = &tv;
 
-    retval = PORTABLE_SELECT(min (max_fd + 1, fd_width),&in_fdset,&out_fdset,NULL,t);
+	retval = PORTABLE_SELECT(min (max_fd + 1, fd_width),&in_fdset,&out_fdset,NULL,t);
 
 	if (retval > 0)
 	{
-        /* check for incoming module connections */
-        if (as_fd >= 0)
-            if (FD_ISSET (as_fd, &in_fdset))
-                if (ReadASPacket (as_fd, msg.header, &(msg.body)) > 0)
-                {
-                    as_msg_handler (msg.header[1], msg.body);
-                    free (msg.body);
-                }
-    }
+		/* check for incoming module connections */
+		if (as_fd >= 0)
+			if (FD_ISSET (as_fd, &in_fdset))
+				if (ReadASPacket (as_fd, msg.header, &(msg.body)) > 0)
+				{
+					as_msg_handler (msg.header[1], msg.body);
+					free (msg.body);
+				}
+	}
 
 	/* handle timeout events */
 	timer_handle ();
@@ -408,20 +408,20 @@ module_wait_pipes_input ( void (*as_msg_handler) (send_data_type type, send_data
 int
 ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 {
-    char *temp;
-    int   fd;
+	char *temp;
+	int   fd;
 
 	/* connect to AfterStep */
 	/* Dead pipe == AS died */
 	signal (SIGPIPE, ASDeadPipe);
-    fd = ASDefaultScr->wmprops?socket_connect_client(ASDefaultScr->wmprops->as_socket_filename):-1;
+	fd = ASDefaultScr->wmprops?socket_connect_client(ASDefaultScr->wmprops->as_socket_filename):-1;
 
-    set_module_in_fd( fd );
-    set_module_out_fd( fd );
+	set_module_in_fd( fd );
+	set_module_out_fd( fd );
 
-    if (fd < 0)
+	if (fd < 0)
 	{
-        show_error("unable to establish connection to AfterStep");
+		show_error("unable to establish connection to AfterStep");
 	}else
 	{	
 		int arg_len = 0 ; 
@@ -447,7 +447,7 @@ ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 
 		/* assuming that unsigned long will be limited to 32 chars : */
 		temp = safemalloc (arg_len+1);
-    	strcpy(temp, exec_name);
+		strcpy(temp, exec_name);
 		ptr = temp + exec_name_len; 
 		for( i = 1 ; i < MyArgs.saved_argc ; ++i )
 		{
@@ -468,18 +468,18 @@ ConnectAfterStep (send_data_type message_mask, send_data_type lock_on_send_mask)
 
 		SendNumCommand ( F_SET_MASK, NULL, &masks[0], NULL, None);
 		//sprintf (mask_mesg, "SET_MASK %lu %lu\n", (unsigned long)message_mask, (unsigned long) lock_on_send_mask);
-    	//SendInfo ( mask_mesg, None);
+		//SendInfo ( mask_mesg, None);
 	}
-    /* don't really have to do this here, but anyway : */
-    InitSession();
-    return fd;
+	/* don't really have to do this here, but anyway : */
+	InitSession();
+	return fd;
 }
 
 void 
 SetAfterStepDisconnected()
 {
-    set_module_in_fd( -1 );
-    set_module_out_fd( -1 );
+	set_module_in_fd( -1 );
+	set_module_out_fd( -1 );
 }	 
 /*************************************************************************/
 /*************************************************************************/
@@ -490,65 +490,65 @@ LoadBaseConfig(void (*read_base_options_func) (const char *))
 	if( read_base_options_func == NULL ) 
 		return ;
 
-    if( Session == NULL )
-    {
-        show_error("Session has not been properly initialized. Exiting");
-        exit(1);
-    }
-
-    if (Session->overriding_file == NULL )
+	if( Session == NULL )
 	{
-        char *configfile = make_session_file(Session, BASE_FILE, False/* no longer use #bpp in filenames */ );
-        if( configfile != NULL )
-        {
-            read_base_options_func (configfile);
-            show_progress("BASE configuration loaded from \"%s\" ...", configfile);
-            free( configfile );
-        }else
-        {
-            show_warning("BASE configuration file cannot be found");
-        }
-    }else
-        read_base_options_func (Session->overriding_file);
+		show_error("Session has not been properly initialized. Exiting");
+		exit(1);
+	}
+
+	if (Session->overriding_file == NULL )
+	{
+		char *configfile = make_session_file(Session, BASE_FILE, False/* no longer use #bpp in filenames */ );
+		if( configfile != NULL )
+		{
+			read_base_options_func (configfile);
+			show_progress("BASE configuration loaded from \"%s\" ...", configfile);
+			free( configfile );
+		}else
+		{
+			show_warning("BASE configuration file cannot be found");
+		}
+	}else
+		read_base_options_func (Session->overriding_file);
 }
 
 void
 LoadConfig (char *config_file_name, void (*read_options_func) (const char *))
 {
-    if( Session == NULL )
-    {
-        show_error("Session has not been properly initialized. Exiting");
-        exit(1);
-    }
-    if (Session->overriding_file == NULL )
+	if( Session == NULL )
 	{
-        char *configfile ;
-        const char *const_configfile;
+		show_error("Session has not been properly initialized. Exiting");
+		exit(1);
+	}
+	if (Session->overriding_file == NULL )
+	{
+		char *configfile ;
+		const char *const_configfile;
 
-        configfile = make_session_file(Session, config_file_name, False );
-        if( configfile != NULL )
-        {
-            read_options_func(configfile);
-            show_progress("configuration loaded from \"%s\" ...", configfile);
-            free( configfile );
-        }else
-        {
-            show_warning("configuration file \"%s\" cannot be found", config_file_name);
-        }
+		configfile = make_session_file(Session, config_file_name, False );
+		if( configfile != NULL )
+		{
+			read_options_func(configfile);
+			show_progress("configuration loaded from \"%s\" ...", configfile);
+			free( configfile );
+		}else
+		{
+			show_warning("configuration file \"%s\" cannot be found", config_file_name);
+		}
 
-        if( (const_configfile = get_session_file (Session, 0, F_CHANGE_THEME, False) ) != NULL )
-        {
-            read_options_func(const_configfile);
-            show_progress("THEME configuration loaded from \"%s\" ...", const_configfile);
-            if( (configfile = make_session_data_file  (Session, False, R_OK, THEME_OVERRIDE_FILE, NULL )) != NULL )
-            {
-                read_options_func(configfile);
-                show_progress("THEME OVERRIDES configuration loaded from \"%s\" ...", configfile);
-                free( configfile );
-            }
-        }
-    }else
-        read_options_func (Session->overriding_file);
+		if( (const_configfile = get_session_file (Session, 0, F_CHANGE_THEME, False) ) != NULL )
+		{
+			read_options_func(const_configfile);
+			show_progress("THEME configuration loaded from \"%s\" ...", const_configfile);
+			if( (configfile = make_session_data_file  (Session, False, R_OK, THEME_OVERRIDE_FILE, NULL )) != NULL )
+			{
+				read_options_func(configfile);
+				show_progress("THEME OVERRIDES configuration loaded from \"%s\" ...", configfile);
+				free( configfile );
+			}
+		}
+	}else
+		read_options_func (Session->overriding_file);
 }
 
 /*************************************************************************/

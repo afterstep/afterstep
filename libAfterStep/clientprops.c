@@ -167,7 +167,7 @@ AtomXref      _EXTWM_State[] = {
 	{"_NET_WM_STATE_MAXIMIZED_VERT", &_XA_NET_WM_STATE_MAXIMIZED_VERT, EXTWM_StateMaximizedV},
 	{"_NET_WM_STATE_MAXIMIZED_HORZ", &_XA_NET_WM_STATE_MAXIMIZED_HORZ, EXTWM_StateMaximizedH},
 	{"_NET_WM_STATE_SHADED", &_XA_NET_WM_STATE_SHADED, EXTWM_StateShaded},
-    {"_NET_WM_STATE_SKIP_TASKBAR", &_XA_NET_WM_STATE_SKIP_TASKBAR, EXTWM_StateSkipTaskbar},
+	{"_NET_WM_STATE_SKIP_TASKBAR", &_XA_NET_WM_STATE_SKIP_TASKBAR, EXTWM_StateSkipTaskbar},
 	{"_NET_WM_STATE_SKIP_PAGER", &_XA_NET_WM_STATE_SKIP_PAGER, EXTWM_StateSkipPager},
 	{"_NET_WM_STATE_HIDDEN", &_XA_NET_WM_STATE_HIDDEN,			EXTWM_StateHidden    },
 	{"_NET_WM_STATE_FULLSCREEN", &_XA_NET_WM_STATE_FULLSCREEN, 	EXTWM_StateFullscreen},
@@ -399,7 +399,7 @@ read_wm_transient_for (ASRawHints * hints, Window w)
 void
 read_wm_protocols (ASRawHints * hints, Window w)
 {
-    LOCAL_DEBUG_CALLER_OUT( "window(%lX)", w );
+	LOCAL_DEBUG_CALLER_OUT( "window(%lX)", w );
 	if (hints && w != None)
 	{
 		CARD32        *protocols = NULL;
@@ -410,13 +410,13 @@ read_wm_protocols (ASRawHints * hints, Window w)
 		{
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)		
 			char *aname = XGetAtomName(dpy, protocols[0]);
-            LOCAL_DEBUG_OUT( "nprotos=%ld, protocols[0] = 0x%lX(\"%s\")", nprotos, protocols[0], aname);
+			LOCAL_DEBUG_OUT( "nprotos=%ld, protocols[0] = 0x%lX(\"%s\")", nprotos, protocols[0], aname);
 			XFree( aname );
 #endif			
 			translate_atom_list (&(hints->wm_protocols), WM_Protocols, protocols, nprotos);
-            LOCAL_DEBUG_OUT( "translated protocols =0x%lX", hints->wm_protocols );
+			LOCAL_DEBUG_OUT( "translated protocols =0x%lX", hints->wm_protocols );
 			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_Protocols, protocols, nprotos);
-            LOCAL_DEBUG_OUT( "translated NET_ protocols =0x%lX", hints->extwm_hints.flags );
+			LOCAL_DEBUG_OUT( "translated NET_ protocols =0x%lX", hints->extwm_hints.flags );
 			free (protocols);
 		}
 	}
@@ -449,7 +449,7 @@ read_wm_command (ASRawHints * hints, Window w)
 {
 	if (hints)
 	{										   /* there is some wierd bullshit about this propertie being depreciated and stuff
-											    * so we just use standard X function to read it up : */
+												* so we just use standard X function to read it up : */
 		if (hints->wm_cmd_argv)
 			XFreeStringList (hints->wm_cmd_argv);
 		LOCAL_DEBUG_OUT( "Reading WM_COMMAND property from window %lX", w );
@@ -467,7 +467,7 @@ read_wm_state (ASRawHints * hints, Window w)
 {
 	if (hints)
 	{
-        CARD32       *data = NULL;
+		CARD32       *data = NULL;
 		long          nitems = 0;
 
 		if (read_32bit_proplist (w, _XA_WM_STATE, 2, &data, &nitems))
@@ -479,8 +479,8 @@ read_wm_state (ASRawHints * hints, Window w)
 					hints->wm_state_icon_win = data[1];
 			}
 		}
-        if( data )
-            free( data );
+		if( data )
+			free( data );
 	}
 }
 
@@ -489,24 +489,24 @@ read_motif_hints (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-        CARD32 *raw_data = NULL ;
-        long          nitems = 0 ;
+		CARD32 *raw_data = NULL ;
+		long          nitems = 0 ;
 
 		if (!read_32bit_proplist (w, _XA_MwmAtom, 4, &raw_data, &nitems))
 			nitems = 0;
 
-        if (hints->motif_hints)
+		if (hints->motif_hints)
 		{
 			free (hints->motif_hints);
 			hints->motif_hints = NULL;
-        }
-        if (nitems >= 4)
+		}
+		if (nitems >= 4)
 		{
 			hints->motif_hints = (MwmHints *) raw_data;
-            raw_data = NULL ;
-        }
-        if( raw_data )
-            free( raw_data );
+			raw_data = NULL ;
+		}
+		if( raw_data )
+			free( raw_data );
 	}
 }
 
@@ -635,7 +635,7 @@ read_extwm_state (ASRawHints * hints, Window w)
 		CARD32         *protocols;
 		long          nprotos = 0;
 
-        if (read_32bit_proplist (w, _XA_NET_WM_STATE, 6, &protocols, &nprotos))
+		if (read_32bit_proplist (w, _XA_NET_WM_STATE, 6, &protocols, &nprotos))
 		{
 			translate_atom_list (&(hints->extwm_hints.state_flags), EXTWM_State, protocols, nprotos);
 			set_flags( hints->extwm_hints.flags, EXTWM_StateSet );
@@ -1239,7 +1239,7 @@ get_extwm_state_flags (Window w, ASFlagType *flags)
 		CARD32         *protocols;
 		long          nprotos = 0;
 
-        if (read_32bit_proplist (w, _XA_NET_WM_STATE, MAX_NET_WM_STATES, &protocols, &nprotos))
+		if (read_32bit_proplist (w, _XA_NET_WM_STATE, MAX_NET_WM_STATES, &protocols, &nprotos))
 		{
 /*			LOCAL_DEBUG_OUT( "natoms =  %ld", nprotos ); */
 			translate_atom_list (flags, EXTWM_State, protocols, nprotos);
@@ -1268,9 +1268,9 @@ set_client_state (Window w, struct ASStatusHints *status)
 	LOCAL_DEBUG_CALLER_OUT( "w = %lX, status->flags = 0x%lX", w, status?status->flags:0);
 	if (w != None)
 	{
-        if (status != NULL)
+		if (status != NULL)
 		{
-            CARD32        extwm_states[MAX_NET_WM_STATES];
+			CARD32        extwm_states[MAX_NET_WM_STATES];
 			long          used = 0;
 			CARD32        gnome_state = 0;
 			ASFlagType    old_state = 0;
@@ -1335,7 +1335,7 @@ set_client_state (Window w, struct ASStatusHints *status)
 			if (get_flags (status->flags, AS_Layer))
 				set_32bit_property (w, _XA_WIN_LAYER, XA_CARDINAL, status->layer);
 		}
-    }
+	}
 }
 
 void
@@ -1374,7 +1374,7 @@ set_extwm_urgency_state (Window w, Bool set )
 				set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, &states[0], nstates);
 		}
 		free( states );
-    }
+	}
 }
 
 
@@ -1428,15 +1428,15 @@ void
 set_client_protocols (Window w, ASFlagType protocols, ASFlagType extwm_protocols)
 {
 LOCAL_DEBUG_OUT( "protocols=0x%lX", protocols );
-    if (w && protocols)
+	if (w && protocols)
 	{
 		CARD32         *list = NULL, *extwm_list = NULL;
 		long          nitems, extwm_nitems;
 
 		encode_atom_list (&(WM_Protocols[0]), &list, &nitems, protocols);
-        encode_atom_list (&(EXTWM_Protocols[0]), &extwm_list, &extwm_nitems, extwm_protocols);
+		encode_atom_list (&(EXTWM_Protocols[0]), &extwm_list, &extwm_nitems, extwm_protocols);
 
-        LOCAL_DEBUG_OUT( "nitems=%ld, extwm_nitems = %ld", nitems, extwm_nitems );
+		LOCAL_DEBUG_OUT( "nitems=%ld, extwm_nitems = %ld", nitems, extwm_nitems );
 		if( extwm_nitems > 0 )
 		{
 			int i ;
@@ -1447,7 +1447,7 @@ LOCAL_DEBUG_OUT( "protocols=0x%lX", protocols );
 			nitems += extwm_nitems ;
 		}	 
 
-        if (nitems > 0 && list )
+		if (nitems > 0 && list )
 			set_32bit_proplist (w, _XA_WM_PROTOCOLS, XA_ATOM, list, nitems);
 		if( list )
 			free (list);
@@ -1478,7 +1478,7 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 			{
 				set_32bit_proplist (w, _XA_NET_WM_STATE, XA_CARDINAL, list, nitems);
 				free (list);
-	            list = NULL ;
+				list = NULL ;
 			}
 		}
 		if (get_flags (extwm_hints->flags, EXTWM_DESKTOP))
@@ -1547,5 +1547,5 @@ send_wm_protocol_request (Window w, Atom request, Time timestamp)
 	ev.format = 32;
 	ev.data.l[0] = request;
 	ev.data.l[1] = timestamp;
-    XSendEvent (dpy, w, False, 0, (XEvent *) & ev);
+	XSendEvent (dpy, w, False, 0, (XEvent *) & ev);
 }

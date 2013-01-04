@@ -75,7 +75,7 @@ void move_handler(ASWindowData *wd, void *data)
 void resize_handler(ASWindowData *wd, void *data)
 {
 	resize_params *params = (resize_params *) data;
-        /* used by SendNumCommand */
+		/* used by SendNumCommand */
 	send_signed_data_type vals[2] ;	
 	send_signed_data_type units[2] ;
 	
@@ -165,7 +165,7 @@ void deiconify_handler(ASWindowData *wd, void *data)
 void send_to_desk_handler(ASWindowData *wd, void *data)
 {
 	int dest = (int) ((send_to_desk_params *) data)->desk;
-       /* used by SendNumCommand */
+	   /* used by SendNumCommand */
 	send_signed_data_type vals[1] ;	
 	send_signed_data_type units[1] ;
 	
@@ -196,7 +196,7 @@ void center_handler(ASWindowData *wd, void *data)
 	vals[0] = (Scr.MyDisplayWidth - wd->frame_rect.width)/2;
 	vals[1] = (Scr.MyDisplayHeight - wd->frame_rect.height)/2;
 
-        /* Move window */
+		/* Move window */
 	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
 }
 

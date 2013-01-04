@@ -20,10 +20,9 @@
 #define LOCAL_DEBUG
 #include "../configure.h"
 
-#include "../include/afterbase.h"
-#include "../libAfterImage/afterimage.h"
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/screen.h"
+#include "../libAfterImage/afterimage.h"
 
 #include <unistd.h>		   
 

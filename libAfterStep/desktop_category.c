@@ -237,7 +237,7 @@ desktop_entry_in_subcategory( ASCategoryTree *ct, ASDesktopEntry *de,
 
 ASDesktopEntry *create_desktop_entry( ASDesktopEntryTypes default_type)
 {	
- 	ASDesktopEntry *de = safecalloc(1, sizeof(ASDesktopEntry));
+	ASDesktopEntry *de = safecalloc(1, sizeof(ASDesktopEntry));
 	de->ref_count = 1 ; 
 	de->type = default_type ;
 	return de;
@@ -527,7 +527,7 @@ desktop_entry2function( ASDesktopEntry* de, char *name /* defaults to de->Name *
 	{
 		fdata = create_named_function(desktop_entry2function_code( de ), name ? name : de->Name);
 		if( fdata && de->clean_exec ) 
-		   	fdata->text = mystrdup( de->clean_exec );
+			fdata->text = mystrdup( de->clean_exec );
 	}
 	return fdata;
 }
@@ -636,7 +636,7 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 		exclude_reason = __LINE__ ;
 	LOCAL_DEBUG_OUT ("excl_reason = %d for de(%p) ", exclude_reason, de );
 	if( exclude_reason > 0 ) 
-   		return False;
+		return False;
 
 	index_name = de->IndexName?de->IndexName:de->Name ;		   
 
@@ -732,7 +732,7 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 			index_name = dc->index_name ; 
 		}else	 
 		{	
-		 	dc = create_desktop_category( index_name );
+			dc = create_desktop_category( index_name );
 			LOCAL_DEBUG_OUT( "creating category using index_name \"%s\"", index_name );
 			if( add_hash_item( ct->categories, AS_HASHABLE(dc->index_name), dc) != ASH_Success ) 
 			{	
@@ -743,7 +743,7 @@ Bool register_desktop_entry(ASCategoryTree *ct, ASDesktopEntry *de)
 		if( dc->name == NULL ) 
 		{
 			LOCAL_DEBUG_OUT( "setting category name to \"%s\"", de->Name );
-	  		dc->name = mystrdup( de->Name );
+			dc->name = mystrdup( de->Name );
 		}
 
 		if( de->aliases_num ) 	
@@ -875,7 +875,7 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 	{
 		do
 		{
-		 	ASDesktopEntry *de = curr_hash_data( &i );
+			ASDesktopEntry *de = curr_hash_data( &i );
 			char *hashed_name = (char*)curr_hash_value (&i);
 			ASHashResult res  = add_hash_item( ct->entries, AS_HASHABLE(hashed_name), de); 
 
@@ -890,13 +890,13 @@ add_category_tree_subtree( ASCategoryTree* ct, ASCategoryTree* subtree )
 		do
 		{
 			char *alias = (char*)curr_hash_value( &i );
-		 	ASDesktopCategory *subtree_dc = curr_hash_data( &i );
+			ASDesktopCategory *subtree_dc = curr_hash_data( &i );
 			ASDesktopCategory *dc = fetch_desktop_category( ct, subtree_dc->index_name );
 			LOCAL_DEBUG_OUT( "category with index_name \"%s\" and name \"%s\" exists as %p", subtree_dc->index_name, subtree_dc->name?subtree_dc->name:"(null)", dc );
 
 			if( dc == NULL ) 
 			{	
-		 		dc = create_desktop_category( subtree_dc->index_name );
+				dc = create_desktop_category( subtree_dc->index_name );
 				if( subtree_dc->name != NULL ) 
 					dc->name = mystrdup(subtree_dc->name);
 				LOCAL_DEBUG_OUT( "creating category using index_name \"%s\" and name \"%s\"", dc->index_name, dc->name?dc->name:"(null)" );
@@ -947,7 +947,7 @@ print_category_tree( ASCategoryTree* ct )
 	fprintf(stderr, "Printing category_tree %p :\n", ct );
 	if( ct ) 
 	{
-	 	fprintf(stderr, "category_tree.flags=0x%lX;\n", ct->flags );		
+		fprintf(stderr, "category_tree.flags=0x%lX;\n", ct->flags );		
 		fprintf(stderr, "category_tree.name=\"%s\";\n", ct->name?ct->name:"(null)" );
 		fprintf(stderr, "category_tree.icon_path=\"%s\";\n", ct->icon_path?ct->icon_path:"(null)" );
 		fprintf(stderr, "category_tree.entries_num=%ld;\n", ct->entries->items_num );
@@ -999,7 +999,7 @@ print_category_tree2( ASCategoryTree* ct, ASDesktopCategory *dc )
 	fprintf(stderr, "Printing category_tree %p :\n", ct );
 	if( ct ) 
 	{
-	 	fprintf(stderr, "category_tree.flags=0x%lX;\n", ct->flags );		
+		fprintf(stderr, "category_tree.flags=0x%lX;\n", ct->flags );		
 		fprintf(stderr, "category_tree.name=\"%s\";\n", ct->name?ct->name:"(null)" );
 		fprintf(stderr, "category_tree.icon_path=\"%s\";\n", ct->icon_path?ct->icon_path:"(null)" );
 		fprintf(stderr, "category_tree.entries_num=%ld;\n", ct->entries->items_num );
@@ -1022,7 +1022,7 @@ save_category_tree( ASCategoryTree* ct, FILE *fp )
 	{
 		do
 		{
-		 	ASDesktopEntry *de = curr_hash_data( &i );
+			ASDesktopEntry *de = curr_hash_data( &i );
 			if( de->type == ASDE_TypeDirectory )
 				save_desktop_entry(de, fp );
 		}while( next_hash_item( &i ) );
@@ -1031,7 +1031,7 @@ save_category_tree( ASCategoryTree* ct, FILE *fp )
 	{
 		do
 		{
-		 	ASDesktopEntry *de = curr_hash_data( &i );
+			ASDesktopEntry *de = curr_hash_data( &i );
 			if( de->type != ASDE_TypeDirectory )
 				save_desktop_entry(de, fp );
 		}while( next_hash_item( &i ) );

@@ -36,13 +36,13 @@ inline void
 ungrab_window_buttons( Window w )
 {
 	LOCAL_DEBUG_OUT( "w = %lX", w );
-    XUngrabButton (dpy, AnyButton, AnyModifier, w);
+	XUngrabButton (dpy, AnyButton, AnyModifier, w);
 }
 
 inline void
 ungrab_window_keys (Window w )
 {
-    XUngrabKey (dpy, AnyKey, AnyModifier, w);
+	XUngrabKey (dpy, AnyKey, AnyModifier, w);
 }
 
 /******************************************************************************
@@ -50,68 +50,68 @@ ungrab_window_keys (Window w )
  *****************************************************************************/
 void
 MyXGrabButton ( unsigned button, unsigned modifiers,
-                Window grab_window, Bool owner_events, unsigned event_mask,
-                int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
+				Window grab_window, Bool owner_events, unsigned event_mask,
+				int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor)
 {
 	LOCAL_DEBUG_CALLER_OUT( "button = %d, w = %lX modifiers = %X", button, grab_window, modifiers );
-    if( modifiers == AnyModifier )
-        XGrabButton (dpy, button, AnyModifier, grab_window,
-                     owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
-    else
-    {
-        register int i = 0 ;
-        do
-        {
+	if( modifiers == AnyModifier )
+		XGrabButton (dpy, button, AnyModifier, grab_window,
+					 owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
+	else
+	{
+		register int i = 0 ;
+		do
+		{
 /*			LOCAL_DEBUG_OUT( "grabbing button %d with mod %lX on window %lX", button, modifiers | lock_mods[i], grab_window ); */
-            XGrabButton (dpy, button, modifiers | lock_mods[i], grab_window,
-                         owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
-            if( lock_mods[i] == 0 )
-                break;
-        }while(++i < MAX_LOCK_MODS);
-    }
+			XGrabButton (dpy, button, modifiers | lock_mods[i], grab_window,
+						 owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor);
+			if( lock_mods[i] == 0 )
+				break;
+		}while(++i < MAX_LOCK_MODS);
+	}
 }
 
 void
 MyXUngrabButton ( unsigned button, unsigned modifiers, Window grab_window)
 {
 	LOCAL_DEBUG_CALLER_OUT( "w = %lX", grab_window );
-    if( modifiers == AnyModifier )
-        XUngrabButton (dpy, button, AnyModifier, grab_window);
-    else
-    {
-        register int i = 0 ;
-        do
-        {
-            XUngrabButton (dpy, button, modifiers | lock_mods[i], grab_window);
-            if( lock_mods[i] == 0 )
-                break;
-        }while(++i < MAX_LOCK_MODS);
-    }
+	if( modifiers == AnyModifier )
+		XUngrabButton (dpy, button, AnyModifier, grab_window);
+	else
+	{
+		register int i = 0 ;
+		do
+		{
+			XUngrabButton (dpy, button, modifiers | lock_mods[i], grab_window);
+			if( lock_mods[i] == 0 )
+				break;
+		}while(++i < MAX_LOCK_MODS);
+	}
 }
 
 void
 grab_window_buttons (Window w, ASFlagType context_mask)
 {
-    register MouseButton  *MouseEntry;
+	register MouseButton  *MouseEntry;
 	LOCAL_DEBUG_OUT( "w = %lX, context = 0x%lX", w, context_mask );
-    for( MouseEntry = Scr.Feel.MouseButtonRoot ; MouseEntry ; MouseEntry = MouseEntry->NextButton)
+	for( MouseEntry = Scr.Feel.MouseButtonRoot ; MouseEntry ; MouseEntry = MouseEntry->NextButton)
 	{
-        if ( MouseEntry->fdata  && get_flags(MouseEntry->Context, context_mask))
+		if ( MouseEntry->fdata  && get_flags(MouseEntry->Context, context_mask))
 		{
 		LOCAL_DEBUG_OUT( "mouse fdata %p button %d + modifier %X has context %lx", MouseEntry->fdata, MouseEntry->Button, MouseEntry->Modifier, get_flags(MouseEntry->Context, context_mask) );
 			if (MouseEntry->Button > 0)
-                MyXGrabButton (MouseEntry->Button, MouseEntry->Modifier, w,
+				MyXGrabButton (MouseEntry->Button, MouseEntry->Modifier, w,
 							   True, ButtonPressMask | ButtonReleaseMask,
-                               GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Default]);
-            else
+							   GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Default]);
+			else
 			{
-                register int  i = MAX_MOUSE_BUTTONS+1;
-                while( --i > 0 )
-                    MyXGrabButton (i, MouseEntry->Modifier, w,
+				register int  i = MAX_MOUSE_BUTTONS+1;
+				while( --i > 0 )
+					MyXGrabButton (i, MouseEntry->Modifier, w,
 								   True, ButtonPressMask | ButtonReleaseMask,
-                                   GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Default]);
-            }
-        }
+								   GrabModeAsync, GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Default]);
+			}
+		}
 	}
 }
 
@@ -119,42 +119,42 @@ grab_window_buttons (Window w, ASFlagType context_mask)
 void
 grab_focus_click( Window w )
 {
-    int i ;
-    LOCAL_DEBUG_CALLER_OUT( "w = %lX", w );
+	int i ;
+	LOCAL_DEBUG_CALLER_OUT( "w = %lX", w );
 	if( w )
-    { /* need to grab all buttons for window that we are about to unfocus */
-        for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
-            if (Scr.Feel.buttons2grab & (0x01 << i))
-            {
-                MyXGrabButton ( i + 1, 0, w, True, ButtonPressMask, GrabModeSync,
-                                GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Sys]);
-            }
-    }
+	{ /* need to grab all buttons for window that we are about to unfocus */
+		for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
+			if (Scr.Feel.buttons2grab & (0x01 << i))
+			{
+				MyXGrabButton ( i + 1, 0, w, True, ButtonPressMask, GrabModeSync,
+								GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Sys]);
+			}
+	}
 }
 
 void
 ungrab_focus_click( Window w )
 {
-    LOCAL_DEBUG_CALLER_OUT( "w = %lX", w );
+	LOCAL_DEBUG_CALLER_OUT( "w = %lX", w );
 	if( w )
-    {   /* if we do click to focus, remove the grab on mouse events that
-         * was made to detect the focus change */
+	{   /* if we do click to focus, remove the grab on mouse events that
+		 * was made to detect the focus change */
 		register int i = 0;
 #if 0        
-        register ASFlagType grab_btn_mask = Scr.Feel.buttons2grab<<1 ;
-        while ( ++i <= MAX_MOUSE_BUTTONS )
-            if ( grab_btn_mask&(1<<i) )
+		register ASFlagType grab_btn_mask = Scr.Feel.buttons2grab<<1 ;
+		while ( ++i <= MAX_MOUSE_BUTTONS )
+			if ( grab_btn_mask&(1<<i) )
 			{
-                MyXUngrabButton (i, 0, w);
+				MyXUngrabButton (i, 0, w);
 			}
 #else
-        for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
-            if (Scr.Feel.buttons2grab & (0x01 << i))
-            {
-                MyXUngrabButton (i+1, 0, w);
+		for (i = 0; i < MAX_MOUSE_BUTTONS; i++)
+			if (Scr.Feel.buttons2grab & (0x01 << i))
+			{
+				MyXUngrabButton (i+1, 0, w);
 			}
 #endif				   
-    }
+	}
 }
 
 
@@ -165,23 +165,23 @@ void
 grab_window_keys (Window w, ASFlagType context_mask)
 {
 	FuncKey      *tmp;
-    for (tmp = Scr.Feel.FuncKeyRoot; tmp != NULL; tmp = tmp->next)
-        if (get_flags( tmp->cont, context_mask ))
-        {
-            if( tmp->mods == AnyModifier )
-                XGrabKey( dpy, tmp->keycode, AnyModifier, w, True, GrabModeAsync, GrabModeAsync);
-            else
-            {
-                register int i = 0;
-                do
-                {/* combining modifiers with <Lock> keys,
-                  * so to enable things like ScrollLock+Alt+A to work the same as Alt+A */
-                    XGrabKey( dpy, tmp->keycode, tmp->mods|lock_mods[i], w, True, GrabModeAsync, GrabModeAsync);
-                    if( lock_mods[i] == 0 )
-                        break;
-                }while(++i < MAX_LOCK_MODS);
-            }
-        }
+	for (tmp = Scr.Feel.FuncKeyRoot; tmp != NULL; tmp = tmp->next)
+		if (get_flags( tmp->cont, context_mask ))
+		{
+			if( tmp->mods == AnyModifier )
+				XGrabKey( dpy, tmp->keycode, AnyModifier, w, True, GrabModeAsync, GrabModeAsync);
+			else
+			{
+				register int i = 0;
+				do
+				{/* combining modifiers with <Lock> keys,
+				  * so to enable things like ScrollLock+Alt+A to work the same as Alt+A */
+					XGrabKey( dpy, tmp->keycode, tmp->mods|lock_mods[i], w, True, GrabModeAsync, GrabModeAsync);
+					if( lock_mods[i] == 0 )
+						break;
+				}while(++i < MAX_LOCK_MODS);
+			}
+		}
 }
 
 
@@ -198,9 +198,9 @@ GrabRaiseClick (ASWindow * t)
 
 	for (b = 1; b <= MAX_MOUSE_BUTTONS; b++)
 	{
-        if (Scr.Feel.RaiseButtons & (1 << b))
-            MyXGrabButton (b, 0, t->w, True, ButtonPressMask, GrabModeSync,
-                           GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Title]);
+		if (Scr.Feel.RaiseButtons & (1 << b))
+			MyXGrabButton (b, 0, t->w, True, ButtonPressMask, GrabModeSync,
+						   GrabModeAsync, None, Scr.Feel.cursors[ASCUR_Title]);
 	}
 }
 
@@ -216,8 +216,8 @@ UngrabRaiseClick (ASWindow * t)
 
 	for (b = 1; b <= MAX_MOUSE_BUTTONS; b++)
 	{
-        if (Scr.Feel.RaiseButtons & (1 << b))
-            MyXUngrabButton (b, 0, t->w);
+		if (Scr.Feel.RaiseButtons & (1 << b))
+			MyXUngrabButton (b, 0, t->w);
 	}
 }
 
@@ -231,7 +231,7 @@ void
 UpdateVisibility (void)
 {
 #if 0
-    ASWindow     *t, *s, *tbase;
+	ASWindow     *t, *s, *tbase;
 
 	tbase = Scr.ASRoot.next;
 	for (t = Scr.ASRoot.next; t != NULL; t = t->next)

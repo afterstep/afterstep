@@ -62,7 +62,7 @@ struct wild_reg_exp;
 #define STYLE_FLAGS             (1 << 31)   /*  */
 
 #define STYLE_DEFAULTS		(STYLE_PAGER | STYLE_TITLE|STYLE_CIRCULATE|STYLE_WINLIST| \
-                             STYLE_FOCUS|STYLE_FOCUS_ON_MAP|STYLE_HANDLES| \
+							 STYLE_FOCUS|STYLE_FOCUS_ON_MAP|STYLE_HANDLES| \
 							 STYLE_ICON_TITLE|STYLE_PPOSITION|STYLE_GROUP_HINTS| \
 							 STYLE_TRANSIENT_HINTS|STYLE_MOTIF_HINTS|STYLE_KDE_HINTS| \
 							 STYLE_GNOME_HINTS|STYLE_EXTWM_HINTS|STYLE_LONG_LIVING)
@@ -147,15 +147,15 @@ typedef struct ASDatabaseRecord
 
 typedef struct ASDatabase
 {
-    size_t allocated_num ;
+	size_t allocated_num ;
 
-    ASDatabaseRecord *styles_table ;/* list of all available styles excluding default */
-    size_t            styles_num ;  /* number of entries in above table */
-    size_t            default_styles_idx ;  /* number of entries in above table */
+	ASDatabaseRecord *styles_table ;/* list of all available styles excluding default */
+	size_t            styles_num ;  /* number of entries in above table */
+	size_t            default_styles_idx ;  /* number of entries in above table */
 
-    ASDatabaseRecord  style_default;/* this one is not included in above table to speed up search */
+	ASDatabaseRecord  style_default;/* this one is not included in above table to speed up search */
 
-    int *match_list ;               /* indexes of matched styles in last search (-1 default style)*/
+	int *match_list ;               /* indexes of matched styles in last search (-1 default style)*/
 }ASDatabase;
 
 /************************************************************************************
@@ -163,10 +163,10 @@ typedef struct ASDatabase
  * sort through and find matches in the Database :
  ************************************************************************************/
 ASDatabaseRecord *make_asdb_record ( name_list * nl, struct wild_reg_exp *regexp,
-                                     ASDatabaseRecord *reusable_memory );
+									 ASDatabaseRecord *reusable_memory );
 /* NULL terminated list of names/aliases sorted in order of descending importance */
 ASDatabaseRecord *fill_asdb_record (ASDatabase *db, char **names,
-                                    ASDatabaseRecord *reusable_memory, Bool dup_strings);
+									ASDatabaseRecord *reusable_memory, Bool dup_strings);
 void destroy_asdb_record(ASDatabaseRecord *rec, Bool reusable);
 ASDatabaseRecord *get_asdb_record (ASDatabase * db, int index);
 Bool is_default_asdb_record( ASDatabase * db, ASDatabaseRecord *db_rec );

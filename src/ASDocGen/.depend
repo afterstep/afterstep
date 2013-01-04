@@ -1,12 +1,35 @@
 ./ASDocGen.h:
 
+./robodoc.h:
+
 ./datadoc.h:
+
+./xmlproc.h:
 
 ./docfile.h:
 
-./robodoc.h:
+./datadoc.o: \
+		../../configure.h \
+		../../libAfterStep/asapp.h \
+		../../libAfterStep/screen.h \
+		../../libAfterStep/module.h \
+		../../libAfterStep/aswindata.h \
+		../../libAfterStep/event.h \
+		../../libAfterStep/wmprops.h \
+		../../libAfterStep/parser.h \
+		../../libAfterConf/afterconf.h \
+		ASDocGen.h \
+		xmlproc.h \
+		docfile.h \
+		datadoc.h
 
-./xmlproc.h:
+./xmlproc.o: \
+		../../configure.h \
+		../../libAfterStep/asapp.h \
+		../../libAfterStep/parser.h \
+		../../libAfterConf/afterconf.h \
+		ASDocGen.h \
+		xmlproc.h
 
 ./ASDocGen.o: \
 		../../configure.h \
@@ -24,28 +47,14 @@
 		docfile.h \
 		datadoc.h
 
-./datadoc.o: \
-		../../configure.h \
-		../../libAfterStep/asapp.h \
-		../../libAfterStep/screen.h \
-		../../libAfterStep/module.h \
-		../../libAfterStep/aswindata.h \
-		../../libAfterStep/event.h \
-		../../libAfterStep/wmprops.h \
-		../../libAfterStep/parser.h \
-		../../libAfterConf/afterconf.h \
-		ASDocGen.h \
-		xmlproc.h \
-		docfile.h \
-		datadoc.h
-
 ./docfile.o: \
 		../../configure.h \
 		../../libAfterStep/asapp.h \
 		../../libAfterStep/parser.h \
 		../../libAfterConf/afterconf.h \
 		ASDocGen.h \
-		docfile.h
+		docfile.h \
+		../../libAfterImage/config.h
 
 ./robodoc.o: \
 		../../configure.h \
@@ -61,11 +70,3 @@
 		xmlproc.h \
 		docfile.h \
 		robodoc.h
-
-./xmlproc.o: \
-		../../configure.h \
-		../../libAfterStep/asapp.h \
-		../../libAfterStep/parser.h \
-		../../libAfterConf/afterconf.h \
-		ASDocGen.h \
-		xmlproc.h

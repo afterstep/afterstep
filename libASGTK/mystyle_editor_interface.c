@@ -20,13 +20,12 @@
 	/*-- hand edit begin --*/
 #include "../configure.h"
 
-#include "../include/afterbase.h"
-#include "../libAfterImage/afterimage.h"
 #include "../libAfterStep/asapp.h"
 #include "../libAfterStep/screen.h"
 #include "../libAfterStep/parser.h"
 #include "../libAfterStep/freestor.h"
 #include "../libAfterConf/afterconf.h"
+#include "../libAfterImage/afterimage.h"
 #include "asgtk.h"
 #include "asgtkai.h"
 #include "asgtklistviews.h"

@@ -23,6 +23,7 @@
 #define LOCAL_DEBUG
 #include "../configure.h"
 #include "asapp.h"
+#include "session.h"
 #include "afterstep.h"
 #include "screen.h"
 #include "parser.h"
@@ -40,9 +41,9 @@ txt2fterm (const char *txt, int quiet)
 	TermDef      *fterm;
 
 	if (pFuncSyntax->term_hash == NULL)
-        PrepareSyntax ((SyntaxDef*)pFuncSyntax);
-    if ((fterm = FindStatementTerm ((char *)txt, (SyntaxDef*)pFuncSyntax)) == NULL && !quiet)
-        show_error ("unknown function name in function specification [%s].\n", txt);
+		PrepareSyntax ((SyntaxDef*)pFuncSyntax);
+	if ((fterm = FindStatementTerm ((char *)txt, (SyntaxDef*)pFuncSyntax)) == NULL && !quiet)
+		show_error ("unknown function name in function specification [%s].\n", txt);
 
 	return fterm;
 }
@@ -84,7 +85,7 @@ parse_func (const char *text, FunctionData * data, int quiet)
 	if (*ptr == '\0')
 	{
 		if (!quiet)
-            show_error ("empty function specification encountered.%s");
+			show_error ("empty function specification encountered.%s");
 		return -1;
 	}
 
@@ -100,7 +101,7 @@ parse_func (const char *text, FunctionData * data, int quiet)
 	if (fterm->flags & TF_SYNTAX_TERMINATOR)
 		return 0;
 
-    set_func_val (data, -1, default_func_val(data->func));
+	set_func_val (data, -1, default_func_val(data->func));
 
 	/* now let's do actual parsing */
 	if (!(fterm->flags & NEED_CMD))
@@ -129,7 +130,7 @@ parse_func (const char *text, FunctionData * data, int quiet)
 					tail++;
 				if (*(tail + 1) == '\0')
 				{
-                    show_error ("impaired doublequotes encountered in [%s].", ptr);
+					show_error ("impaired doublequotes encountered in [%s].", ptr);
 					return -3;
 				}
 				text = mystrndup (ptr + 1, (tail - ptr));
@@ -194,25 +195,25 @@ parse_func (const char *text, FunctionData * data, int quiet)
 		}
 	}
 
-    decode_func_units (data);
+	decode_func_units (data);
 	data->hotkey = scan_for_hotkey (data->name);
 
 	/* now let's check for valid number of arguments */
 	if ((fterm->flags & NEED_NAME) && data->name == NULL)
 	{
-        show_error ("function specification requires \"name\" in [%s].", text);
+		show_error ("function specification requires \"name\" in [%s].", text);
 		return FUNC_ERR_NO_NAME;
 	}
 	if (data->text == NULL)
 	{
 		if ((fterm->flags & NEED_WINDOW) || ((fterm->flags & NEED_WINIFNAME) && data->name != NULL))
 		{
-            show_error ("function specification requires window name in [%s].", text);
+			show_error ("function specification requires window name in [%s].", text);
 			return FUNC_ERR_NO_TEXT;
 		}
 		if (fterm->flags & NEED_CMD)
 		{
-            show_error ("function specification requires shell command or full file name in [%s].", text);
+			show_error ("function specification requires shell command or full file name in [%s].", text);
 			return FUNC_ERR_NO_TEXT;
 		}
 	}
@@ -230,21 +231,21 @@ parse_func (const char *text, FunctionData * data, int quiet)
 FunctionData *
 String2Func ( const char *string, FunctionData *p_fdata, Bool quiet )
 {
-    if( p_fdata )
-        free_func_data( p_fdata );
-    else
-        p_fdata = safecalloc( 1, sizeof(FunctionData));
+	if( p_fdata )
+		free_func_data( p_fdata );
+	else
+		p_fdata = safecalloc( 1, sizeof(FunctionData));
 
-    LOCAL_DEBUG_OUT( "parsing message \"%s\"", string );
-    if( parse_func( string, p_fdata, quiet ) < 0 )
-    {
-        LOCAL_DEBUG_OUT( "parsing failed%s", "" );
-        free_func_data( p_fdata );
-        free( p_fdata );
-        p_fdata = NULL;
-    }else
-        LOCAL_DEBUG_OUT( "parsing success with func = %d", p_fdata->func );
-    return p_fdata;
+	LOCAL_DEBUG_OUT( "parsing message \"%s\"", string );
+	if( parse_func( string, p_fdata, quiet ) < 0 )
+	{
+		LOCAL_DEBUG_OUT( "parsing failed%s", "" );
+		free_func_data( p_fdata );
+		free( p_fdata );
+		p_fdata = NULL;
+	}else
+		LOCAL_DEBUG_OUT( "parsing success with func = %d", p_fdata->func );
+	return p_fdata;
 }
 
 #endif
@@ -267,7 +268,7 @@ init_func_data (FunctionData * data)
 		data->hotkey = '\0';
 		data->name = data->text = NULL;
 		data->name_encoding = 0 ;
-        data->popup = NULL ;
+		data->popup = NULL ;
 	}
 }
 
@@ -286,10 +287,10 @@ copy_func_data (FunctionData * dst, FunctionData * src)
 		{
 			dst->func_val[i] = src->func_val[i];
 			dst->unit[i] = src->unit[i];
-            dst->unit_val[i] = src->unit_val[i];
-        }
-        dst->hotkey = src->hotkey;
-        dst->popup = src->popup;
+			dst->unit_val[i] = src->unit_val[i];
+		}
+		dst->hotkey = src->hotkey;
+		dst->popup = src->popup;
 	}
 }
 
@@ -307,21 +308,21 @@ dup_func_data (FunctionData * dst, FunctionData * src)
 		{
 			dst->func_val[i] = src->func_val[i];
 			dst->unit[i] = src->unit[i];
-            dst->unit_val[i] = src->unit_val[i];
-        }
-        dst->hotkey = src->hotkey;
-        dst->popup = src->popup;
-    }
+			dst->unit_val[i] = src->unit_val[i];
+		}
+		dst->hotkey = src->hotkey;
+		dst->popup = src->popup;
+	}
 }
 
 inline FunctionData *
 create_named_function( int func, char *name)
 {
-    FunctionData *fdata = safecalloc( 1, sizeof(FunctionData) );
+	FunctionData *fdata = safecalloc( 1, sizeof(FunctionData) );
 	init_func_data (fdata);
 	fdata->func = func;
-    if( name )
-        fdata->name = mystrdup (name);
+	if( name )
+		fdata->name = mystrdup (name);
 	return fdata ;
 }
 
@@ -344,7 +345,7 @@ free_func_data (FunctionData * data)
 {
 	if (data)
 	{
-        LOCAL_DEBUG_OUT( "freeing func = \"%s\"", data->name?data->name:"(null)" );
+		LOCAL_DEBUG_OUT( "freeing func = \"%s\"", data->name?data->name:"(null)" );
 
 		if (data->name)
 		{
@@ -353,7 +354,7 @@ free_func_data (FunctionData * data)
 		}
 		if (data->text)
 		{
-	        LOCAL_DEBUG_OUT( "func->text = \"%s\"", data->text );
+			LOCAL_DEBUG_OUT( "func->text = \"%s\"", data->text );
 			free (data->text);
 			data->text = NULL;
 		}
@@ -365,39 +366,39 @@ free_func_data (FunctionData * data)
 void
 destroy_func_data( FunctionData **pdata )
 {
-    if( pdata && *pdata )
-    {
-        free_func_data( *pdata );
-        free( *pdata );
-        *pdata = NULL ;
-    }
+	if( pdata && *pdata )
+	{
+		free_func_data( *pdata );
+		free( *pdata );
+		*pdata = NULL ;
+	}
 }
 
 long
 default_func_val( FunctionCode func )
 {
-    long val = 0 ;
-    switch (func)
+	long val = 0 ;
+	switch (func)
 	{
 	 case F_MAXIMIZE:
-         val = DEFAULT_MAXIMIZE;
+		 val = DEFAULT_MAXIMIZE;
 		 break;
 	 case F_MOVE:
 	 case F_RESIZE:
-         val = INVALID_POSITION;
+		 val = INVALID_POSITION;
 		 break;
-     default:
-         break;
+	 default:
+		 break;
 	}
-    return val;
+	return val;
 }
 
 void
 decode_func_units (FunctionData * data)
 {
-    register int  i;
+	register int  i;
 #if 0
-    int defaults[MAX_FUNC_ARGS];
+	int defaults[MAX_FUNC_ARGS];
 
 	defaults[0] = ASDefaultScrWidth;
 	defaults[1] = ASDefaultScrHeight;
@@ -410,7 +411,7 @@ decode_func_units (FunctionData * data)
 			 data->unit_val[i] = 1;
 			 break;
 		 default:
-             data->unit_val[i] = 0/*defaults[i]*/;
+			 data->unit_val[i] = 0/*defaults[i]*/;
 		}
 }
 
@@ -420,88 +421,99 @@ decode_func_units (FunctionData * data)
 void
 really_destroy_complex_func(ComplexFunction *cf)
 {
-    if( cf )
-    {
-        if( cf->magic == MAGIC_COMPLEX_FUNC )
-        {
-            register int i ;
+	if( cf )
+	{
+		if( cf->magic == MAGIC_COMPLEX_FUNC )
+		{
+			register int i ;
 
-            cf->magic = 0 ;
-            if( cf->name )
-                free( cf->name );
-            if( cf->items )
-            {
-                for( i = 0 ; i < cf->items_num ; i++ )
-                    free_func_data( &(cf->items[i]) );
-                free( cf->items );
-            }
-            free( cf );
-        }
-    }
+			cf->magic = 0 ;
+			if( cf->name )
+				free( cf->name );
+			if( cf->items )
+			{
+				for( i = 0 ; i < cf->items_num ; i++ )
+					free_func_data( &(cf->items[i]) );
+				free( cf->items );
+			}
+			free( cf );
+		}
+	}
 }
 
 void
 complex_function_destroy(ASHashableValue value, void *data)
 {
-    ComplexFunction *cf = data ;
+	ComplexFunction *cf = data ;
 
-    if( (char*)value )
-        free( (char*)value );
-    if( cf && cf->magic == MAGIC_COMPLEX_FUNC )
-    {
-        if( cf->name == (char*)value )
-            cf->name = NULL ;
-        really_destroy_complex_func(cf);
-    }else if(data)
-        free(data);
+	if( (char*)value )
+		free( (char*)value );
+	if( cf && cf->magic == MAGIC_COMPLEX_FUNC )
+	{
+		if( cf->name == (char*)value )
+			cf->name = NULL ;
+		really_destroy_complex_func(cf);
+	}else if(data)
+		free(data);
 }
 
 void
 init_list_of_funcs(struct ASHashTable **list, Bool force)
 {
-    if( list == NULL ) return ;
+	if( list == NULL ) return ;
 
-    if( force && *list != NULL )
-        destroy_ashash( list );
+	if( force && *list != NULL )
+		destroy_ashash( list );
 
-    if( *list == NULL )
-        *list = create_ashash( 0, casestring_hash_value,
-                                  casestring_compare,
-                                  complex_function_destroy);
+	if( *list == NULL )
+		*list = create_ashash( 0, casestring_hash_value,
+								  casestring_compare,
+								  complex_function_destroy);
 }
 
 /* list could be NULL here : */
 ComplexFunction *
 new_complex_func( struct ASHashTable *list, char *name )
 {
-    ComplexFunction *cf = NULL ;
+	ComplexFunction *cf = NULL ;
 
-    if( name == NULL )
-        return NULL ;
-    /* enlisting complex function is optional */
-    cf = (ComplexFunction*) safecalloc (1, sizeof(ComplexFunction));
-    cf->name = mystrdup(name);
-    cf->magic = MAGIC_COMPLEX_FUNC ;
-    if( list )
-    {
-        remove_hash_item( list, AS_HASHABLE(name), NULL, True);  /* we want only one copy */
-        if( add_hash_item( list, AS_HASHABLE(cf->name), cf) != ASH_Success )
-        {
-            really_destroy_complex_func( cf );
-            cf = NULL ;
-        }
-    }
-    return cf;
+	if( name == NULL )
+		return NULL ;
+	/* enlisting complex function is optional */
+	cf = (ComplexFunction*) safecalloc (1, sizeof(ComplexFunction));
+	cf->name = mystrdup(name);
+	cf->magic = MAGIC_COMPLEX_FUNC ;
+	if( list )
+	{
+		remove_hash_item( list, AS_HASHABLE(name), NULL, True);  /* we want only one copy */
+		if( add_hash_item( list, AS_HASHABLE(cf->name), cf) != ASH_Success )
+		{
+			really_destroy_complex_func( cf );
+			cf = NULL ;
+		}
+	}
+	return cf;
 }
 
 ComplexFunction *
 find_complex_func( struct ASHashTable *list, char *name )
 {
-    ASHashData hdata = {0} ;
-    if( name && list )
-        if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
-            hdata.vptr = NULL ; /* we are being paranoid */
-    return (ComplexFunction *)hdata.vptr ;
+	ASHashData hdata = {0} ;
+	if( name && list )
+		if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+			hdata.vptr = NULL ; /* we are being paranoid */
+	return (ComplexFunction *)hdata.vptr ;
+}
+
+void
+free_minipixmap_data (MinipixmapData *minipixmap) {
+	LOCAL_DEBUG_OUT ("filename = \"%s\", image = %p", minipixmap->filename, minipixmap->image);
+	if( minipixmap->filename )
+		free(minipixmap->filename);
+	if( minipixmap->image )	{
+		safe_asimage_destroy (minipixmap->image);
+		minipixmap->image = NULL ;
+	}
 }
 
 /***************************************************************
@@ -514,48 +526,45 @@ void
 menu_data_item_destroy(MenuDataItem *mdi)
 {
 LOCAL_DEBUG_CALLER_OUT( "menu_data_item_destroy(\"%s\",%p)", ((mdi && mdi->fdata)?(mdi->fdata->name):"NULL"), mdi);
-    if( mdi )
-    {
-        if( mdi->magic == MAGIC_MENU_DATA_ITEM )
-        {
-            mdi->magic = 0 ;
+	if( mdi )
+	{
+		if( mdi->magic == MAGIC_MENU_DATA_ITEM )
+		{
+			int i;
+			mdi->magic = 0 ;
 LOCAL_DEBUG_OUT( "freeing func data %p", mdi->fdata );
-            if( mdi->fdata )
-            {
-                free_func_data( mdi->fdata );
-                free( mdi->fdata );
-            }
-            if( mdi->minipixmap )
-                free(mdi->minipixmap);
-            if( mdi->minipixmap_image )
-            {
-                safe_asimage_destroy (mdi->minipixmap_image);
-                mdi->minipixmap_image = NULL ;
-            }
-            if (mdi->item != NULL)
-                free (mdi->item);
-            if (mdi->item2 != NULL)
-                free (mdi->item2);
-            if (mdi->comment != NULL)
-                free (mdi->comment);
-        }
-        free(mdi);
-    }
+			if( mdi->fdata )
+			{
+				free_func_data( mdi->fdata );
+				free( mdi->fdata );
+			}
+			for ( i = 0 ; i < MINIPIXMAP_TypesNum ; ++i) 
+				free_minipixmap_data (&(mdi->minipixmap[i]));
+
+			if (mdi->item != NULL)
+				free (mdi->item);
+			if (mdi->item2 != NULL)
+				free (mdi->item2);
+			if (mdi->comment != NULL)
+				free (mdi->comment);
+		}
+		free(mdi);
+	}
 }
 
 void
 purge_menu_data_items(MenuData *md)
 {
-    if( md )
-    {
-        MenuDataItem *mdi ;
-        while( (mdi=md->first) != NULL )
-        {
-            md->first = mdi->next ;
-            mdi->next = NULL ;
-            menu_data_item_destroy( mdi );
-        }
-    }
+	if( md )
+	{
+		MenuDataItem *mdi ;
+		while( (mdi=md->first) != NULL )
+		{
+			md->first = mdi->next ;
+			mdi->next = NULL ;
+			menu_data_item_destroy( mdi );
+		}
+	}
 }
 
 void
@@ -563,18 +572,18 @@ destroy_menu_data( MenuData **pmd )
 {
 	if( pmd && *pmd) 
 	{
-	    MenuData *md = *pmd ;
+		MenuData *md = *pmd ;
 		if( md->magic == MAGIC_MENU_DATA )
 		{	
 LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", md->name?md->name:"(null)", md );
-       		if( md->name )
-                free( md->name );
-       		if( md->comment )
-                free( md->comment );
+			if( md->name )
+				free( md->name );
+			if( md->comment )
+				free( md->comment );
 
-            purge_menu_data_items(md);
-            md->magic = 0 ;
-        	free(md);
+			purge_menu_data_items(md);
+			md->magic = 0 ;
+			free(md);
 			*pmd = NULL ; 
 		}
 	}				 
@@ -583,9 +592,9 @@ LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", md->name?md->name:"(nul
 MenuData *
 create_menu_data( char *name ) 
 {	
-    MenuData *md = (MenuData*) safecalloc (1, sizeof(MenuData));
-    md->name = mystrdup(name);
-    md->magic = MAGIC_MENU_DATA ;
+	MenuData *md = (MenuData*) safecalloc (1, sizeof(MenuData));
+	md->name = mystrdup(name);
+	md->magic = MAGIC_MENU_DATA ;
 	return md;
 }
 
@@ -593,20 +602,20 @@ MenuData    *
 new_menu_data( ASHashTable *list, char *name )
 {
 	ASHashData hdata = {0} ;
-    MenuData *md = NULL ;
+	MenuData *md = NULL ;
 
-    if( name == NULL )
-        return NULL ;
-    if( list == NULL ) return NULL;
+	if( name == NULL )
+		return NULL ;
+	if( list == NULL ) return NULL;
 
-    if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) == ASH_Success )
-        return (MenuData*)hdata.vptr;
+	if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) == ASH_Success )
+		return (MenuData*)hdata.vptr;
 
-    md = create_menu_data( name ); 
+	md = create_menu_data( name ); 
 
-    if( add_hash_item( list, AS_HASHABLE(md->name), md) != ASH_Success )
-        destroy_menu_data( &md );
-    return md;
+	if( add_hash_item( list, AS_HASHABLE(md->name), md) != ASH_Success )
+		destroy_menu_data( &md );
+	return md;
 }
 
 MenuData*
@@ -614,10 +623,10 @@ find_menu_data( ASHashTable *list, char *name )
 {
 	ASHashData hdata = {0} ;
 
-    if( name && list )
-        if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
-            hdata.vptr = NULL ; /* we are being paranoid */
-    return (MenuData*)hdata.vptr;
+	if( name && list )
+		if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr) != ASH_Success )
+			hdata.vptr = NULL ; /* we are being paranoid */
+	return (MenuData*)hdata.vptr;
 }
 
 
@@ -625,39 +634,43 @@ find_menu_data( ASHashTable *list, char *name )
 MenuDataItem *
 new_menu_data_item( MenuData *menu )
 {
-    MenuDataItem * mdi = NULL;
-    if( menu )
-    {
-        mdi = safecalloc(1, sizeof(MenuDataItem));
+	MenuDataItem * mdi = NULL;
+	if( menu )
+	{
+		mdi = safecalloc(1, sizeof(MenuDataItem));
 		mdi->magic = MAGIC_MENU_DATA_ITEM ;
-        mdi->prev = menu->last ;
-        if( menu->first == NULL )
-            menu->first = mdi ;
-        else
-            menu->last->next = mdi ;
-        menu->last = mdi ;
-        ++(menu->items_num);
-    }
-    return mdi;
+		mdi->prev = menu->last ;
+		if( menu->first == NULL )
+			menu->first = mdi ;
+		else
+			menu->last->next = mdi ;
+		menu->last = mdi ;
+		++(menu->items_num);
+	}
+	return mdi;
 }
 
 void
-assign_minipixmap( MenuDataItem *mdi, char *minipixmap )
+assign_minipixmaps( MenuDataItem *mdi, MinipixmapData *minipixmaps )
 {
-    if( mdi && minipixmap )
-    {
-        if( mdi->minipixmap )
-            free( mdi->minipixmap );
-        mdi->minipixmap = mystrdup( minipixmap );
-    }
+	if( mdi && minipixmaps )
+	{
+		int i;
+		for ( i = 0 ; i < MINIPIXMAP_TypesNum ; ++i) {
+			LOCAL_DEBUG_OUT ("type = %d, filename = \"%s\"", i, minipixmaps[i].filename);
+			if (minipixmaps[i].filename) {
+				free_minipixmap_data (&(mdi->minipixmap[i]));
+				mdi->minipixmap[i].filename = mystrdup (minipixmaps[i].filename);
+				mdi->minipixmap[i].image = minipixmaps[i].image;
+			}
+		}
+	}
 }
 
 Bool 
 is_web_background (FunctionData *fdata)
 {
-	return (fdata->func == F_CHANGE_BACKGROUND_FOREIGN &&
-					(strncmp (fdata->text, "http://", 7) == 0 || 
-					 strncmp (fdata->text, "ftp://", 6) == 0 ));
+	return (fdata->func == F_CHANGE_BACKGROUND_FOREIGN && is_url (fdata->text));
 }
 
 Bool 
@@ -665,115 +678,109 @@ check_fdata_availability( FunctionData *fdata )
 {
 	if( fdata == NULL ) 
 		return False ;
-    if ( fdata->func < F_ExecToolStart || fdata->func > F_ExecToolEnd )
+	if ( fdata->func < F_ExecToolStart || fdata->func > F_ExecToolEnd )
 	{	
-	 	if(IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func) )
-    	{
+		if(IsSwallowFunc(fdata->func) || IsExecFunc(fdata->func) )
+		{
 			LOCAL_DEBUG_OUT( "now really checking availability for \"%s\"", fdata->name?fdata->name:"nameless" );
-        	if (!is_executable_in_path (fdata->text))
-        	{
+			if (!is_executable_in_path (fdata->text))
+			{
 				LOCAL_DEBUG_OUT( "unavailable :  \"%s\"", fdata->name?fdata->name:"nameless" );
 				return False ;
-        	}
-    	}else if( fdata->func == F_CHANGE_BACKGROUND_FOREIGN && !is_web_background (fdata))
+			}
+		}else if( fdata->func == F_CHANGE_BACKGROUND_FOREIGN && !is_web_background (fdata))
 		{
 			ASImageFileTypes type = check_asimage_file_type( fdata->text );
 			LOCAL_DEBUG_OUT( "foreign back image \"%s\" has type %d", fdata->text, type );
 			if( type > ASIT_Supported ) 
-        	{
+			{
 				LOCAL_DEBUG_OUT( "foreign back image of unknown type :  \"%s\"", fdata->text );
 				return False;
-        	}
+			}
 		}
 	}else if ( fdata->func == F_ExecInTerm )
 	{
 		char *target = strstr( fdata->text, "-e ");
 		target = target? target+3 : fdata->text;
-        if (!is_executable_in_path (target))
-        {
+		if (!is_executable_in_path (target))
+		{
 			LOCAL_DEBUG_OUT( "unavailable :  \"%s\", target = \"%s\"", fdata->name?fdata->name:"nameless", target );
-			return False ;
-        }
+			return False;
+		}
 	}
 
 	return True;
 }
 
-
-
 static void
 check_availability( MenuDataItem *mdi )
 {
-    clear_flags( mdi->flags, MD_Disabled );
+	clear_flags( mdi->flags, MD_Disabled );
 #ifndef NO_AVAILABILITYCHECK
 	LOCAL_DEBUG_OUT( "checking availability for \"%s\"", mdi->fdata->name?mdi->fdata->name:"nameless" );
 	check_fdata_availability( mdi->fdata );
 #endif /* NO_AVAILABILITYCHECK */
 }
 
-
 MenuDataItem *
-add_menu_data_item( MenuData *menu, int func, char *name, char *minipixmap )
+add_menu_data_item( MenuData *menu, int func, char *name, MinipixmapData *minipixmaps )
 {
-    MenuDataItem *mdi = new_menu_data_item(menu);
+	MenuDataItem *mdi = new_menu_data_item(menu);
 
-    if( mdi )
-    {
-        mdi->fdata->func = func ;
-        mdi->fdata->name = mystrdup(name);
-        check_availability( mdi );
-        assign_minipixmap( mdi, minipixmap );
-    }
+	if( mdi )
+	{
+		mdi->fdata->func = func ;
+		mdi->fdata->name = mystrdup(name);
+		check_availability( mdi );
+		assign_minipixmaps( mdi, minipixmaps );
+	}
 	return mdi;
 }
 
 MenuDataItem *
-add_menu_fdata_item( MenuData *menu, FunctionData *fdata, char *minipixmap, struct ASImage *img )
+add_menu_fdata_item( MenuData *menu, FunctionData *fdata, MinipixmapData *minipixmaps)
 {
-    MenuDataItem *mdi = NULL;
+	MenuDataItem *mdi = NULL;
 
-    if( fdata )
-        if( (mdi = new_menu_data_item(menu)) != NULL )
-        {
-            mdi->fdata = safecalloc( 1, sizeof(FunctionData) );
-            copy_func_data( mdi->fdata, fdata);
-            memset( fdata, 0x00, sizeof( FunctionData ) );
-            parse_menu_item_name (mdi, &(mdi->fdata->name)) ;
-            check_availability( mdi );
-            assign_minipixmap( mdi, minipixmap );
-            if( mdi->minipixmap_image )
-                safe_asimage_destroy(mdi->minipixmap_image);
-            mdi->minipixmap_image = img ;
+	if( fdata )
+		if( (mdi = new_menu_data_item(menu)) != NULL )
+		{
+			mdi->fdata = safecalloc( 1, sizeof(FunctionData) );
+			copy_func_data( mdi->fdata, fdata);
+			memset( fdata, 0x00, sizeof( FunctionData ) );
+			parse_menu_item_name (mdi, &(mdi->fdata->name)) ;
+			check_availability( mdi );
+			assign_minipixmaps( mdi, minipixmaps );
 			
 			LOCAL_DEBUG_OUT( "mdi_fdata_encoding = %d, fdata_encoding = %d",
 			mdi->fdata->name_encoding, fdata->name_encoding );
-        }
+		}
 	return mdi;
 }
 
 ASImage *
 check_scale_menu_pmap( ASImage *im, ASFlagType flags ) 
 {	
-    if( im )
-    {
-        int w = im->width ;
-        int h = im->height ;
-        if( w > h )
-        {
-            if( w > MAX_MENU_ITEM_HEIGHT )
-            {
-                w = MAX_MENU_ITEM_HEIGHT ;
-                h = (h * w)/im->width ;
-                if( h == 0 )
-                    h = 1 ;
-            }
-        }else if( h > MAX_MENU_ITEM_HEIGHT )
-        {
-            h = MAX_MENU_ITEM_HEIGHT ;
-            w = (w * h)/im->height ;
-            if( w == 0 )
-                w = 1 ;
-        }
+	if( im )
+	{
+		int w = im->width ;
+		int h = im->height ;
+		if( w > h )
+		{
+			if( w > MAX_MENU_ITEM_HEIGHT )
+			{
+				w = MAX_MENU_ITEM_HEIGHT ;
+				h = (h * w)/im->width ;
+				if( h == 0 )
+					h = 1 ;
+			}
+		}else if( h > MAX_MENU_ITEM_HEIGHT )
+		{
+			h = MAX_MENU_ITEM_HEIGHT ;
+			w = (w * h)/im->height ;
+			if( w == 0 )
+				w = 1 ;
+		}
 		if( get_flags( flags, MD_ScaleMinipixmapDown ) )
 		{
 			int tmp_h = asxml_var_get(ASXMLVAR_MenuFontSize)+8;				
@@ -794,112 +801,135 @@ check_scale_menu_pmap( ASImage *im, ASFlagType flags )
 			}	 
 		}
 
-        if( w != im->width || h != im->height )
-        {
+		if( w != im->width || h != im->height )
+		{
 			return scale_asimage( ASDefaultVisual, im, w, h, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
-        }
-    }
+		}
+	}
 	return im;
 }
 
 void
 free_menu_pmaps( MenuData *menu)
 {
-    MenuDataItem *curr ;
-
+	MenuDataItem *curr ;
 	LOCAL_DEBUG_OUT( "menu = %p, image_manager = %p", menu, ASDefaultScr->image_manager );
 
-	for( curr = menu?menu->first:NULL ; curr != NULL ; curr = curr->next )
-	{	
-	    if( curr->minipixmap_image )
-		{
-        	safe_asimage_destroy(curr->minipixmap_image);
-			curr->minipixmap_image = NULL ; 
+	for( curr = menu?menu->first:NULL ; curr != NULL ; curr = curr->next ) {	
+		int i;
+		for ( i = 0 ; i < MINIPIXMAP_TypesNum ; ++i)
+			if( curr->minipixmap[i].image )	{
+				safe_asimage_destroy(curr->minipixmap[i].image);
+				curr->minipixmap[i].image = NULL ; 
+			}
+	}
+}
+
+void
+load_menuitem_pmap (MenuDataItem *mdi, MinipixmapTypes type, Bool force)
+{
+	MinipixmapData *minipixmap = &(mdi->minipixmap[type]);
+	int func = mdi->fdata->func;
+	char *filename = minipixmap->filename;
+
+	if (minipixmap->image != NULL)
+		return;
+
+	if (filename == NULL) {
+		if (type == MINIPIXMAP_Icon){
+			if (func == F_CHANGE_BACKGROUND_FOREIGN && !is_web_background (mdi->fdata)) 
+				filename = mdi->fdata->text;
+		} else if (type == MINIPIXMAP_Preview){
+			if (func == F_CHANGE_BACKGROUND_FOREIGN || func == F_CHANGE_BACKGROUND )
+				filename = mdi->fdata->text;
+		} 
+	}
+
+	LOCAL_DEBUG_OUT ("type = %d, filename = \"%s\", fdata->text = \"%s\"", type, filename, mdi->fdata->text);
+	if (filename)
+	{
+		char *cachedFileName = NULL;
+		int h = MAX_MENU_ITEM_HEIGHT ; 
+		if (type == MINIPIXMAP_Preview)
+			h = ASDefaultScr->MyDisplayHeight/5;
+		else if( get_flags( mdi->flags, MD_ScaleMinipixmapDown ) )
+			h = asxml_var_get(ASXMLVAR_MenuFontSize)+8;				
+		else if( get_flags( mdi->flags, MD_ScaleMinipixmapUp ) )
+			h = asxml_var_get(ASXMLVAR_MinipixmapHeight) ; 
+		LOCAL_DEBUG_OUT( "minipixmap target height = %d for \"%s\"", h, minipixmap[type].filename);
+
+		if (func == F_CHANGE_BACKGROUND || func == F_CHANGE_BACKGROUND_FOREIGN) {
+			Bool use_thumbnail = True;
+			if (type == MINIPIXMAP_Preview) {
+				if (is_web_background (mdi->fdata) && is_url (filename)){
+					int s1 = 0, s2 = 0;
+					cachedFileName = make_session_webcache_file (Session, filename);
+					use_thumbnail = check_download_complete (0, cachedFileName, &s1, &s2);
+					use_thumbnail = use_thumbnail && ((s1 > 0 || s2 == s1));
+					if (use_thumbnail) 
+						filename = cachedFileName;
+					else if (force && minipixmap->loadCount == 0) {
+						spawn_download (filename, cachedFileName);
+						minipixmap->loadCount++;
+					}
+				} else if (filename != minipixmap->filename) {
+					use_thumbnail = force;
+				}
+			}
+			if (use_thumbnail)
+				minipixmap->image = get_thumbnail_asimage (ASDefaultScr->image_manager, filename, 0, h, AS_THUMBNAIL_PROPORTIONAL|AS_THUMBNAIL_DONT_ENLARGE );
+			destroy_string (&cachedFileName);
+		 } else
+			minipixmap->image = load_environment_icon ("apps", filename, h);
+
+		if (minipixmap->image == NULL ) 
+		{	
+			LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  filename, minipixmap->image );
 		}
 	}
+}
+
+
+void
+reload_menuitem_pmap( MenuDataItem *mdi, MinipixmapTypes type, Bool force )
+{
+	MinipixmapData *minipixmap = &(mdi->minipixmap[type]);
+
+	LOCAL_DEBUG_OUT ("type = %d, fdata->text = \"%s\"", type, mdi->fdata->text);
+
+	if (minipixmap->image)
+	{
+		if (minipixmap->filename != NULL && !force) 
+		{
+			if (get_asimage_file_type( ASDefaultScr->image_manager, minipixmap->filename) != ASIT_XMLScript)
+			{
+				ASImage *im = minipixmap->image ; 
+				if (im->imageman != NULL && im->imageman != ASDefaultScr->image_manager) {
+					/* need to engage in trickery : */
+					relocate_asimage (ASDefaultScr->image_manager, im);
+				}
+				/* fprintf( stderr, "minipixmap \"%s\" is not an XML script - skipping\n", minipixmap ); */
+				return;
+			}
+		}
+		safe_asimage_destroy(minipixmap->image);
+		minipixmap->image = NULL ; 
+	}
+
+	load_menuitem_pmap (mdi, type, False);
 }
 
 void
 reload_menu_pmaps( MenuData *menu, Bool force )
 {
-    MenuDataItem *curr ;
-	
+	MenuDataItem *curr ;
 	LOCAL_DEBUG_OUT( "menu = %p, image_manager = %p", menu, ASDefaultScr->image_manager );
-
 	if( menu && ASDefaultScr->image_manager ) 
 		for( curr = menu->first ; curr != NULL ; curr = curr->next )
 		{	
-			char *minipixmap = curr->minipixmap ;
-			if( minipixmap == NULL && curr->fdata->func == F_CHANGE_BACKGROUND_FOREIGN 
-			    && !is_web_background (curr->fdata)) 
-				minipixmap = curr->fdata->text;
-    		
-           if( curr->minipixmap_image )
-			{
-				if( minipixmap != NULL && !force ) 
-				{
-					if( get_asimage_file_type( ASDefaultScr->image_manager, minipixmap ) != ASIT_XMLScript )
-					{
-						ASImage *im = curr->minipixmap_image ; 
-						if( im->imageman != NULL && im->imageman != ASDefaultScr->image_manager ) 
-						{/* need to engage in trickery : */
-							relocate_asimage( ASDefaultScr->image_manager, im );
-						}
-						/* fprintf( stderr, "minipixmap \"%s\" is not an XML script - skipping\n", minipixmap ); */
-						continue ;
-					}
-				}
-                safe_asimage_destroy(curr->minipixmap_image);
-				curr->minipixmap_image = NULL ; 
-			}
-			
-#if 1
-			if( minipixmap )
-			{
-				int h = MAX_MENU_ITEM_HEIGHT ; 
-				if( get_flags( curr->flags, MD_ScaleMinipixmapDown ) )
-					h = asxml_var_get(ASXMLVAR_MenuFontSize)+8;				
-				else if( get_flags( curr->flags, MD_ScaleMinipixmapUp ) )
-					h = asxml_var_get(ASXMLVAR_MinipixmapHeight) ; 
-				LOCAL_DEBUG_OUT( "minipixmap target height = %d for \"%s\"", h, minipixmap);
-				curr->minipixmap_image =  get_thumbnail_asimage( ASDefaultScr->image_manager, minipixmap, 0, h, AS_THUMBNAIL_PROPORTIONAL|AS_THUMBNAIL_DONT_ENLARGE );
-				if( curr->minipixmap_image == NULL ) 
-				{	
-					LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
-				}
-			}
-#else
-			if( minipixmap )
-			{
-				ASImage *tmp = NULL ;
-			
-            	tmp = load_environment_icon ("apps", minipixmap, 16);
-				if( tmp )				   
-    	    	{
-					curr->minipixmap_image = check_scale_menu_pmap( tmp, curr->flags ); 
-					if( tmp != curr->minipixmap_image )
-					{	
-						char *scaled_name = NULL ;
-						int scaled_name_len = 0 ; 
-						int len = strlen( minipixmap ) + 64 ;
-						safe_asimage_destroy(tmp);
-						/* we also need to add our icon into the image_manager ! : */
-						if( len > scaled_name_len ) 
-						{
-							scaled_name = saferealloc( scaled_name, len );
-							scaled_name_len = len ;
-						}
-						sprintf( scaled_name, "%s_scaled_to_%dx%d", minipixmap, curr->minipixmap_image->width, curr->minipixmap_image->height );
-						store_asimage( ASDefaultScr->image_manager, curr->minipixmap_image, scaled_name );					 
-						if( scaled_name ) 
-							free( scaled_name );
-					}
-        		}else
-				{	
-					LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  curr->minipixmap, curr->minipixmap_image );
-				}
-			}
-#endif			
+			int i;
+			for (i = 0 ; i < MINIPIXMAP_TypesNum ; ++i)
+				reload_menuitem_pmap (curr, i, force);
 		}
 }
 
@@ -924,7 +954,7 @@ parse_menu_item_name (MenuDataItem * item, char **name)
 	} else
 	{
 		item->item = mystrndup (*name, i);
-        item->item2 = mystrdup (&(ptr[i+1]));
+		item->item2 = mystrdup (&(ptr[i+1]));
 	}
 
 	if( (ptr = item->item) != NULL )
@@ -943,28 +973,30 @@ parse_menu_item_name (MenuDataItem * item, char **name)
 MenuDataItem     *
 menu_data_item_from_func (MenuData * menu, FunctionData * fdata, Bool do_check_availability)
 {
-    MenuDataItem     *item = NULL;
+	MenuDataItem     *item = NULL;
 
-    if( fdata != NULL )
+	if( fdata != NULL )
 	{	
-    	if (IsMinipixmapFunc(fdata->func) )
+		MinipixmapTypes mtype = GetMinipixmapType(fdata->func);
+		if (mtype < MINIPIXMAP_TypesNum)
 		{
 			if (menu->last)
 				item = menu->last;
 			else
 			{
-            	item = new_menu_data_item (menu);
+				item = new_menu_data_item (menu);
 				item->fdata = fdata;
 			}
 			if( fdata->func == F_SMALL_MINIPIXMAP ) 
 				set_flags( item->flags, MD_ScaleMinipixmapDown );
 			else if( fdata->func == F_LARGE_MINIPIXMAP ) 
 				set_flags( item->flags, MD_ScaleMinipixmapUp );
-		   
-        	item->minipixmap = mystrdup(fdata->name);
-    	} else
-    	{
-        	item = new_menu_data_item(menu);
+
+			LOCAL_DEBUG_OUT ("type = %d, filename = \"%s\"", mtype, fdata->name);
+			set_string (&(item->minipixmap[mtype].filename), mystrdup(fdata->name));
+		} else
+		{
+			item = new_menu_data_item(menu);
 			if (parse_menu_item_name (item, &(fdata->name)) >= 0)
 				item->fdata = fdata;
 			if( do_check_availability )
@@ -993,22 +1025,22 @@ compare_func_data_name(const void *a, const void *b)
 void
 print_func_data(const char *file, const char *func, int line, FunctionData *data)
 {
-    fprintf( stderr, "%s:%s:%s:%d>!!FUNC ", get_application_name(), file, func, line);
-    if( data == NULL )
-        fprintf( stderr, "NULL Function\n");
-    else
-    {
-        TermDef      *term = func2fterm (data->func, True);
-        if( term == NULL )
-            fprintf( stderr, "Invalid Function %ld\n",(long) data->func);
-        else
-        {
-            fprintf( stderr, "%s \"%s\" text[%s] ", term->keyword, data->name?data->name:"", data->text?data->text:"" );
-            fprintf( stderr, "val0[%ld%c(%ld)] ", (long)data->func_val[0], (data->unit[0]=='\0')?' ':data->unit[0],(long)data->unit_val[0] );
-            fprintf( stderr, "val1[%ld%c(%ld)] ", (long)data->func_val[1], (data->unit[1]=='\0')?' ':data->unit[1],(long)data->unit_val[1] );
-            fprintf( stderr, "(popup=%p)\n", data->popup );
-        }
-    }
+	fprintf( stderr, "%s:%s:%s:%d>!!FUNC ", get_application_name(), file, func, line);
+	if( data == NULL )
+		fprintf( stderr, "NULL Function\n");
+	else
+	{
+		TermDef      *term = func2fterm (data->func, True);
+		if( term == NULL )
+			fprintf( stderr, "Invalid Function %ld\n",(long) data->func);
+		else
+		{
+			fprintf( stderr, "%s \"%s\" text[%s] ", term->keyword, data->name?data->name:"", data->text?data->text:"" );
+			fprintf( stderr, "val0[%ld%c(%ld)] ", (long)data->func_val[0], (data->unit[0]=='\0')?' ':data->unit[0],(long)data->unit_val[0] );
+			fprintf( stderr, "val1[%ld%c(%ld)] ", (long)data->func_val[1], (data->unit[1]=='\0')?' ':data->unit[1],(long)data->unit_val[1] );
+			fprintf( stderr, "(popup=%p)\n", data->popup );
+		}
+	}
 }
 
 
@@ -1016,8 +1048,8 @@ print_func_data(const char *file, const char *func, int line, FunctionData *data
 char *format_FunctionData (FunctionData *data)
 {
 	char *buffer = NULL;
-    if (data != NULL)
-    {
+	if (data != NULL)
+	{
 		int len = 0;
 		int pos = 0;
 		if (data->name)
@@ -1058,7 +1090,7 @@ char *format_FunctionData (FunctionData *data)
 #undef FORMAT_FUNC_VALUE
 		}
 		buffer[pos++] = '\0';
-    }
+	}
 	
 	return buffer;
 }

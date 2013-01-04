@@ -140,13 +140,14 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("MiniPixmap", F_MINIPIXMAP),	/* MiniPixmap "name" */
 	FUNC_TERM ("SmallMiniPixmap", F_SMALL_MINIPIXMAP),	/* SmallMiniPixmap "name" */
 	FUNC_TERM ("LargeMiniPixmap", F_SMALL_MINIPIXMAP),	/* LargeMiniPixmap "name" */
+	FUNC_TERM ("Preview", F_Preview), /* Preview "name" */
 	FUNC_TERM2 (NEED_NAME, "DesktopEntry", F_DesktopEntry),	/* DesktopEntry "name" */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Exec", F_EXEC),	/* Exec   "name" command */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInDir", F_ExecInDir),	/* Exec   "name" [path command] */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Module", F_MODULE),	/* Module "name" command */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInTerm", F_ExecInTerm),   /* ExecInTerm   "name" command */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecBrowser", F_ExecBrowser),   /* ExecBrowser   "name" url */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecEditor",  F_ExecEditor),    /* ExecEditor   "name" filename */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecInTerm", F_ExecInTerm),   /* ExecInTerm   "name" command */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecBrowser", F_ExecBrowser),   /* ExecBrowser   "name" url */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ExecEditor",  F_ExecEditor),    /* ExecEditor   "name" filename */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillModuleByName", F_KILLMODULEBYNAME),	/* KillModuleByName "name" module */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "RestartModuleByName", F_RESTARTMODULEBYNAME),	/* RestartModuleByName "name" module */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "KillAllModulesByName", F_KILLALLMODULESBYNAME),	/* KillAllModulesByName "name" module */
@@ -155,17 +156,17 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "BackgroundForeign", F_CHANGE_BACKGROUND_FOREIGN),	/* BackgroundForeign "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeLook", F_CHANGE_LOOK),	/* ChangeLook "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeFeel", F_CHANGE_FEEL),	/* ChangeFeel "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeTheme", F_CHANGE_THEME), /* ChangeTheme "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeThemeFile", F_CHANGE_THEME_FILE), /* "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeColorscheme", F_CHANGE_COLORSCHEME), /* ChangeColorscheme "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallLook", F_INSTALL_LOOK), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFeel", F_INSTALL_FEEL), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallBackground", F_INSTALL_BACKGROUND), /* "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFont", F_INSTALL_FONT), /* "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallIcon", F_INSTALL_ICON), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallTile", F_INSTALL_TILE), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallThemeFile", F_INSTALL_THEME_FILE), /*  "name" file_name */
-    FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallColorscheme", F_INSTALL_COLORSCHEME), /*  "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeTheme", F_CHANGE_THEME), /* ChangeTheme "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeThemeFile", F_CHANGE_THEME_FILE), /* "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "ChangeColorscheme", F_CHANGE_COLORSCHEME), /* ChangeColorscheme "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallLook", F_INSTALL_LOOK), /*  "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFeel", F_INSTALL_FEEL), /*  "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallBackground", F_INSTALL_BACKGROUND), /* "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallFont", F_INSTALL_FONT), /* "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallIcon", F_INSTALL_ICON), /*  "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallTile", F_INSTALL_TILE), /*  "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallThemeFile", F_INSTALL_THEME_FILE), /*  "name" file_name */
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "InstallColorscheme", F_INSTALL_COLORSCHEME), /*  "name" file_name */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "SaveWorkspace", F_SAVE_WORKSPACE), /* SaveWorkspace "name" file_name */
 	FUNC_TERM  ("SignalReloadGTKRCFile", F_SIGNAL_RELOAD_GTK_RCFILE),
 	FUNC_TERM  ("KIPCsendMessageAll", F_KIPC_SEND_MESSAGE_ALL),
@@ -199,12 +200,12 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("Focus", F_FOCUS),		   /* Focus */
 	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowUp", F_CHANGEWINDOW_UP),	/* ChangeWindowUp   ["name" window_name ] */
 	FUNC_TERM2 (NEED_WINIFNAME, "ChangeWindowDown", F_CHANGEWINDOW_DOWN),	/* ChangeWindowDown ["name" window_name ] */
-    FUNC_TERM2 (NEED_WINIFNAME, "GoToBookmark", F_GOTO_BOOKMARK),   /* GoToBookmark ["name" window_bookmark ] */
+	FUNC_TERM2 (NEED_WINIFNAME, "GoToBookmark", F_GOTO_BOOKMARK),   /* GoToBookmark ["name" window_bookmark ] */
 	FUNC_TERM ("GetHelp", F_GETHELP),	   /* */
 	FUNC_TERM ("PasteSelection", F_PASTE_SELECTION),	/* */
 	FUNC_TERM2 (USES_NUMVALS, "WindowsDesk", F_CHANGE_WINDOWS_DESK),	/* WindowDesk "name" new_desk */
-    FUNC_TERM ("BookmarkWindow", F_BOOKMARK_WINDOW),    /* BookmarkWindow "name" new_bookmark */
-    FUNC_TERM ("PinMenu", F_PIN_MENU),    /* PinMenu ["name"] */
+	FUNC_TERM ("BookmarkWindow", F_BOOKMARK_WINDOW),    /* BookmarkWindow "name" new_bookmark */
+	FUNC_TERM ("PinMenu", F_PIN_MENU),    /* PinMenu ["name"] */
 	FUNC_TERM ("TakeWindowShot", F_TAKE_WINDOWSHOT),
 	FUNC_TERM ("TakeFrameShot", F_TAKE_FRAMESHOT),
 	FUNC_TERM ("SwallowWindow", F_SWALLOW_WINDOW),  /* SwallowWindow "name" module_name */ 
@@ -213,26 +214,26 @@ TermDef       FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("&nonsense&", F_MODULE_FUNC_START),	/* not really a command */
 	FUNC_TERM ("Send_WindowList", F_SEND_WINDOW_LIST),	/* */
 	FUNC_TERM ("SET_MASK", F_SET_MASK),	   /* SET_MASK  mask lock_mask */
-    FUNC_TERM2 (NEED_NAME, "SET_NAME", F_SET_NAME),   /* SET_NAME  name */
+	FUNC_TERM2 (NEED_NAME, "SET_NAME", F_SET_NAME),   /* SET_NAME  name */
 	FUNC_TERM ("UNLOCK", F_UNLOCK),		   /* UNLOCK    1  */
 	FUNC_TERM ("SET_FLAGS", F_SET_FLAGS),   /* SET_FLAGS flags */
 	/* these are internal commands */
 	FUNC_TERM ("&nonsense&", F_INTERNAL_FUNC_START),	/* not really a command */
 	FUNC_TERM ("&raise_it&", F_RAISE_IT),  /* should not be used by user */
-    /* wharf functions : */
-    {TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_FUNCTION, F_Folder, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "Swallow", 7, TT_FUNCTION, F_Swallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "MaxSwallow", 10, TT_FUNCTION, F_MaxSwallow, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "SwallowModule", 13, TT_FUNCTION, F_SwallowModule, NULL},
-    {TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "MaxSwallowModule", 16, TT_FUNCTION, F_MaxSwallowModule, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Size", 4, TT_FUNCTION, F_Size, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_FUNCTION, F_Transient, NULL},
+	/* wharf functions : */
+	{TF_NO_MYNAME_PREPENDING, "Folder", 6, TT_FUNCTION, F_Folder, NULL},
+	{TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "Swallow", 7, TT_FUNCTION, F_Swallow, NULL},
+	{TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "MaxSwallow", 10, TT_FUNCTION, F_MaxSwallow, NULL},
+	{TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "SwallowModule", 13, TT_FUNCTION, F_SwallowModule, NULL},
+	{TF_NO_MYNAME_PREPENDING | NEED_NAME | NEED_CMD| TF_NAMED, "MaxSwallowModule", 16, TT_FUNCTION, F_MaxSwallowModule, NULL},
+	{TF_NO_MYNAME_PREPENDING, "Size", 4, TT_FUNCTION, F_Size, NULL},
+	{TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_FUNCTION, F_Transient, NULL},
 
 	{0, NULL, 0, 0, 0}
 };
 
 struct SyntaxDef FuncSyntax = {
-    '\0',   '\n',	FuncTerms,
+	'\0',   '\n',	FuncTerms,
 	0, 		' ',	"",			"\t",
 	"AfterStep Function",
 	"Functions",
@@ -242,7 +243,7 @@ struct SyntaxDef FuncSyntax = {
 SyntaxDef     PopupFuncSyntax = {
 	'\n',	'\0',	FuncTerms,
 	0, 		' ',	"\t",		"\t",
-    "Popup/Complex function definition",
+	"Popup/Complex function definition",
 	"Popup",
 	"",	
 	NULL,	0
@@ -278,11 +279,11 @@ func2fterm (FunctionCode func, int quiet)
 void
 SetMyClass (const char *app_class)
 {
-    if( app_class != NULL )
-    {
-        strncpy( MyClass, (char*)app_class, MAX_MY_CLASS );
-        MyClass[MAX_MY_CLASS] = '\0' ;
-    }
+	if( app_class != NULL )
+	{
+		strncpy( MyClass, (char*)app_class, MAX_MY_CLASS );
+		MyClass[MAX_MY_CLASS] = '\0' ;
+	}
 }
 
 void
@@ -308,43 +309,43 @@ CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] =
 /* 3*/{NULL,"debug",   "Debugging: Run in Synchronous mode",  NULL, handler_set_flag, &(as_app_args.flags), ASS_Debugging},
 /* 4*/{"s", "single",  "Run on single screen only", NULL, handler_set_flag, &(as_app_args.flags), ASS_SingleScreen},
 /* 5*/{"r", "restart", "Run as if it was restarted","same as regular startup, only \nruns RestartFunctioninstead of InitFunction",
-                                                           handler_set_flag, &(as_app_args.flags), ASS_Restarting},
+														   handler_set_flag, &(as_app_args.flags), ASS_Restarting},
 #define OPTION_HAS_ARGS     6
 /* 6*/{"d", "display", "Specify what X display we should connect to","Overrides $DISPLAY environment variable",
-                                                           handler_set_string, &(as_app_args.display_name), 0, CMO_HasArgs },
+														   handler_set_string, &(as_app_args.display_name), 0, CMO_HasArgs },
 /* 7*/{"f", "config-file", "Read all config from requested file","Use it if you want to use .steprc\ninstead of standard config files",
-                                                           handler_set_string, &(as_app_args.override_config), 0, CMO_HasArgs },
+														   handler_set_string, &(as_app_args.override_config), 0, CMO_HasArgs },
 /* 8*/{"p", "user-dir","Read all the config from requested dir","Use it to override config location\nrequested in compile time" ,
-                                                           handler_set_string, &(as_app_args.override_home), 0, CMO_HasArgs },
+														   handler_set_string, &(as_app_args.override_home), 0, CMO_HasArgs },
 /* 9*/{"g", "global-dir","Use requested dir as a shared config dir","Use it to override shared config location\nrequested in compile time" ,
-                                                           handler_set_string, &(as_app_args.override_share), 0, CMO_HasArgs },
+														   handler_set_string, &(as_app_args.override_share), 0, CMO_HasArgs },
 /*10*/{"V", "verbosity-level","Change verbosity of the AfterStep output","0 - will disable any output;\n1 - will allow only error messages;\n5 - both errors and warnings(default)",
-                                                           handler_set_int, &(as_app_args.verbosity_level), 0, CMO_HasArgs },
+														   handler_set_int, &(as_app_args.verbosity_level), 0, CMO_HasArgs },
 /*11*/{NULL, "window", "Internal Use: Window in which action occured", "interface part which has triggered our startup",
-                                                           handler_set_int, &(as_app_args.src_window), 0, CMO_HasArgs },
+														   handler_set_int, &(as_app_args.src_window), 0, CMO_HasArgs },
 /*12*/{NULL, "context","Internal Use: Context in which action occured", "interface part which has triggered our startup",
-                                                           handler_set_int, &(as_app_args.src_context), 0, CMO_HasArgs },
+														   handler_set_int, &(as_app_args.src_context), 0, CMO_HasArgs },
 /*13*/{NULL, "look","Read look config from requested file","Use it if you want to use different look\ninstead of what was selected from the menu",
-                                                           handler_set_string, &(as_app_args.override_look), 0, CMO_HasArgs },
+														   handler_set_string, &(as_app_args.override_look), 0, CMO_HasArgs },
 /*14*/{NULL, "feel","Read feel config from requested file","Use it if you want to use different feel\ninstead of what was selected from the menu",
-                                                           handler_set_string, &(as_app_args.override_feel), 0, CMO_HasArgs },
+														   handler_set_string, &(as_app_args.override_feel), 0, CMO_HasArgs },
 /*15*/{NULL, "theme","Read theme config from requested file","Use it if you want to use different theme\ninstead of what was selected from the menu",
-                                                           handler_set_string, &(as_app_args.override_feel), 0, CMO_HasArgs },
+														   handler_set_string, &(as_app_args.override_feel), 0, CMO_HasArgs },
 #ifdef DEBUG_TRACE_X
 /*16*/{NULL, "trace-func","Debugging: Trace calls to a function with requested name", NULL,
-                                                           handler_set_string, &(as_app_args.trace_calls), 0, CMO_HasArgs },
+														   handler_set_string, &(as_app_args.trace_calls), 0, CMO_HasArgs },
 #endif
 /*17*/{"l", "log","Save all output into the file", "(instead of printing it to console)",
-                                                           handler_set_string, &(as_app_args.log_file), 0, CMO_HasArgs },
+														   handler_set_string, &(as_app_args.log_file), 0, CMO_HasArgs },
 /*18*/{"L", "locale","Set language locale", "to be used while displaying text",
-                                                           handler_set_dup_string, &(as_app_args.locale), 0, CMO_HasArgs },
+														   handler_set_dup_string, &(as_app_args.locale), 0, CMO_HasArgs },
 /*19*/{NULL, "myname","Overrides module name", "will be used while parsing config files\nand reporting to AfterStep",
-                                                           handler_set_string, &(MyName), 0, CMO_HasArgs },
+														   handler_set_string, &(MyName), 0, CMO_HasArgs },
 /*20*/{NULL, "geometry","Overrides module's geometry", NULL,
-                                                           handler_set_geometry, &(as_app_args.geometry), 0, CMO_HasArgs },
+														   handler_set_geometry, &(as_app_args.geometry), 0, CMO_HasArgs },
 /*21*/{NULL, "gravity","Overrides module's gravity", NULL,
-                                                           handler_set_gravity, &(as_app_args.gravity), 0, CMO_HasArgs },
-      {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
+														   handler_set_gravity, &(as_app_args.gravity), 0, CMO_HasArgs },
+	  {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
 };
 
 void
@@ -352,39 +353,39 @@ standard_version (void)
 {
 show_debug (__FILE__,__FUNCTION__,__LINE__, "version = \"%s\", MyVersionFunc = %p", VERSION, MyVersionFunc);
 
-    if( MyVersionFunc )
-        MyVersionFunc();
-    else
-	    printf ("%s version %s\n", MyClass, VERSION);
+	if( MyVersionFunc )
+		MyVersionFunc();
+	else
+		printf ("%s version %s\n", MyClass, VERSION);
 }
 
 void
 print_command_line_opt(const char *prompt, CommandLineOpts *options, ASFlagType mask)
 {
-    register int i ;
-    ASFlagType bit = 0x01;
+	register int i ;
+	ASFlagType bit = 0x01;
 
 	if( options == NULL ) 
 		options = as_standard_cmdl_options ;
-    printf ("%s:\n", prompt);
+	printf ("%s:\n", prompt);
 
-    for( i = 0 ; options[i].handler != NULL ; i++ )
-    {
-        if( !get_flags( bit, mask ) )
-        {
-            if( options[i].short_opt )
-                printf( OPTION_SHORT_FORMAT, options[i].short_opt );
-            else
-                printf( OPTION_NOSHORT_FORMAT);
+	for( i = 0 ; options[i].handler != NULL ; i++ )
+	{
+		if( !get_flags( bit, mask ) )
+		{
+			if( options[i].short_opt )
+				printf( OPTION_SHORT_FORMAT, options[i].short_opt );
+			else
+				printf( OPTION_NOSHORT_FORMAT);
 
-            if( !get_flags( options[i].flags, CMO_HasArgs ) )
-                printf( OPTION_DESCR1_FORMAT_NOVAL, options[i].long_opt, options[i].descr1 );
-            else
-                printf( OPTION_DESCR1_FORMAT_VAL, options[i].long_opt, options[i].descr1 );
+			if( !get_flags( options[i].flags, CMO_HasArgs ) )
+				printf( OPTION_DESCR1_FORMAT_NOVAL, options[i].long_opt, options[i].descr1 );
+			else
+				printf( OPTION_DESCR1_FORMAT_VAL, options[i].long_opt, options[i].descr1 );
 
-            if( options[i].descr2 )
+			if( options[i].descr2 )
 			{
-                register char *start = options[i].descr2 ;
+				register char *start = options[i].descr2 ;
 				register char *end ;
 				do
 				{
@@ -398,81 +399,81 @@ print_command_line_opt(const char *prompt, CommandLineOpts *options, ASFlagType 
 						strncpy( buffer, start, len );
 						buffer[len] = '\0' ;
 						printf(OPTION_DESCR2_FORMAT, buffer );
-		  				start = end+1 ;
+						start = end+1 ;
 					}
 				}while( end != NULL );
 			}
-        }
-        bit = bit << 1 ;
-    }
+		}
+		bit = bit << 1 ;
+	}
 }
 
 void
 standard_usage()
 {
-    standard_version();
-    if( MyUsageFunc )
-        MyUsageFunc();
-    else
-        printf (OPTION_USAGE_FORMAT "\n", MyName );
-    print_command_line_opt("standard_options are :", as_standard_cmdl_options, as_app_args.mask);
+	standard_version();
+	if( MyUsageFunc )
+		MyUsageFunc();
+	else
+		printf (OPTION_USAGE_FORMAT "\n", MyName );
+	print_command_line_opt("standard_options are :", as_standard_cmdl_options, as_app_args.mask);
 }
 
 void  handler_show_info( char *argv, void *trg, long param )
 {
-    switch( param )
-    {
-        case SHOW_VERSION :
-            standard_version();
-            break;
-        case SHOW_CONFIG  :
-            standard_version();
-            printf ("BinDir            %s\n", AFTER_BIN_DIR);
-            printf ("ManDir            %s\n", AFTER_MAN_DIR);
-            printf ("DocDir            %s\n", AFTER_DOC_DIR);
-            printf ("ShareDir          %s\n", AFTER_SHAREDIR);
-            printf ("AfterDir          %s\n", AFTER_DIR);
-            break;
-        case SHOW_USAGE   :
-            standard_usage();
-            break;
-    }
-    exit (0);
+	switch( param )
+	{
+		case SHOW_VERSION :
+			standard_version();
+			break;
+		case SHOW_CONFIG  :
+			standard_version();
+			printf ("BinDir            %s\n", AFTER_BIN_DIR);
+			printf ("ManDir            %s\n", AFTER_MAN_DIR);
+			printf ("DocDir            %s\n", AFTER_DOC_DIR);
+			printf ("ShareDir          %s\n", AFTER_SHAREDIR);
+			printf ("AfterDir          %s\n", AFTER_DIR);
+			break;
+		case SHOW_USAGE   :
+			standard_usage();
+			break;
+	}
+	exit (0);
 }
 void  handler_set_flag( char *argv, void *trg, long param )
 {
-    register ASFlagType *f = trg ;
-    set_flags( *f, param );
+	register ASFlagType *f = trg ;
+	set_flags( *f, param );
 }
 void  handler_set_string( char *argv, void *trg, long param )
 {
-    register char **s = trg;
-    if( argv )
-        *s = argv;
+	register char **s = trg;
+	if( argv )
+		*s = argv;
 }
 
 void  handler_set_dup_string( char *argv, void *trg, long param )
 {
-    register char **s = trg;
-    if( argv )
+	register char **s = trg;
+	if( argv )
 	{
-    	if( *s ) 
+		if( *s ) 
 			free( *s );
-	    *s = mystrdup(argv);
+		*s = mystrdup(argv);
 	}
 }
 
 void  handler_set_int( char *argv, void *trg, long param )
 {
-    register int *i = trg ;
-    if( argv )
-        *i = atoi(argv);
+	register int *i = trg ;
+	if( argv )
+		*i = atoi(argv);
 }
 
 void  handler_set_geometry( char *argv, void *trg, long param )
 {
-    register ASGeometry *geom = trg ;
-    if( argv )
+	register ASGeometry *geom = trg ;
+	if( argv )
 	{
 		memset( geom, 0x00, sizeof(ASGeometry));
 		parse_geometry (argv, &(geom->x), &(geom->y), &(geom->width), &(geom->height), &(geom->flags) );
@@ -481,8 +482,8 @@ void  handler_set_geometry( char *argv, void *trg, long param )
 
 void  handler_set_gravity( char *argv, void *trg, long param )
 {
-	    register int *i = trg ;
-    *i = ForgetGravity ;
+		register int *i = trg ;
+	*i = ForgetGravity ;
 	if( argv )
 	{
 
@@ -500,35 +501,35 @@ void  handler_set_gravity( char *argv, void *trg, long param )
 int
 match_command_line_opt( char *argvi, CommandLineOpts *options )
 {
-    register char *ptr = argvi;
-    register int opt ;
+	register char *ptr = argvi;
+	register int opt ;
 
-    if( ptr == NULL )
-        return -1;
+	if( ptr == NULL )
+		return -1;
 show_debug (__FILE__,__FUNCTION__,__LINE__, "ptr = \"%s\"", ptr);
-    if( *ptr == '-' )
-    {
-        ++ptr;
-        if( *ptr == '-' )
-        {
-            ++ptr;
+	if( *ptr == '-' )
+	{
+		++ptr;
+		if( *ptr == '-' )
+		{
+			++ptr;
 show_debug (__FILE__,__FUNCTION__,__LINE__, "ptr = \"%s\"", ptr);
-            for( opt = 0 ; options[opt].handler ; ++opt )
-                if( strcmp(options[opt].long_opt, ptr ) == 0 )
-                    break;
-        }else
-        {
+			for( opt = 0 ; options[opt].handler ; ++opt )
+				if( strcmp(options[opt].long_opt, ptr ) == 0 )
+					break;
+		}else
+		{
 show_debug (__FILE__,__FUNCTION__,__LINE__, "ptr = \"%s\"", ptr);
-            for( opt = 0 ; options[opt].handler ; ++opt )
-                if( options[opt].short_opt )
-                    if( strcmp(options[opt].short_opt, ptr ) == 0 )
-                        break;
-        }
-    }else
-        opt = -1;
-    if( options[opt].handler == NULL )
-        opt = -1;
-    return opt;
+			for( opt = 0 ; options[opt].handler ; ++opt )
+				if( options[opt].short_opt )
+					if( strcmp(options[opt].short_opt, ptr ) == 0 )
+						break;
+		}
+	}else
+		opt = -1;
+	if( options[opt].handler == NULL )
+		opt = -1;
+	return opt;
 }
 
 static DeadPipe_handler _as_dead_pipe_handler = NULL ; 
@@ -558,19 +559,19 @@ void override_environ( char **envp )
 void
 InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) (void), void (*custom_usage_func) (void), ASFlagType opt_mask )
 {
-    /* first of all let's set us some nice signal handlers */
+	/* first of all let's set us some nice signal handlers */
 #ifdef HAVE_SIGSEGV_HANDLING
-    set_signal_handler (SIGSEGV);
+	set_signal_handler (SIGSEGV);
 #endif
 
 	set_signal_handler (SIGUSR2);
-    signal (SIGPIPE, ASDeadPipe);        /* don't forget DeadPipe should be provided by the app */
+	signal (SIGPIPE, ASDeadPipe);        /* don't forget DeadPipe should be provided by the app */
 
-    SetMyClass( app_class );
-    MyVersionFunc = version_func ;
-    MyUsageFunc = custom_usage_func ;
+	SetMyClass( app_class );
+	MyVersionFunc = version_func ;
+	MyUsageFunc = custom_usage_func ;
 
-    memset( &as_app_args, 0x00, sizeof(ASProgArgs) );
+	memset( &as_app_args, 0x00, sizeof(ASProgArgs) );
 	as_app_args.locale = mystrdup(AFTER_LOCALE);
 	if (as_app_args.locale[0] == '\0')
 	{
@@ -578,62 +579,62 @@ InitMyApp (  const char *app_class, int argc, char **argv, void (*version_func) 
 		as_app_args.locale = mystrdup(getenv("LANG"));
 	}
 
-    as_app_args.mask = opt_mask ;
+	as_app_args.mask = opt_mask ;
 	as_app_args.gravity = ForgetGravity ;
 #ifndef NO_DEBUG_OUTPUT
-    as_app_args.verbosity_level = OUTPUT_VERBOSE_THRESHOLD ;
+	as_app_args.verbosity_level = OUTPUT_VERBOSE_THRESHOLD ;
 #else
-    as_app_args.verbosity_level = OUTPUT_DEFAULT_THRESHOLD ;
+	as_app_args.verbosity_level = OUTPUT_DEFAULT_THRESHOLD ;
 #endif
 
 /* Uncomment this to enable cmd line args tracing/debugging :    
  * set_output_threshold(20); */
 
-    ASDefaultScr = safecalloc(1, sizeof(ScreenInfo));
+	ASDefaultScr = safecalloc(1, sizeof(ScreenInfo));
 	init_ScreenInfo(ASDefaultScr);
 show_debug (__FILE__,__FUNCTION__,__LINE__, "argc = %d", argc);
 
-    if( argc > 0 && argv )
-    {
-        int i ;
+	if( argc > 0 && argv )
+	{
+		int i ;
 
 		as_app_args.saved_argc = argc ;
 		as_app_args.saved_argv = safecalloc( argc, sizeof(char*));
 		for( i = 0 ; i < argc ; ++i )
 			as_app_args.saved_argv[i] = mystrdup(argv[i]) ;
 
-        SetMyName( argv[0] );
+		SetMyName( argv[0] );
 
-        for( i = 1 ; i < argc ; i++ )
-        {
-            register int opt ;
+		for( i = 1 ; i < argc ; i++ )
+		{
+			register int opt ;
 show_debug (__FILE__,__FUNCTION__,__LINE__, "i = %d, argv[i] = 0x%p", i, argv[i]);			
-            if( (opt = match_command_line_opt( &(argv[i][0]), as_standard_cmdl_options )) < 0 )
-                continue;
-            if( get_flags( (0x01<<opt), as_app_args.mask) )
-                continue;
-            if( get_flags( as_standard_cmdl_options[opt].flags, CMO_HasArgs ) )
-            {
+			if( (opt = match_command_line_opt( &(argv[i][0]), as_standard_cmdl_options )) < 0 )
+				continue;
+			if( get_flags( (0x01<<opt), as_app_args.mask) )
+				continue;
+			if( get_flags( as_standard_cmdl_options[opt].flags, CMO_HasArgs ) )
+			{
 				argv[i] = NULL ;
-                if( ++i >= argc )
-                    continue;
-                else
-                    as_standard_cmdl_options[opt].handler( argv[i], as_standard_cmdl_options[opt].trg, as_standard_cmdl_options[opt].param );
-            }else
-                as_standard_cmdl_options[opt].handler( NULL, as_standard_cmdl_options[opt].trg, as_standard_cmdl_options[opt].param );
-            argv[i] = NULL ;
-        }
-    }
+				if( ++i >= argc )
+					continue;
+				else
+					as_standard_cmdl_options[opt].handler( argv[i], as_standard_cmdl_options[opt].trg, as_standard_cmdl_options[opt].param );
+			}else
+				as_standard_cmdl_options[opt].handler( NULL, as_standard_cmdl_options[opt].trg, as_standard_cmdl_options[opt].param );
+			argv[i] = NULL ;
+		}
+	}
 
-    set_output_threshold( as_app_args.verbosity_level );
-    if(as_app_args.log_file)
+	set_output_threshold( as_app_args.verbosity_level );
+	if(as_app_args.log_file)
 		if( freopen( as_app_args.log_file, /*get_flags( as_app_args.flags, ASS_Restarting)?*/"a"/*:"w"*/, stderr ) == NULL )
-	    	show_system_error( "failed to redirect output into file \"%s\"", as_app_args.log_file );
+			show_system_error( "failed to redirect output into file \"%s\"", as_app_args.log_file );
 
 
-    fd_width = get_fd_width ();
+	fd_width = get_fd_width ();
 
-    if (FuncSyntax.term_hash == NULL)
+	if (FuncSyntax.term_hash == NULL)
 		PrepareSyntax (&FuncSyntax);
 	if( as_app_args.locale == NULL ) 
 		as_app_args.locale = mystrdup("");
@@ -644,18 +645,18 @@ show_debug (__FILE__,__FUNCTION__,__LINE__, "i = %d, argv[i] = 0x%p", i, argv[i]
 		if (strlen(as_app_args.locale) > 0)
 			if (setlocale (LC_CTYPE, as_app_args.locale) == NULL)
 			{
-  			    show_error ("unable to set locale");
+				show_error ("unable to set locale");
 			}
 #endif
 	}else
 	{
 #ifdef I18N
-	    show_warning ("LANG environment variable is not set - use -L \"locale\" command line option to define locale");
+		show_warning ("LANG environment variable is not set - use -L \"locale\" command line option to define locale");
 #endif
 	}	
 
 #ifdef DEBUG_TRACE_X
-    trace_enable_function(as_app_args.trace_calls);
+	trace_enable_function(as_app_args.trace_calls);
 #endif
 
 	asxml_var_insert(ASXMLVAR_IconButtonWidth, 64);
@@ -676,7 +677,7 @@ free_func_hash ()
 {
 	if (FuncSyntax.term_hash)
 	{
-        FreeSyntaxHash (&FuncSyntax);
+		FreeSyntaxHash (&FuncSyntax);
 	}
 }
 
@@ -863,11 +864,11 @@ make_default_environment()
 	e->module_path = mystrdup( AFTER_BIN_DIR );
 	e->icon_path = mystrdup( DEFAULT_ICON_DIR );
 	e->pixmap_path = safemalloc( strlen((char*)default_pixmap_path_format)+
-		                         strlen(AFTER_DIR)*4+
+								 strlen(AFTER_DIR)*4+
 								 strlen(AFTER_SHAREDIR)*4 +
 								 strlen(DEFAULT_PIXMAP_DIR) + 1);
 	sprintf( e->pixmap_path, default_pixmap_path_format,
-	                         AFTER_DIR,
+							 AFTER_DIR,
 							 AFTER_SHAREDIR,
 							 AFTER_DIR,
 							 AFTER_SHAREDIR,
@@ -882,7 +883,7 @@ make_default_environment()
 								 strlen(AFTER_SHAREDIR) +
 								 strlen(DEFAULT_TTF_DIR) + 1);
 	sprintf( e->font_path, default_font_path_format,
-	                         AFTER_DIR,
+							 AFTER_DIR,
 							 AFTER_SHAREDIR,
 							 DEFAULT_TTF_DIR );
 
@@ -890,7 +891,7 @@ make_default_environment()
 								 strlen(AFTER_DIR)+
 								 strlen(AFTER_SHAREDIR) + 1);
 	sprintf( e->cursor_path, default_cursor_path_format,
-	                         AFTER_DIR,
+							 AFTER_DIR,
 							 AFTER_SHAREDIR );
 
 	for( i = 0 ; i < ASTool_Count ; ++i )
@@ -898,7 +899,7 @@ make_default_environment()
 
 	/* by default - don't do overwrite gtkrc files so to not aggrave people */
 	e->gtkrc_path = NULL ;  /* make_session_rc_file(Session, GTKRC_FILE); */
-  	e->gtkrc20_path = NULL ; /* make_session_rc_file(Session, GTKRC20_FILE) ; */
+	e->gtkrc20_path = NULL ; /* make_session_rc_file(Session, GTKRC20_FILE) ; */
 	e->IconTheme = mystrdup("oxygen");
 	return e;
 }
@@ -945,9 +946,9 @@ void
 destroy_asdatabase()
 {
 	if( Database ) 
-	    destroy_asdb( &Database );
-    /* XResources : */
-    destroy_user_database();
+		destroy_asdb( &Database );
+	/* XResources : */
+	destroy_user_database();
 }
 
 static ASCategoryTree*
@@ -1010,16 +1011,16 @@ name2desktop_entry( const char *name, ASCategoryTree **tree_return )
 void
 InitSession()
 {
-    /* initializing our dirs names */
+	/* initializing our dirs names */
 	if( Session == NULL ) 
 	{	
-    	Session = GetNCASSession(ASDefaultScr, as_app_args.override_home, as_app_args.override_share);
-    	if( as_app_args.override_config )
-        	set_session_override( Session, as_app_args.override_config, 0 );
-    	if( as_app_args.override_look )
-        	set_session_override( Session, as_app_args.override_look, F_CHANGE_LOOK );
-    	if( as_app_args.override_feel )
-        	set_session_override( Session, as_app_args.override_feel, F_CHANGE_FEEL );
+		Session = GetNCASSession(ASDefaultScr, as_app_args.override_home, as_app_args.override_share);
+		if( as_app_args.override_config )
+			set_session_override( Session, as_app_args.override_config, 0 );
+		if( as_app_args.override_look )
+			set_session_override( Session, as_app_args.override_look, F_CHANGE_LOOK );
+		if( as_app_args.override_feel )
+			set_session_override( Session, as_app_args.override_feel, F_CHANGE_FEEL );
 	}
 }
 
@@ -1030,7 +1031,7 @@ free_as_app_args()
 	for( i = 0 ; i < as_app_args.saved_argc ; ++i ) 
 		if( as_app_args.saved_argv[i] )
 			free( as_app_args.saved_argv[i] );
-    free( as_app_args.saved_argv );
+	free( as_app_args.saved_argv );
 	as_app_args.saved_argv = NULL ;
 
 	destroy_string( &(as_app_args.locale) );
@@ -1042,20 +1043,20 @@ FreeMyAppResources()
 {
 	cleanup_default_balloons();
 	destroy_asdatabase();
-    mystyle_destroy_all();
-    mylook_init( &(ASDefaultScr->Look), True, ASFLAGS_EVERYTHING );
-    destroy_image_manager( ASDefaultScr->image_manager, False );
-    destroy_font_manager( ASDefaultScr->font_manager, False );
-    clientprops_cleanup ();
-    destroy_wmprops (ASDefaultScr->wmprops, False);
-    wmprops_cleanup ();
-    free_func_hash();
+	mystyle_destroy_all();
+	mylook_init( &(ASDefaultScr->Look), True, ASFLAGS_EVERYTHING );
+	destroy_image_manager( ASDefaultScr->image_manager, False );
+	destroy_font_manager( ASDefaultScr->font_manager, False );
+	clientprops_cleanup ();
+	destroy_wmprops (ASDefaultScr->wmprops, False);
+	wmprops_cleanup ();
+	free_func_hash();
 	flush_keyword_ids();
-    purge_asimage_registry();
+	purge_asimage_registry();
 	asxml_var_cleanup();
 	custom_color_cleanup();
-    build_xpm_colormap( NULL );
-    destroy_screen_gcs(ASDefaultScr);
+	build_xpm_colormap( NULL );
+	destroy_screen_gcs(ASDefaultScr);
 	if( ASDefaultScr->RootImage ) 
 	{	
 		safe_asimage_destroy( ASDefaultScr->RootImage );
@@ -1063,7 +1064,7 @@ FreeMyAppResources()
 	}
 	destroy_asvisual( ASDefaultScr->asv, False );
 	free_as_app_args();
-    destroy_assession( Session );
+	destroy_assession( Session );
 	Session = NULL ;
 	destroy_asenvironment( &Environment );
 	is_executable_in_path ( NULL );
@@ -1072,7 +1073,7 @@ FreeMyAppResources()
 #endif
 	free( ASDefaultScr );
 	flush_default_asstorage();
-    flush_asbidirlist_memory_pool();
+	flush_asbidirlist_memory_pool();
 	flush_ashash_memory_pool();
 	
 }
@@ -1155,10 +1156,10 @@ check_singleton_child (int singleton_id, Bool kill_it_to_death)
 int
 spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_display, Window w, int context, Bool do_fork, Bool pass_args, ... )
 {
-    int pid = 0;
+	int pid = 0;
 
-    if( cmd == NULL )
-        return 0;
+	if( cmd == NULL )
+		return 0;
 	if( as_init_singletons )
 	{
 		register int i ;
@@ -1176,31 +1177,31 @@ spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_dis
 			check_singleton_child( singleton_id, True );
 	}
 
-    if( do_fork )
-        pid = fork();
+	if( do_fork )
+		pid = fork();
 
-    if( pid != 0 )
+	if( pid != 0 )
 	{
 		/* there is a possibility of the race condition here
 		 * but it really is not worse the trouble to try and avoid it.
 		 */
-    	if( singleton_id >= 0 )
+		if( singleton_id >= 0 )
 			as_singletons[singleton_id] = pid ;
-  	    return pid;
+		return pid;
 	}else
-    {/* we get here only in child process. We now need to spawn new proggy here: */
-        int len;
-        char *display = mystrdup(XDisplayString (dpy));
+	{/* we get here only in child process. We now need to spawn new proggy here: */
+		int len;
+		char *display = mystrdup(XDisplayString (dpy));
 		char **envp ; 
-        register char *ptr ;
+		register char *ptr ;
 
-        char *cmdl;
-        char *arg, *screen_str = NULL, *w_str = NULL, *context_str = NULL ;
+		char *cmdl;
+		char *arg, *screen_str = NULL, *w_str = NULL, *context_str = NULL ;
 		int env_s = 0;
 		char **envvars = AS_environ ; 
 		int font_path_slot = -1, image_path_slot = -1 ;
 
-        va_list ap;
+		va_list ap;
 		LOCAL_DEBUG_OUT( "dpy = %p, DisplayString = \"%s\"", dpy, display );
 		LOCAL_DEBUG_OUT( "pid(%d), entered child process to spawn ...", pid );
 
@@ -1236,7 +1237,7 @@ spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_dis
 		if( envvars ) 
 			for( env_s = 0  ; envvars[env_s] != NULL ; ++env_s )
 				envp[env_s] = envvars[env_s] ;	
-        
+		
 		envp[env_s] = safemalloc(8+strlen(orig_display?orig_display:display)+1);
 		sprintf( envp[env_s], "DISPLAY=%s", orig_display?orig_display:display );
 		++env_s ;
@@ -1261,126 +1262,126 @@ spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_dis
 			}
 		}	 
 			
-        len = strlen((char*)cmd);
-        if( pass_args )
-        {
-            register int i = 0 ;
+		len = strlen((char*)cmd);
+		if( pass_args )
+		{
+			register int i = 0 ;
 
-            while( display[i] ) ++i;
+			while( display[i] ) ++i;
 
-            while( i > 0 && isdigit(display[--i]) );
-            if( display[i] == '.' )
-                display[i+1] = '\0' ;
+			while( i > 0 && isdigit(display[--i]) );
+			if( display[i] == '.' )
+				display[i+1] = '\0' ;
 /*
-            This bit of code seems to break AS restarting
-            on Fedora 8. causing DISPLAY=":0.0" to
-            become DISPLAY=":0.".  -- Jeremy
+			This bit of code seems to break AS restarting
+			on Fedora 8. causing DISPLAY=":0.0" to
+			become DISPLAY=":0.".  -- Jeremy
 */
-            if( screen >= 0 )
-                screen_str = string_from_int( screen );
-            if( w != None )
-                w_str = string_from_int( w );
-            if( context != C_NO_CONTEXT )
-                context_str = string_from_int( context );
+			if( screen >= 0 )
+				screen_str = string_from_int( screen );
+			if( w != None )
+				w_str = string_from_int( w );
+			if( context != C_NO_CONTEXT )
+				context_str = string_from_int( context );
 
-            len += 1+2+1+strlen( orig_display?orig_display:display );
-            if( screen_str )
-                len += strlen(screen_str);
-            len += 3 ;                         /* for "-s " */
-            if ( get_flags( as_app_args.flags, ASS_Debugging) )
-                len += 8 ;
-            if ( get_flags( as_app_args.flags, ASS_Restarting) )
-                len += 3 ;
-            if ( as_app_args.override_config )
-                len += 4+strlen(as_app_args.override_config);
-            if ( as_app_args.override_home )
-                len += 4+strlen(as_app_args.override_home);
-            if ( as_app_args.override_share )
-                len += 4+strlen(as_app_args.override_share);
+			len += 1+2+1+strlen( orig_display?orig_display:display );
+			if( screen_str )
+				len += strlen(screen_str);
+			len += 3 ;                         /* for "-s " */
+			if ( get_flags( as_app_args.flags, ASS_Debugging) )
+				len += 8 ;
+			if ( get_flags( as_app_args.flags, ASS_Restarting) )
+				len += 3 ;
+			if ( as_app_args.override_config )
+				len += 4+strlen(as_app_args.override_config);
+			if ( as_app_args.override_home )
+				len += 4+strlen(as_app_args.override_home);
+			if ( as_app_args.override_share )
+				len += 4+strlen(as_app_args.override_share);
 
 						if ( as_app_args.locale )
-                len += 4+strlen(as_app_args.locale);
+				len += 4+strlen(as_app_args.locale);
 
-            if( as_app_args.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
-                len += 4+32 ;
+			if( as_app_args.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
+				len += 4+32 ;
 #ifdef DEBUG_TRACE_X
-            if( as_app_args.trace_calls )
-                len += 13+strlen( as_app_args.trace_calls );
+			if( as_app_args.trace_calls )
+				len += 13+strlen( as_app_args.trace_calls );
 #endif
-            if( w_str )
-                len += 1+8+1+strlen(w_str);
-            if( context_str )
-                len += 1+9+1+strlen(context_str);
-        }
-        /* now we want to append arbitrary number of arguments to the end of command line : */
-        va_start( ap, pass_args );
-        while( (arg = va_arg(ap,char*)) != NULL )
-            len += 1+strlen(arg);
-        va_end(ap);
+			if( w_str )
+				len += 1+8+1+strlen(w_str);
+			if( context_str )
+				len += 1+9+1+strlen(context_str);
+		}
+		/* now we want to append arbitrary number of arguments to the end of command line : */
+		va_start( ap, pass_args );
+		while( (arg = va_arg(ap,char*)) != NULL )
+			len += 1+strlen(arg);
+		va_end(ap);
 
-        len+=4;
+		len+=4;
 
-        ptr = cmdl = safemalloc( len );
-        strcpy( cmdl, (char*)cmd );
-        while(*ptr) ptr++;
-        if( pass_args )
-        {
+		ptr = cmdl = safemalloc( len );
+		strcpy( cmdl, (char*)cmd );
+		while(*ptr) ptr++;
+		if( pass_args )
+		{
 						if (orig_display)
-    	    		ptr += sprintf( ptr, " -d %s -s", orig_display );
+					ptr += sprintf( ptr, " -d %s -s", orig_display );
 						else if(screen_str)
-			    		ptr += sprintf( ptr, " -d %s.%s -s", display, screen_str );
+						ptr += sprintf( ptr, " -d %s.%s -s", display, screen_str );
 						else
-          		ptr += sprintf( ptr, " -d %s -s", display);
+				ptr += sprintf( ptr, " -d %s -s", display);
 							
 							
-          	if ( get_flags( as_app_args.flags, ASS_Debugging) )
-            {
-                strcpy( ptr, " --debug");
-                ptr+=8 ;
-            }
-            if ( get_flags( as_app_args.flags, ASS_Restarting) )
-            {
-                strcpy( ptr, " -r");
-                ptr += 3 ;
-            }
-            if ( as_app_args.override_config )
-                ptr += sprintf( ptr, " -f %s", as_app_args.override_config );
-            if ( as_app_args.override_home )
-                ptr += sprintf( ptr, " -p %s", as_app_args.override_home );
-            if ( as_app_args.override_share )
-                ptr += sprintf( ptr, " -g %s", as_app_args.override_share );
-            if( as_app_args.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
-                ptr += sprintf( ptr, " -V %d", as_app_args.verbosity_level );
+			if ( get_flags( as_app_args.flags, ASS_Debugging) )
+			{
+				strcpy( ptr, " --debug");
+				ptr+=8 ;
+			}
+			if ( get_flags( as_app_args.flags, ASS_Restarting) )
+			{
+				strcpy( ptr, " -r");
+				ptr += 3 ;
+			}
+			if ( as_app_args.override_config )
+				ptr += sprintf( ptr, " -f %s", as_app_args.override_config );
+			if ( as_app_args.override_home )
+				ptr += sprintf( ptr, " -p %s", as_app_args.override_home );
+			if ( as_app_args.override_share )
+				ptr += sprintf( ptr, " -g %s", as_app_args.override_share );
+			if( as_app_args.verbosity_level != OUTPUT_DEFAULT_THRESHOLD )
+				ptr += sprintf( ptr, " -V %d", as_app_args.verbosity_level );
 LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d, locale = \"%s\", ptr-cmdl = %d", len, cmdl, (int)strlen(cmdl), as_app_args.locale, (int)(ptr-cmdl) );
 			if( as_app_args.locale && as_app_args.locale[0] && !isspace(as_app_args.locale[0]))
-                ptr += sprintf( ptr, " -L %s", as_app_args.locale );
+				ptr += sprintf( ptr, " -L %s", as_app_args.locale );
 			
 #ifdef DEBUG_TRACE_X
-            if( as_app_args.trace_calls )
-                ptr += sprintf( ptr, " --trace-func %s", as_app_args.trace_calls );
+			if( as_app_args.trace_calls )
+				ptr += sprintf( ptr, " --trace-func %s", as_app_args.trace_calls );
 #endif
-            if( w_str )
-                ptr += sprintf( ptr, " --window %s", w_str );
-            if( context_str )
-                ptr += sprintf( ptr, " --context %s", context_str );
-        }
-        
-		va_start( ap, pass_args );
-        while( (arg = va_arg(ap,char*)) != NULL )
-        {
-            *(ptr++) = ' ';
-            strcpy( ptr, arg );
-            while(*ptr) ptr++;
-LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, (int)strlen(cmdl) );
-        
+			if( w_str )
+				ptr += sprintf( ptr, " --window %s", w_str );
+			if( context_str )
+				ptr += sprintf( ptr, " --context %s", context_str );
 		}
-        va_end(ap);
-        if( do_fork )
-        {
-            int i = ptr-cmdl;
-            while( --i >= 0 ) if( !isspace(cmdl[i]) ) break;
-            do_fork = ( i < 0 || cmdl[i] != '&' );
-        }
+		
+		va_start( ap, pass_args );
+		while( (arg = va_arg(ap,char*)) != NULL )
+		{
+			*(ptr++) = ' ';
+			strcpy( ptr, arg );
+			while(*ptr) ptr++;
+LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, (int)strlen(cmdl) );
+		
+		}
+		va_end(ap);
+		if( do_fork )
+		{
+			int i = ptr-cmdl;
+			while( --i >= 0 ) if( !isspace(cmdl[i]) ) break;
+			do_fork = ( i < 0 || cmdl[i] != '&' );
+		}
 		strcpy (ptr, do_fork?" &\n":"\n");
 
 LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, (int)strlen(cmdl) );
@@ -1394,34 +1395,93 @@ LOCAL_DEBUG_OUT( "len = %d, cmdl = \"%s\" strlen = %d", len, cmdl, (int)strlen(c
 			}
 		}	
 #endif			   
-     
-        LOCAL_DEBUG_OUT("execle(\"%s\")", cmdl );
-        /* fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl ); */
+	 
+		LOCAL_DEBUG_OUT("execle(\"%s\")", cmdl );
+		/* fprintf( stderr, "len=%d: execl(\"%s\")", len, cmdl ); */
 
-        /* CYGWIN does not handle close-on-exec gracefully - whave to do it ourselves : */
-        if( CloseOnExec )
-            CloseOnExec();
+		/* CYGWIN does not handle close-on-exec gracefully - whave to do it ourselves : */
+		if( CloseOnExec )
+			CloseOnExec();
 
 		{
 			const char     *shell;
 			char *argv0 ;
 
-	    	if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
+			if ((shell = getenv("SHELL")) == NULL || *shell == '\0')
 				shell = mystrdup("/bin/sh");
 
 			parse_file_name(shell, NULL, &argv0);
-	    	/* argv0 = basename(shell); */
+			/* argv0 = basename(shell); */
 
-        	execle (shell, argv0 , "-c", cmdl, (char *)0, envp);
+			execle (shell, argv0 , "-c", cmdl, (char *)0, envp);
 		}
 
-        if( screen >= 0 )
-            show_error( "failed to start %s on the screen %d", cmd, screen );
-        else
-            show_error( "failed to start %s", cmd );
-        show_system_error( " complete command line: \"%s\"\n", cmdl );
-        exit(128);
-    }
+		if( screen >= 0 )
+			show_error( "failed to start %s on the screen %d", cmd, screen );
+		else
+			show_error( "failed to start %s", cmd );
+		show_system_error( " complete command line: \"%s\"\n", cmdl );
+		exit(128);
+	}
 }
+
+/******************************************************************************/
+/* web download functions : */
+/******************************************************************************/
+Bool 
+is_url (const char *url)
+{
+	return (strncmp (url, "http://", 7) == 0 || strncmp (url, "ftp://", 6) == 0 );
+}
+
+char *make_log_name (const char* cachedFileName)
+{
+	char *logName = safemalloc (strlen(cachedFileName)+4+1);
+	sprintf (logName, "%s.log", cachedFileName);
+	return logName; 
+}
+
+int spawn_download (const char *url, const char* cachedFileName)
+{
+		/* cmdl: wget -b -nv -o <escaped_url>.log -O <cache_file> <url> */
+#define WGET_CMDL_HEADER "wget -b -nv -o "
+	int cacheFNLen = strlen (cachedFileName);
+	char *wget_cmdl = safemalloc (sizeof(WGET_CMDL_HEADER)+cacheFNLen+4+1+2+1+cacheFNLen+1+strlen(url)+1);
+	int res;
+	sprintf (wget_cmdl, WGET_CMDL_HEADER "%s.log -O %s %s", cachedFileName, cachedFileName, url);
+	res = spawn_child( wget_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
+	free (wget_cmdl);
+	return res;
+}
+
+Bool check_download_complete (int pid, const char *cachedFileName, int *sizeDownloaded, int *size)
+{
+	if (pid != 0) {
+		/* TODO : possibly check if process exited ?*/
+		
+	}
+	/* verify log file */
+	{
+		char *logName = make_log_name (cachedFileName);
+		char *log = logName ? load_file (logName) : NULL;
+		if (log && log[0] != '\0') {
+			int s1 = 0, s2 = 1;
+
+			char *openBracket = strchr (log, '[');
+			LOCAL_DEBUG_OUT ("Open Bracket:%s", openBracket);
+			if (openBracket) {
+				sscanf (openBracket+1, "%d/%d", &s1, &s2);
+				LOCAL_DEBUG_OUT ("s1 = %d, s2 = %d", s1, s2);
+			}
+			if (sizeDownloaded) *sizeDownloaded = s1;
+			if (size) *size = s2;
+			free (log);
+			return True;
+		}
+	}
+	return False;
+}
+
+
 /************ end child process spawning ***************************/
 

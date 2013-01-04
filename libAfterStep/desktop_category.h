@@ -165,7 +165,7 @@ desktop_category_get_entries ( ASCategoryTree *ct, ASDesktopCategory *dc,
 							   struct ASHashTable *exclusions/* optional */, int *nitems);
 /* this will check if de belongs to any directory entry from the list of entries */
 Bool desktop_entry_in_subcategory( ASCategoryTree *ct, ASDesktopEntry *de, 
-			  					   ASDesktopEntryInfo *entries, int entries_num );
+								   ASDesktopEntryInfo *entries, int entries_num );
 
 
 ASDesktopEntry *fetch_desktop_entry( ASCategoryTree *ct, const char *name );

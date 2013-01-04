@@ -29,21 +29,21 @@ typedef struct ASWindowData
 	Window 	frame ;
 
 	send_data_type 	ref_ptr ; /* address of the related ASWindow structure in
-	                             afterstep's own memory space - we use it as a
-							     reference, to know what object change is related to */
+								 afterstep's own memory space - we use it as a
+								 reference, to know what object change is related to */
 	ASRectangle 	frame_rect ;
-    ASRectangle     icon_rect ;
+	ASRectangle     icon_rect ;
 
-    long            desk ;
-    send_data_type  state_flags, flags, client_icon_flags ;
+	long            desk ;
+	send_data_type  state_flags, flags, client_icon_flags ;
 
-    XSizeHints      hints ;       /* not sure why we need it here */
+	XSizeHints      hints ;       /* not sure why we need it here */
 
 	Window 			icon_title ;
 	Window          icon ;
 
-    char            *window_name ;
-    char            *window_name_matched ;
+	char            *window_name ;
+	char            *window_name_matched ;
 	char 			*icon_name ;
 	char 			*res_class ;
 	char 			*res_name ;
@@ -52,20 +52,20 @@ typedef struct ASWindowData
 
 	int 			 pid ;
 
-    Bool             focused;
+	Bool             focused;
 
 	char 			*cmd_line ;
 
-    /**************************/
-    /* the following gets determined based on matching names 
+	/**************************/
+	/* the following gets determined based on matching names 
 	 * agains the list of desktop entries : 
 	 */
 	struct ASDesktopEntry	*desktop_entry ;
 
-    /**************************/
-    /* some additional data that may or maynot be used by modules : */
-    struct ASCanvas        *canvas;
-    struct ASTBarData      *bar ;
+	/**************************/
+	/* some additional data that may or maynot be used by modules : */
+	struct ASCanvas        *canvas;
+	struct ASTBarData      *bar ;
 	ASFlagType				module_flags ;
 	void *data ;
 
@@ -79,7 +79,7 @@ typedef struct ASWindowData
 #define WINDOW_STATE_MASK  (M_FOCUS_CHANGE|M_DESTROY_WINDOW)
 
 #define WINDOW_PACKET_MASK (WINDOW_CONFIG_MASK| \
-                            WINDOW_NAME_MASK|WINDOW_STATE_MASK)
+							WINDOW_NAME_MASK|WINDOW_STATE_MASK)
 
 typedef enum {
 	WP_Error = -1,

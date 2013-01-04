@@ -57,8 +57,6 @@ APPS_SRCS=apps/common.c apps/ascompose.c apps/asview.c \
 
 APPS_INCS=apps/common.h
 
-APPS_DEPS=@LIBPROG@ $(LIB_OBJS) $(LIB_INCS) $(APPS_SRCS) $(APPS_INCS) config.h
-
 # end specifics
 ################################################################
 # generic makefile stuff :
@@ -125,6 +123,10 @@ AFTER_MAN_DIR	= $(DESTDIR)@mandir@/man3
 AFTER_APP_MAN_DIR	= $(DESTDIR)@mandir@/man1
 AFTER_SHAREDIR	= $(DESTDIR)@datarootdir@/$(LIB_DIR_NAME)
 AFTER_DOC_DIR	= $(AFTER_SHAREDIR)/doc
+
+
+APPS_DEPS=@LIBPROG@ $(LIB_OBJS) $(LIB_INCS) $(APPS_SRCS) $(APPS_INCS) config.h
+
 
 # We want to build both static and dynamic libs, as some service apps may need 
 # static library as they gets run at compile time (ASDocGen for example)
@@ -346,7 +348,8 @@ apps: 	@APPSDEPS@
 show_flags_cc:
 		@echo "Compiling with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"
 
-$(LIB_STATIC):	show_flags_cc $(LIB_OBJS) $(LIB_INCS) config.h
+$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) config.h
+		@echo "Compiling with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"
 		$(RMF) $(LIB_STATIC)
 		$(AR) $(LIB_STATIC) $(LIB_OBJS)
 		$(RANLIB) $(LIB_STATIC)
@@ -386,7 +389,8 @@ test_mmx:	test_mmx.o
 include .depend
 #endif
 
-$(LIB_SHARED_CYG): show_flags_cc $(LIB_OBJS) $(LIB_INCS) config.h
+$(LIB_SHARED_CYG): $(LIB_OBJS) $(LIB_INCS) config.h
+	@echo "Compiling with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"
 	$(CC) -shared -o $(LIB_SHARED_CYG) \
     		-Wl,--out-implib=$(LIB_SHARED_CYG_AR) \
     		-Wl,--export-all-symbols -Wl,--enable-auto-import \

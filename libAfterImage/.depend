@@ -2,6 +2,7 @@
 		win32/config.h \
 		config.h \
 		asvisual.h \
+		scanline.h \
 		blender.h \
 		asimage.h \
 		ascmap.h
@@ -26,8 +27,7 @@
 		win32/config.h \
 		config.h \
 		afterimage.h \
-		imencdec.h \
-		pixmap.h
+		imencdec.h
 
 ./asstorage.o : \
 		win32/config.h \
@@ -39,17 +39,21 @@
 ./asvisual.o : \
 		win32/config.h \
 		config.h \
-		asvisual.h
+		asvisual.h \
+		scanline.h
 
 ./blender.o : \
 		win32/config.h \
 		config.h \
 		asvisual.h \
+		scanline.h \
 		blender.h
 
 ./bmp.o : \
 		asimage.h \
 		imencdec.h \
+		import.h \
+		export.h \
 		bmp.h
 
 ./char2uni.o : \
@@ -91,7 +95,7 @@
 		config.h \
 		asimage.h \
 		imencdec.h \
-		bmp.h \
+		scanline.h \
 		ximage.h \
 		xcf.h \
 		xpm.h \
@@ -110,6 +114,11 @@
 		ximage.h \
 		transform.h \
 		pixmap.h
+
+./scanline.o : \
+		win32/config.h \
+		config.h \
+		scanline.h
 
 ./transform.o : \
 		win32/config.h \

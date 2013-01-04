@@ -16,6 +16,7 @@ LIBAFTERBASE_OBJS = \
 		$(LIBAFTERBASE_PATH)/socket.c \
 		$(LIBAFTERBASE_PATH)/timer.c \
 		$(LIBAFTERBASE_PATH)/trace.c \
+		$(LIBAFTERBASE_PATH)/xml.c \
 		$(LIBAFTERBASE_PATH)/xprop.c \
 		$(LIBAFTERBASE_PATH)/xwrap.c
 
@@ -39,5 +40,6 @@ LIBAFTERBASE_INCS = \
 		$(LIBAFTERBASE_PATH)/socket.h \
 		$(LIBAFTERBASE_PATH)/timer.h \
 		$(LIBAFTERBASE_PATH)/trace.h \
+		$(LIBAFTERBASE_PATH)/xml.h \
 		$(LIBAFTERBASE_PATH)/xprop.h \
 		$(LIBAFTERBASE_PATH)/xwrap.h

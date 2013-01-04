@@ -265,8 +265,8 @@ void
 fix_install_theme_script( ComplexFunction *install_func, const char *theme_dir )
 {
 	int i ;
-    for( i = 0 ; i < install_func->items_num ; i++ )
-    {
+	for( i = 0 ; i < install_func->items_num ; i++ )
+	{
 		FunctionData *fdata = &(install_func->items[i]);
 		int   func = fdata->func ;
 		char *fixed_fname = NULL ;
@@ -282,7 +282,7 @@ fix_install_theme_script( ComplexFunction *install_func, const char *theme_dir )
 				case F_INSTALL_TILE :
 				case F_INSTALL_THEME_FILE :
 					fixed_fname = make_file_name( theme_dir, fdata->text );
-			    	break ;
+					break ;
 			}
 			if( fixed_fname != NULL )
 			{
@@ -290,15 +290,15 @@ fix_install_theme_script( ComplexFunction *install_func, const char *theme_dir )
 				fdata->text = fixed_fname ;
 			}
 		}
-    }
+	}
 }
 
 void
 fix_apply_theme_script( ComplexFunction *install_func )
 {
 	int i ;
-    for( i = 0 ; i < install_func->items_num ; i++ )
-    {
+	for( i = 0 ; i < install_func->items_num ; i++ )
+	{
 		FunctionData *fdata = &(install_func->items[i]);
 		int   func = fdata->func ;
 		char *fixed_fname = NULL ;
@@ -309,18 +309,18 @@ fix_apply_theme_script( ComplexFunction *install_func )
 				case F_CHANGE_LOOK :
 					if( (fixed_fname = make_session_data_file(Session, False, S_IFREG, as_look_dir_name, fdata->text, NULL )) == NULL )
 						fixed_fname = make_session_data_file(Session, True, S_IFREG, as_look_dir_name, fdata->text, NULL );
-			    	break ;
+					break ;
 				case F_CHANGE_FEEL :
 					if( (fixed_fname = make_session_data_file(Session, False, S_IFREG, as_feel_dir_name, fdata->text, NULL )) == NULL )
 						fixed_fname = make_session_data_file(Session, True, S_IFREG, as_feel_dir_name, fdata->text, NULL );
-			    	break ;
+					break ;
 				case F_CHANGE_BACKGROUND :
 					if( (fixed_fname = make_session_data_file(Session, False, S_IFREG, as_background_dir_name, fdata->text, NULL )) == NULL )
 						fixed_fname = make_session_data_file(Session, True, S_IFREG, as_background_dir_name, fdata->text, NULL );
-			    	break ;
+					break ;
 				case F_CHANGE_THEME_FILE :
 					fixed_fname = make_session_data_file(Session, False, S_IFREG, as_theme_file_dir_name, fdata->text, NULL );
-			    	break ;
+					break ;
 			}
 			if( fixed_fname != NULL )
 			{
@@ -328,7 +328,7 @@ fix_apply_theme_script( ComplexFunction *install_func )
 				fdata->text = fixed_fname ;
 			}
 		}
-    }
+	}
 }
 
 void
@@ -396,18 +396,18 @@ install_theme_file( const char *src )
 	}
 	if( type != AST_ThemeScript )
 	{
-        char *tmpdir = getenv("TMPDIR");
-        static char *default_tmp_dir = "/tmp" ;
+		char *tmpdir = getenv("TMPDIR");
+		static char *default_tmp_dir = "/tmp" ;
 		int themedir_len ;
-        if( tmpdir != NULL )
-            if( CheckDir( tmpdir ) < 0 )
-                tmpdir = NULL ;
+		if( tmpdir != NULL )
+			if( CheckDir( tmpdir ) < 0 )
+				tmpdir = NULL ;
 
-        if( tmpdir == NULL )
-            tmpdir = default_tmp_dir ;
+		if( tmpdir == NULL )
+			tmpdir = default_tmp_dir ;
 		themedir_len = strlen(tmpdir)+11+32;
-        theme_dir = safemalloc (themedir_len+1);
-        sprintf (theme_dir, "%s/astheme.%d", tmpdir, (int)getuid() );
+		theme_dir = safemalloc (themedir_len+1);
+		sprintf (theme_dir, "%s/astheme.%d", tmpdir, (int)getuid() );
 		if( mkdir( theme_dir, 0700 ) == -1 )
 		{
 			if( errno != EEXIST  )
@@ -418,7 +418,7 @@ install_theme_file( const char *src )
 			}else
 			{
 				/* need to cleanup the dir */
- 				cleanup_dir( theme_dir );
+				cleanup_dir( theme_dir );
 			}
 		}
 		/* need to untar all the files into dir */

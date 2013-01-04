@@ -8,7 +8,7 @@ extern "C" {
 struct ASFont;
 typedef struct MyFont
   {
-    char *name;				/* name of the font */
+	char *name;				/* name of the font */
 	struct ASFont *as_font ;   	/* libAfterImage's font */
   }
 MyFont;

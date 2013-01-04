@@ -44,57 +44,57 @@ GrabEm (ScreenInfo *scr, Cursor cursor)
 {
 	int           i = 0;
 	unsigned int  mask;
-    int res ;
+	int res ;
 
 	XSync (dpy, 0);
-    if( get_flags(AfterStepState, ASS_HousekeepingMode) )  /* check if we already grabbed everything */
-    {
-        ++grabbed_depth ;
-        return True ;
-    }
-    set_flags(AfterStepState, ASS_HousekeepingMode);
-    grabbed_depth = 1 ;
+	if( get_flags(AfterStepState, ASS_HousekeepingMode) )  /* check if we already grabbed everything */
+	{
+		++grabbed_depth ;
+		return True ;
+	}
+	set_flags(AfterStepState, ASS_HousekeepingMode);
+	grabbed_depth = 1 ;
 	/* move the keyboard focus prior to grabbing the pointer to
 	 * eliminate the enterNotify and exitNotify events that go
 	 * to the windows */
 	grabbed_screen = scr ;
-    grabbed_screen_focus = scr->Windows->focused ;
-    /* must not do that : */
-    /* scr->Windows->active = scr->Windows->focused ; */
-    LOCAL_DEBUG_OUT( "grabbed_screen_focus is %p", grabbed_screen_focus );
-    hide_focus();
+	grabbed_screen_focus = scr->Windows->focused ;
+	/* must not do that : */
+	/* scr->Windows->active = scr->Windows->focused ; */
+	LOCAL_DEBUG_OUT( "grabbed_screen_focus is %p", grabbed_screen_focus );
+	hide_focus();
 
-    mask = ButtonPressMask | ButtonReleaseMask | ButtonMotionMask |
-           PointerMotionMask | EnterWindowMask | LeaveWindowMask ;
-    while ( (res = XGrabPointer (dpy, scr->Root, True, mask, GrabModeAsync,
-                                 GrabModeAsync, scr->Root, cursor,
-                                 CurrentTime)) != GrabSuccess )
+	mask = ButtonPressMask | ButtonReleaseMask | ButtonMotionMask |
+		   PointerMotionMask | EnterWindowMask | LeaveWindowMask ;
+	while ( (res = XGrabPointer (dpy, scr->Root, True, mask, GrabModeAsync,
+								 GrabModeAsync, scr->Root, cursor,
+								 CurrentTime)) != GrabSuccess )
 	{
-        if( i++ >= 1000 )
-        {
+		if( i++ >= 1000 )
+		{
 #define MAX_GRAB_ERROR 4
-            static char *_as_grab_error_code[MAX_GRAB_ERROR+1+1] =
-            {
-                "Grab Success",
-                "pointer is actively grabbed by some other client",
-                "the specified time is earlier than the last-pointer-grab time or later than the current X server time",
-                "window is not viewable or lies completely outside the boundaries of the root window",
-                "pointer is frozen by an active grab of another client",
-                "I'm totally messed up - restart me please"
-            };
-            char *error_text = _as_grab_error_code[MAX_GRAB_ERROR+1];
-            if( res <= MAX_GRAB_ERROR )
-                error_text = _as_grab_error_code[res];
+			static char *_as_grab_error_code[MAX_GRAB_ERROR+1+1] =
+			{
+				"Grab Success",
+				"pointer is actively grabbed by some other client",
+				"the specified time is earlier than the last-pointer-grab time or later than the current X server time",
+				"window is not viewable or lies completely outside the boundaries of the root window",
+				"pointer is frozen by an active grab of another client",
+				"I'm totally messed up - restart me please"
+			};
+			char *error_text = _as_grab_error_code[MAX_GRAB_ERROR+1];
+			if( res <= MAX_GRAB_ERROR )
+				error_text = _as_grab_error_code[res];
 
-            show_warning( "Failed to grab pointer for requested interactive operation.(X server says:\"%s\")", error_text );
-            clear_flags(AfterStepState, ASS_HousekeepingMode);
-            return False;
-        }
+			show_warning( "Failed to grab pointer for requested interactive operation.(X server says:\"%s\")", error_text );
+			clear_flags(AfterStepState, ASS_HousekeepingMode);
+			return False;
+		}
 		/* If you go too fast, other windows may not get a change to release
 		 * any grab that they have. */
-        sleep_a_millisec (500);
-        XSync (dpy, 0);
-    }
+		sleep_a_millisec (500);
+		XSync (dpy, 0);
+	}
 	return True;
 }
 
@@ -104,33 +104,33 @@ GrabEm (ScreenInfo *scr, Cursor cursor)
 void
 UngrabEm ()
 {
-    LOCAL_DEBUG_OUT( "grabbed_screen is %p, depth = %d, housekeeping? = %ld", grabbed_screen, grabbed_depth, get_flags(AfterStepState, ASS_HousekeepingMode) );
-    if( get_flags(AfterStepState, ASS_HousekeepingMode) && grabbed_screen )  /* check if we grabbed everything */
-    {
-        if( --grabbed_depth > 0 )
-            return;
-        XSync (dpy, 0);
-        XUngrabPointer (dpy, CurrentTime);
+	LOCAL_DEBUG_OUT( "grabbed_screen is %p, depth = %d, housekeeping? = %ld", grabbed_screen, grabbed_depth, get_flags(AfterStepState, ASS_HousekeepingMode) );
+	if( get_flags(AfterStepState, ASS_HousekeepingMode) && grabbed_screen )  /* check if we grabbed everything */
+	{
+		if( --grabbed_depth > 0 )
+			return;
+		XSync (dpy, 0);
+		XUngrabPointer (dpy, CurrentTime);
 
-	    clear_flags(AfterStepState, ASS_HousekeepingMode);
-        grabbed_depth = 0 ;
+		clear_flags(AfterStepState, ASS_HousekeepingMode);
+		grabbed_depth = 0 ;
 
-        if (grabbed_screen_focus != NULL)
-        {
-            LOCAL_DEBUG_OUT( "grabbed_screen_focus is %p, active is %p", grabbed_screen_focus, grabbed_screen->Windows->active );
-            focus_aswindow(grabbed_screen->Windows->active, FOCUS_ASW_DONT_AUTORAISE);
-            grabbed_screen_focus = NULL ;
-        }
-        XSync (dpy, 0);
+		if (grabbed_screen_focus != NULL)
+		{
+			LOCAL_DEBUG_OUT( "grabbed_screen_focus is %p, active is %p", grabbed_screen_focus, grabbed_screen->Windows->active );
+			focus_aswindow(grabbed_screen->Windows->active, FOCUS_ASW_DONT_AUTORAISE);
+			grabbed_screen_focus = NULL ;
+		}
+		XSync (dpy, 0);
 		grabbed_screen = NULL;
-    }
+	}
 }
 
 void
 CheckGrabbedFocusDestroyed(ASWindow *destroyed)
 {
-    if( grabbed_screen_focus == destroyed )
-        grabbed_screen_focus = NULL ;
+	if( grabbed_screen_focus == destroyed )
+		grabbed_screen_focus = NULL ;
 }
 
 
@@ -144,68 +144,68 @@ static ASWindow *warping_focus = NULL ;
 static void
 clear_warping_focus()
 {
-    if( warping_focus && warping_focus->magic == MAGIC_ASWINDOW )
-    {
-        int i ;
-        XSelectInput (dpy, warping_focus->frame, AS_FRAME_EVENT_MASK);
-        XSelectInput (dpy, warping_focus->w, AS_CLIENT_EVENT_MASK);
-        for( i =0 ; i < FRAME_SIDES ; ++i )
-            if( warping_focus->frame_sides[i] )
-                XSelectInput (dpy, warping_focus->frame_sides[i]->w, AS_CANVAS_EVENT_MASK);
-    }
-    warping_focus = NULL ;
+	if( warping_focus && warping_focus->magic == MAGIC_ASWINDOW )
+	{
+		int i ;
+		XSelectInput (dpy, warping_focus->frame, AS_FRAME_EVENT_MASK);
+		XSelectInput (dpy, warping_focus->w, AS_CLIENT_EVENT_MASK);
+		for( i =0 ; i < FRAME_SIDES ; ++i )
+			if( warping_focus->frame_sides[i] )
+				XSelectInput (dpy, warping_focus->frame_sides[i]->w, AS_CANVAS_EVENT_MASK);
+	}
+	warping_focus = NULL ;
 }
 
 static void
 set_warping_focus( ASWindow *focus )
 {
-    if( focus && focus->magic == MAGIC_ASWINDOW )
-    {
-        int i ;
-        XSelectInput (dpy, focus->frame, AS_FRAME_EVENT_MASK|(PointerMotionMask|KeyPressMask));
-        XSelectInput (dpy, focus->w, AS_CLIENT_EVENT_MASK|(PointerMotionMask|KeyPressMask));
-        for( i =0 ; i < FRAME_SIDES ; ++i )
-            if( focus->frame_sides[i] )
-                XSelectInput (dpy, focus->frame_sides[i]->w, AS_CANVAS_EVENT_MASK|(PointerMotionMask|KeyPressMask));
-    }
-    warping_focus = focus ;
+	if( focus && focus->magic == MAGIC_ASWINDOW )
+	{
+		int i ;
+		XSelectInput (dpy, focus->frame, AS_FRAME_EVENT_MASK|(PointerMotionMask|KeyPressMask));
+		XSelectInput (dpy, focus->w, AS_CLIENT_EVENT_MASK|(PointerMotionMask|KeyPressMask));
+		for( i =0 ; i < FRAME_SIDES ; ++i )
+			if( focus->frame_sides[i] )
+				XSelectInput (dpy, focus->frame_sides[i]->w, AS_CANVAS_EVENT_MASK|(PointerMotionMask|KeyPressMask));
+	}
+	warping_focus = focus ;
 }
 
 Bool
 StartWarping(ScreenInfo *scr)
 {
 LOCAL_DEBUG_CALLER_OUT( "SWSWSWSWSWSWSW: %p, %ld", warping_focus, get_flags(AfterStepState, ASS_WarpingMode) );
-    if( get_flags(AfterStepState, ASS_WarpingMode) )
-        return True ;
-    set_flags(AfterStepState, ASS_WarpingMode);
-    set_warping_focus( scr->Windows->focused );
-    return True;
+	if( get_flags(AfterStepState, ASS_WarpingMode) )
+		return True ;
+	set_flags(AfterStepState, ASS_WarpingMode);
+	set_warping_focus( scr->Windows->focused );
+	return True;
 }
 
 void
 ChangeWarpingFocus(ASWindow *new_focus)
 {
-    clear_warping_focus();
-    set_warping_focus( new_focus );
+	clear_warping_focus();
+	set_warping_focus( new_focus );
 }
 
 void
 CheckWarpingFocusDestroyed(ASWindow *destroyed)
 {
-    if( warping_focus == destroyed )
-        clear_warping_focus();
+	if( warping_focus == destroyed )
+		clear_warping_focus();
 }
 
 void
 EndWarping()
 {
 LOCAL_DEBUG_CALLER_OUT( "EWEWEWEWEWEWEW:%p, %ld", warping_focus, get_flags(AfterStepState, ASS_WarpingMode) );
-    if( get_flags(AfterStepState, ASS_WarpingMode) )
-    {
-        clear_warping_focus();
-        clear_flags(AfterStepState, ASS_WarpingMode);
-        commit_circulation();
-    }
+	if( get_flags(AfterStepState, ASS_WarpingMode) )
+	{
+		clear_warping_focus();
+		clear_flags(AfterStepState, ASS_WarpingMode);
+		commit_circulation();
+	}
 }
 
 /****************************************************************************
@@ -214,7 +214,7 @@ LOCAL_DEBUG_CALLER_OUT( "EWEWEWEWEWEWEW:%p, %ld", warping_focus, get_flags(After
 void
 PasteSelection (ScreenInfo *scr)
 {
-    if (scr->Windows->focused != NULL)
+	if (scr->Windows->focused != NULL)
 	{
 		int           length;
 		int           buffer = 0;
@@ -229,7 +229,7 @@ PasteSelection (ScreenInfo *scr)
 		{
 			int           i;
 			XEvent        event;
-            Window        w = scr->Windows->focused->w ;
+			Window        w = scr->Windows->focused->w ;
 
 			event.xkey.display = dpy;
 			event.xkey.window = w;

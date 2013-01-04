@@ -16,14 +16,14 @@ struct ASBalloon;
 struct ASBalloonState;
 
 typedef struct ASTBtnData{
-    struct ASImage *unpressed ;
-    struct ASImage *pressed ;
-    struct ASImage *current ;
-    unsigned short width, height ;
-    short x, y ;                               /* relative to the button block origin !*/
-    unsigned long context ;
-    struct ASBalloon *balloon ;
-    /* 24 bytes */
+	struct ASImage *unpressed ;
+	struct ASImage *pressed ;
+	struct ASImage *current ;
+	unsigned short width, height ;
+	short x, y ;                               /* relative to the button block origin !*/
+	unsigned long context ;
+	struct ASBalloon *balloon ;
+	/* 24 bytes */
 }ASTBtnData;
 
 #define TBTN_ORDER_L2R      0
@@ -35,13 +35,13 @@ typedef struct ASTBtnData{
 #define TBTN_ORDER_MASK     (TBTN_ORDER_VERTICAL|TBTN_ORDER_REVERSE)
 
 typedef struct ASBtnBlock {
-    ASTBtnData      *buttons;                  /* array of [count] structures */
-    unsigned int     buttons_num;
-    /* 8 bytes */
+	ASTBtnData      *buttons;                  /* array of [count] structures */
+	unsigned int     buttons_num;
+	/* 8 bytes */
 }ASBtnBlock;
 
 typedef struct ASLabel {
-    char            *text ;
+	char            *text ;
 	unsigned long    encoding ;                /* one of those AS_Text_ values */
 	struct ASImage  *rendered[2] ;
 	short			 h_padding, v_padding ;
@@ -49,7 +49,7 @@ typedef struct ASLabel {
 }ASLabel;
 
 typedef struct ASImageTile {
-    ASImage *im ;
+	ASImage *im ;
 	unsigned short slice_x_start, slice_x_end ;
 	unsigned short slice_y_start, slice_y_end ;
 	/* 12 bytes */
@@ -129,16 +129,16 @@ typedef struct ASTile {
 #define ASTileVFloating(t)      ((t).flags&(AS_TileVResize|AS_TileVPadMask))
 #define ASTileVPad(t)           ((t).flags&(AS_TileVPadMask))
 
-    ASFlagType flags;
-    short x, y;
-    short width, height;
+	ASFlagType flags;
+	short x, y;
+	short width, height;
 	union {
 		ASBtnBlock	 bblock;
-        ASImageTile  image ;
+		ASImageTile  image ;
 		ASLabel      label ;
-        unsigned long raw[4];
+		unsigned long raw[4];
 	}data;
-    /* 28 bytes */
+	/* 28 bytes */
 }ASTile;
 
 typedef struct ASTBarData {
@@ -162,33 +162,33 @@ typedef struct ASTBarData {
 #define BAR_FLAGS_CROP_FOCUSED_BACK     (0x01<<20)     /* crop background image in relation to canvas origin  */
 #define BAR_FLAGS_CROP_BACK  (BAR_FLAGS_CROP_FOCUSED_BACK|BAR_FLAGS_CROP_UNFOCUSED_BACK)
 
-    ASFlagType  state ;
-    unsigned long context ;
-    short win_x, win_y ;
-    short root_x, root_y;
-    /* 16 bytes */
-    short rendered_root_x, rendered_root_y;
-    unsigned short width, height ;
-    unsigned char left_bevel, top_bevel, right_bevel, bottom_bevel ;
-    /* 28 bytes */
-    /* this is what we make our background from :*/
-    struct MyStyle      *style[2] ;
-    /* this is the actuall generated background : */
-    struct ASImage      *back [2] ;
-    /* 44 bytes */
-    unsigned char h_border, v_border;
+	ASFlagType  state ;
+	unsigned long context ;
+	short win_x, win_y ;
+	short root_x, root_y;
+	/* 16 bytes */
+	short rendered_root_x, rendered_root_y;
+	unsigned short width, height ;
+	unsigned char left_bevel, top_bevel, right_bevel, bottom_bevel ;
+	/* 28 bytes */
+	/* this is what we make our background from :*/
+	struct MyStyle      *style[2] ;
+	/* this is the actuall generated background : */
+	struct ASImage      *back [2] ;
+	/* 44 bytes */
+	unsigned char h_border, v_border;
 	unsigned char h_spacing, v_spacing;
-    /* 48 bytes */
+	/* 48 bytes */
 	ASTile *tiles;
-    struct ASBalloon *balloon;
-    /* 56 bytes */
+	struct ASBalloon *balloon;
+	/* 56 bytes */
 	unsigned short tiles_num ;
-    /* 58 bytes */
-    unsigned char composition_method[2] ;         /* focused/unfocused may have different composition methods */
-    unsigned char hilite[2] ;
-    /* 62 bytes */
+	/* 58 bytes */
+	unsigned char composition_method[2] ;         /* focused/unfocused may have different composition methods */
+	unsigned char hilite[2] ;
+	/* 62 bytes */
 	short hue[2], sat[2] ;
-    /* 70 bytes */
+	/* 70 bytes */
 }ASTBarData ;
 
 ASTBtnData *create_astbtn();
@@ -218,8 +218,8 @@ int make_tile_pad( Bool pad_before, Bool pad_after, int cell_size, int tile_size
 
 int add_astbar_spacer( ASTBarData *tbar, unsigned char col, unsigned char row, int flip, int align, unsigned short width, unsigned short height);
 int add_astbar_btnblock( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align,
-                         struct button_t **from_list, ASFlagType context_mask, unsigned int count,
-                         int left_margin, int top_margin, int spacing, int order);
+						 struct button_t **from_list, ASFlagType context_mask, unsigned int count,
+						 int left_margin, int top_margin, int spacing, int order);
 int add_astbar_icon( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, struct ASImage *icon);
 int add_astbar_image( ASTBarData * tbar, unsigned char col, unsigned char row, int flip, int align, ASImage *im, 
 				  unsigned short slice_x_start, unsigned short slice_x_end,

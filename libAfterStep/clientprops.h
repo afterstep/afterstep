@@ -17,16 +17,16 @@ struct AtomXref;
 
 typedef enum
 {
-    HINTS_ICCCM = 0,
-    HINTS_GroupLead,
+	HINTS_ICCCM = 0,
+	HINTS_GroupLead,
 	HINTS_Transient,
 	HINTS_Motif,
-    HINTS_Gnome,
+	HINTS_Gnome,
 	HINTS_KDE,
-    HINTS_ExtendedWM,
-    HINTS_XResources,
-    HINTS_ASDatabase,
-    HINTS_Supported
+	HINTS_ExtendedWM,
+	HINTS_XResources,
+	HINTS_ASDatabase,
+	HINTS_Supported
 }HintsTypes;
 
 #if 0
@@ -121,7 +121,7 @@ typedef enum
 #define AS_LayerMenu             10000  /* our menu  - can't go wrong with that */
 
 #define ASHINTS_STATIC_DATA 	 28     /* number of elements below that are not */
-                                        /* dynamic arrays */
+										/* dynamic arrays */
 
 #endif
 /************************************************************************/
@@ -189,26 +189,26 @@ extern Atom _XA_AS_MOVERESIZE;
 extern struct AtomXref      *EXTWM_State;
 
 #define IsNameProp(a) \
-        ((a) == XA_WM_NAME ||  \
-         (a) == XA_WM_ICON_NAME || \
-         (a) == XA_WM_CLASS ||  \
-         (a) == _XA_NET_WM_NAME || \
-         (a) == _XA_NET_WM_ICON_NAME || \
-         (a) == _XA_NET_WM_VISIBLE_NAME || \
-         (a) == _XA_NET_WM_VISIBLE_ICON_NAME )
+		((a) == XA_WM_NAME ||  \
+		 (a) == XA_WM_ICON_NAME || \
+		 (a) == XA_WM_CLASS ||  \
+		 (a) == _XA_NET_WM_NAME || \
+		 (a) == _XA_NET_WM_ICON_NAME || \
+		 (a) == _XA_NET_WM_VISIBLE_NAME || \
+		 (a) == _XA_NET_WM_VISIBLE_ICON_NAME )
 
 /* must not track state properties, since we manage it ourselves !! */
 #define NeedToTrackPropChanges(a) \
    (((a)== XA_WM_HINTS  )|| \
-    ((a)== XA_WM_NORMAL_HINTS  )|| \
-    ((a)== XA_WM_TRANSIENT_FOR  )|| \
-    ((a)== XA_WM_COMMAND  )|| \
-    ((a)== XA_WM_CLIENT_MACHINE  )|| \
-    ((a)== _XA_WM_PROTOCOLS  )|| \
-    ((a)== _XA_WM_COLORMAP_WINDOWS  )|| \
-    ((a)== _XA_MwmAtom  )|| \
-    ((a)== _XA_WIN_HINTS  )|| \
-    ((a)== _XA_NET_WM_WINDOW_TYPE  ))
+	((a)== XA_WM_NORMAL_HINTS  )|| \
+	((a)== XA_WM_TRANSIENT_FOR  )|| \
+	((a)== XA_WM_COMMAND  )|| \
+	((a)== XA_WM_CLIENT_MACHINE  )|| \
+	((a)== _XA_WM_PROTOCOLS  )|| \
+	((a)== _XA_WM_COLORMAP_WINDOWS  )|| \
+	((a)== _XA_MwmAtom  )|| \
+	((a)== _XA_WIN_HINTS  )|| \
+	((a)== _XA_NET_WM_WINDOW_TYPE  ))
 
 /* Crossreferences of atoms into flag value for
    different atom list type of properties :*/
@@ -229,13 +229,13 @@ no need to redefine it.
 This are placed By Client :
  WM_NAME                 TEXT
  WM_CLASS   		 XClassHint
-    res_class
-    res_name
+	res_class
+	res_name
  WM_ICON_NAME            TEXT
  WM_CLIENT_MACHINE       TEXT
 
  WM_HINTS                XWMHints   	32
-    flags 	         CARD32
+	flags 	         CARD32
 	USPosition
 	USSize
 	PPosition
@@ -246,15 +246,15 @@ This are placed By Client :
 	PAspect
 	PBaseSize
 	PWinGravity
-    pad 	         4*CARD32
-    max_width            INT32
-    max_height           INT32
-    width_inc 	         INT32
-    height_inc           INT32
-    max_aspect           (INT32,INT32)
-    base_width           INT32
-    base_height          INT32
-    win_gravity
+	pad 	         4*CARD32
+	max_width            INT32
+	max_height           INT32
+	width_inc 	         INT32
+	height_inc           INT32
+	max_aspect           (INT32,INT32)
+	base_width           INT32
+	base_height          INT32
+	win_gravity
 	NorthWest
 	North
 	NorthEast
@@ -267,7 +267,7 @@ This are placed By Client :
 	Static
 
  WM_NORMAL_HINTS         XSizeHints 	32
-    flags 	         CARD32
+	flags 	         CARD32
 	InputHint
 	StateHint
 	IconPixmapHint
@@ -277,40 +277,40 @@ This are placed By Client :
 	WindowGroupHint
 	MessageHint       (this bit is obsolete)
 	UrgencyHint
-    input 	         CARD32
+	input 	         CARD32
 	False - if Globally Active and No Input
 	True  - Passive and Locally Active
-    initial_state        CARD32
+	initial_state        CARD32
 	WithdrawnState   0
 	NormalState      1
 	IconicState      3
-    icon_pixmap          PIXMAP
-    icon_window          WINDOW
-    icon_mask            PIXMAP
+	icon_pixmap          PIXMAP
+	icon_window          WINDOW
+	icon_mask            PIXMAP
   Ignored :
-    icon_x 		 INT32
-    icon_y 	         INT32
+	icon_x 		 INT32
+	icon_y 	         INT32
 
  WM_PROTOCOLS            ATOM 		32 (list of atoms)
-    WM_TAKE_FOCUS
-    WM_DELETE_WINDOW
+	WM_TAKE_FOCUS
+	WM_DELETE_WINDOW
 
  WM_TRANSIENT_FOR        WINDOW         32
  WM_COLORMAP_WINDOWS     WINDOW     	32 (List of windows)
 
 This are placed By Window Manager :
  WM_STATE                WM_STATE       32
-    state		 CARD32
+	state		 CARD32
 	WithdrawnState   0
 	NormalState      1
 	IconicState      3
-    icon 		 WINDOW
+	icon 		 WINDOW
 
  WM_ICON_SIZE            XIconSize
-    max_width            CARD32
-    max_height           CARD32
-    width_inc            CARD32
-    height_inc           CARD32
+	max_width            CARD32
+	max_height           CARD32
+	width_inc            CARD32
+	height_inc           CARD32
 */
 
 #ifndef 	UrgencyHint
@@ -376,13 +376,13 @@ typedef struct MwmHints
 /************************************************************************/
 
 /*
-    Client hints include :
-    _WIN_LAYER
-    _WIN_STATE
-    _WIN_WORKSPACE
-    _WIN_HINTS
-    Unsupported :
-    _WIN_EXPANDED_SIZE
+	Client hints include :
+	_WIN_LAYER
+	_WIN_STATE
+	_WIN_WORKSPACE
+	_WIN_HINTS
+	Unsupported :
+	_WIN_EXPANDED_SIZE
 */
 
 /*_WIN_LAYER is also a CARDINAL that is the stacking layer the application wishes to exist in.
@@ -439,17 +439,17 @@ GnomeHints;
 /************************************************************************/
 /*
   Client window properties :
-    _NET_WM_NAME		UTF-8
-    _NET_WM_VISIBLE_NAME_STRING UTF-8
-    _NET_WM_DESKTOP		CARDINAL	32
-    _NET_WM_WINDOW_TYPE		list of Atoms :
+	_NET_WM_NAME		UTF-8
+	_NET_WM_VISIBLE_NAME_STRING UTF-8
+	_NET_WM_DESKTOP		CARDINAL	32
+	_NET_WM_WINDOW_TYPE		list of Atoms :
 	_NET_WM_WINDOW_TYPE_DESKTOP
 	_NET_WM_WINDOW_TYPE_DOCK
 	_NET_WM_WINDOW_TYPE_TOOLBAR
 	_NET_WM_WINDOW_TYPE_MENU
 	_NET_WM_WINDOW_TYPE_DIALOG
 	_NET_WM_WINDOW_TYPE_NORMAL
-    _NET_WM_STATE		list of Atoms :
+	_NET_WM_STATE		list of Atoms :
 	_NET_WM_STATE_MODAL
 	_NET_WM_STATE_STICKY
 	_NET_WM_STATE_MAXIMIZED_VERT
@@ -457,17 +457,17 @@ GnomeHints;
 	_NET_WM_STATE_SHADED
 	_NET_WM_STATE_SKIP_TASKBAR
 
-    _NET_WM_PID
+	_NET_WM_PID
 
  Unsupported :
-    _NET_WM_STRUT
-    _NET_WM_HANDLED_ICONS
-    _NET_WM_ICON_GEOMETRY
-    _NET_WM_ICON
+	_NET_WM_STRUT
+	_NET_WM_HANDLED_ICONS
+	_NET_WM_ICON_GEOMETRY
+	_NET_WM_ICON
 
  Protocols :
-    _NET_WM_PING
- 	_NET_WM_ICON
+	_NET_WM_PING
+	_NET_WM_ICON
 
 */
 
@@ -503,7 +503,7 @@ typedef struct ExtendedWMHints
 #define EXTWM_TypeSplash        (0x01<<7)
 #define EXTWM_TypeASModule      (0x01<<8)
 #define EXTWM_TypeEverything    (EXTWM_TypeDesktop|EXTWM_TypeDock|EXTWM_TypeToolbar| \
-                                 EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal| \
+								 EXTWM_TypeMenu|EXTWM_TypeDialog|EXTWM_TypeNormal| \
 								 EXTWM_TypeUtility|EXTWM_TypeSplash|EXTWM_TypeASModule)
 
   ASFlagType type_flags;
@@ -521,8 +521,8 @@ typedef struct ExtendedWMHints
 #define EXTWM_StateBelow	 	(0x01<<26)
 #define EXTWM_StateDemandsAttention	(0x01<<27)
 #define EXTWM_StateEverything   (EXTWM_StateModal|EXTWM_StateSticky|EXTWM_StateMaximizedV| \
-                                 EXTWM_StateMaximizedH|EXTWM_StateShaded| \
-                                 EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager | \
+								 EXTWM_StateMaximizedH|EXTWM_StateShaded| \
+								 EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager | \
 								 EXTWM_StateHidden|EXTWM_StateFullscreen| \
 								 EXTWM_StateAbove|EXTWM_StateBelow|EXTWM_StateDemandsAttention)
 
@@ -558,7 +558,7 @@ typedef struct ASParentHints
    * to us. For eaxmple window which we are transient for, or leader of the group
    */
 	Window  parent ;
-    ASFlagType flags ;
+	ASFlagType flags ;
 	int 	desktop ;
 	int viewport_x, viewport_y ;
 
@@ -666,7 +666,7 @@ void set_extwm_hints( Window w, ExtendedWMHints *extwm_hints );
 void set_gnome_hints( Window w, GnomeHints *gnome_hints );
 
 void set_client_hints( Window w, XWMHints *hints, XSizeHints *size_hints, ASFlagType protocols,
-				  	   ExtendedWMHints *extwm_hints );
+					   ExtendedWMHints *extwm_hints );
 void set_client_cmd (Window w);
 
 

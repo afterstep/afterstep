@@ -36,7 +36,7 @@ RECURSIVE_TARGETS = all libs install install.bin install.lib install.man install
 
 all: AfterStep.desktop.final
 libs: AfterStep.desktop.final
-install: install.alternative install.desktop install.wmprops mkdir
+install: install.wmprops install.desktop mkdir
 install.bin: mkdir.bin
 install.lib: mkdir.lib
 install.man: mkdir.man
@@ -63,6 +63,27 @@ indent-local:
 
 deps-local:
 	@for I in ${subdirs}; do if [ -d $$I ]; then touch $$I/.depend || exit 1; fi; done
+
+install.wmprops:
+	@if [ -d $(SHAREDIR)/gnome/wm-properties ] ; then \
+        if [ -w $(SHAREDIR)/gnome/wm-properties ] ; then \
+        echo $(CP) AfterStep.desktop $(SHAREDIR)/gnome/wm-properties/; \
+        $(CP) AfterStep.desktop $(SHAREDIR)/gnome/wm-properties/; \
+        else \
+        echo "$(SHAREDIR)/gnome/wm-properties exists but is not writable."; \
+        echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
+        fi \
+        fi
+	@if [ -d $(GNOME_SHAREDIR)/wm-properties ] ; then \
+        if [ -w $(GNOME_SHAREDIR)/wm-properties ] ; then \
+         echo $(CP) AfterStep.desktop $(GNOME_SHAREDESTDIR)/wm-properties/; \
+         $(MKDIR) -p $(GNOME_SHAREDESTDIR)/wm-properties; \
+         $(CP) AfterStep.desktop $(GNOME_SHAREDESTDIR)/wm-properties/; \
+        else \
+        echo "$(GNOME_SHAREDIR)/wm-properties exists but is not writable."; \
+        echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
+        fi \
+        fi
 
 $(RECURSIVE_TARGETS):
 	@fail= failcom='exit 1'; \
@@ -99,12 +120,6 @@ mkdir.share:
 
 module.clean:
 
-install.alternative:
-	@if update-alternatives --version > /dev/null 2>&1 ; then       \
-                update-alternatives --install /etc/alternatives/x-window-manager x-window-manager $(AFTER_BIN_DIR)/afterstep 100; \
-                echo "added AfterStep as an x-window-manager alternative"; \
-        fi
-
 install.desktop: AfterStep.desktop.final mkdir.share
 	@if [ -d $(SYSCONFDIR)/X11/sessions ] && [ -w $(SYSCONFDIR)/X11/sessions ] ; then \
                 echo "installing AfterStep.desktop $(SYSCONFDIR)/X11/xsessions/" ; \
@@ -123,26 +138,6 @@ install.desktop: AfterStep.desktop.final mkdir.share
                 $(INSTALL_DATA)  AfterStep.desktop.final $(SHAREDIR)/xsessions/AfterStep.desktop ; \
         fi; fi; fi
 
-install.wmprops:
-	@if [ -d $(SHAREDIR)/gnome/wm-properties ] ; then \
-        if [ -w $(SHAREDIR)/gnome/wm-properties ] ; then \
-        echo $(CP) AfterStep.desktop $(SHAREDIR)/gnome/wm-properties/; \
-        $(CP) AfterStep.desktop $(SHAREDIR)/gnome/wm-properties/; \
-        else \
-        echo "$(SHAREDIR)/gnome/wm-properties exists but is not writable."; \
-        echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
-        fi \
-        fi
-	@if [ -d $(GNOME_SHAREDIR)/wm-properties ] ; then \
-        if [ -w $(GNOME_SHAREDIR)/wm-properties ] ; then \
-         echo $(CP) AfterStep.desktop $(GNOME_SHAREDESTDIR)/wm-properties/; \
-         $(MKDIR) -p $(GNOME_SHAREDESTDIR)/wm-properties; \
-         $(CP) AfterStep.desktop $(GNOME_SHAREDESTDIR)/wm-properties/; \
-        else \
-        echo "$(GNOME_SHAREDIR)/wm-properties exists but is not writable."; \
-        echo "If you want AfterStep to appear in your Gnome menu, please install as root."; \
-        fi \
-        fi
 
 install.share:
 	@cd afterstep && ${MAKE} install

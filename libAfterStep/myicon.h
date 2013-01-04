@@ -11,12 +11,12 @@ struct ASVisual;
 
 typedef struct icon_t
   {
-    struct ASImage *image;		/* ASImage of pix, to reduce XGetImage() calls */
-    Pixmap pix;			/* icon pixmap */
-    Pixmap mask;		/* icon mask */
-    Pixmap alpha;		/* icon 8-bit alpha channel pixmap */
-    int width;			/* icon width */
-    int height;			/* icon height */
+	struct ASImage *image;		/* ASImage of pix, to reduce XGetImage() calls */
+	Pixmap pix;			/* icon pixmap */
+	Pixmap mask;		/* icon mask */
+	Pixmap alpha;		/* icon 8-bit alpha channel pixmap */
+	int width;			/* icon width */
+	int height;			/* icon height */
 	Atom im_name ;
   }
 icon_t;
@@ -26,22 +26,22 @@ typedef icon_t MyIcon;
 typedef enum {
 	ASB_State_Up = 0,
 	ASB_State_Down,
-    ASB_StateCount
+	ASB_StateCount
 }ASButtonStates ;
 
 typedef struct ASButton
 {
-    ASButtonStates     state;
-    char              *shapes[ASB_StateCount];    /* icons to draw when button is any of the states */
+	ASButtonStates     state;
+	char              *shapes[ASB_StateCount];    /* icons to draw when button is any of the states */
 }ASButton;
 
 typedef struct button_t
 {
-    MyIcon unpressed;		/* icon to draw when button is not pressed */
-    MyIcon pressed;		    /* icon to draw when button is pressed */
+	MyIcon unpressed;		/* icon to draw when button is not pressed */
+	MyIcon pressed;		    /* icon to draw when button is pressed */
 /*    Bool is_pressed;         is the button pressed? */
 	unsigned int width, height ;
-    int context ;
+	int context ;
 }button_t;
 
 typedef button_t MyButton ;

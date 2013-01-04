@@ -33,15 +33,15 @@
 void 
 KIPC_sendMessage(KIPC_Message msg, Window w, int data)
 {
-    XEvent ev;
-    ev.xclient.type = ClientMessage;
-    ev.xclient.display = dpy;
-    ev.xclient.window = w;
-    ev.xclient.message_type = _KIPC_COMM_ATOM;
-    ev.xclient.format = 32;
-    ev.xclient.data.l[0] = msg;
-    ev.xclient.data.l[1] = data;
-    XSendEvent(dpy, w, False, 0L, &ev);
+	XEvent ev;
+	ev.xclient.type = ClientMessage;
+	ev.xclient.display = dpy;
+	ev.xclient.window = w;
+	ev.xclient.message_type = _KIPC_COMM_ATOM;
+	ev.xclient.format = 32;
+	ev.xclient.data.l[0] = msg;
+	ev.xclient.data.l[1] = data;
+	XSendEvent(dpy, w, False, 0L, &ev);
 }
 
 #define KDE_CONFIG_MAKE_TAG2(var,kind) 	do{  	(var)=xml_elem_new(); \
@@ -114,7 +114,7 @@ xml_elem_t* load_KDE_config(const char* realfilename)
 			if( buffer[i] == '#' )
 			{
 				++i;
- 				if( (tag = make_kde_config_comment_tag()) != NULL )
+				if( (tag = make_kde_config_comment_tag()) != NULL )
 				{	
 					int len = strlen( &buffer[i] ) ;
 					while( len > 0 && isspace( buffer[i+len-1] ) ) --len ;
@@ -133,7 +133,7 @@ xml_elem_t* load_KDE_config(const char* realfilename)
 			}else if( buffer[i] == '[' ) 
 			{
 				++i;
-			 	if( (tag = make_kde_config_group_tag(&buffer[i])) != NULL )
+				if( (tag = make_kde_config_group_tag(&buffer[i])) != NULL )
 				{	
 					if( group ) 
 						group->next = tag ; 
@@ -222,13 +222,13 @@ Bool save_KDE_config(const char* realfilename, xml_elem_t *elem )
 			{
 				if( child->tag_id == KDEConfig_comment ) 
 				{
-			  		if( IsTagCDATA(child->child) )
+					if( IsTagCDATA(child->child) )
 						fprintf( fp, "#%s\n", child->child->parm );
 					else
 						fprintf( fp, "#\n" );
 				}else if( child->tag_id == KDEConfig_item ) 
 				{
-			  		name = strip_name_value( child->parm );
+					name = strip_name_value( child->parm );
 					if( name != NULL ) 
 					{
 						fprintf( fp, "%s=", name );	  
@@ -250,8 +250,8 @@ Bool save_KDE_config(const char* realfilename, xml_elem_t *elem )
 static xml_elem_t *
 find_KDE_config_item_by_key( xml_elem_t *group, const char *key, Bool create_if_missing )
 {	
- 	xml_elem_t *item = group->child;			   
- 	while( item ) 
+	xml_elem_t *item = group->child;			   
+	while( item ) 
 	{
 		if( item->tag_id == KDEConfig_item && item->parm) 
 			if( strcmp(item->parm, key) == 0 )

@@ -49,8 +49,8 @@ static DBusHandlerResult asdbus_handle_message (DBusConnection *, DBusMessage *,
 
 static DBusObjectPathVTable ASDBusMessagesVTable = 
 {
-    NULL, asdbus_handle_message, /* handler function */
-    NULL, NULL, NULL, NULL
+	NULL, asdbus_handle_message, /* handler function */
+	NULL, NULL, NULL, NULL
 };
 
 /******************************************************************************/
@@ -63,7 +63,7 @@ asdbus_handle_message (DBusConnection *conn, DBusMessage *msg, void *data)
 	
 	
 	
-    return handled ? DBUS_HANDLER_RESULT_HANDLED : DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+	return handled ? DBUS_HANDLER_RESULT_HANDLED : DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
 }
 
@@ -75,7 +75,7 @@ int asdbus_init() /* return connection unix fd */
 	DBusError error;
 	int res;
 
-    dbus_error_init (&error);
+	dbus_error_init (&error);
 
 	if (!ASDBus.session_conn)
 	{
@@ -94,12 +94,12 @@ int asdbus_init() /* return connection unix fd */
 			{
 				show_error ("Failed to request name from DBus: %s", error.message);
 			}else if (res != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
-		    {
+			{
 				show_error ("Failed to request name from DBus - not a primary owner.");
 			}else
 			{
 				dbus_connection_set_exit_on_disconnect (session_conn, FALSE);
-			    dbus_connection_register_object_path (session_conn,
+				dbus_connection_register_object_path (session_conn,
 													  AFTERSTEP_DBUS_ROOT_PATH, 
 													  &ASDBusMessagesVTable, 0);
 				ASDBus.session_conn = session_conn;
@@ -119,7 +119,7 @@ void asdbus_shutdown()
 {
 	if (ASDBus.session_conn)
 	{
-	    dbus_bus_release_name (ASDBus.session_conn, AFTERSTEP_DBUS_SERVICE_NAME, NULL);
+		dbus_bus_release_name (ASDBus.session_conn, AFTERSTEP_DBUS_SERVICE_NAME, NULL);
 		dbus_shutdown ();
 	}
 }
@@ -128,10 +128,10 @@ void
 asdbus_process_messages ()
 {
 	if (ASDBus.session_conn)
-	    do
-    	{
+		do
+		{
 			dbus_connection_read_write_dispatch (ASDBus.session_conn, 0);
-	    }while (dbus_connection_get_dispatch_status (ASDBus.session_conn) 
+		}while (dbus_connection_get_dispatch_status (ASDBus.session_conn) 
 				== DBUS_DISPATCH_DATA_REMAINS);
 }
 
@@ -198,9 +198,9 @@ void asdbus_RegisterSMClient(const char *sm_client_id)
 			char *client_id = NULL;
 			dbus_uint32_t msg_serial;
 			dbus_message_append_args(message,
-                                      DBUS_TYPE_STRING, &app_id,
-                                      DBUS_TYPE_STRING, &sm_client_id,
-                                      DBUS_TYPE_INVALID
+									  DBUS_TYPE_STRING, &app_id,
+									  DBUS_TYPE_STRING, &sm_client_id,
+									  DBUS_TYPE_INVALID
 									  // ,DBUS_TYPE_OBJECT_PATH, &client_id,DBUS_TYPE_INVALID
 									  );
 			dbus_message_set_no_reply (message, TRUE);

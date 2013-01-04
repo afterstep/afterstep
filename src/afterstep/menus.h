@@ -19,18 +19,18 @@ typedef struct ASMenuItem
 #define AS_MenuItemLast         (0x01<<2)
 #define AS_MenuItemSubitem      (0x01<<3)
 #define AS_MenuItemHasSubmenu   (0x01<<4)
-    ASFlagType flags;
-    struct ASTBarData *bar;
-    struct ASImage    *icon;
-    struct FunctionData fdata;
+	ASFlagType flags;
+	struct ASTBarData *bar;
+	struct ASImage    *icon;
+	struct FunctionData fdata;
 	char first_sym ;
-    /* we don't really use this one except to set up last use time when item is selected :*/
-    struct MenuDataItem *source ;
+	/* we don't really use this one except to set up last use time when item is selected :*/
+	struct MenuDataItem *source ;
 }ASMenuItem;
 
 typedef struct ASMenu
 {
-    unsigned long magic ;
+	unsigned long magic ;
 
 #define AS_MenuRendered		(0x01<<0)
 #define AS_MenuFocused		(0x01<<1)
@@ -39,31 +39,31 @@ typedef struct ASMenu
 #define AS_MenuNameIsUTF8	(0x01<<4)
 #define AS_MenuTitleIsUTF8	(0x01<<5)
 	ASFlagType state ; 
-    char  *name ;                              /* the name of the popup */
-    char  *title ;                             /* text of the first F_TITLE item */
-    struct ASCanvas *main_canvas;
+	char  *name ;                              /* the name of the popup */
+	char  *title ;                             /* text of the first F_TITLE item */
+	struct ASCanvas *main_canvas;
 
-    unsigned int items_num ;
-    ASMenuItem   *items ;
+	unsigned int items_num ;
+	ASMenuItem   *items ;
 
-    unsigned int item_width, item_height ;
-    unsigned int top_item;
-    int selected_item ;                        /* if -1 - then none is selected */
-    int pressed_item ;                         /* if -1 - then none is pressed */
-    struct ASMenu *supermenu;                  /* upper level menu */
-    struct ASMenu *submenu;                    /* lower level menu */
+	unsigned int item_width, item_height ;
+	unsigned int top_item;
+	int selected_item ;                        /* if -1 - then none is selected */
+	int pressed_item ;                         /* if -1 - then none is pressed */
+	struct ASMenu *supermenu;                  /* upper level menu */
+	struct ASMenu *submenu;                    /* lower level menu */
 
-    unsigned int visible_items_num ;
+	unsigned int visible_items_num ;
 
-    unsigned int optimal_width, optimal_height;
-    unsigned int icon_space, arrow_space ;
+	unsigned int optimal_width, optimal_height;
+	unsigned int icon_space, arrow_space ;
 	unsigned int scroll_bar_size ;
 
-    struct ASWindow *owner;
+	struct ASWindow *owner;
 
 	struct ASTBarData *scroll_up_bar, *scroll_down_bar;
 
-    Window client_window;
+	Window client_window;
 
 	ASBalloon *comment_balloon ;
 	ASBalloon *item_balloon ;

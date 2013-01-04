@@ -81,7 +81,7 @@ make_color_scheme_hsv( ARGB32 argb, int *phue, int *psat, int *pval )
 		ARGB32_GREEN16(argb) == ARGB32_BLUE16(argb) )
 	{
 		if( phue )
-		  	*phue = -1;
+			*phue = -1;
 		if( psat )
 			*psat = -1;
 	}else
@@ -89,7 +89,7 @@ make_color_scheme_hsv( ARGB32 argb, int *phue, int *psat, int *pval )
 		if( phue )
 			*phue = hue162degrees( hue16 );
 		if( psat )
-		  	*psat = val162percent( sat16 );
+			*psat = val162percent( sat16 );
 	}
 	if( pval )
 		*pval = val162percent( val16 );
@@ -150,7 +150,7 @@ static inline ARGB32 MAKE_ARGB32_SHADE100(CARD32 a,int s100)
 {
 	CARD32 s8 = percent2val16(s100)>>8;
 	LOCAL_DEBUG_OUT( "s100=%d, s8 = %4.4lX", s100, s8 );
-    return MAKE_ARGB32_GREY8(a,s8);
+	return MAKE_ARGB32_GREY8(a,s8);
 }
 
 inline void
@@ -394,17 +394,17 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	LOCAL_DEBUG_OUT( "sat16 = %ld(0x%lX), sat = %d", sat16, sat16, sat );
 	val = val162percent(val16);
 	base_hue = hue162degrees(hue16);
-    base_sat = sat ; 
-    base_val = val ; 
+	base_sat = sat ; 
+	base_val = val ; 
 #ifndef DONT_CLAMP_BASE_COLOR
-    if( base_sat < ASCS_MIN_PRIMARY_SATURATION )
-        base_sat = ASCS_MIN_PRIMARY_SATURATION;
-    if( base_val < ASCS_MIN_PRIMARY_BRIGHTNESS ) 
-        base_val = ASCS_MIN_PRIMARY_BRIGHTNESS ;
-    else if( base_val  > ASCS_MAX_PRIMARY_BRIGHTNESS ) 
-        base_val = ASCS_MAX_PRIMARY_BRIGHTNESS ;
+	if( base_sat < ASCS_MIN_PRIMARY_SATURATION )
+		base_sat = ASCS_MIN_PRIMARY_SATURATION;
+	if( base_val < ASCS_MIN_PRIMARY_BRIGHTNESS ) 
+		base_val = ASCS_MIN_PRIMARY_BRIGHTNESS ;
+	else if( base_val  > ASCS_MAX_PRIMARY_BRIGHTNESS ) 
+		base_val = ASCS_MAX_PRIMARY_BRIGHTNESS ;
 #endif    
-    make_color_scheme_argb( cs, ASMC_Base, base_alpha16, base_hue, base_sat, base_val ) ;
+	make_color_scheme_argb( cs, ASMC_Base, base_alpha16, base_hue, base_sat, base_val ) ;
 
 	inactive1_hue = normalize_degrees_val(base_hue + angle) ;
 	if( inactive1_hue > ASCS_MIN_COLD_HUE && inactive1_hue < ASCS_MAX_COLD_HUE &&
@@ -503,7 +503,7 @@ make_ascolor_scheme( ARGB32 base, int angle )
 	pointer_hue = normalize_degrees_val((base_hue>120 && base_hue < 340)? base_hue-90:base_hue+90);
 	active_light = (active_text_val <= ASCS_BLACKING_BRIGHTNESS_LEVEL);
 	if( is_light_hsv(base_hue, base_sat, base_val) && !active_light )
-	    pointer_val = 20 ;
+		pointer_val = 20 ;
 	else if( active_light )
 		pointer_val = 95 ;
 	else
@@ -513,7 +513,7 @@ make_ascolor_scheme( ARGB32 base, int angle )
 
 	make_color_scheme_argb( cs, ASMC_HighInactive, base_alpha16, inactive1_hue, inactive1_sat, inactive1_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
 	make_color_scheme_argb( cs, ASMC_HighActive, base_alpha16, active_hue, active_sat, active_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
-    make_color_scheme_argb( cs, ASMC_HighInactiveBack, base_alpha16, base_hue, base_sat, base_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
+	make_color_scheme_argb( cs, ASMC_HighInactiveBack, base_alpha16, base_hue, base_sat, base_val + ASCS_HIGH_BRIGHTNESS_OFFSET);
 	make_color_scheme_argb( cs, ASMC_HighActiveBack, base_alpha16, active_hue, active_sat, active_val - ASCS_HIGH_BRIGHTNESS_OFFSET);
 	/* active hue */
 	high_inactive_text_sat = base_sat ;

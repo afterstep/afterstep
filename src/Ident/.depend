@@ -15,4 +15,5 @@
 		../../libAfterStep/balloon.h \
 		../../libAfterStep/event.h \
 		../../libAfterStep/session.h \
+		../../libAfterStep/desktop_category.h \
 		../../libAfterConf/afterconf.h

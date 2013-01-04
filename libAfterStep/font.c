@@ -78,7 +78,7 @@ load_font (const char *name_in, MyFont * font)
 	if( clean_name && clean_name != name )
 		free( clean_name );
 
-    if ( font->as_font != NULL && name != font->name )
+	if ( font->as_font != NULL && name != font->name )
 		set_string(&(font->name), mystrdup(name));
 
 	return (font->as_font != NULL);
