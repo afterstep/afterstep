@@ -416,7 +416,7 @@ free_aslabel( ASTile* tile )
 	for (i = 0; i < BAR_STATE_NUM; ++i)
 	{
 		if (lbl->rendered[i])
-			destroy_asimage (&(lbl->rendered[i]));
+			safe_asimage_destroy (lbl->rendered[i]);
 		lbl->rendered[i] = NULL ;
 	}
 	if( lbl->text )
@@ -434,8 +434,10 @@ aslabel_style_changed(  ASTile* tile, MyStyle *style, unsigned int state )
 	register int i ;
 	ASImage *im;
 	int flip = ASTileFlip(*tile);
-	if (lbl->rendered[state] != NULL)
-		destroy_asimage( &(lbl->rendered[state]) );
+	if (lbl->rendered[state] != NULL) {
+		safe_asimage_destroy (lbl->rendered[state]);
+		lbl->rendered[state] = NULL;
+	}
 
 	im = mystyle_draw_text_image (style, lbl->text, lbl->encoding);
 LOCAL_DEBUG_OUT( "state(%d)->style(\"%s\")->text(\"%s\")->image(%p)->flip(%d)", state, style?style->name:"none", lbl->text, im, flip );
@@ -1724,13 +1726,13 @@ LOCAL_DEBUG_OUT("back-try2(%p)", back );
 						0,
 						fmt,
 						0, ASIMAGE_QUALITY_DEFAULT );
-			destroy_asimage( &tmp_im );
+			destroy_asimage (&tmp_im);
 		}
 	}else	 
 		merged_im = merge_layers (ASDefaultVisual, &layers[0], good_layers, tbar->width, tbar->height, fmt, 0, ASIMAGE_QUALITY_DEFAULT);
 	for( l = 0 ; l < good_layers ; ++l )
 		if( scrap_images[l] )
-			destroy_asimage( &(scrap_images[l]) );
+			safe_asimage_destroy (scrap_images[l]);
 	free( scrap_images );
 	free( layers );
 

@@ -1449,6 +1449,7 @@ int spawn_download (const char *url, const char* cachedFileName)
 	char *wget_cmdl = safemalloc (sizeof(WGET_CMDL_HEADER)+cacheFNLen+4+1+2+1+cacheFNLen+1+strlen(url)+1);
 	int res;
 	sprintf (wget_cmdl, WGET_CMDL_HEADER "%s.log -O %s %s", cachedFileName, cachedFileName, url);
+	LOCAL_DEBUG_OUT ("spawning \"%s\"", wget_cmdl);
 	res = spawn_child( wget_cmdl, -1, -1, NULL, None, C_NO_CONTEXT, True, False, NULL );
 	free (wget_cmdl);
 	return res;

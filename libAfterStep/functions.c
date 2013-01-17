@@ -856,7 +856,7 @@ load_menuitem_pmap (MenuDataItem *mdi, MinipixmapTypes type, Bool force)
 			h = asxml_var_get(ASXMLVAR_MenuFontSize)+8;				
 		else if( get_flags( mdi->flags, MD_ScaleMinipixmapUp ) )
 			h = asxml_var_get(ASXMLVAR_MinipixmapHeight) ; 
-		LOCAL_DEBUG_OUT( "minipixmap target height = %d for \"%s\"", h, minipixmap[type].filename);
+		LOCAL_DEBUG_OUT( "minipixmap target height = %d for \"%s\"", h, minipixmap->filename);
 
 		if (func == F_CHANGE_BACKGROUND || func == F_CHANGE_BACKGROUND_FOREIGN) {
 			Bool use_thumbnail = True;
@@ -882,10 +882,7 @@ load_menuitem_pmap (MenuDataItem *mdi, MinipixmapTypes type, Bool force)
 		 } else
 			minipixmap->image = load_environment_icon ("apps", filename, h);
 
-		if (minipixmap->image == NULL ) 
-		{	
-			LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  filename, minipixmap->image );
-		}
+		LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  filename, minipixmap->image );
 	}
 }
 

@@ -856,15 +856,15 @@ menu_item_balloon_timer_handler (void *data)
 			balloon_set_text (menu->item_balloon, item->source->comment, encoding);
 		}else if( item->fdata.func == F_CHANGE_BACKGROUND_FOREIGN || 
 				  		item->fdata.func == F_CHANGE_BACKGROUND ) 		{
-			LOCAL_DEBUG_OUT( "change background func = \"%s\"", item->fdata.text );
 			
 			load_menuitem_pmap (item->source, MINIPIXMAP_Preview, True);
+			LOCAL_DEBUG_OUT( "change background func = \"%s\", preview = %p", item->fdata.text, item->source->minipixmap[MINIPIXMAP_Preview].image);
 			if (item->source->minipixmap[MINIPIXMAP_Preview].image == NULL) {
 				if (is_web_background (&(item->fdata)) && item->source->minipixmap[MINIPIXMAP_Preview].loadCount == 1)
 					timer_new (500, &menu_item_balloon_timer_handler, (void *)menu); /* give it another chance */
 				return;
 			}
-			balloon_set_image (menu->item_balloon, item->source->minipixmap[MINIPIXMAP_Preview].image);
+			balloon_set_image (menu->item_balloon, dup_asimage(item->source->minipixmap[MINIPIXMAP_Preview].image));
 		}
 		display_balloon_nodelay (menu->item_balloon);	
 	}

@@ -390,24 +390,34 @@ add_menuitem_from_file( FILE *fp2, char *buf, dirtree_t *t, Bool show_unavailabl
 	char *name = NULL ;
 	FunctionData *fdata = NULL ;
 	FunctionData *valid_func = NULL ; 
-	FunctionData *minipixmap = NULL ;
+	FunctionData *minipixmap[MINIPIXMAP_TypesNum] = {NULL} ;
+	MinipixmapTypes mini_type;
+	
 	if( fp2 == NULL ) 
 		return 0;
 	/* try to load a command */
 LOCAL_DEBUG_OUT( "fp2=%p, buf=%p, t=%p", fp2, buf, t);
 
-	while( fgets (buf, MAXLINELENGTH, fp2) != NULL)
-	{
+	while( fgets (buf, MAXLINELENGTH, fp2) != NULL) {
 		int parse_err ; 
+
 		++lines_read;
 LOCAL_DEBUG_OUT( "%s", buf );
 		if( fdata == NULL ) 
 			fdata = create_named_function(F_EXEC, NULL);
 		parse_err = parse_func (buf, fdata, True);
-		if ( parse_err > FUNC_ERR_START && parse_err < 0 ) /* data is actuall shell command line */
+		
+		mini_type = GetMinipixmapType (fdata->func);
+LOCAL_DEBUG_OUT ("func = %d, mini_type = %d, name = \"%s\", text = \"%s\"", fdata->func, mini_type, fdata->name, fdata->text); 
+		if (IsMinipixmap(mini_type) && fdata->name == NULL && fdata->text != NULL) {
+			fdata->name = fdata->text;
+			fdata->text = NULL;
+		}
+		
+		if (parse_err > FUNC_ERR_START && parse_err < 0) /* data is actuall shell command line */
 			fdata->text = stripcpy (buf);
 			
-		if( fdata->name == NULL )
+		if (fdata->name == NULL)
 			fdata->name = mystrdup( t->stripped_name );
 		
 		if( fdata->func == F_POPUP && fdata->text == NULL ) 
@@ -418,57 +428,55 @@ LOCAL_DEBUG_OUT( "%s", buf );
 		if( !available )
 			fdata->func = F_NOP;
 #endif					
-		if( IsMinipixmapFunc(fdata->func) )
-		{
-			if( minipixmap == NULL ) 
-			{
-				minipixmap = fdata ;
+		if (IsMinipixmap(mini_type)) {
+			if( minipixmap[mini_type] == NULL ) {
+				minipixmap[mini_type] = fdata ;
 				fdata = NULL ; 
 			}
-		}else if( fdata->func != F_NOP ) 
-		{
-			if( valid_func == NULL ) 
-			{
+		}else if( fdata->func != F_NOP ) {
+			if( valid_func == NULL ) {
 				valid_func = fdata ; 
 				fdata = NULL ; 
 			}					
 		}
 
-		if( fdata ) 
-		{
-			if( name == NULL && fdata->name != NULL ) 
-			{
+		if( fdata ) {
+			if( name == NULL && fdata->name != NULL ) {
 				name = fdata->name ;
 				fdata->name = NULL ;
 			}
 			destroy_func_data( &fdata );
 		}
 	}
-	if( available || show_unavailable)
-	{	
+	if( available || show_unavailable)	{	
+		Bool icon_added = False;
+		
 		if( valid_func  ) 
 			menu_data_item_from_func (menu, valid_func, False);
-		else
-		{
+		else		{
 			fdata = create_named_function(F_NOP, name?name:t->stripped_name);
 			fdata->text = mystrdup (t->name);
 			menu_data_item_from_func (menu, fdata, False);
 		}
-		if( minipixmap ) 
-			menu_data_item_from_func (menu, minipixmap, False);
-		else if( t->icon != NULL )
-		{
+		
+		for (mini_type = 0 ; mini_type < MINIPIXMAP_TypesNum ; ++mini_type)
+			if (minipixmap[mini_type]) {
+				menu_data_item_from_func (menu, minipixmap[mini_type], False);
+				icon_added = (mini_type == MINIPIXMAP_Icon);
+			}
+		
+		if (!icon_added && t->icon != NULL) {
 			fdata = create_named_function(F_MINIPIXMAP, t->icon);
 			menu_data_item_from_func (menu, fdata, False);
 		}
-	}else
-	{
+	}else	{
 		if( valid_func )
 			destroy_func_data(&valid_func);
-		if( minipixmap )
-			destroy_func_data(&minipixmap);
+		for (mini_type = 0 ; mini_type < MINIPIXMAP_TypesNum ; ++mini_type)
+			if (minipixmap[mini_type])
+				destroy_func_data(&minipixmap[mini_type]);
 	}
-	if( name ) 
+	if (name) 
 		free( name );
 	return lines_read ;
 }

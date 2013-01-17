@@ -339,6 +339,14 @@ TitleButtonBalloonDelay		200
 TitleButtonBalloonCloseDelay	2000
 TitleButtonBalloonStyle 	"TitleButtonBalloon"
 
+MenuBalloons
+MenuBalloonBorderHilite	Right,Bottom
+MenuBalloonXOffset	100
+MenuBalloonYOffset	-50
+MenuBalloonDelay		2000
+MenuBalloonCloseDelay	10000
+MenuBalloonStyle 	"menu_hilite_style"
+
 
 ###################################################################
 # Also lets define colors for the cursor ( from selected colorscheme ) :

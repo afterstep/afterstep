@@ -163,6 +163,7 @@ typedef enum {
 } MinipixmapTypes;
 
 #define GetMinipixmapType(f) (((f) >= F_MINIPIXMAP && (f) <= F_LARGE_MINIPIXMAP)? 0 : ((f)==F_Preview) ? 1 : 2)
+#define IsMinipixmap(t)  ((t)< MINIPIXMAP_TypesNum)
 
 
 #define IsWindowFunc(f)  ((f)>F_WINDOW_FUNC_START&&(f)<F_MODULE_FUNC_START)
@@ -171,7 +172,7 @@ typedef enum {
 #define IsValidFunc(f)   ((f)>=0&&(f)<F_FUNCTIONS_NUM)
 #define IsSwallowFunc(f) ((f)>=F_SWALLOW_FUNC_START&&(f)<F_SWALLOW_FUNC_END)
 #define IsExecFunc(f)    ((f)>= F_EXEC && (f)< F_KILLMODULEBYNAME)
-#define IsMinipixmapFunc(f)  (GetMinipixmapType(f)< MINIPIXMAP_TypesNum)
+#define IsMinipixmapFunc(f)  (IsMinipixmap(GetMinipixmapType(f)))
 
 #ifndef NO_WINDOWLIST
 #define IsDynamicPopup(f)	((f) >= F_WINDOWLIST     && (f) <= F_RESTARTMODULELIST)
