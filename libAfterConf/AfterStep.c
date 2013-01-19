@@ -956,6 +956,9 @@ parse_asmodule_config_all(ASModuleConfigClass *class )
 	config = parse_asmodule_look(class, config );
 	config = parse_asmodule_feel(class, config );
 	config = parse_asmodule_private_config(class, config );
+	
+	if (config == NULL)
+		config = create_ASModule_config(class);
 
 	return config;
 }
