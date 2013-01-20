@@ -270,6 +270,21 @@ MyStyle "WinListUrgentBar"
   TextStyle     0
   BackMultiGradient  8 HighInactiveBackDark 0.0 alpha(80,BaseLight) 0.3 alpha(80,BaseLight) 0.7 HighInactiveBackDark
   ~MyStyle
+#----------ASMount MyStyles---------#
+
+MyStyle "*ASMountMounted"
+   	Font 	       DefaultSansBold.ttf-9
+		ForeColor      white
+   	BackColor      Inactive2
+		BackMultiGradient   6 #10222222 0.0 alpha(80,Inactive2) 0.3 alpha(30,Inactive2Light) 0.5 alpha(20,Active) 0.8 alpha(20,ActiveLight) 1.0
+ ~MyStyle
+
+MyStyle "*ASMountUnmounted"
+   	Font 	       DefaultSans.ttf-9
+		ForeColor      white
+   	BackColor      Inactive1
+		BackMultiGradient   6 #10222222 0.0 alpha(80,Inactive1) 0.3 alpha(20,Inactive1Light) 0.5 alpha(20,Active) 0.8 alpha(20,ActiveLight) 1.0
+ ~MyStyle
 
 #----------aterm MyStyles---------#
 

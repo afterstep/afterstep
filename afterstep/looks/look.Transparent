@@ -222,6 +222,18 @@ MyStyle "*WinListBalloon"
 ~MyStyle
 
 
+#----------ASMount MyStyles---------#
+
+MyStyle "*ASMountMounted"
+		Inherit      "sticky_window_style"
+   	Font 	       DefaultSansBold.ttf-9
+ ~MyStyle
+
+MyStyle "*ASMountUnmounted"
+		Inherit      "unfocused_window_style"
+   	Font 	       DefaultSans.ttf-9
+ ~MyStyle
+
 MyStyle "*aterm"
 	ForeColor      InactiveText2
 	BackColor      Inactive2

@@ -1,0 +1,31 @@
+*ASMountDefaults
+	TileSize  			64x64
+	
+	# MyStyles to be used - feel free to override :
+	# if none of the above is available then defaults MyStyles are used instead : 
+	# Defaults are :   "*ASMountMounted" "*ASMountUnmounted*
+	# if not then "sticky_window_style" "unfocused_window_style" 
+	# last choice "default"
+	#MountedStyle  		"MountedStyle_name"
+	#UnmountedStyle  	"UnmountedStyle_name"
+
+	# Balloons
+	Balloons
+	BalloonDelay 500
+	BalloonCloseDelay 4000
+	BalloonYOffset 10
+	BalloonXOffset 10
+	BalloonStyle		"*WinListBalloon"
+	BalloonBorderHilite	Right,Bottom
+
+	# following determines what info to show in balloons : 
+	ShowHints		1
+~Defaults
+
+*ASMountShowHints		1
+*ASMountBevel       Bottom,Right,NoOutline,Extra
+#*ASMountAlign           Left,Right,Bottom,Top
+# Titlebar parameters from the look will be used, or you can override it :
+#*WinListSpacing	 1
+
+

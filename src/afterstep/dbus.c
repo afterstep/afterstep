@@ -213,6 +213,145 @@ void asdbus_RegisterSMClient(const char *sm_client_id)
 #endif
 }
 
+void asdbus_Notify(const char *summary, const char *body, int timeout)
+{
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn)	{
+		DBusMessage *message = dbus_message_new_method_call("org.freedesktop.Notifications", 
+							  "/org/freedesktop/Notifications", 
+							  "org.freedesktop.Notifications", 
+							  "Notify" );
+		if (message)		{
+			const char *app_id = "AfterStep Window Manager" ;
+			dbus_uint32_t replace_id = 0;
+			const char *icon = "";
+			const char *actions[] = {"",""};
+			const char *hints[] = {"",""};
+			
+			dbus_uint32_t msg_serial;
+			dbus_message_append_args(message,
+									  DBUS_TYPE_STRING, &app_id,
+										DBUS_TYPE_UINT32, &replace_id, 
+										DBUS_TYPE_STRING, &icon,
+									  DBUS_TYPE_STRING, &summary,
+									  DBUS_TYPE_STRING, &body,
+									  DBUS_TYPE_INVALID
+									  );
+										
+#if 0
+dbus_message_append_args(msg,
+                            DBUS_TYPE_STRING, &(n->app_name),
+                            DBUS_TYPE_UINT32, &(n->replaces_id),
+                            DBUS_TYPE_STRING, &(n->app_icon),
+                            DBUS_TYPE_STRING, &(n->summary),
+                            DBUS_TYPE_STRING, &(n->body),
+                            DBUS_TYPE_INVALID
+                            );
+
+   dbus_message_iter_init_append(msg, &iter);
+   if (dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "s", &sub))
+     {
+        if (n->actions)
+          {
+             E_Notification_Action *action;
+             EINA_LIST_FOREACH (n->actions, l, action)
+               {
+                  dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &(action->id));
+                  dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &(action->name));
+               }
+          }
+        dbus_message_iter_close_container(&iter, &sub);
+     }
+   else
+     {
+        ERR("dbus_message_iter_open_container() failed");
+     }
+
+   /* hints */
+   if (dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub))
+     {
+        if (n->hints.urgency) /* we only need to send this if its non-zero*/
+          e_notify_marshal_dict_byte(&sub, "urgency", n->hints.urgency);
+        if (n->hints.category)
+          e_notify_marshal_dict_string(&sub, "category", n->hints.category);
+        if (n->hints.desktop)
+          e_notify_marshal_dict_string(&sub, "desktop_entry", n->hints.desktop);
+        if (n->hints.image_data)
+          e_notify_marshal_dict_variant(&sub, "image-data", "(iiibiiay)", E_DBUS_VARIANT_MARSHALLER(e_notify_marshal_hint_image), n->hints.image_data);
+        if (n->hints.sound_file)
+          e_notify_marshal_dict_string(&sub, "sound-file", n->hints.sound_file);
+        if (n->hints.suppress_sound) /* we only need to send this if its true */
+          e_notify_marshal_dict_byte(&sub, "suppress-sound", n->hints.suppress_sound);
+        if (n->hints.x > -1 && n->hints.y > -1)
+          {
+             e_notify_marshal_dict_int(&sub, "x", n->hints.x);
+             e_notify_marshal_dict_int(&sub, "y", n->hints.y);
+          }
+        dbus_message_iter_close_container(&iter, &sub);
+     }
+   else
+     {
+        ERR("dbus_message_iter_open_container() failed");
+     }
+   dbus_message_iter_append_basic(&iter, DBUS_TYPE_INT32, &(n->expire_timeout));
+////////////////
+// From google :
+dbus_message_iter_init_append(msg,&iter);
+        dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&application);
+        dbus_message_iter_append_basic(&iter,DBUS_TYPE_UINT32,&msgid);
+        dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&appicon);
+        dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&summary);
+        dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&body);
+        dbus_message_iter_open_container(&iter,DBUS_TYPE_ARRAY,DBUS_TYPE_STRING_AS_STRING,&array);
+        dbus_message_iter_close_container(&iter,&array);
+        dbus_message_iter_open_container(&iter,DBUS_TYPE_ARRAY,"{sv}",&array);
+        if (image && image->getData()) {
+          const FXchar * icon_data="icon_data"; /// spec 0.9 says "image_data". some use "icon_data" though..
+
+          idata     = (const FXchar*)image->getData();
+          ialpha    = true;
+          iw        = image->getWidth();
+          ih        = image->getHeight();
+          is        = iw*4;
+          ibps      = 8;
+          ichannels = 4;
+          isize     = iw*ih*4;
+
+          dbus_message_iter_open_container(&array,DBUS_TYPE_DICT_ENTRY,0,&dict);
+            dbus_message_iter_append_basic(&dict,DBUS_TYPE_STRING,&icon_data);
+            dbus_message_iter_open_container(&dict,DBUS_TYPE_VARIANT,"(iiibiiay)",&variant);
+              dbus_message_iter_open_container(&variant,DBUS_TYPE_STRUCT,NULL,&value);
+                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&iw);
+                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&ih);
+                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&is);
+                dbus_message_iter_append_basic(&value,DBUS_TYPE_BOOLEAN,&ialpha);
+                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&ibps);
+                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&ichannels);
+                dbus_message_iter_open_container(&value,DBUS_TYPE_ARRAY,DBUS_TYPE_BYTE_AS_STRING,&data);
+                  dbus_message_iter_append_fixed_array(&data,DBUS_TYPE_BYTE,&idata,isize);
+                dbus_message_iter_close_container(&value,&data);
+              dbus_message_iter_close_container(&variant,&value);
+            dbus_message_iter_close_container(&dict,&variant);
+          dbus_message_iter_close_container(&array,&dict);
+          }
+        dbus_message_iter_close_container(&iter,&array);
+        dbus_message_iter_append_basic(&iter,DBUS_TYPE_INT32,&timeout);
+
+      send(msg,this,ID_NOTIFY_REPLY);
+
+#endif 										
+										
+										
+			dbus_message_set_no_reply (message, TRUE);
+			
+			dbus_connection_send (ASDBus.session_conn, message, &msg_serial);
+			dbus_message_unref (message);
+		}
+	}
+#endif
+}
+
+
 /*****************************************************************************/
 /*****************************************************************************/
 /*****************************************************************************/

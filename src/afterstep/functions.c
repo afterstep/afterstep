@@ -1538,6 +1538,7 @@ webBackgroundDownloadHandler (void *data)
 			show_warning ("Failed to download \"%s\", see \"%s.log\" for details", wb->url, wb->cachedName);
 			return; /* download failed */
 		}
+		asdbus_Notify("Image download complete", wb->url, -1);
 	}
 
 	if (downloadComplete) {
@@ -1567,8 +1568,10 @@ void change_back_foreign_func_handler( FunctionData *data, ASEvent *event, int m
 
 		if (CheckFile (cachedFileName) == 0)
 			change_background_internal (&(webBackgroundDownloadAuxData.fdata), True );			
-		else if ((webBackgroundDownloadAuxData.pid = spawn_download (data->text, cachedFileName)) != 0)
+		else if ((webBackgroundDownloadAuxData.pid = spawn_download (webBackgroundDownloadAuxData.url, cachedFileName)) != 0) {
+			asdbus_Notify("Image download started", webBackgroundDownloadAuxData.url, -1);
 			timer_new (300, &webBackgroundDownloadHandler, (void *)&webBackgroundDownloadAuxData);
+		}
 	}else
 		change_background_internal( data, True );
 }	 

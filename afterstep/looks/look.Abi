@@ -254,6 +254,23 @@ MyStyle "WinListUrgent"
   BackGradient  2  HighActiveBackDark HighActiveBackLight
   ~MyStyle
 
+  
+#----------ASMount MyStyles---------#
+
+MyStyle "*ASMountMounted"
+   	Font 	       DefaultSansBold.ttf-9
+		ForeColor      white
+   	BackColor      Inactive2
+		BackMultiGradient   6 #ff222222 0.0 Inactive2 0.3 Inactive2Light 0.5 Active 0.8 ActiveLight 1.0
+ ~MyStyle
+
+MyStyle "*ASMountUnmounted"
+   	Font 	       DefaultSans.ttf-9
+		ForeColor      white
+   	BackColor      Inactive1
+		BackMultiGradient   6 #ff222222 0.0 Inactive1 0.3 Inactive1Light 0.5 Active 0.8 ActiveLight 1.0
+ ~MyStyle
+
 #----------aterm MyStyles---------#
 
 MyStyle "*aterm"
