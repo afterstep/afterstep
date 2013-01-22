@@ -1,0 +1,20 @@
+Popup "Digital Blasphemy"
+	BackgroundForeign "Reverie" http://digitalblasphemy.com/graphics/free/1680/reverie1680.jpg
+	Preview "http://digitalblasphemy.com/graphics/widethumbs/reverie1920_xthumb.jpg"
+	BackgroundForeign "Last Light of the Sun" http://digitalblasphemy.com/graphics/free/1680/lastlight1680.jpg
+	Preview "http://digitalblasphemy.com/graphics/widethumbs/lastlight1920_xthumb.jpg"
+	BackgroundForeign "Fluorescence" http://digitalblasphemy.com/graphics/free/1680/fluorescence61680.jpg
+	Preview "http://digitalblasphemy.com/graphics/widethumbs/fluorescence61920_xthumb.jpg"
+	BackgroundForeign "Circumpolar" http://digitalblasphemy.com/graphics/free/1680/circumpolar1680.jpg
+	Preview "http://digitalblasphemy.com/graphics/widethumbs/circumpolar1920_xthumb.jpg"
+	BackgroundForeign "Moonshadow" http://digitalblasphemy.com/graphics/free/1680/moonshadow11680.jpg
+	Preview "http://digitalblasphemy.com/graphics/widethumbs/moonshadow11920_xthumb.jpg"
+	BackgroundForeign "Canopy Creek" http://digitalblasphemy.com/graphics/free/1680/canopycreekautumn21680.jpg
+	Preview "http://digitalblasphemy.com/graphics/widethumbs/canopycreekautumn21920_xthumb.jpg"
+	BackgroundForeign "Tears From Heaven (Autumn)" http://digitalblasphemy.com/graphics/free/1680/tears31680.jpg
+	Preview "http://digitalblasphemy.com/graphics/widethumbs/tears31920_xthumb.jpg"
+	BackgroundForeign "Gotham Garden (Winter)" http://digitalblasphemy.com/graphics/free/1680/gothamgarden2k10winter11680.jpg
+	Preview "http://digitalblasphemy.com/graphics/widethumbs/gothamgarden2k10winter11920_xthumb.jpg"
+	BackgroundForeign "The Gardener" http://digitalblasphemy.com/graphics/free/1680/gardener2k1211680.jpg
+	Preview "http://digitalblasphemy.com/graphics/widethumbs/gardener2k1211920_xthumb.jpg"
+EndPopup

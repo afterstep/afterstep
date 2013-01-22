@@ -1,0 +1,4 @@
+Popup "Vladstudio.com"
+	BackgroundForeign "Planet Earth - Inversed" http://files.vladstudio.com/joy/worldinversed/wall/vladstudio_worldinversed_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/worldinversed/wall/vladstudio_worldinversed_480x320.jpg"
+EndPopup
