@@ -25,7 +25,6 @@
 *ASMountShowHints		1
 *ASMountBevel       Bottom,Right,NoOutline,Extra
 #*ASMountAlign           Left,Right,Bottom,Top
-# Titlebar parameters from the look will be used, or you can override it :
-#*WinListSpacing	 1
+#*ASMountVertical		1
 
 

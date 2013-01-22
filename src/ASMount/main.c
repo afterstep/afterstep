@@ -1333,7 +1333,7 @@ void redecorateVolumes() {
 	ASVolumeCanvasPlacement placement;
 	int width, height;
 	
-	placement.vertical = False;
+	placement.vertical = get_flags(Config->flags, ASMOUNT_Vertical);
 	placement.tileWidth = DEFAULT_TILE_WIDTH;
 	placement.tileHeight = DEFAULT_TILE_HEIGHT;
   placement.currPos = 0;
