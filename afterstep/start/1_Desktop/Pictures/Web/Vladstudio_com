@@ -1,4 +1,48 @@
 Popup "Vladstudio.com"
 	BackgroundForeign "Planet Earth - Inversed" http://files.vladstudio.com/joy/worldinversed/wall/vladstudio_worldinversed_1920x1440_signed.jpg
 	Preview "http://files.vladstudio.com/joy/worldinversed/wall/vladstudio_worldinversed_480x320.jpg"
+	BackgroundForeign "How Internet Works" http://files.vladstudio.com/joy/how_internet_works/wall/vladstudio_how_internet_works_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/how_internet_works/wall/vladstudio_how_internet_works_480x320.jpg"
+	BackgroundForeign "Dawn" http://files.vladstudio.com/joy/dawn/wall/vladstudio_dawn_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/dawn/wall/vladstudio_dawn_480x320.jpg"
+	BackgroundForeign "Motion" http://files.vladstudio.com/joy/motion/wall/vladstudio_motion_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/motion/wall/vladstudio_motion_480x320.jpg"
+	BackgroundForeign "In This World" http://files.vladstudio.com/joy/inthisworld/wall/vladstudio_inthisworld_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/inthisworld/wall/vladstudio_inthisworld_480x320.jpg"
+	BackgroundForeign "Google Library" http://files.vladstudio.com/joy/googlelibrary/wall/vladstudio_googlelibrary_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/googlelibrary/wall/vladstudio_googlelibrary_480x320.jpg"
+	BackgroundForeign "Skiing" http://files.vladstudio.com/joy/skiing/wall/vladstudio_skiing_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/skiing/wall/vladstudio_skiing_480x320.jpg"
+	BackgroundForeign "Rainbows" http://files.vladstudio.com/joy/rainbows/wall/vladstudio_rainbows_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/rainbows/wall/vladstudio_rainbows_480x320.jpg"
+	BackgroundForeign "Where Snowflakes are Born" http://files.vladstudio.com/joy/where_snowflakes_are_born/wall/vladstudio_where_snowflakes_are_born_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/where_snowflakes_are_born/wall/vladstudio_where_snowflakes_are_born_480x320.jpg"
+	BackgroundForeign "Cant Sleep" http://files.vladstudio.com/joy/cantsleep/wall/vladstudio_cantsleep_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/cantsleep/wall/vladstudio_cantsleep_480x320.jpg"
+	BackgroundForeign "Above the Clouds" http://files.vladstudio.com/joy/abovetheclouds/wall/vladstudio_abovetheclouds_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/abovetheclouds/wall/vladstudio_abovetheclouds_480x320.jpg"
+	BackgroundForeign "Infinity Blue" http://files.vladstudio.com/joy/infinity_1_blue/wall/vladstudio_infinity_1_blue_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/infinity_1_blue/wall/vladstudio_infinity_1_blue_480x320.jpg"
+	BackgroundForeign "Frog" http://files.vladstudio.com/joy/frog/wall/vladstudio_frog_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/frog/wall/vladstudio_frog_480x320.jpg"
+	BackgroundForeign "Fire Dragon" http://files.vladstudio.com/joy/firedragon/wall/vladstudio_firedragon_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/firedragon/wall/vladstudio_firedragon_480x320.jpg"
+	BackgroundForeign "Diving" http://files.vladstudio.com/joy/diving/wall/vladstudio_diving_1920x1440_signed.jpg
+	Preview "http://files.vladstudio.com/joy/diving/wall/vladstudio_diving_480x320.jpg"
+	BackgroundForeign "Snow Leopard" http://files.vladstudio.com/joy/snow_leopard/wall/vladstudio_snow_leopard_1920x1440.jpg 
+	Preview "http://files.vladstudio.com/joy/snow_leopard/wall/vladstudio_snow_leopard_480x320.jpg"
+	BackgroundForeign "Solar System" http://files.vladstudio.com/joy/solarsystem/wall/vladstudio_solarsystem_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/solarsystem/wall/vladstudio_solarsystem_480x320.jpg"
+	BackgroundForeign "Lights" http://files.vladstudio.com/joy/christmas_lights/wall/vladstudio_christmas_lights_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/christmas_lights/wall/vladstudio_christmas_lights_480x320.jpg"
+	BackgroundForeign "Gear Wheel" http://files.vladstudio.com/joy/gear_wheel/wall/vladstudio_gear_wheel_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/gear_wheel/wall/vladstudio_gear_wheel_480x320.jpg"
+	BackgroundForeign "The Village of Musicians" http://files.vladstudio.com/joy/village/wall/vladstudio_village_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/village/wall/vladstudio_village_480x320.jpg"
+	BackgroundForeign "All is Full of Ladybugs" http://files.vladstudio.com/joy/allisfullofladybugs/wall/vladstudio_allisfullofladybugs_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/allisfullofladybugs/wall/vladstudio_allisfullofladybugs_480x320.jpg"
+	BackgroundForeign "Lightnings" http://files.vladstudio.com/joy/lightnings/wall/vladstudio_lightnings_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/lightnings/wall/vladstudio_lightnings_480x320.jpg"
+	BackgroundForeign "Air Lines" http://files.vladstudio.com/joy/airlines2/wall/vladstudio_airlines2_1920x1440_signed.jpg 
+	Preview "http://files.vladstudio.com/joy/airlines2/wall/vladstudio_airlines2_480x320.jpg"
 EndPopup
