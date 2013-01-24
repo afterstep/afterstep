@@ -3,22 +3,13 @@ SessionManaged=true
 
 [Desktop Entry]
 Name=AfterStep
-Terminal=False
 Type=Application
 Comment=AfterStep is feature rich NeXTish window manager.
-# name of loadable control center module
-# X-GNOME-WMSettingsModule=
 # name we put on the WM spec check window
 X-GNOME-WMName=AfterStep
 # back compat only 
-#X-GnomeWMSettingsLibrary=
-#X-GNOME-Bugzilla-Bugzilla=
-#X-GNOME-Bugzilla-Product=
-#X-GNOME-Bugzilla-Component=
 X-GNOME-Autostart-Phase=WindowManager
 X-GNOME-Provides=windowmanager
 X-GNOME-Autostart-Notify=true
 X-Ubuntu-Gettext-Domain=gnome-session-3.0
-
-TryExec=afterstep
 

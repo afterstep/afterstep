@@ -13,6 +13,10 @@ no_gtk_app_dirs =
 glib_app_dirs    = src/ASMount
 no_glib_app_dirs =
 
+desktop_subdirs = $(SYSSHAREDIR)/applications $(SHAREDIR)/applications
+session_subdirs = $(SYSCONFDIR)/X11/sessions $(SYSSHAREDIR)/xsessions $(SHAREDIR)/xsessions
+gnome_session_subdirs = $(SYSSHAREDIR)/gnome-session/sessions $(SHAREDIR)/gnome-session/sessions
+
 subdirs         = libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTKDIR@ \
                   src/afterstep \
                   src/Animate \
@@ -34,8 +38,8 @@ subdirs         = libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTK
 
 RECURSIVE_TARGETS = all libs install install.bin install.lib install.man install.script uninstall clean distclean indent deps
 
-all: AfterStep.desktop.final
-libs: AfterStep.desktop.final
+all: AfterStep.desktop.final AfterStep.desktop.session
+libs: AfterStep.desktop.final AfterStep.desktop.session
 install: install.wmprops install.desktop mkdir
 install.bin: mkdir.bin
 install.lib: mkdir.lib
@@ -47,7 +51,7 @@ indent: indent-local
 deps: deps-local
 
 clean-local:
-	$(RMF) AfterStep.desktop.final
+	$(RMF) AfterStep.desktop.final AfterStep.desktop.session
 
 distclean-local:
 	$(RMF) config.cache config.log config.status Makefile.bak Makefile config.h configure.h *.o *~ *% *.bak \#* core
@@ -100,8 +104,18 @@ $(RECURSIVE_TARGETS):
 
 AfterStep.desktop.final:
 	@$(CP) AfterStep.desktop AfterStep.desktop.final; \
-        echo "Exec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.final ; \
-        echo "Icon=$(AFTER_SHAREDIR)/desktop/icons/large/AfterStep3" >> AfterStep.desktop.final
+		echo "NoDisplay=true" >> AfterStep.desktop.final ; \
+		echo "Exec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.final ; \
+		echo "TryExec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.final ; \
+		echo "Icon=$(AFTER_SHAREDIR)/desktop/icons/large/AfterStep3" >> AfterStep.desktop.final
+
+AfterStep.desktop.session:
+	@if test "x$(AFTER_EXEC_COMMAND)" != "x"; then \
+			$(CP) AfterStep.desktop AfterStep.desktop.session; \
+			echo "Exec=$(AFTER_EXEC_COMMAND)" >> AfterStep.desktop.session ; \
+			echo "TryExec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.session ; \
+		fi;
+        
 
 mkdir:  mkdir.bin mkdir.lib mkdir.man mkdir.share
 
@@ -120,23 +134,27 @@ mkdir.share:
 
 module.clean:
 
-install.desktop: AfterStep.desktop.final mkdir.share
-	@if [ -d $(SYSCONFDIR)/X11/sessions ] && [ -w $(SYSCONFDIR)/X11/sessions ] ; then \
-                echo "installing AfterStep.desktop $(SYSCONFDIR)/X11/xsessions/" ; \
-                $(INSTALL_DATA)  AfterStep.desktop.final $(SYSCONFDIR)/X11/xsessions/AfterStep.desktop ; \
-        fi; \
-        if [ -d $(SYSSHAREDIR)/xsessions ] && [ -w $(SYSSHAREDIR)/xsessions ] ; then \
-                echo "installing AfterStep.desktop into $(SYSSHAREDIR)/xsessions/" ; \
-                $(INSTALL_DATA)  AfterStep.desktop.final $(SYSSHAREDIR)/xsessions/AfterStep.desktop ; \
-        else if [ -d $(SHAREDIR)/xsessions ] && [ -w $(SHAREDIR)/xsessions ] ; then \
-                echo "installing AfterStep.desktop into $(SHAREDIR)/xsessions/" ; \
-                $(INSTALL_DATA)  AfterStep.desktop.final $(SHAREDIR)/xsessions/AfterStep.desktop ; \
-        else if [ -d $(SHAREDIR) ] && [ -w $(SHAREDIR) ] ; then \
-                echo "mkdir $(SHAREDIR)/xsessions"; \
-                $(MKDIR) -p $(SHAREDIR)/xsessions; \
-                echo "installing AfterStep.desktop into $(SHAREDIR)/xsessions/" ; \
-                $(INSTALL_DATA)  AfterStep.desktop.final $(SHAREDIR)/xsessions/AfterStep.desktop ; \
-        fi; fi; fi
+install.desktop: AfterStep.desktop.final AfterStep.desktop.session mkdir.share
+	@for I in ${desktop_subdirs}; do \
+		if [ -d $$I ] && [ -w $$I ] ; then \
+			echo "installing AfterStep.desktop $$I" ; \
+      $(INSTALL_DATA)  AfterStep.desktop.final $$I/AfterStep.desktop ; \
+    fi; done; \
+		for I in ${session_subdirs}; do \
+		if [ -d $$I ] && [ -w $$I ] ; then \
+			echo "installing session AfterStep.desktop $$I" ; \
+      $(INSTALL_DATA)  AfterStep.desktop.session $$I/AfterStep.desktop ; \
+    fi; done; \
+		for I in ${gnome_session_subdirs}; do \
+			if [ -d $$I ] && [ -w $$I ] ; then \
+      echo "installing AfterStep.session into $$I" ; \
+      $(INSTALL_DATA)  AfterStep.session $$I/AfterStep.session ; \
+  	fi; done;
+		
+#    else if [ -d $(SHAREDIR) ] && [ -w $(SHAREDIR) ] ; then \
+#      echo "mkdir $(SHAREDIR)/xsessions"; $(MKDIR) -p $(SHAREDIR)/xsessions; \
+#      echo "installing AfterStep.desktop into $(SHAREDIR)/xsessions/" ; $(INSTALL_DATA)  AfterStep.desktop.final $(SHAREDIR)/xsessions/AfterStep.desktop ; \
+#    fi; 
 
 
 install.share:

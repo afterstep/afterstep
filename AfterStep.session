@@ -1,0 +1,7 @@
+[GNOME Session]
+Name=AfterStep
+RequiredComponents=
+RequiredProviders=windowmanager;
+DefaultProvider-windowmanager=AfterStep
+
+DesktopName=AfterStep

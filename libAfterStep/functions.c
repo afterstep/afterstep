@@ -860,15 +860,18 @@ load_menuitem_pmap (MenuDataItem *mdi, MinipixmapTypes type, Bool force)
 
 		if (func == F_CHANGE_BACKGROUND || func == F_CHANGE_BACKGROUND_FOREIGN) {
 			Bool use_thumbnail = True;
+			if (is_web_background (mdi->fdata) && is_url (filename)) {
+				int s1 = 0, s2 = 0;
+				cachedFileName = make_session_webcache_file (Session, filename);
+				use_thumbnail = check_download_complete (0, cachedFileName, &s1, &s2);
+				use_thumbnail = use_thumbnail && ((s1 > 0 || s2 == s1));
+				if (use_thumbnail) 
+					filename = cachedFileName;
+			}
+			
 			if (type == MINIPIXMAP_Preview) {
 				if (is_web_background (mdi->fdata) && is_url (filename)){
-					int s1 = 0, s2 = 0;
-					cachedFileName = make_session_webcache_file (Session, filename);
-					use_thumbnail = check_download_complete (0, cachedFileName, &s1, &s2);
-					use_thumbnail = use_thumbnail && ((s1 > 0 || s2 == s1));
-					if (use_thumbnail) 
-						filename = cachedFileName;
-					else if (force && minipixmap->loadCount == 0) {
+					if (!use_thumbnail && force && minipixmap->loadCount == 0) {
 						spawn_download (filename, cachedFileName);
 						minipixmap->loadCount++;
 					}
@@ -876,12 +879,12 @@ load_menuitem_pmap (MenuDataItem *mdi, MinipixmapTypes type, Bool force)
 					use_thumbnail = force;
 				}
 			}
+
 			if (use_thumbnail)
 				minipixmap->image = get_thumbnail_asimage (ASDefaultScr->image_manager, filename, 0, h, AS_THUMBNAIL_PROPORTIONAL|AS_THUMBNAIL_DONT_ENLARGE );
 			destroy_string (&cachedFileName);
 		 } else
 			minipixmap->image = load_environment_icon ("apps", filename, h);
-
 		LOCAL_DEBUG_OUT( "minipixmap = \"%s\", minipixmap_image = %p",  filename, minipixmap->image );
 	}
 }

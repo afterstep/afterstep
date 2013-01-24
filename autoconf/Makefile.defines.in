@@ -73,6 +73,7 @@ GNOME_SHAREDIR  = @datarootdir@/gnome
 GNOME_SHAREDESTDIR  = $(DESTDIR)$(GNOME_SHAREDIR)
 AFTER_DIR	= @with_afterdir@
 AFTER_NONCF	= @with_afterdir@/non-configurable
+AFTER_EXEC_COMMAND = @as_exec_command@
 
 IMAGE_FORMAT    = @image_format@
 
