@@ -394,11 +394,8 @@ extern int    menuFromFrameOrWindowOrTitlebar;
 
 #define BACKGROUND_DRAW_CHILD   (MAX_SINGLETONS_NUM-1)
 
-
-
 extern ASOrientation HorzOrientation ;
 extern ASOrientation VertOrientation ;
-
 
 /**************************************************************************/
 /**************************************************************************/
@@ -406,6 +403,7 @@ extern ASOrientation VertOrientation ;
 /**************************************************************************/
 
 /*************************** afterstep.c : ********************************/
+Bool RequestLogout ();
 void Done (Bool restart, char *command);
 
 /*************************** from aswindow.c : ****************************/
@@ -549,7 +547,7 @@ int asdbus_init();
 void asdbus_shutdown();
 void asdbus_process_messages ();
 
-void asdbus_RegisterSMClient(const char *sm_client_id);
+char *asdbus_RegisterSMClient(const char *sm_client_id);
 void asdbus_Notify(const char *summary, const char *body, int timeout);
 
 /*************************** decorations.c ********************************/

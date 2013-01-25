@@ -31,9 +31,15 @@
 #ifdef HAVE_DBUS1
 # include "dbus/dbus.h"
 
-#define AFTERSTEP_DBUS_SERVICE_NAME	            "org.afterstep.afterstep"
-#define AFTERSTEP_DBUS_INTERFACE			    "org.afterstep.afterstep"
-#define AFTERSTEP_DBUS_ROOT_PATH			    "/org/afterstep/afterstep"
+#ifndef TEST_AS_DBUS
+#define AFTERSTEP_APP_ID			            "afterstep"
+#else
+#define AFTERSTEP_APP_ID			            "afterstep-test"
+#endif
+
+#define AFTERSTEP_DBUS_SERVICE_NAME	      "org.afterstep." AFTERSTEP_APP_ID
+#define AFTERSTEP_DBUS_INTERFACE			    "org.afterstep." AFTERSTEP_APP_ID
+#define AFTERSTEP_DBUS_ROOT_PATH			    "/org/afterstep/" AFTERSTEP_APP_ID
 
 #define HAVE_DBUS_CONTEXT 1
 
@@ -61,7 +67,13 @@ asdbus_handle_message (DBusConnection *conn, DBusMessage *msg, void *data)
 {
 	Bool handled = False;
 	
+	show_progress ("Dbus message received from \"%s\", member \"%s\"", dbus_message_get_interface (msg), dbus_message_get_member (msg));
 	
+	if (dbus_message_is_signal(msg, "org.gnome.SessionManager", "SessionOver")) {
+      dbus_message_unref(msg);	
+			handled = True;
+			Done (False, NULL);
+	}	
 	
 	return handled ? DBUS_HANDLER_RESULT_HANDLED : DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
@@ -127,12 +139,42 @@ void asdbus_shutdown()
 void
 asdbus_process_messages ()
 {
+/*	show_progress ("checking Dbus messages"); */
+#if 1	
+	while (ASDBus.session_conn) {
+    DBusMessage *msg;
+		const char *interface, *member;
+		/* non blocking read of the next available message */
+		dbus_connection_read_write(ASDBus.session_conn, 0);
+    msg = dbus_connection_pop_message(ASDBus.session_conn);
+
+    if (NULL == msg) { 
+			/* show_progress ("no more Dbus messages..."); */
+      return; 
+    }
+		interface = dbus_message_get_interface (msg);
+		member = dbus_message_get_member (msg);
+		
+		show_progress ("Dbus message received from \"%s\", member \"%s\"", interface, member);
+		if (strcmp (interface, "org.gnome.SessionManager.ClientPrivate") == 0) {
+			if (strcmp (member, "QueryEndSession") == 0) { /* must replay yes  within 10 seconds */
+			}else if (strcmp (member, "EndSession") == 0 || strcmp (member, "Stop") == 0) { /* must replay yes  within 10 seconds */
+				Done (False, NULL);
+			}
+		}
+#if 0		
+    if (dbus_message_is_method_call(msg, "test.method.Type", "Method"))
+         reply_to_method_call(msg, conn);
+#endif
+    dbus_message_unref(msg);
+   }
+#else
 	if (ASDBus.session_conn)
 		do
 		{
 			dbus_connection_read_write_dispatch (ASDBus.session_conn, 0);
-		}while (dbus_connection_get_dispatch_status (ASDBus.session_conn) 
-				== DBUS_DISPATCH_DATA_REMAINS);
+		}while (dbus_connection_get_dispatch_status (ASDBus.session_conn) == DBUS_DISPATCH_DATA_REMAINS);
+#endif
 }
 
 
@@ -183,10 +225,12 @@ use dbus__connection_send () to send it.
 
 */
 
-void asdbus_RegisterSMClient(const char *sm_client_id)
+char* asdbus_RegisterSMClient(const char *sm_client_id)
 {
+	char *client_path = NULL;
+
 #ifdef HAVE_DBUS_CONTEXT
-	if (ASDBus.session_conn && sm_client_id)
+	if (ASDBus.session_conn)
 	{
 		DBusMessage *message = dbus_message_new_method_call("org.gnome.SessionManager", 
 							  "/org/gnome/SessionManager", 
@@ -194,24 +238,119 @@ void asdbus_RegisterSMClient(const char *sm_client_id)
 							  "RegisterClient" );
 		if (message)
 		{
-			char *app_id = "afterstep" ;
-			char *client_id = NULL;
-			dbus_uint32_t msg_serial;
-			dbus_message_append_args(message,
-									  DBUS_TYPE_STRING, &app_id,
-									  DBUS_TYPE_STRING, &sm_client_id,
-									  DBUS_TYPE_INVALID
-									  // ,DBUS_TYPE_OBJECT_PATH, &client_id,DBUS_TYPE_INVALID
-									  );
-			dbus_message_set_no_reply (message, TRUE);
+			DBusMessage *replay;
+			DBusError error;
+			char *app_id = AFTERSTEP_APP_ID ;
+			char *instance_id = sm_client_id;
+			Bool free_inst_id = False;
+			DBusMessageIter iter;
 			
-			dbus_connection_send (ASDBus.session_conn, message, &msg_serial);
+			dbus_message_iter_init_append(message,&iter);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&app_id);
+			
+			if (instance_id == NULL)
+				instance_id = getenv (SESSION_ID_ENVVAR);
+
+			if (instance_id == NULL) {
+				instance_id = safemalloc (sizeof(AFTERSTEP_APP_ID)+1+32);
+				sprintf (instance_id, "%s-%d", AFTERSTEP_APP_ID, getpid());
+				free_inst_id = True;
+			}else
+  
+			show_progress ("Using \"%s\" as the client ID for registration with the Session Manager", instance_id);
+	    dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&instance_id);
+			
+			if (free_inst_id)
+				free (instance_id);										
+	
+			dbus_error_init (&error);
+			replay = dbus_connection_send_with_reply_and_block (ASDBus.session_conn, message, 1000, &error); 
 			dbus_message_unref (message);
+	    
+			if (!replay)
+				show_error ("Failed to register as a client with the Gnome Session Manager. DBus error: %s", dbus_error_is_set (&error) ? error.message : "unknown error");
+			else { /* get the allocated session ClientID */
+				char *ret_client_path;
+				if (!dbus_message_get_args (replay, &error, DBUS_TYPE_OBJECT_PATH, &ret_client_path, DBUS_TYPE_INVALID))
+					show_error ("Malformed registration replay from Gnome Session Manager. DBus error: %s", dbus_error_is_set (&error) ? error.message : "unknown error");
+				else
+					client_path = mystrdup (ret_client_path);
+
+				dbus_message_unref (replay);
+			}
 		}
-										  
+	}
+#endif
+	return client_path;
+}
+
+void asdbus_UnregisterSMClient(const char *sm_client_path)
+{
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn && sm_client_path)
+	{
+		DBusMessage *message = dbus_message_new_method_call("org.gnome.SessionManager", 
+							  "/org/gnome/SessionManager", 
+							  "org.gnome.SessionManager", 
+							  "UnregisterClient" );
+		if (message)
+		{
+			DBusMessage *replay;
+			DBusError error;
+			DBusMessageIter iter;
+			
+			dbus_message_iter_init_append(message,&iter);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_OBJECT_PATH,&sm_client_path);
+			dbus_error_init (&error);
+			replay = dbus_connection_send_with_reply_and_block (ASDBus.session_conn, message, 200, &error); 
+			dbus_message_unref (message);
+	    
+			if (!replay)
+				show_error ("Failed to unregister as a client with the Gnome Session Manager. DBus error: %s", dbus_error_is_set (&error) ? error.message : "unknown error");
+			else {/* nothing is returned in replay to this message */
+				show_progress ("Unregistered from Gnome Session Manager");
+				dbus_message_unref (replay);
+			}
+		}
 	}
 #endif
 }
+
+Bool asdbus_Logout(int mode, int timeout)
+{
+	Bool requested = False;
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn)
+	{
+		DBusMessage *message = dbus_message_new_method_call("org.gnome.SessionManager", 
+							  "/org/gnome/SessionManager", 
+							  "org.gnome.SessionManager", 
+							  "Logout" );
+		if (message)
+		{
+			DBusMessage *replay;
+			DBusError error;
+			DBusMessageIter iter;
+			dbus_uint32_t ui32_mode = mode;
+			
+			dbus_message_iter_init_append(message,&iter);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_UINT32,&ui32_mode);
+			dbus_error_init (&error);
+			replay = dbus_connection_send_with_reply_and_block (ASDBus.session_conn, message, timeout, &error); 
+			dbus_message_unref (message);
+	    
+			if (!replay)
+				show_error ("Failed to request Logout with the Gnome Session Manager. DBus error: %s", dbus_error_is_set (&error) ? error.message : "unknown error");
+			else {/* nothing is returned in replay to this message */
+				dbus_message_unref (replay);
+				requested = True;
+			}
+		}
+	}
+#endif
+	return requested;
+}
+
 
 void asdbus_Notify(const char *summary, const char *body, int timeout)
 {
@@ -225,127 +364,45 @@ void asdbus_Notify(const char *summary, const char *body, int timeout)
 			const char *app_id = "AfterStep Window Manager" ;
 			dbus_uint32_t replace_id = 0;
 			const char *icon = "";
-			const char *actions[] = {"",""};
-			const char *hints[] = {"",""};
+			DBusMessageIter iter;
 			
-			dbus_uint32_t msg_serial;
-			dbus_message_append_args(message,
-									  DBUS_TYPE_STRING, &app_id,
-										DBUS_TYPE_UINT32, &replace_id, 
-										DBUS_TYPE_STRING, &icon,
-									  DBUS_TYPE_STRING, &summary,
-									  DBUS_TYPE_STRING, &body,
-									  DBUS_TYPE_INVALID
-									  );
-										
-#if 0
-dbus_message_append_args(msg,
-                            DBUS_TYPE_STRING, &(n->app_name),
-                            DBUS_TYPE_UINT32, &(n->replaces_id),
-                            DBUS_TYPE_STRING, &(n->app_icon),
-                            DBUS_TYPE_STRING, &(n->summary),
-                            DBUS_TYPE_STRING, &(n->body),
-                            DBUS_TYPE_INVALID
-                            );
-
-   dbus_message_iter_init_append(msg, &iter);
-   if (dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "s", &sub))
-     {
-        if (n->actions)
-          {
-             E_Notification_Action *action;
-             EINA_LIST_FOREACH (n->actions, l, action)
-               {
-                  dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &(action->id));
-                  dbus_message_iter_append_basic(&sub, DBUS_TYPE_STRING, &(action->name));
-               }
-          }
-        dbus_message_iter_close_container(&iter, &sub);
-     }
-   else
-     {
-        ERR("dbus_message_iter_open_container() failed");
-     }
-
-   /* hints */
-   if (dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &sub))
-     {
-        if (n->hints.urgency) /* we only need to send this if its non-zero*/
-          e_notify_marshal_dict_byte(&sub, "urgency", n->hints.urgency);
-        if (n->hints.category)
-          e_notify_marshal_dict_string(&sub, "category", n->hints.category);
-        if (n->hints.desktop)
-          e_notify_marshal_dict_string(&sub, "desktop_entry", n->hints.desktop);
-        if (n->hints.image_data)
-          e_notify_marshal_dict_variant(&sub, "image-data", "(iiibiiay)", E_DBUS_VARIANT_MARSHALLER(e_notify_marshal_hint_image), n->hints.image_data);
-        if (n->hints.sound_file)
-          e_notify_marshal_dict_string(&sub, "sound-file", n->hints.sound_file);
-        if (n->hints.suppress_sound) /* we only need to send this if its true */
-          e_notify_marshal_dict_byte(&sub, "suppress-sound", n->hints.suppress_sound);
-        if (n->hints.x > -1 && n->hints.y > -1)
-          {
-             e_notify_marshal_dict_int(&sub, "x", n->hints.x);
-             e_notify_marshal_dict_int(&sub, "y", n->hints.y);
-          }
-        dbus_message_iter_close_container(&iter, &sub);
-     }
-   else
-     {
-        ERR("dbus_message_iter_open_container() failed");
-     }
-   dbus_message_iter_append_basic(&iter, DBUS_TYPE_INT32, &(n->expire_timeout));
-////////////////
-// From google :
-dbus_message_iter_init_append(msg,&iter);
-        dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&application);
-        dbus_message_iter_append_basic(&iter,DBUS_TYPE_UINT32,&msgid);
-        dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&appicon);
-        dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&summary);
-        dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&body);
-        dbus_message_iter_open_container(&iter,DBUS_TYPE_ARRAY,DBUS_TYPE_STRING_AS_STRING,&array);
-        dbus_message_iter_close_container(&iter,&array);
-        dbus_message_iter_open_container(&iter,DBUS_TYPE_ARRAY,"{sv}",&array);
-        if (image && image->getData()) {
-          const FXchar * icon_data="icon_data"; /// spec 0.9 says "image_data". some use "icon_data" though..
-
-          idata     = (const FXchar*)image->getData();
-          ialpha    = true;
-          iw        = image->getWidth();
-          ih        = image->getHeight();
-          is        = iw*4;
-          ibps      = 8;
-          ichannels = 4;
-          isize     = iw*ih*4;
-
-          dbus_message_iter_open_container(&array,DBUS_TYPE_DICT_ENTRY,0,&dict);
-            dbus_message_iter_append_basic(&dict,DBUS_TYPE_STRING,&icon_data);
-            dbus_message_iter_open_container(&dict,DBUS_TYPE_VARIANT,"(iiibiiay)",&variant);
-              dbus_message_iter_open_container(&variant,DBUS_TYPE_STRUCT,NULL,&value);
-                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&iw);
-                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&ih);
-                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&is);
-                dbus_message_iter_append_basic(&value,DBUS_TYPE_BOOLEAN,&ialpha);
-                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&ibps);
-                dbus_message_iter_append_basic(&value,DBUS_TYPE_INT32,&ichannels);
-                dbus_message_iter_open_container(&value,DBUS_TYPE_ARRAY,DBUS_TYPE_BYTE_AS_STRING,&data);
-                  dbus_message_iter_append_fixed_array(&data,DBUS_TYPE_BYTE,&idata,isize);
-                dbus_message_iter_close_container(&value,&data);
-              dbus_message_iter_close_container(&variant,&value);
-            dbus_message_iter_close_container(&dict,&variant);
-          dbus_message_iter_close_container(&array,&dict);
-          }
-        dbus_message_iter_close_container(&iter,&array);
-        dbus_message_iter_append_basic(&iter,DBUS_TYPE_INT32,&timeout);
-
-      send(msg,this,ID_NOTIFY_REPLY);
-
-#endif 										
-										
-										
-			dbus_message_set_no_reply (message, TRUE);
+			dbus_message_iter_init_append(message,&iter);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&app_id);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_UINT32,&replace_id);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&icon);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&summary);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&body);
+			/* Must add the following even if we don't need it */
+			{
+				DBusMessageIter sub;
+      	dbus_message_iter_open_container(&iter,DBUS_TYPE_ARRAY,DBUS_TYPE_STRING_AS_STRING,&sub);
+      	dbus_message_iter_close_container(&iter,&sub);
+      	dbus_message_iter_open_container(&iter,DBUS_TYPE_ARRAY,"{sv}",&sub);
+      	dbus_message_iter_close_container(&iter,&sub);
+			}
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_INT32,&timeout);
 			
-			dbus_connection_send (ASDBus.session_conn, message, &msg_serial);
-			dbus_message_unref (message);
+			{
+				DBusMessage *replay;
+				DBusError error;
+
+				dbus_error_init (&error);
+				replay = dbus_connection_send_with_reply_and_block (ASDBus.session_conn, message, 200, &error); 
+				dbus_message_unref (message);
+	    
+				if (!replay)
+					show_error ("Failed to send the notification. DBus error: %s", dbus_error_is_set (&error) ? error.message : "unknown error");
+				else { /* get the allocated session ClientID */
+					dbus_uint32_t req_id;
+					if (!dbus_message_get_args (replay, &error, DBUS_TYPE_UINT32, &req_id, DBUS_TYPE_INVALID))
+						show_error ("Malformed Notification replay. DBus error: %s", dbus_error_is_set (&error) ? error.message : "unknown error");
+#ifdef TEST_AS_DBUS
+					else
+						show_progress ( "Notification Request_id = %d", req_id);
+#endif						
+					dbus_message_unref (replay);
+				}
+			}
 		}
 	}
 #endif
@@ -355,3 +412,126 @@ dbus_message_iter_init_append(msg,&iter);
 /*****************************************************************************/
 /*****************************************************************************/
 /*****************************************************************************/
+
+#ifdef TEST_AS_DBUS
+int 		  ASDBus_fd = -1;
+char *GnomeSessionClientID = NULL;
+
+void asdbus_GetClients()
+{
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn)	{
+		DBusMessageIter args;
+		DBusPendingCall* pending;
+		int current_type;
+	
+		DBusMessage *msg = dbus_message_new_method_call("org.gnome.SessionManager", 
+							  "/org/gnome/SessionManager", 
+							  "org.gnome.SessionManager", 
+							  "GetClients" );
+		if (msg == NULL){ 
+      show_error("Message Null");
+      return;
+    }
+
+    // send message and get a handle for a reply
+    if (!dbus_connection_send_with_reply (ASDBus.session_conn, msg, &pending, -1)) { // -1 is default timeout
+    	show_error("Out Of Memory!"); 
+      return;
+    }
+    if (NULL == pending) { 
+    	show_error ("Pending Call Null"); 
+      return; 
+		}
+    dbus_connection_flush(ASDBus.session_conn);
+
+    // free message
+    dbus_message_unref(msg);
+		
+		// block until we receive a reply
+    dbus_pending_call_block(pending);
+   
+    // get the reply message
+    msg = dbus_pending_call_steal_reply(pending);
+    if (NULL == msg) {
+    	show_error ("Reply Null"); 
+      return; 
+		}
+    // free the pending message handle
+    dbus_pending_call_unref(pending);
+
+    // read the parameters
+    if (!dbus_message_iter_init(msg, &args))
+      show_error ("Message has no arguments!"); 
+		while ((current_type = dbus_message_iter_get_arg_type (&args)) != DBUS_TYPE_INVALID) {
+	    show_progress("current_type: %c", current_type, DBUS_TYPE_INVALID);
+			if (current_type == DBUS_TYPE_ARRAY) {
+				DBusMessageIter item;
+				int item_type;
+				dbus_message_iter_recurse (&args, &item);
+				while ((item_type = dbus_message_iter_get_arg_type (&item)) != DBUS_TYPE_INVALID) {
+	  		  show_progress("item_type: %c", item_type);
+					if (item_type == DBUS_TYPE_OBJECT_PATH) {
+						char *str = NULL;
+						dbus_message_iter_get_basic (&item, &str);
+						show_progress("\t value = \"%s\"", str);
+					}
+					dbus_message_iter_next (&item);
+				}
+			} else if (current_type == DBUS_TYPE_STRING) {
+				char *str = NULL;
+				dbus_message_iter_get_basic (&args, &str);
+				show_progress("\t value = \"%s\"", str);
+			}
+			dbus_message_iter_next (&args);
+		}
+	
+	   // free reply and close connection
+  	 dbus_message_unref(msg);   
+	}
+#endif
+}
+
+void Done (Bool restart, char *cmd)
+{
+	exit (1);
+}
+
+void main (int argc, char ** argv)
+{
+	int logout_mode = -1;
+	if (argc > 1 && strcmp(argv[1], "--logout") == 0) {
+		if (argc > 2)
+			logout_mode = atoi(argv[2]);
+		else
+			logout_mode = 0;
+	}	
+	InitMyApp( "test_asdbus", argc, argv, NULL, NULL, 0);
+
+	ASDBus_fd = asdbus_init();
+	if (ASDBus_fd<0)	{
+		show_error ("Failed to accure Session DBus connection.");	
+		return 0;
+	}	
+
+	show_progress ("Successfuly accured Session DBus connection.");	
+
+	asdbus_Notify("TestNotification Summary", "Test notification body", 3000);
+	
+	GnomeSessionClientID = asdbus_RegisterSMClient(NULL);
+	if (GnomeSessionClientID != NULL)
+		show_progress ("Successfuly registered with GNOME Session Manager with Client Path \"%s\".", GnomeSessionClientID);	
+
+	if (GnomeSessionClientID != NULL) {
+		asdbus_GetClients();
+		asdbus_UnregisterSMClient(GnomeSessionClientID);
+	}
+
+	if (logout_mode >= 0 && logout_mode <= 2)
+		asdbus_Logout(logout_mode, 100000);
+	
+	asdbus_shutdown();
+
+	return 1;	
+}
+#endif

@@ -50,3 +50,11 @@ module.clean:
 install:	install.bin install.alternative
 
 uninstall:	uninstall.bin
+
+
+test_asdbus.o: dbus.c
+		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DTEST_AS_DBUS $(INCLUDES) $(EXTRA_INCLUDES) -c dbus.c -o test_asdbus.o
+
+test_asdbus:	test_asdbus.o
+		$(CC) test_asdbus.o $(LIBS_ALL) -o test_asdbus
+

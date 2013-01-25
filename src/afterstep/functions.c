@@ -2024,7 +2024,8 @@ void popup_func_handler( FunctionData *data, ASEvent *event, int module )
 
 void quit_func_handler( FunctionData *data, ASEvent *event, int module )
 {
-	Done (0, NULL);
+	if (!RequestLogout ())
+		Done (0, NULL);
 }
 
 void windowlist_func_handler( FunctionData *data, ASEvent *event, int module )

@@ -46,6 +46,7 @@ ASFlagType AfterStepStartupFlags = 0;
 
 /* DBUS stuff is separated into dbus.c */
 int 		  ASDBus_fd = -1;
+char*     GnomeSessionClientID = NULL;
 
 /* Config : */
 ASVector     *Modules       = NULL;
@@ -208,10 +209,11 @@ main (int argc, char **argv, char **envp)
 		display_progress( True, "AfterStep v.%s is starting up ...", VERSION );
 	}
 
-	if (ASDBus_fd>=0)
-	{
+	if (ASDBus_fd>=0)	{
 		show_progress ("Successfuly accured System DBus connection.");	
-		asdbus_RegisterSMClient(SMClientID_string);
+		GnomeSessionClientID = asdbus_RegisterSMClient(SMClientID_string);
+		if (GnomeSessionClientID != NULL)
+			show_progress ("Successfuly registered with GNOME Session Manager with Client Path \"%s\".", GnomeSessionClientID);	
 	}
 	
 SHOW_CHECKPOINT;
@@ -679,6 +681,16 @@ SigDone (int nonsense)
 /*************************************************************************/
 /* our shutdown function :                                               */
 /*************************************************************************/
+
+Bool 
+RequestLogout ()
+{
+	Bool requested = False;
+	if (GnomeSessionClientID)
+		requested = asdbus_Logout (0, 500);
+	return requested;
+}
+
 void
 Done (Bool restart, char *command )
 {
@@ -691,7 +703,7 @@ Done (Bool restart, char *command )
 		already_dead = True ;
 	}
 
-	/* lets duplicate the string so we don't accidental;y delete it while closing self down */
+	/* lets duplicate the string so we don't accidentaly delete it while closing self down */
 	if( restart )
 	{
 		int my_name_len = strlen(MyName);
@@ -763,9 +775,11 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 	/* Really make sure that the connection is closed and cleared! */
 	XSync (dpy, 0);
 
-	if (ASDBus_fd>=0)
+	if (ASDBus_fd>=0) {
+		if (GnomeSessionClientID != NULL)
+			asdbus_UnregisterSMClient(GnomeSessionClientID);
 		asdbus_shutdown();
-
+	}
 #ifdef XSHMIMAGE
 	flush_shm_cache();
 #endif

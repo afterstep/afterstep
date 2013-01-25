@@ -90,6 +90,8 @@ struct ASDatabase;
 #define WAIT_CHILDREN(pstatus)  (*pstatus=-1)
 #endif
 
+#define SESSION_ID_ENVVAR  "DESKTOP_AUTOSTART_ID"		
+
 struct charstring
 {
 	char key;
