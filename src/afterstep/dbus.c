@@ -136,6 +136,9 @@ void asdbus_shutdown()
 	}
 }
 /******************************************************************************/
+void asdbus_EndSessionOk();
+
+
 void
 asdbus_process_messages ()
 {
@@ -158,6 +161,7 @@ asdbus_process_messages ()
 		show_progress ("Dbus message received from \"%s\", member \"%s\"", interface, member);
 		if (strcmp (interface, "org.gnome.SessionManager.ClientPrivate") == 0) {
 			if (strcmp (member, "QueryEndSession") == 0) { /* must replay yes  within 10 seconds */
+				asdbus_EndSessionOk();
 			}else if (strcmp (member, "EndSession") == 0 || strcmp (member, "Stop") == 0) { /* must replay yes  within 10 seconds */
 				Done (False, NULL);
 			}
@@ -349,6 +353,34 @@ Bool asdbus_Logout(int mode, int timeout)
 	}
 #endif
 	return requested;
+}
+
+void asdbus_EndSessionOk()
+{
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn)
+	{
+		DBusMessage *message = dbus_message_new_method_call("org.gnome.SessionManager", 
+							  "/org/gnome/SessionManager", 
+							  "org.gnome.SessionManager", 
+							  "EndSessionResponse" );
+		if (message)
+		{
+			DBusMessageIter iter;
+			char *reason = "";
+			dbus_bool_t ok = 1;
+			dbus_uint32_t msg_serial;
+			
+			dbus_message_iter_init_append(message,&iter);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_BOOLEAN,&ok);
+      dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&reason);
+			dbus_message_set_no_reply (message, TRUE);
+			if (!dbus_connection_send (ASDBus.session_conn, message, &msg_serial)) 
+				show_error ("Failed to send EndSession indicator.");
+			dbus_message_unref (message);
+		}
+	}
+#endif
 }
 
 
