@@ -1234,15 +1234,18 @@ spawn_child( const char *cmd, int singleton_id, int screen, const char *orig_dis
 		envp = safecalloc( env_s+2, sizeof(char*));
 
 		/* environment variabless to pass to child process */
-		if( envvars ) 
+		if( envvars ) {
+			int dst = 0;
 			for( env_s = 0  ; envvars[env_s] != NULL ; ++env_s ) {
 				/* don't want to path DESKTOP_AUTOSTART_ID to our children - 
 				   its set by gnome-session for AfterStep proper specifically,
 					 otherwise children will attempt to re-use it for SessionManagement registration, failing miserably */
 				if( strlen(envvars[env_s]) < sizeof(SESSION_ID_ENVVAR) 
 				    || strncmp(envvars[env_s], SESSION_ID_ENVVAR, sizeof(SESSION_ID_ENVVAR)-1) !=0)
-					envp[env_s] = envvars[env_s] ;	
+					envp[dst++] = envvars[env_s] ;	
 			}
+			env_s = dst;
+		}
 		
 		envp[env_s] = safemalloc(8+strlen(orig_display?orig_display:display)+1);
 		sprintf( envp[env_s], "DISPLAY=%s", orig_display?orig_display:display );

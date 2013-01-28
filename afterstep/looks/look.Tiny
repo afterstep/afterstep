@@ -211,12 +211,12 @@ MyStyle "*WinListBalloon"
 #----------ASMount MyStyles---------#
 
 MyStyle "*ASMountMounted"
-		Inherit      "sticky_window_style"
+		Inherit      "*WharfFocusedTile"
    	Font 	       DefaultSansBold.ttf-9
  ~MyStyle
 
 MyStyle "*ASMountUnmounted"
-		Inherit      "unfocused_window_style"
+		Inherit      "*WharfTile"
    	Font 	       DefaultSans.ttf-9
  ~MyStyle
 #----------aterm MyStyles---------#
