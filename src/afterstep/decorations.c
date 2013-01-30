@@ -275,7 +275,7 @@ check_frame_canvas( ASWindow *asw, Bool required )
 			asw->frame = w ;
 			register_aswindow( w, asw );
 			canvas = create_ascanvas_container( w );
-LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->FRAME->canvas(%p)->window(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w );
+LOCAL_DEBUG_OUT( "++CREAT Client(%lx(%s))->FRAME->canvas(%p)->window(%lx)->parent(%lx)", asw->w, ASWIN_NAME(asw)?ASWIN_NAME(asw):"noname", canvas, canvas->w,(ASWIN_DESK(asw)==Scr.CurrentDesk)?Scr.Root:Scr.ServiceWin );
 		} else
 			invalidate_canvas_config( canvas );
 	}else if( canvas != NULL )

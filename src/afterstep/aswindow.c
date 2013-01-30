@@ -1179,11 +1179,17 @@ apply_stacking_order( int desk )
 		Window cw = get_desktop_cover_window();
 		int windows_num ; 
 		
-		if( cw != None )
+		if( cw != None ) {
+			LOCAL_DEBUG_OUT ("desktop cover id = 0x%lX", cw);
 			vector_insert_elem(ids, &cw, 1, NULL, True);
+		}
 
-		for( i = 0 ; i < stack_len ; ++i )
-			vector_insert_elem(ids, &(stack[i]->frame), 1, NULL, False);
+		for( i = 0 ; i < stack_len ; ++i ) 
+			if (ASWIN_DESK(stack[i])==Scr.CurrentDesk){
+				/* if window is not on root currently - stacking order fails with BadMatch*/
+				LOCAL_DEBUG_OUT ("name \"%s\", frame id = 0x%lX", ASWIN_NAME(stack[i]), stack[i]->frame);
+				vector_insert_elem(ids, &(stack[i]->frame), 1, NULL, False);
+			}
 
 		windows_num = PVECTOR_USED(ids);
 		LOCAL_DEBUG_OUT( "Setting stacking order: windows_num = %d, ", windows_num );

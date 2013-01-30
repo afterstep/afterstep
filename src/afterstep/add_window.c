@@ -278,6 +278,8 @@ AddWindow (Window w, Bool from_map_request)
 		SetShape( tmp_win, 0 );
 	/* Must do it now or else Java will freak out !!! */
 	XMapRaised (dpy, tmp_win->w);
+	/* this must happen before RaiseWindow call or else stacking order fails with BadMatch*/
+	XMapWindow (dpy, tmp_win->frame);
 
 	RaiseWindow (tmp_win);
 	ASSync(False);

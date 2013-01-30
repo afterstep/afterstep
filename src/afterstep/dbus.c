@@ -41,15 +41,18 @@
 #define AFTERSTEP_DBUS_INTERFACE			    "org.afterstep." AFTERSTEP_APP_ID
 #define AFTERSTEP_DBUS_ROOT_PATH			    "/org/afterstep/" AFTERSTEP_APP_ID
 
+#define IFACE_SESSION_PRIVATE 						"org.gnome.SessionManager.ClientPrivate"
+
 #define HAVE_DBUS_CONTEXT 1
 
 typedef struct ASDBusContext
 {
 	DBusConnection *session_conn;
 	int watch_fd;
+	char *client_session_path;
 }ASDBusContext;
 
-static ASDBusContext ASDBus = {NULL, -1};
+static ASDBusContext ASDBus = {NULL, -1, NULL};
 
 static DBusHandlerResult asdbus_handle_message (DBusConnection *, DBusMessage *, void *);
 
@@ -148,19 +151,22 @@ asdbus_process_messages ()
     DBusMessage *msg;
 		const char *interface, *member;
 		/* non blocking read of the next available message */
-		dbus_connection_read_write(ASDBus.session_conn, 0);
+		dbus_connection_read_write(ASDBus.session_conn, 500);
     msg = dbus_connection_pop_message(ASDBus.session_conn);
 
     if (NULL == msg) { 
 			/* show_progress ("no more Dbus messages..."); */
+			show_progress ("time(%ld):Dbus message not received during the timeout - sleeping...", time(NULL));
       return; 
     }
 		interface = dbus_message_get_interface (msg);
 		member = dbus_message_get_member (msg);
 		
-		if (interface && member) {
-			show_progress ("Dbus message received from \"%s\", member \"%s\"", interface, member);
-			if (strcmp (interface, "org.gnome.SessionManager.ClientPrivate") == 0) {
+		if (interface == NULL || member == NULL) {
+			show_progress ("time(%ld):Dbus message cannot be parsed...", time(NULL));
+		} else {
+			show_progress ("time(%ld):Dbus message received from \"%s\", member \"%s\"", time(NULL), interface, member);
+			if (strcmp (interface, IFACE_SESSION_PRIVATE) == 0) {
 				if (strcmp (member, "QueryEndSession") == 0) { /* must replay yes  within 10 seconds */
 					asdbus_EndSessionOk();
 				}else if (strcmp (member, "EndSession") == 0 || strcmp (member, "Stop") == 0) { /* must replay yes  within 10 seconds */
@@ -280,8 +286,10 @@ char* asdbus_RegisterSMClient(const char *sm_client_id)
 				char *ret_client_path;
 				if (!dbus_message_get_args (replay, &error, DBUS_TYPE_OBJECT_PATH, &ret_client_path, DBUS_TYPE_INVALID))
 					show_error ("Malformed registration replay from Gnome Session Manager. DBus error: %s", dbus_error_is_set (&error) ? error.message : "unknown error");
-				else
+				else {
 					client_path = mystrdup (ret_client_path);
+					ASDBus.client_session_path = mystrdup (ret_client_path);
+				}
 
 				dbus_message_unref (replay);
 			}
@@ -364,8 +372,8 @@ void asdbus_EndSessionOk()
 	if (ASDBus.session_conn)
 	{
 		DBusMessage *message = dbus_message_new_method_call("org.gnome.SessionManager", 
-							  "/org/gnome/SessionManager", 
-							  "org.gnome.SessionManager", 
+							  ASDBus.client_session_path, /*"/org/gnome/SessionManager", */
+							  IFACE_SESSION_PRIVATE, 
 							  "EndSessionResponse" );
 		if (message)
 		{
@@ -380,6 +388,8 @@ void asdbus_EndSessionOk()
 			dbus_message_set_no_reply (message, TRUE);
 			if (!dbus_connection_send (ASDBus.session_conn, message, &msg_serial)) 
 				show_error ("Failed to send EndSession indicator.");
+			else
+				show_progress ("Sent Ok to end session (time, %ld).", time(NULL));
 			dbus_message_unref (message);
 		}
 	}
