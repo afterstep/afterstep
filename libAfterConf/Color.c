@@ -147,7 +147,7 @@ ParseColorOptions (const char *filename, char *myname)
 			LOCAL_DEBUG_OUT( "index %d is \"%s\"", index, item.data.string );
 			if( parse_argb_color( item.data.string, &(config->main_colors[index]) )!= item.data.string )
 			{
-				LOCAL_DEBUG_OUT( "Parsed color %d as #%8.8lX", index, config->main_colors[index] );
+				LOCAL_DEBUG_OUT( "Parsed color %d as #%8.8lX", index, (unsigned long)config->main_colors[index] );
 				set_flags( config->set_main_colors, (0x01<<index) );
 			}
 		}else if( pCurr->term->id == COLOR_Angle_ID )
@@ -352,7 +352,7 @@ translate_gtkrc_template_file( 	const char *template_fname, const char *output_f
 								if( parse_argb_color( token, &argb ) != token ) 
 								{	
 						 			fwrite( &(buffer[0]), 1, i+1, dst_fp );
-									fprintf( dst_fp, "#%2.2lX%2.2lX%2.2lX", ARGB32_RED8(argb), ARGB32_GREEN8(argb), ARGB32_BLUE8(argb) );
+									fprintf( dst_fp, "#%2.2lX%2.2lX%2.2lX", (unsigned long)ARGB32_RED8(argb), (unsigned long)ARGB32_GREEN8(argb), (unsigned long)ARGB32_BLUE8(argb) );
 									fwrite( &(token[len]), 1, strlen(&(token[len])), dst_fp );
 									continue;
 								}
@@ -398,7 +398,7 @@ translate_kcsrc_template_file( 	const char *template_fname, const char *output_f
 					if( parse_argb_color( parm, &argb ) != parm ) 
 					{	
 						char *tmp = safemalloc( 32 );
-						sprintf( tmp, "%ld,%ld,%ld", ARGB32_RED8(argb), ARGB32_GREEN8(argb), ARGB32_BLUE8(argb) );						 				   
+						sprintf( tmp, "%ld,%ld,%ld", (unsigned long)ARGB32_RED8(argb), (unsigned long)ARGB32_GREEN8(argb), (unsigned long)ARGB32_BLUE8(argb) );						 				   
 						free( item->child->parm );
 						item->child->parm = tmp;
 					}							

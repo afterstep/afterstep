@@ -157,21 +157,21 @@ get_aswindow_grid_iter_func(void *data, void *aux_data)
 
 		if( ASWIN_GET_FLAGS(asw, AS_Iconic ) )
 		{
-			add_canvas_grid( grid_data->grid, asw->icon_canvas, outer_gravity, inner_gravity, grid_data->vx, grid_data->vy );
+			add_canvas_grid( grid_data->grid, asw->icon_canvas, outer_gravity, inner_gravity, get_flags(Scr.Feel.flags,StickyIcons));
 			if( asw->icon_canvas != asw->icon_title_canvas )
-				add_canvas_grid( grid_data->grid, asw->icon_title_canvas, outer_gravity, inner_gravity, grid_data->vx, grid_data->vy );
+				add_canvas_grid( grid_data->grid, asw->icon_title_canvas, outer_gravity, inner_gravity, get_flags(Scr.Feel.flags,StickyIcons));
 		}else
 		{
-			add_canvas_grid( grid_data->grid, asw->frame_canvas, outer_gravity, inner_gravity, grid_data->vx, grid_data->vy );
+			add_canvas_grid( grid_data->grid, asw->frame_canvas, outer_gravity, inner_gravity, ASWIN_GET_FLAGS(asw, AS_Sticky));
 			if( !grid_data->frame_only )
-				add_canvas_grid( grid_data->grid, asw->client_canvas, outer_gravity/2, (inner_gravity*2)/3, grid_data->vx, grid_data->vy );
+				add_canvas_grid( grid_data->grid, asw->client_canvas, outer_gravity/2, (inner_gravity*2)/3, ASWIN_GET_FLAGS(asw, AS_Sticky));
 		}
 	}
 	return True;
 }
 
 ASGrid*
-make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWindow *target )
+make_desktop_grid(int desk, int min_layer, Bool frame_only, ASWindow *target )
 {
 	struct ASWindowGridAuxData grid_data ;
 	int resist = Scr.Feel.EdgeResistanceMove ;
@@ -187,8 +187,8 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
 	grid_data.min_layer = min_layer ;
 	grid_data.frame_only = frame_only ;
 	grid_data.grid = safecalloc( 1, sizeof(ASGrid));
-	grid_data.vx = vx ;
-	grid_data.vy = vy ;
+	grid_data.grid->curr_vx = Scr.Vx;
+	grid_data.grid->curr_vy = Scr.Vy;
 	grid_data.ignore_avoid_cover = True ;
 	grid_data.target = target ;
 #if 0
@@ -219,17 +219,17 @@ make_desktop_grid(int desk, int min_layer, Bool frame_only, int vx, int vy, ASWi
 
 //    add_canvas_grid( grid_data.grid, Scr.RootCanvas, resist, attract, vx, vy );
 
-	add_gridline( &(grid_data.grid->h_lines), 0,                   0, Scr.MyDisplayWidth,  resist, attract );
-	add_gridline( &(grid_data.grid->h_lines), Scr.MyDisplayHeight, 0, Scr.MyDisplayWidth,  attract, resist );
-	add_gridline( &(grid_data.grid->v_lines), 0,                   0, Scr.MyDisplayHeight, resist, attract );
-	add_gridline( &(grid_data.grid->v_lines), Scr.MyDisplayWidth , 0, Scr.MyDisplayHeight, attract, resist );
+	add_gridline( grid_data.grid, 0,                   0, Scr.MyDisplayWidth,  resist, attract, ASGL_Absolute );
+	add_gridline( grid_data.grid, Scr.MyDisplayHeight, 0, Scr.MyDisplayWidth,  attract, resist, ASGL_Absolute );
+	add_gridline( grid_data.grid, 0,                   0, Scr.MyDisplayHeight, resist, attract, ASGL_Absolute|ASGL_Vertical );
+	add_gridline( grid_data.grid, Scr.MyDisplayWidth , 0, Scr.MyDisplayHeight, attract, resist, ASGL_Absolute|ASGL_Vertical );
 
 	/* add all the window edges for this desktop : */
 	iterate_asbidirlist( Scr.Windows->clients, get_aswindow_grid_iter_func, (void*)&grid_data, NULL, False );
 
-//#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 	print_asgrid( grid_data.grid );
-//#endif
+#endif
 
 	return grid_data.grid;
 }
@@ -249,7 +249,7 @@ void setup_aswindow_moveresize(ASWindow *asw,  struct ASMoveResizeData *mvrdata 
 	raise_scren_panframes( ASDefaultScr );
 	mvrdata->below_sibling = get_lowest_panframe(ASDefaultScr);
 	set_moveresize_restrains( mvrdata, asw->hints, asw->status);
-	mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, Scr.Vx, Scr.Vy, asw);
+	mvrdata->grid = make_desktop_grid(Scr.CurrentDesk, AS_LayerDesktop, False, asw);
 	Scr.moveresize_in_progress = mvrdata ;
 }
 
@@ -1082,10 +1082,10 @@ static Bool do_pointer_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
 
 	ASQueryPointerRootXY( &x, &y);
 	
-fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);
+/*fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);*/
 	x += Scr.Vx - (int)asw->status->width/2;
 	y += Scr.Vy - (int)asw->status->height/2;
-fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);
+/*fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);*/
 	if ( x < area->x ) 
 		x = area->x;
 	else if( x + asw->status->width > area->x+ area->width )
@@ -1096,7 +1096,7 @@ fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);
 	else if( y + asw->status->height > area->y+ area->height )
 		y = (area->y+area->height - asw->status->height);
 
-fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);
+/*fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);*/
 	asw->status->x = x - asw->status->viewport_x ;
 	asw->status->y = y - asw->status->viewport_y ;
 

@@ -89,6 +89,10 @@ typedef struct ASLayout
 typedef struct ASGridLine
 {
 	struct ASGridLine *next ;
+#define ASGL_Vertical  (0x01<<0)	
+#define ASGL_Absolute  (0x01<<1)	
+	unsigned long flags;
+	
 	short band ;                               /* second coordinate ( same on both ends ) */
 	short start, end ;                         /* inclusive ends of the line */
 
@@ -116,6 +120,9 @@ typedef struct ASGrid
 	/* hard boundary that we cannot cross !!! */
 	short min_x, max_x ;
 	short min_y, max_y ;
+	/* virtual coordinates : if gridLine has no Absolute flag set - 
+	   it's coordinates are virtual and will be adjusted by these: */
+	short curr_vx, curr_vy;
 }ASGrid;
 /*
  ******
@@ -171,9 +178,11 @@ Bool moveresize_layout( ASLayout *layout,
 	                    unsigned int width, unsigned int height,
 						Bool force );
 
-ASGridLine *add_gridline( ASGridLine **list,
+void grid_coords2real (ASGrid *g, ASGridLine *l, int *band,  int *start, int *end);
+
+ASGridLine *add_gridline( ASGrid *grid,
 	                      short band, short start, short end,
-             			  short gravity_above, short gravity_below );
+             			  short gravity_above, short gravity_below, unsigned long flags);
 
 void make_layout_grid( ASLayout *layout, ASGrid *grid,
 					   int origin_x, int origin_y,

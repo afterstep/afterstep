@@ -345,10 +345,11 @@ deps:
 apps: 	@APPSDEPS@
 		@(if test -d apps; then cd apps; $(MAKE); fi )
 
-show_flags_cc:
-		@echo "Compiling with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"
+show_flags_cc:	$(LIB_OBJS) $(LIB_INCS) config.h
+		@touch show_flags_cc ; \
+		echo "Compiled with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"
 
-$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) config.h
+$(LIB_STATIC):	show_flags_cc $(LIB_OBJS) $(LIB_INCS) config.h  Makefile
 		@echo "Compiling with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"
 		$(RMF) $(LIB_STATIC)
 		$(AR) $(LIB_STATIC) $(LIB_OBJS)
@@ -373,7 +374,7 @@ test_mmx:	test_mmx.o
 		$(CC) test_mmx.o $(USER_LD_FLAGS) $(LIBRARIES_TEST) $(EXTRA_LIBRARIES) -o test_mmx
 
 
-.c.o:
+.c.o:  Makefile
 		@echo " $*.c"
 		@$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c -o $@
 
@@ -389,7 +390,7 @@ test_mmx:	test_mmx.o
 include .depend
 #endif
 
-$(LIB_SHARED_CYG): $(LIB_OBJS) $(LIB_INCS) config.h
+$(LIB_SHARED_CYG):  show_flags_cc $(LIB_OBJS) $(LIB_INCS) config.h  Makefile
 	@echo "Compiling with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"
 	$(CC) -shared -o $(LIB_SHARED_CYG) \
     		-Wl,--out-implib=$(LIB_SHARED_CYG_AR) \
@@ -403,7 +404,7 @@ $(LIB_SHARED): $(LIB_SHARED).$(LIBVERMAJOR)
 $(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
 	$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
 
-$(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) config.h
+$(LIB_SHARED).$(LIBVER): show_flags_cc $(LIB_OBJS) $(LIB_INCS) config.h Makefile
 	$(CC) -shared $(LDFLAGS) -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
 	 $(LIB_OBJS)
 

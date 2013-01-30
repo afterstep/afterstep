@@ -598,10 +598,10 @@ do_colorscheme()
 			if( (mini_f = fopen( minipixmap_file, "w" )) != NULL )
 			{
 				fprintf( mini_f, "<composite>\n" );
-				fprintf( mini_f, "    <gradient width=48 height=48 colors=\"#%8.8lX #%8.8lX\" angle=45/>\n", ASColorState.cs->main_colors[ASMC_BaseDark], ASColorState.cs->main_colors[ASMC_BaseLight] );
-				fprintf( mini_f, "    <gradient x=10 y=10 width=20 height=10 colors=\"#%8.8lX #%8.8lX\" angle=90 />\n", ASColorState.cs->main_colors[ASMC_Inactive1Dark], ASColorState.cs->main_colors[ASMC_Inactive1Light] );
-				fprintf( mini_f, "    <gradient x=20 y=20 width=20 height=10 colors=\"#%8.8lX #%8.8lX\" angle=90 />\n", ASColorState.cs->main_colors[ASMC_ActiveDark], ASColorState.cs->main_colors[ASMC_ActiveLight] );
-				fprintf( mini_f, "    <gradient x=13 y=30 width=20 height=10 colors=\"#%8.8lX #%8.8lX\" angle=90 />\n", ASColorState.cs->main_colors[ASMC_Inactive2Dark], ASColorState.cs->main_colors[ASMC_Inactive2Light] );
+				fprintf( mini_f, "    <gradient width=48 height=48 colors=\"#%8.8lX #%8.8lX\" angle=45/>\n", (unsigned long)ASColorState.cs->main_colors[ASMC_BaseDark], (unsigned long)ASColorState.cs->main_colors[ASMC_BaseLight] );
+				fprintf( mini_f, "    <gradient x=10 y=10 width=20 height=10 colors=\"#%8.8lX #%8.8lX\" angle=90 />\n", (unsigned long)ASColorState.cs->main_colors[ASMC_Inactive1Dark], (unsigned long)ASColorState.cs->main_colors[ASMC_Inactive1Light] );
+				fprintf( mini_f, "    <gradient x=20 y=20 width=20 height=10 colors=\"#%8.8lX #%8.8lX\" angle=90 />\n", (unsigned long)ASColorState.cs->main_colors[ASMC_ActiveDark], (unsigned long)ASColorState.cs->main_colors[ASMC_ActiveLight] );
+				fprintf( mini_f, "    <gradient x=13 y=30 width=20 height=10 colors=\"#%8.8lX #%8.8lX\" angle=90 />\n", (unsigned long)ASColorState.cs->main_colors[ASMC_Inactive2Dark], (unsigned long)ASColorState.cs->main_colors[ASMC_Inactive2Light] );
 				fprintf( mini_f, "</composite>\n" );
 				fclose( mini_f );
 			}
@@ -623,7 +623,7 @@ do_colorscheme()
 		if( ASColorState.base_hue == -1 ||
 			(ASColorState.base_hue == 0 && ASColorState.base_sat == 0 )  )
 		{
-			sprintf( &(legend_str[0]), "<text font=\"DefaultBold.ttf\" fgcolor=white bgcolor=black>Base color : #%8.8lX</text>", ASColorState.cs->main_colors[ASMC_Base] );
+			sprintf( &(legend_str[0]), "<text font=\"DefaultBold.ttf\" fgcolor=white bgcolor=black>Base color : #%8.8lX</text>", (unsigned long)ASColorState.cs->main_colors[ASMC_Base] );
 		}else
 		{
 			char *param_text[] = {	"hue", "Saturation", "Value", "Angle" };
@@ -635,7 +635,7 @@ do_colorscheme()
 									   "Angle %d; "
 									   "[Now Changing (%s)]"
 									   "</text>",
-									   ASColorState.cs->main_colors[ASMC_Base],
+									   (unsigned long)ASColorState.cs->main_colors[ASMC_Base],
 									   ASColorState.cs->main_hues[ASMC_Base],
 									   ASColorState.cs->main_saturations[ASMC_Base],
 									   ASColorState.cs->main_values[ASMC_Base],

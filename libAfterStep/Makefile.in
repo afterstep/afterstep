@@ -19,13 +19,20 @@ LIB_INCS= 	afterstep.h asapp.h ascommand.h asdatabase.h asfeel.h aswindata.h \
 #           findfile.o asproperty.o catstring3.o copystring.o termhash.o
 #
 LIB_OBJS= asapp.o ascommand.o asdatabase.o asfeel.o aswindata.o \
-                  balloon.o canvas.o clientprops.o colorscheme.o \
-		  decor.o desktop_category.o event.o \
-                  freestor.o functions.o font.o hints.o kde.o module.o \
-		  moveresize.o myicon.o mylook.o mystyle.o mystyle_property.o \
-		  outline.o operations.o \
-		  parser.o parser_fs.o parser_xml.o \
-		  screen.o session.o shape.o wmprops.o
+				balloon.o canvas.o clientprops.o colorscheme.o \
+				decor.o desktop_category.o event.o \
+				freestor.o functions.o font.o hints.o kde.o module.o \
+				moveresize.o myicon.o mylook.o mystyle.o mystyle_property.o \
+				outline.o operations.o parser.o parser_fs.o parser_xml.o \
+				screen.o session.o shape.o wmprops.o
+
+LIB_SOURCES= asapp.c ascommand.c asdatabase.c asfeel.c aswindata.c \
+				balloon.c canvas.c clientprops.c colorscheme.c \
+				decor.c desktop_category.c event.c \
+				freestor.c functions.c font.c hints.c kde.c module.c \
+				moveresize.c myicon.c mylook.c mystyle.c mystyle_property.c \
+				outline.c operations.c parser.c parser_fs.c parser_xml.c \
+				screen.c session.c shape.c wmprops.c
 
 CONFIG_SCRIPT= afterstep-config
 

@@ -564,7 +564,7 @@ LOCAL_DEBUG_OUT( "desk_style %d: \"%s\" ->%p(\"%s\")->colors(%lX,%lX)", i, buf, 
 
         if( Config->MSDeskBack[i] == NULL )
         {
-            sprintf( buf, "*%sDesk%ld", MyName, i + PagerState.start_desk);
+            sprintf( buf, "*%sDesk%d", MyName, i + (int)PagerState.start_desk);
             Config->MSDeskBack[i] = mystyle_find_or_default( buf );
         }
     }
@@ -1325,7 +1325,7 @@ redecorate_pager_desks()
                 add_astbar_label( d->title, 0, flip?1:0, flip, align, h_spacing, v_spacing, Config->labels[i], AS_Text_ASCII );
             else
             {
-                sprintf( buf, "Desk %ld", PagerState.start_desk+i );
+                sprintf( buf, "Desk %d", (int)PagerState.start_desk+i );
                 add_astbar_label( d->title, 0, flip?1:0, flip, align, h_spacing, v_spacing, buf, AS_Text_ASCII );
             }
             if( PagerState.shade_button.context != C_NO_CONTEXT )
@@ -2301,10 +2301,10 @@ ASGrid *make_pager_grid()
         ASWindowData *wd ;
         ASTBarData *bb = d->background;
 
-        add_gridline( &(grid->h_lines), bb->root_y, bb->root_x, bb->root_x+bb->width, resist, attract );
-        add_gridline( &(grid->h_lines), bb->root_y+bb->height, bb->root_x, bb->root_x+bb->width, resist, attract );
-        add_gridline( &(grid->v_lines), bb->root_x, bb->root_y, bb->root_y+bb->height, resist, attract );
-        add_gridline( &(grid->v_lines), bb->root_x+bb->width, bb->root_y, bb->root_y+bb->height, resist, attract );
+        add_gridline (grid, bb->root_y, bb->root_x, bb->root_x+bb->width, resist, attract, ASGL_Absolute );
+        add_gridline (grid, bb->root_y+bb->height, bb->root_x, bb->root_x+bb->width, resist, attract, ASGL_Absolute );
+        add_gridline (grid, bb->root_x, bb->root_y, bb->root_y+bb->height, resist, attract, ASGL_Absolute|ASGL_Vertical );
+        add_gridline (grid, bb->root_x+bb->width, bb->root_y, bb->root_y+bb->height, resist, attract, ASGL_Absolute|ASGL_Vertical );
 
         if( !get_flags(d->flags, ASP_DeskShaded ) )
         {   /* add all the grid separation windows : */
@@ -2316,7 +2316,7 @@ ASGrid *make_pager_grid()
             /* vertical bars : */
             while( --p >= 0 )
             {
-                add_gridline( &(grid->v_lines), pos, pos2, pos2+size, resist, attract );
+                add_gridline (grid, pos, pos2, pos2+size, resist, attract, ASGL_Absolute|ASGL_Vertical);
                 pos -= pos_inc ;
             }
             /* horizontal bars */
@@ -2327,7 +2327,7 @@ ASGrid *make_pager_grid()
             size = bb->width ;
             while( --p >= 0 )
             {
-                add_gridline( &(grid->h_lines), pos, pos2, pos2+size, resist, attract );
+                add_gridline (grid, pos, pos2, pos2+size, resist, attract, ASGL_Absolute);
                 pos -= pos_inc ;
             }
         }
@@ -2340,7 +2340,7 @@ ASGrid *make_pager_grid()
                     inner_gravity = -1 ;
 
                 if( inner_gravity != 0 )
-                    add_canvas_grid( grid, wd->canvas, outer_gravity, inner_gravity, 0, 0 );
+                    add_canvas_grid( grid, wd->canvas, outer_gravity, inner_gravity, ASGL_Absolute);
             }
     }
     /* add all the window edges for this desktop : */
@@ -2485,7 +2485,7 @@ process_message (send_data_type type, send_data_type *body)
             case M_STACKING_ORDER :
                 {
                     LOCAL_DEBUG_OUT("M_STACKING_ORDER(desk=%ld, clients_num=%ld)", body[0], body[1]);
-                    change_desk_stacking( body[0], body[1], &(body[2]) );
+                    change_desk_stacking( body[0], body[1], (Window*)&(body[2]) );
                 }
                 break ;
             case M_END_WINDOWLIST :
@@ -2864,7 +2864,7 @@ on_scroll_viewport( ASEvent *event )
                 int sx = (px*PagerState.vscreen_width)/d->background->width ;
                 int sy = (py*PagerState.vscreen_height)/d->background->height ;
 				
-                sprintf (command, "GotoDeskViewport %ld%+d%+d\n", d->desk, sx, sy);
+                sprintf (command, "GotoDeskViewport %d%+d%+d\n", (int)d->desk, sx, sy);
                 SendInfo ( command, 0);
 				++PagerState.wait_as_response ;
             }

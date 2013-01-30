@@ -158,12 +158,14 @@ asdbus_process_messages ()
 		interface = dbus_message_get_interface (msg);
 		member = dbus_message_get_member (msg);
 		
-		show_progress ("Dbus message received from \"%s\", member \"%s\"", interface, member);
-		if (strcmp (interface, "org.gnome.SessionManager.ClientPrivate") == 0) {
-			if (strcmp (member, "QueryEndSession") == 0) { /* must replay yes  within 10 seconds */
-				asdbus_EndSessionOk();
-			}else if (strcmp (member, "EndSession") == 0 || strcmp (member, "Stop") == 0) { /* must replay yes  within 10 seconds */
-				Done (False, NULL);
+		if (interface && member) {
+			show_progress ("Dbus message received from \"%s\", member \"%s\"", interface, member);
+			if (strcmp (interface, "org.gnome.SessionManager.ClientPrivate") == 0) {
+				if (strcmp (member, "QueryEndSession") == 0) { /* must replay yes  within 10 seconds */
+					asdbus_EndSessionOk();
+				}else if (strcmp (member, "EndSession") == 0 || strcmp (member, "Stop") == 0) { /* must replay yes  within 10 seconds */
+					Done (False, NULL);
+				}
 			}
 		}
 #if 0		
@@ -229,6 +231,15 @@ use dbus__connection_send () to send it.
 
 */
 
+static inline Bool set_sm_client_id (DBusMessageIter *iter, const char *sm_client_id)
+{
+	if (sm_client_id == NULL || sm_client_id[0] == '\0')
+		return False;
+	show_progress ("Using \"%s\" as the client ID for registration with the Session Manager", sm_client_id);
+  dbus_message_iter_append_basic(iter,DBUS_TYPE_STRING,&sm_client_id);
+	return True;
+}
+
 char* asdbus_RegisterSMClient(const char *sm_client_id)
 {
 	char *client_path = NULL;
@@ -245,28 +256,20 @@ char* asdbus_RegisterSMClient(const char *sm_client_id)
 			DBusMessage *replay;
 			DBusError error;
 			char *app_id = AFTERSTEP_APP_ID ;
-			char *instance_id = sm_client_id;
-			Bool free_inst_id = False;
 			DBusMessageIter iter;
 			
 			dbus_message_iter_init_append(message,&iter);
       dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&app_id);
-			
-			if (instance_id == NULL)
-				instance_id = getenv (SESSION_ID_ENVVAR);
 
-			if (instance_id == NULL) {
-				instance_id = safemalloc (sizeof(AFTERSTEP_APP_ID)+1+32);
-				sprintf (instance_id, "%s-%d", AFTERSTEP_APP_ID, getpid());
-				free_inst_id = True;
-			}else
-  
-			show_progress ("Using \"%s\" as the client ID for registration with the Session Manager", instance_id);
-	    dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&instance_id);
-			
-			if (free_inst_id)
-				free (instance_id);										
-	
+			if (!set_sm_client_id (&iter, sm_client_id)) {
+				if (!set_sm_client_id (&iter, getenv(SESSION_ID_ENVVAR))) {
+					char *instance_id = safemalloc (sizeof(AFTERSTEP_APP_ID)+1+32);
+					sprintf (instance_id, "%s-%d", AFTERSTEP_APP_ID, getpid());
+					set_sm_client_id (&iter, instance_id);
+					free (instance_id);
+				}
+			}
+
 			dbus_error_init (&error);
 			replay = dbus_connection_send_with_reply_and_block (ASDBus.session_conn, message, 1000, &error); 
 			dbus_message_unref (message);

@@ -292,7 +292,7 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 			for (m = 0; m <= 8; m++)   /* is 8 really the maximum number of modifiers to search through? */
 			{
 				for (i = min; i <= max; i++)
-					if (XKeycodeToKeysym (dpy, i, m) == keysym)
+					if (XkbKeycodeToKeysym (dpy, i, m, 0) == keysym)
 						break;
 				if (i <= max)
 					break;

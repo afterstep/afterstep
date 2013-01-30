@@ -724,7 +724,7 @@ void release_all_old_background( Bool forget );
 
 
 /******************************* placement.c *******************************/
-ASGrid* make_desktop_grid (int desk, int min_layer, Bool frame_only, int vx, int vy, ASWindow *target);
+ASGrid* make_desktop_grid (int desk, int min_layer, Bool frame_only, ASWindow *target);
 void setup_aswindow_moveresize (ASWindow *asw,  struct ASMoveResizeData *mvrdata);
 Bool place_aswindow (ASWindow *asw);
 void apply_aswindow_move (struct ASMoveResizeData *data);

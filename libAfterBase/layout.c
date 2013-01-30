@@ -17,7 +17,7 @@
  *
  */
 
-/*#define LOCAL_DEBUG*/
+#define LOCAL_DEBUG
 #include "config.h"
 
 #include <stdio.h>
@@ -953,32 +953,58 @@ moveresize_layout( ASLayout *layout, unsigned int width, unsigned int height, Bo
 /***********************************************************************/
 /* Grid stuff :                                                        */
 /***********************************************************************/
+void grid_coords2real (ASGrid *g, ASGridLine *l, int *band,  int *start, int *end)
+{
+	*band = l->band;
+	*start = l->start;
+	*end = l->end;
+	if (!get_flags(l->flags, ASGL_Absolute)) {
+		if (get_flags(l->flags, ASGL_Vertical)) {
+			*band -= g->curr_vx;
+			*start -= g->curr_vy;
+			*end -= g->curr_vy;
+		} else {
+			*band -= g->curr_vy;
+			*start -= g->curr_vx;
+			*end -= g->curr_vx;
+		}
+LOCAL_DEBUG_OUT ("virtual: %d, %d-%d, real %d, %d-%d", l->band, l->start, l->end, *band, *start, *end);
+	}
+} 
+
 
 ASGridLine *
-add_gridline( ASGridLine **list, short band, short start, short end,
-              short gravity_above, short gravity_below )
+add_gridline( ASGrid *grid, short band, short start, short end,
+              short gravity_above, short gravity_below, unsigned long flags)
 {
+	ASGridLine **list;
 	ASGridLine *l;
+	ASGridLine  new_l = {NULL, flags, band, start, end, gravity_above, gravity_below, 0};
 
-	if( AS_ASSERT(list) )
+	if (AS_ASSERT(grid))
 		return NULL;
+	list = get_flags(flags, ASGL_Vertical)? &(grid->v_lines) : &(grid->h_lines);
+	
+	/* eliminating duplicates and sorting in ascending order : */
+	for( l = *list ; l != NULL ; l = l->next )	{
+		int l_band, l_start, l_end;
+		int n_band, n_start, n_end;
 
-	for( l = *list ; l != NULL ; l = l->next )
-	{/* eliminating duplicates and sorting in ascending order : */
-		if( l->band <= band )
+		grid_coords2real (grid, l, &l_band, &l_start, &l_end);
+		grid_coords2real (grid, &new_l, &n_band, &n_start, &n_end);
+		
+		if( l_band <= n_band )
 			list = &(l->next);
-		if( l->band == band )
+		if( l_band == n_band && get_flags(l->flags, ASGL_Absolute) == get_flags(flags, ASGL_Absolute))
 		{
-			if( l->start < end && l->end > start )
-			{ /* at least intersecting : */
-				if( l->gravity_above == gravity_above &&
-					l->gravity_below == gravity_below )
-			  	{
+			if( l_start < n_end && l_end > n_start )	{ /* at least intersecting : */
+				if( l->gravity_above == gravity_above && l->gravity_below == gravity_below )	{
+					/* TODO*/
 					l->start = MIN( l->start, start );
 					l->end = MAX( l->end, end );
 					return NULL;
 				}
-				if( l->start == start && l->end == end )
+				if( l_start == n_start && l_end == n_end )
 				{
 					l->gravity_above = ( l->gravity_above < 0 )?
 											MIN(l->gravity_above, gravity_above):
@@ -991,16 +1017,12 @@ add_gridline( ASGridLine **list, short band, short start, short end,
 					return NULL;
 				}
 			}
-		}else if( l->band > band )
+		}else if( l_band > n_band )
 			break;
 	}
 
 	l = safecalloc( 1, sizeof(ASGridLine));
-	l->band = band ;
-	l->start = start ;
-	l->end = end ;
-	l->gravity_above = gravity_above;
-	l->gravity_below = gravity_below;
+	*l = new_l;
 
 	l->next = *list ;
 	*list = l ;
@@ -1034,7 +1056,7 @@ LOCAL_DEBUG_OUT( "start = %d, end = %d, x = %d, width = %d, lwidth = %d", start,
 					if( x > end + layout->v_spacing + 1 )
 					{
 						if( end > start )
-							add_gridline( &(grid->h_lines), y+origin_y, start+origin_x, end+origin_x, gravity, gravity );
+							add_gridline( grid, y+origin_y, start+origin_x, end+origin_x, gravity, gravity, ASGL_Absolute);
 						end = start = x ;
 					}else if( x > start && start == end )
 					{
@@ -1045,7 +1067,7 @@ LOCAL_DEBUG_OUT( "start = %d, end = %d, x = %d, width = %d, lwidth = %d", start,
 				}
 			}while( (pelem = pelem->right) != NULL );
 			if( end > start )
-				add_gridline( &(grid->h_lines), y+origin_y, start+origin_x, end+origin_x, gravity, gravity );
+				add_gridline( grid, y+origin_y, start+origin_x, end+origin_x, gravity, gravity, ASGL_Absolute);
         }
 	}
 	/* vertical lines : */
@@ -1066,7 +1088,7 @@ LOCAL_DEBUG_OUT( "start = %d, end = %d, y = %d, height = %d, lheight = %d", star
 					if( y > end + layout->h_spacing + 1 )
 					{
 						if( end > start )
-							add_gridline( &(grid->v_lines), x+origin_x, start+origin_y, end+origin_y, gravity, gravity );
+							add_gridline( grid, x+origin_x, start+origin_y, end+origin_y, gravity, gravity, ASGL_Absolute|ASGL_Vertical);
 						end = start = y ;
 					}else if( y > start && start == end )
 						start = end = y ;
@@ -1075,7 +1097,7 @@ LOCAL_DEBUG_OUT( "start = %d, end = %d, y = %d, height = %d, lheight = %d", star
 				}
 			}while( (pelem = pelem->below) != NULL );
 			if( end > start )
-				add_gridline( &(grid->v_lines), x+origin_x, start+origin_y, end+origin_y, gravity, gravity );
+				add_gridline (grid, x+origin_x, start+origin_y, end+origin_y, gravity, gravity, ASGL_Absolute|ASGL_Vertical );
         }
 	}
 }
@@ -1114,11 +1136,11 @@ void print_asgrid( ASGrid *grid )
 		fprintf( stderr, "Horizontal grid lines :\n" );
 		fprintf( stderr, "\t band \t start \t end   \t above \t below\n" );
 		for( l = grid->h_lines ; l != NULL ; l = l->next )
-			fprintf( stderr, "\t % 4.4d \t % 5.5d \t % 5.5d \t % 5.5d \t % 5.5d\n", l->band, l->start, l->end, l->gravity_above, l->gravity_below );
+			fprintf( stderr, "\t %d \t %d \t %d \t %d \t %d \t %s\n", l->band, l->start, l->end, l->gravity_above, l->gravity_below, get_flags(l->flags,ASGL_Absolute)?"absolute":"virtual" );
 		fprintf( stderr, "Vertical grid lines :\n" );
 		fprintf( stderr, "\t band \t start \t end   \t above \t below\n" );
 		for( l = grid->v_lines ; l != NULL ; l = l->next )
-			fprintf( stderr, "\t % 4.4d \t % 5.5d \t % 5.5d \t % 5.5d \t % 5.5d\n", l->band, l->start, l->end, l->gravity_above, l->gravity_below );
+			fprintf( stderr, "\t %d \t %d \t %d \t %d \t %d \t %s\n", l->band, l->start, l->end, l->gravity_above, l->gravity_below, get_flags(l->flags,ASGL_Absolute)?"absolute":"virtual" );
 	}
 	fprintf( stderr, "Done printing grid %p\n", grid );
 }

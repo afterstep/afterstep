@@ -1300,7 +1300,7 @@ typedef struct WinListConfig
 	int NoCollidesSpacing ;
 
 #define WINLIST_DEFAULT_ShowHints	(BALLOON_SHOW_Name|BALLOON_SHOW_Comment)
-	int ShowHints;
+	ASFlagType ShowHints;
 
     /* calculated based on geometry : */
     int anchor_x, anchor_y ;

@@ -294,14 +294,16 @@ main (int argc, char **argv)
 	GlossaryName = UserGlossaryName ; 
 	TopicIndexName = UserTopicIndexName ; 
 
-	if( target_type < DocType_Source )
-	{	
+	if( target_type < DocType_Source ) {	
 		time_t curtime;
-    	struct tm *loctime;
+   	struct tm *loctime;
+		ASHashData hashd;
 		
 		DocBookVocabulary = create_ashash( 7, casestring_hash_value, casestring_compare, string_destroy_without_data );
-		for( i = 1 ; i < DOCBOOK_SUPPORTED_IDS ; ++i )
-			add_hash_item( DocBookVocabulary, AS_HASHABLE(SupportedDocBookTagInfo[i].tag), (void*)(SupportedDocBookTagInfo[i].tag_id));
+		for( i = 1 ; i < DOCBOOK_SUPPORTED_IDS ; ++i ) {
+			hashd.i = SupportedDocBookTagInfo[i].tag_id;
+			add_hash_item( DocBookVocabulary, AS_HASHABLE(SupportedDocBookTagInfo[i].tag), hashd.vptr);
+		}
 		
 		/* Get the current time. */
 		curtime = time (NULL);

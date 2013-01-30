@@ -609,51 +609,54 @@ SHOW_CHECKPOINT;
 		else if( size > 0 && (b) < (band)+(grav) && (b) > (band)) (t) = (band)-(size);} \
 
 int
-attract_side( register ASGridLine *l, int pos, int size, int lim1, int lim2 )
+attract_side (ASGrid *g, ASGridLine *l, int pos, int size, int lim1, int lim2 )
 {
 	int head = pos;
 	int tail = head+size ;
 
-	while( l != NULL )
-	{
-		if( lim2 >= l->start && lim1 <= l->end )
+	for (;l != NULL ;l = l->next) {
+		int band, start, end;
+		grid_coords2real (g, l, &band, &start, &end);
+
+		if( lim2 >= start && lim1 <= end )
 		{
-			ATTRACT_SIDE_ABOVE(head,tail,l->band,l->gravity_above,size);
-			ATTRACT_SIDE_BELOW(head,tail,l->band,l->gravity_below,size);
+			ATTRACT_SIDE_ABOVE(head,tail,band,l->gravity_above,size);
+			ATTRACT_SIDE_BELOW(head,tail,band,l->gravity_below,size);
 			if( head != pos )
 			{
-LOCAL_DEBUG_OUT( "attracted by %d, %d-%d, %d,%d", l->band, l->start, l->end, l->gravity_above, l->gravity_below );
+LOCAL_DEBUG_OUT( "attracted by %d, %d-%d, %d,%d", band, start, end, l->gravity_above, l->gravity_below );
 				return head;
 			}
 		}
-		l = l->next ;
 	}
 	return pos;
 }
 
 int
-resist_west_side( register ASGridLine *l, int pos, int new_pos, int lim1,  int lim2 )
+resist_west_side( ASGrid *g, ASGridLine *l, int pos, int new_pos, int lim1,  int lim2 )
 {
-	while( l != NULL )
-	{
+	for (;l != NULL ;l = l->next){
+		int band, start, end;
+		grid_coords2real (g, l, &band, &start, &end);
 /*LOCAL_DEBUG_OUT( "lim = %+d%+d, l = (%d,%d), pos = (%d,%d), band = %d, grav = %d", lim1, lim2, l->start, l->end, pos, new_pos, l->band, l->gravity_above );*/
-		if( lim2 >= l->start && lim1 <= l->end && l->gravity_above < 0 &&
-			l->band <= pos && l->band >= new_pos )
-			new_pos = l->band ;
-		l = l->next ;
+		if (lim2 >= start && lim1 <= end && l->gravity_above < 0 
+				&& band <= pos && band >= new_pos) {
+			new_pos = band ;
+		}
 	}
 	return MIN(pos, new_pos);
 }
 
 int
-resist_east_side( register ASGridLine *l, int pos, int new_pos, int lim1,  int lim2 )
+resist_east_side( ASGrid *g, ASGridLine *l, int pos, int new_pos, int lim1,  int lim2 )
 {
-	while( l != NULL )
-	{
-		if( lim2 >= l->start && lim1 <= l->end && l->gravity_below < 0 &&
-			l->band >= pos && l->band <= new_pos )
-			new_pos = l->band ;
-		l = l->next ;
+	for (;l != NULL ;l = l->next){
+		int band, start, end;
+		grid_coords2real (g, l, &band, &start, &end);
+		if (lim2 >= start && lim1 <= end && l->gravity_below < 0 
+				&& band >= pos && band <= new_pos) {
+			new_pos = band ;
+		}
 	}
 	return MAX(pos, new_pos);
 }
@@ -674,26 +677,27 @@ attract_corner( ASMoveResizeData *data, int *x_inout, int *y_inout )
 	if( grid )
 	{
 		/* step 1 - attraction : */
-		new_left = attract_side( grid->v_lines, *x_inout, curr_width,  *y_inout, *y_inout+curr_height);
+		new_left = attract_side( grid, grid->v_lines, *x_inout, curr_width,  *y_inout, *y_inout+curr_height);
 		if( new_left == *x_inout && data->title_west > 0 ) 
-			new_left = attract_side( grid->v_lines, *x_inout + data->title_west, curr_width,  *y_inout, *y_inout+curr_height) - data->title_west;
+			new_left = attract_side( grid, grid->v_lines, *x_inout + data->title_west, curr_width,  *y_inout, *y_inout+curr_height) - data->title_west;
 
-		new_top  = attract_side( grid->h_lines, *y_inout, curr_height, *x_inout, *x_inout+curr_width );
+		new_top  = attract_side( grid, grid->h_lines, *y_inout, curr_height, *x_inout, *x_inout+curr_width );
 		if( new_top == *y_inout && data->title_north > 0 ) 
-			new_top  = attract_side( grid->h_lines, *y_inout+data->title_north, curr_height, *x_inout, *x_inout+curr_width )-data->title_north;
+			new_top  = attract_side( grid, grid->h_lines, *y_inout+data->title_north, curr_height, *x_inout, *x_inout+curr_width )-data->title_north;
 
 
 		/* step 2 - resistance : */
-LOCAL_DEBUG_OUT( "attracted(%+d%+d) orinal(%+d%+d)", new_left, new_top, curr_left, curr_top );
+LOCAL_DEBUG_OUT( "+++attracted\t\t(%+d%+d) projected\t(%+d%+d) current\t(%+d%+d)", new_left, new_top, *x_inout, *y_inout, curr_left, curr_top );
 		if( new_left > curr_left )  /* moving eastwards : */
-			new_left = resist_east_side( grid->v_lines, curr_left+curr_width, new_left+curr_width, new_top+data->title_north, new_top+curr_height )-curr_width;
+			new_left = resist_east_side( grid, grid->v_lines, curr_left+curr_width, new_left+curr_width, new_top+data->title_north, new_top+curr_height )-curr_width;
 		else if( new_left < curr_left )
-			new_left = resist_west_side( grid->v_lines, curr_left+data->title_west, new_left+data->title_west, new_top+data->title_north, new_top+curr_height )-data->title_west;
+			new_left = resist_west_side( grid, grid->v_lines, curr_left+data->title_west, new_left+data->title_west, new_top+data->title_north, new_top+curr_height )-data->title_west;
 
 		if( new_top > curr_top )  /* moving southwards : */
-			new_top = resist_east_side( grid->h_lines, curr_top+curr_height, new_top+curr_height, new_left+data->title_west, new_left+curr_width )-curr_height;
+			new_top = resist_east_side( grid, grid->h_lines, curr_top+curr_height, new_top+curr_height, new_left+data->title_west, new_left+curr_width )-curr_height;
 		else if( new_top < curr_top )
-			new_top = resist_west_side( grid->h_lines, curr_top+data->title_north, new_top+data->title_north, new_left+data->title_west, new_left+curr_width )-data->title_north;
+			new_top = resist_west_side( grid, grid->h_lines, curr_top+data->title_north, new_top+data->title_north, new_left+data->title_west, new_left+curr_width )-data->title_north;
+LOCAL_DEBUG_OUT( "---resisted\t\t(%+d%+d) projected\t(%+d%+d) current\t(%+d%+d)", new_left, new_top, *x_inout, *y_inout, curr_left, curr_top );
 
 
 		res = (new_top != *y_inout || new_left != *x_inout );
@@ -703,7 +707,7 @@ LOCAL_DEBUG_OUT( "attracted(%+d%+d) orinal(%+d%+d)", new_left, new_top, curr_lef
 	return res ;
 }
 
-int adjust_west_side( ASGridLine *gridlines, int dpos, int *pos_inout, int *size_inout, int lim1, int lim2, int title_west, int title_north )
+int adjust_west_side(ASGrid* grid, ASGridLine *gridlines, int dpos, int *pos_inout, int *size_inout, int lim1, int lim2, int title_west, int title_north )
 {
 	int pos = *pos_inout, new_pos = pos+dpos ;
 	int adjusted_dpos = dpos;
@@ -711,12 +715,12 @@ int adjust_west_side( ASGridLine *gridlines, int dpos, int *pos_inout, int *size
 	if( gridlines )
 	{
 		int original = new_pos ; 
-		new_pos = attract_side( gridlines, new_pos, 0, lim1, lim2 );
+		new_pos = attract_side( grid, gridlines, new_pos, 0, lim1, lim2 );
 		if( new_pos == original && title_west > 0 ) 
-			new_pos = attract_side( gridlines, new_pos+title_west, 0, lim1, lim2 )-title_west;
+			new_pos = attract_side( grid, gridlines, new_pos+title_west, 0, lim1, lim2 )-title_west;
 		if( new_pos < pos )
 		{ /* we need to resist move if we are offending any negative gridline */
-			new_pos = resist_west_side( gridlines, pos+title_west, new_pos, lim1+title_north, lim2 )-title_west;
+			new_pos = resist_west_side( grid, gridlines, pos+title_west, new_pos, lim1+title_north, lim2 )-title_west;
 		}
 	}
 	adjusted_dpos = MIN(new_pos-pos,*size_inout-1) ;
@@ -727,7 +731,7 @@ LOCAL_DEBUG_OUT( "pos = %d, new_pos = %d, lim1 = %d, lim2 = %d, dpos = %d, adjus
 	return adjusted_dpos;
 }
 
-int adjust_east_side( ASGridLine *gridlines, int dpos, int pos, int *size_inout, int lim1, int lim2, int title_north )
+int adjust_east_side(ASGrid* grid, ASGridLine *gridlines, int dpos, int pos, int *size_inout, int lim1, int lim2, int title_north )
 {
 	int adjusted_dpos = dpos;
 	int new_pos = pos;
@@ -736,10 +740,10 @@ int adjust_east_side( ASGridLine *gridlines, int dpos, int pos, int *size_inout,
 	{
 		pos += *size_inout ;
 		new_pos = pos+dpos ;
-		new_pos = attract_side( gridlines, new_pos, 0, lim1, lim2 );
+		new_pos = attract_side(grid, gridlines, new_pos, 0, lim1, lim2 );
 		if( new_pos > pos )
 		{ /* we need to resist move if we are offending any negative gridline */
-			new_pos = resist_east_side( gridlines, pos, new_pos, lim1 + title_north, lim2 );
+			new_pos = resist_east_side(grid, gridlines, pos, new_pos, lim1 + title_north, lim2 );
 		}
 		adjusted_dpos = new_pos-pos ;
 	}
@@ -851,7 +855,7 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		case FR_N :
 		case FR_NE :
 		case FR_NW :
-			real_dy = adjust_west_side( h_lines, dy, &(data->curr.y), &(data->curr.height), 
+			real_dy = adjust_west_side( data->grid, h_lines, dy, &(data->curr.y), &(data->curr.height), 
 										lim1, lim2, data->title_north, data->title_west );
 			real_dy = restrain_west_side( real_dy, &(data->curr.y), &(data->curr.height), data->min_height, data->height_inc, data->max_height );
 			break ;
@@ -859,7 +863,7 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		case FR_S :
 		case FR_SE:
 		case FR_SW:
-			real_dy = adjust_east_side( h_lines, dy, data->curr.y, &(data->curr.height), 
+			real_dy = adjust_east_side( data->grid, h_lines, dy, data->curr.y, &(data->curr.height), 
 										lim1, lim2, data->title_west  );
 			real_dy = restrain_east_side( real_dy, &(data->curr.height), data->min_height, data->height_inc, data->max_height );
 			break ;
@@ -871,14 +875,14 @@ resize_func (struct ASMoveResizeData *data, int x, int y)
 		case FR_E :
 		case FR_NE :
 		case FR_SE :
-			real_dx = adjust_east_side( v_lines, dx, data->curr.x, &(data->curr.width), 
+			real_dx = adjust_east_side( data->grid, v_lines, dx, data->curr.x, &(data->curr.width), 
 										lim1, lim2, data->title_west  );
 			real_dx = restrain_east_side( real_dx, &(data->curr.width), data->min_width, data->width_inc, data->max_width );
 			break ;
 		case FR_W :
 		case FR_SW :
 		case FR_NW :
-			real_dx = adjust_west_side( v_lines, dx, &(data->curr.x), &(data->curr.width), 
+			real_dx = adjust_west_side( data->grid, v_lines, dx, &(data->curr.x), &(data->curr.width), 
 										lim1, lim2, data->title_west, data->title_north  );
 			real_dx = restrain_west_side( real_dx, &(data->curr.x), &(data->curr.width), data->min_width, data->width_inc, data->max_width );
 			break ;

@@ -181,8 +181,8 @@ PrintMyStyleDefinitions (MyStyleDefinition * list)
 				}
 			}
 		}
-		fprintf (stderr, "\n#set_flags = 0x%X", list->set_flags);
-		fprintf (stderr, "\n#flags = 0x%X", list->flags);
+		fprintf (stderr, "\n#set_flags = 0x%lX", (unsigned long)list->set_flags);
+		fprintf (stderr, "\n#flags = 0x%lX", (unsigned long)list->flags);
 		fprintf (stderr, "\n~MyStyle\n");
 		list = list->next ;
 	}

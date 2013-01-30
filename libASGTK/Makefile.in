@@ -10,6 +10,10 @@ LIB_OBJS= asgtkapp.o asgtkai.o asgtkcframe.o asgtkcolorsel.o asgtkdirtree.o \
 		asgtkgradient.o asgtkimagebrowser.o asgtklistviews.o asgtkimagedir.o asgtkimageview.o \
 		asgtklookedit.o asgtkxmleditor.o asgtkxmloptlist.o mystyle_editor_interface.o
 
+LIB_SOURCES= asgtkapp.c asgtkai.c asgtkcframe.c asgtkcolorsel.c asgtkdirtree.c \
+		asgtkgradient.c asgtkimagebrowser.c asgtklistviews.c asgtkimagedir.c asgtkimageview.c \
+		asgtklookedit.c asgtkxmleditor.c asgtkxmloptlist.c mystyle_editor_interface.c
+
 CONFIG_SCRIPT= asgtk-config
 
 LIB_DIR_NAME    = libASGTK

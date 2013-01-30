@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #undef DO_CLOCKING
 
 #include "../configure.h"

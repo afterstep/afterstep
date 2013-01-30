@@ -221,7 +221,7 @@ display_image_view(ASGtkImageView *iv)
 	if( pb ) 
 	{	
 		gtk_image_set_from_pixbuf( GTK_IMAGE(iv->view), pb );
-		gdk_pixbuf_unref( pb ); 		   
+		g_object_unref (pb); 		   
 	}
 	LOCAL_DEBUG_OUT( "####!!! recquisition is %dx%d",  
 						GTK_WIDGET(iv->view)->requisition.width,  

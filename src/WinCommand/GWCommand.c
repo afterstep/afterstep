@@ -568,10 +568,9 @@ group_wrapper(void)
 	char com[1024];
 	/* Launch WinTabs */
 	snprintf(com, 1024 - 1 , "WinTabs --pattern \"posix:%s\" &",
-		 gtk_entry_get_text(GTK_ENTRY(pattern_entry)));
+	gtk_entry_get_text(GTK_ENTRY(pattern_entry)));
 	
-	system( com );
-	return True;
+	return (system (com) != -1);
 }
 
 /* init_defaults */

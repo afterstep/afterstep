@@ -75,5 +75,4 @@ void set_as_property ( Window w, Atom name, CARD32 *data, size_t data_size, CARD
 }
 #endif
 
-
 #endif /* XPROP_H_HEADER_INCLUDED */

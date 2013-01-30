@@ -351,12 +351,7 @@ print_rectangles_list( ASVector *list )
 
 	fprintf( stderr, "\tRectangles.count = %d;\n", i );
 	while ( --i >= 0 )
-	{
-		fprintf( stderr, "\tRectangles[%d].x = %d;\n", i, rects[i].x );
-		fprintf( stderr, "\tRectangles[%d].y = %d;\n", i, rects[i].y );
-		fprintf( stderr, "\tRectangles[%d].width = %d;\n", i, rects[i].width );
-		fprintf( stderr, "\tRectangles[%d].height = %d;\n", i, rects[i].height );
-	}
+		fprintf( stderr, "\tRectangles[%d] \t= %4.4dx%4.4d%+4.4d%+4.4d;\n", i, rects[i].width, rects[i].height, rects[i].x, rects[i].y );
 #endif
 }
 

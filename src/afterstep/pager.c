@@ -395,10 +395,8 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 
 	SendPacket( -1, M_NEW_DESKVIEWPORT, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
 
-	if (dvx != 0 || dvy != 0 || old_desk != new_desk )
-	{
-		union
-		{
+	if (dvx != 0 || dvy != 0 || old_desk != new_desk )	{
+		union		{
 			void *ptr ;
 			int id ;
 		}desk_id;
@@ -406,27 +404,25 @@ LOCAL_DEBUG_CALLER_OUT( "new(%d%+d%+d), old(%d%+d%+d), max(%+d,%+d)", new_desk, 
 		display_progress( True, "Moving off-desktop windows back to desktop #%d ...", new_desk);
 		if ( force_grab )
 			grab_server();
-		if( Scr.moveresize_in_progress && !Scr.moveresize_in_progress->move_only )
-		{
-			ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(Scr.moveresize_in_progress->mr));
-			if( !get_flags (asw->status->flags, AS_Sticky) )
-			{
-				Scr.moveresize_in_progress->last_x += dvx ;
-				Scr.moveresize_in_progress->last_y += dvy ;
-				Scr.moveresize_in_progress->curr.x += dvx ;
-				Scr.moveresize_in_progress->curr.y += dvy ;
-	//			Scr.moveresize_in_progress->start.x += dvx ;
-	//			Scr.moveresize_in_progress->start.y += dvy ;
-				
-//				if( Scr.moveresize_in_progress->pointer_func == resize_func ) 
-				{	
-   //					Scr.moveresize_in_progress->curr.width += dvx ;
-   //					Scr.moveresize_in_progress->curr.height += dvy ;
-  //					Scr.moveresize_in_progress->start.width  -= dvx ;
-  //					Scr.moveresize_in_progress->start.height -= dvy ;
+			
+		if( Scr.moveresize_in_progress) {
+			LOCAL_DEBUG_OUT ("adjusting current viewport of move/resize from %+d%+d to %+d%+d", 
+												Scr.moveresize_in_progress->grid->curr_vx, Scr.moveresize_in_progress->grid->curr_vy, 
+												Scr.Vx, Scr.Vy);
+
+			Scr.moveresize_in_progress->grid->curr_vx = Scr.Vx;
+			Scr.moveresize_in_progress->grid->curr_vy = Scr.Vy;
+			if (!Scr.moveresize_in_progress->move_only)	{
+				ASWindow *asw = window2ASWindow( AS_WIDGET_WINDOW(Scr.moveresize_in_progress->mr));
+				if( !get_flags (asw->status->flags, AS_Sticky) ) {
+					Scr.moveresize_in_progress->last_x += dvx ;
+					Scr.moveresize_in_progress->last_y += dvy ;
+					Scr.moveresize_in_progress->curr.x += dvx ;
+					Scr.moveresize_in_progress->curr.y += dvy ;
 				}
 			}
 		}
+		
 		desk_id.id = old_desk ;
 		/* traverse window list and redo the titlebar/buttons if necessary */
 		iterate_asbidirlist( Scr.Windows->clients, deskviewport_aswindow_iter_func, desk_id.ptr, NULL, False );

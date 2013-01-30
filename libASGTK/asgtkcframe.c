@@ -121,7 +121,7 @@ static void collapse_container_part(GtkWidget *widget, gpointer data)
 
 static void on_collapse_toggle(GtkToggleButton *hide_button, ASGtkCollapsingFrame *self)
 {
-	Bool collapsed = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(hide_button) );
+	long collapsed = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(hide_button) );
 
 	gtk_container_forall( GTK_CONTAINER(self), collapse_container_part, (gpointer)collapsed );
 	if( collapsed )

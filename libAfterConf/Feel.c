@@ -316,7 +316,7 @@ ParseKeyBinding( ConfigItem *item, FreeStorageElem *func_elem, struct FuncKey **
 
 	XDisplayKeycodes (dpy, &min, &max);
 	for (keycode = min; keycode <= max; keycode++)
-		if (XKeycodeToKeysym (dpy, keycode, 0) == keysym)
+		if (XkbKeycodeToKeysym (dpy, keycode, 0,0) == keysym)
 			break;
 
 	if (keycode > max)

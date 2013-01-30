@@ -74,7 +74,7 @@ uninstall.man:
 		$(RMF) $(AFTER_MAN_DIR)/$(PROGS).3x
 
 clean:
-		$(RMF) $(PROGS) *.o *~ *% *.bak \#* core
+		$(RMF) show_flags_cc $(PROGS) *.o *~ *% *.bak \#* core
 
 distclean:
 		$(RMF) $(PROGS) *.o *~ *% *.bak \#* *.orig core Makefile
@@ -130,45 +130,48 @@ deps:
 		fi
 
 asview: asview.o common.o @LIBPROG@
-		$(CC) asview.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asview
+		@$(CC) asview.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asview
 
 asview_gl: asview_gl.o common.o $(LIB_STATIC)
-		$(CC) asview_gl.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -lGL -lGLU -o asview_gl
+		@$(CC) asview_gl.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -lGL -lGLU -o asview_gl
 
 asscale: asscale.o common.o @LIBPROG@
-		$(CC) asscale.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asscale
+		@$(CC) asscale.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asscale
 
 astile: astile.o common.o @LIBPROG@
-		$(CC) astile.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o astile
+		@$(CC) astile.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o astile
 
 asmerge: asmerge.o common.o @LIBPROG@
-		$(CC) asmerge.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asmerge
+		@$(CC) asmerge.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asmerge
 
 asgrad: asgrad.o common.o @LIBPROG@
-		$(CC) asgrad.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asgrad
+		@$(CC) asgrad.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asgrad
 
 asflip: asflip.o common.o @LIBPROG@
-		$(CC) asflip.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asflip
+		@$(CC) asflip.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asflip
 
 asi18n: asi18n.o common.o @LIBPROG@
-		$(CC) asi18n.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asi18n
+		@$(CC) asi18n.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asi18n
 
 astext: astext.o common.o @LIBPROG@
-		$(CC) astext.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o astext
+		@$(CC) astext.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o astext
 
 ascheckttf: ascheckttf.o @LIBPROG@
-		$(CC) ascheckttf.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascheckttf
+		@$(CC) ascheckttf.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascheckttf
 
 ascompose: ascompose.o common.o @LIBPROG@
-		$(CC) ascompose.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascompose
+		@$(CC) ascompose.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o ascompose
 
-asvector: asvector.o common.o $(LIB_STATIC)
-		$(CC) asvector.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asvector
+asvector: asvector.o common.o @LIBPROG@
+		@$(CC) asvector.o common.o $(LIBRARIES) $(EXTRA_LIBRARIES) -o asvector
 
+show_flags_cc:	asview.c asscale.c astile.c asmerge.c asgrad.c asflip.c asi18n.c astext.c ascompose.c asvector.c ascheckttf.c common.c @LIBPROG@ Makefile
+		@touch show_flags_cc ; \
+		echo "Compiled with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"; \
+		echo "and Libraries :$(LIBRARIES) $(EXTRA_LIBRARIES)"; 
 
-
-.c.o:
-		@echo "CC $*.c"
+.c.o: 	show_flags_cc Makefile
+		@echo " $*"
 		@$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
 
 .c.s:

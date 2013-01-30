@@ -162,7 +162,7 @@ uninstall.script:
 
 
 clean:
-		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) $(LIB_APPS) *.so.* *.so *.o *~ *% *.bak \#* core
+		$(RMF) show_flags_cc $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) $(LIB_APPS) *.so.* *.so *.o *~ *% *.bak \#* core
 
 distclean:
 		$(RMF) $(LIB_SHARED) $(LIB_SHARED_CYG) $(LIB_SHARED_CYG_AR) $(LIB_STATIC) $(LIB_APPS) *.o *.so.* *~ *% *.bak \#* *.orig core Makefile
@@ -211,13 +211,18 @@ deps:
 		done; \
 		echo "" >> .shared ;
 
-$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)
+show_flags_cc: $(LIB_SOURCES) $(LIB_INCS) Makefile
+		@touch show_flags_cc ; \
+		echo "Compiling with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"
+
+$(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS) Makefile
 		$(RMF) $(LIB_STATIC)
 		$(AR) $(LIB_STATIC) $(LIB_OBJS)
 		$(RANLIB) $(LIB_STATIC)
 
-.c.o:
-		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
+%.o : %.c Makefile |show_flags_cc 
+		@echo " $*.c"
+		@$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
 
 .c.s:
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -S $*.c
@@ -231,7 +236,7 @@ $(LIB_STATIC):	$(LIB_OBJS) $(LIB_INCS)
 include .depend
 #endif
 
-$(LIB_SHARED_CYG): $(LIB_OBJS) $(LIB_INCS)
+$(LIB_SHARED_CYG): $(LIB_OBJS) $(LIB_INCS) Makefile
 	$(CC) -shared -o $(LIB_SHARED_CYG) \
     		-Wl,--out-implib=$(LIB_SHARED_CYG_AR) \
     		-Wl,--export-all-symbols -Wl,--enable-auto-import \
@@ -244,7 +249,7 @@ $(LIB_SHARED): $(LIB_SHARED).$(LIBVERMAJOR)
 $(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
 	$(LN_S) -f $(LIB_SHARED).$(LIBVER) $(LIB_SHARED).$(LIBVERMAJOR)
 
-$(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS)
+$(LIB_SHARED).$(LIBVER): $(LIB_OBJS) $(LIB_INCS) Makefile
 	$(CC) -shared $(LDFLAGS) -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
 	 $(LIB_OBJS)
 

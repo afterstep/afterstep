@@ -796,7 +796,7 @@ HandleKeyPress ( ASEvent *event )
 		* the cases to one keycode. */
 	for( m = 0 ; m < 8 ; ++m ) 
 	{	
-		KeySym keysym = XKeycodeToKeysym (dpy, xk->keycode, m); 
+		KeySym keysym = XkbKeycodeToKeysym (dpy, xk->keycode, m, 0); 
 		int keycode ; 
 		if( keysym == NoSymbol ) 
 			continue;

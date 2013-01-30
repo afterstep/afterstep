@@ -20,7 +20,7 @@
 
 #include "../configure.h"
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #include "asapp.h"
 #include "afterstep.h"
 #include "parser.h"

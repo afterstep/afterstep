@@ -175,7 +175,7 @@ color2button_image( GtkImage *btn, const char *color )
 	if( pb ) 
 	{	
 		gtk_image_set_from_pixbuf( GTK_IMAGE(btn), pb );
-		gdk_pixbuf_unref( pb ); 		   
+		g_object_unref( pb ); 		   
 	}
 }	
 

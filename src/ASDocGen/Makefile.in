@@ -11,9 +11,9 @@ LIBS_DEPEND     = $(LIB_AFTERBASE_STATIC) $(LIB_AFTERIMAGE_STATIC) $(LIB_AFTERST
 
 
 
-do_compile:    $(OBJS) $(LIBS_DEPEND)
-		$(CC) $(OBJS) $(LIBS_ALL) -o ASDocGen
-		@touch do_compile
+do_compile:    $(OBJS) $(LIBS_DEPEND) Makefile show_flags_cc
+		@$(CC) $(OBJS) $(LIBS_ALL) -o ASDocGen; \
+		 touch do_compile
 
 doc_man:	do_compile
 		@echo -n "Generating man pages ..." ; ./ASDocGen -l log.man -t nroff ; echo "Done" ; touch doc_man

@@ -16,7 +16,7 @@ module.clean:
 
 
 ASMount:	        $(OBJS_ASMOUNT) $(LIBS_DEPEND)
-		$(CC) $(OBJS_ASMOUNT) $(LIBS_ALL) -o $(@)
+		@$(CC) $(OBJS_ASMOUNT) $(LIBS_ALL) -o $(@)
 
 install:	install.bin
 

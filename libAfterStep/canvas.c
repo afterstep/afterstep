@@ -17,7 +17,7 @@
  *
  */
 
-#define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #undef DO_CLOCKING
 
 #include <string.h>
@@ -997,17 +997,23 @@ reparent_canvas_window( ASCanvas *pc, Window dst, int x, int y )
 }
 
 void
-add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity, int vx, int vy )
+add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity, Bool absolute)
 {
-	if( canvas && grid )
-	{
-		int x = canvas->root_x + vx ;
-		int y = canvas->root_y + vy ;
+	if( canvas && grid )	{
+		unsigned long flags = absolute ? ASGL_Absolute : 0;
+		int x = canvas->root_x;
+		int y = canvas->root_y;
+		if (!absolute) {
+			x += grid->curr_vx;
+			y += grid->curr_vy;
+		}
+		
 LOCAL_DEBUG_CALLER_OUT( "(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
-		add_gridline( &(grid->h_lines), y,                x, x+canvas->width+canvas->bw*2,  outer_gravity, inner_gravity );
-		add_gridline( &(grid->h_lines), y+canvas->height+canvas->bw*2, x, x+canvas->width+canvas->bw*2,  inner_gravity, outer_gravity );
-		add_gridline( &(grid->v_lines), x,                y, y+canvas->height+canvas->bw*2, outer_gravity, inner_gravity );
-		add_gridline( &(grid->v_lines), x+canvas->width+canvas->bw*2,  y, y+canvas->height+canvas->bw*2, inner_gravity, outer_gravity );
+		add_gridline (grid, y,                x, x+canvas->width+canvas->bw*2,  outer_gravity, inner_gravity, flags );
+		add_gridline (grid, y+canvas->height+canvas->bw*2, x, x+canvas->width+canvas->bw*2,  inner_gravity, outer_gravity, flags );
+		set_flags (flags, ASGL_Vertical);
+		add_gridline (grid, x,                y, y+canvas->height+canvas->bw*2, outer_gravity, inner_gravity, flags );
+		add_gridline (grid, x+canvas->width+canvas->bw*2,  y, y+canvas->height+canvas->bw*2, inner_gravity, outer_gravity, flags );
 	}
 }
 

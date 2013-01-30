@@ -12,6 +12,11 @@ LIB_OBJS        = AfterStep.o AlignBevel.o Animate.o ASetRoot.o ASMount.o Sound.
 		Feel.o function.o Ident.o Look.o MyFrame.o MyStyle.o \
 		Pager.o Wharf.o WinList.o WinTabs.o
 
+LIB_SOURCES     = AfterStep.c AlignBevel.c Animate.c ASetRoot.c ASMount.c Sound.c \
+		Base.c balloon.c Clean.c Color.c Database.c DesktopEntry.c \
+		Feel.c function.c Ident.c Look.c MyFrame.c MyStyle.c \
+		Pager.c Wharf.c WinList.c WinTabs.c
+
 LIB_APPS	= PrintDesktopEntries
 
 LIB_DIR_NAME    = libAfterConf

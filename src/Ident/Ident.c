@@ -723,7 +723,7 @@ fill_window_data()
 		
 		if (get_flags (eh->flags, EXTWM_PID))
 		{
-			sprintf( buf, "%ld", eh->pid );
+			sprintf( buf, "%d", (int)eh->pid );
 			add_property("Extended WM PID:", buf, AS_Text_ASCII, False);
 		}
 
@@ -732,7 +732,7 @@ fill_window_data()
 		
 		if (get_flags (eh->flags, EXTWM_WINDOW_OPACITY))
 		{
-			sprintf( buf, "%ld", eh->window_opacity );
+			sprintf( buf, "%d", (int)eh->window_opacity );
 			add_property("ExtWM Window Opacity :",  buf, AS_Text_ASCII, False);
 		}
 		
@@ -741,18 +741,18 @@ fill_window_data()
 			if (eh->desktop == 0xFFFFFFFF)
 				strcpy(buf, "sticky");
 			else
-				sprintf( buf, "%ld", eh->desktop );
+				sprintf( buf, "%d", (int)eh->desktop );
 			add_property("Extended WM desktop:", buf, AS_Text_ASCII, False);
 		}
 
 		if (get_flags (gh->flags, GNOME_LAYER))
 		{
-			sprintf( buf, "%ld", gh->layer );
+			sprintf( buf, "%d", (int)gh->layer );
 			add_property("Gnome hints layer:", buf, AS_Text_ASCII, False);
 		}
 		if (get_flags (gh->flags, GNOME_WORKSPACE))
 		{
-			sprintf( buf, "%ld", gh->workspace );
+			sprintf( buf, "%d", (int)gh->workspace );
 			add_property("Gnome hints desktop:", buf, AS_Text_ASCII, False);
 		}
 		if (get_flags (gh->flags, GNOME_STATE) && gh->state != 0)

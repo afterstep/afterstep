@@ -19,7 +19,7 @@ uninstall.bin:
 		done
 
 clean:		module.clean
-		$(RMF) $(PROG) $(PROG).exe *.o *~ *% *.bak \#* core log
+		$(RMF) show_flags_cc $(PROG) $(PROG).exe *.o *~ *% *.bak \#* core log
 
 distclean:	clean
 		$(RMF) *.orig Makefile
@@ -90,8 +90,14 @@ deps:
 
 .SUFFIXES:	.c .cxx .h .fl .man .o .z .s $(EXEEXT)
 
+show_flags_cc: $(OBJS)
+		@touch show_flags_cc ; \
+		echo "Compiled with :$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES)"; \
+		echo "and Libraries :$(LIBS_ALL)"
+
 .c.o:
-		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
+		@echo " $*.c"
+		@$(CC) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.c
 
 .cxx.o:
 		$(CXX) $(CCFLAGS) $(EXTRA_DEFINES) $(INCLUDES) $(EXTRA_INCLUDES) -c $*.cxx

@@ -21,8 +21,8 @@ LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
 
 @MAKEFILECOMMON@
 
-$(PROG):        $(OBJS) $(LIBS_DEPEND)
-		$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
+$(PROG):	$(OBJS) $(LIBS_DEPEND) Makefile show_flags_cc
+		@$(CC) $(OBJS) $(LIBS_ALL) -o $(@)
 
 AfterStepConfig.o:	configure.c
 		$(CC) $(CCFLAGS) $(EXTRA_DEFINES) -DAFTERSTEP_CONFIG_TEST $(INCLUDES) $(EXTRA_INCLUDES) -c configure.c -o AfterStepConfig.o

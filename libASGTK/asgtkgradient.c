@@ -268,7 +268,7 @@ update_color_preview( ASGtkGradient *ge, const char *color )
 	if( pb ) 
 	{	
 		gtk_image_set_from_pixbuf( GTK_IMAGE(ge->color_preview), pb );
-		gdk_pixbuf_unref( pb ); 		   
+		g_object_unref( pb ); 		   
 	}
 }
 
