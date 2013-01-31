@@ -463,9 +463,11 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
 	}
 
 	while( timer_remove_by_data( (void*)asw ) );
-	
-	XSync (dpy, 0);
-	SendPacket (-1, M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
+
+	if (!get_flags( AfterStepState, ASS_Shutdown ))	{
+		XSync (dpy, 0);
+		SendPacket (-1, M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
+	}
 
 	UninstallWindowColormaps( asw );
 	CheckWarpingFocusDestroyed(asw);
@@ -487,7 +489,7 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
 	if ( asw == Scr.Windows->pressed )
 		Scr.Windows->pressed = NULL;
 
-	if (!kill_client && asw->internal == NULL )
+	if (!kill_client && asw->internal == NULL && !ASWIN_HFLAGS(asw,AS_Module))
 		RestoreWithdrawnLocation (asw, True);
 
 	if( asw->internal )

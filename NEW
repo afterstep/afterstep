@@ -1,3 +1,18 @@
+version 2.2.12 release
+	* Session Management. AfterStep will utilize gnome-session for session 
+		management if available. Several things needs to be manually adjusted for 
+		full functionality : 
+			1) go over list of autostart application files in /etc/xdg/autostart and for 
+				 those that you want started and have line OnlyShowIn=  - add AfterStep to 
+				 the list of environments. One example is gnome-keyring* stuff - 
+				 by default it is only enabled in GNOME session.
+			2) if session takes a long time to close after Logout dialog was shown - 
+			   most likely culprit is the pulseaudio. You may need to get rid of it and 
+				 switch to more standard and stable ALSA.
+			3) It is recommended to uninstall zeitgeist daemon since its useless under 
+				 AfterStep anyway but wastes resources with its snooping activity.
+				 
+				 
 version 2.2.11 release
 	* new WarpPointer feel option to make pointer warping on viewport change
 	  switcheable. Contributed by Chris Nix.

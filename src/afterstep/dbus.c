@@ -151,7 +151,7 @@ asdbus_process_messages ()
     DBusMessage *msg;
 		const char *interface, *member;
 		/* non blocking read of the next available message */
-		dbus_connection_read_write(ASDBus.session_conn, 500);
+		dbus_connection_read_write(ASDBus.session_conn, 300);
     msg = dbus_connection_pop_message(ASDBus.session_conn);
 
     if (NULL == msg) { 
@@ -169,7 +169,20 @@ asdbus_process_messages ()
 			if (strcmp (interface, IFACE_SESSION_PRIVATE) == 0) {
 				if (strcmp (member, "QueryEndSession") == 0) { /* must replay yes  within 10 seconds */
 					asdbus_EndSessionOk();
-				}else if (strcmp (member, "EndSession") == 0 || strcmp (member, "Stop") == 0) { /* must replay yes  within 10 seconds */
+					asdbus_Notify("Session is ending ...", "Checking if it is safe to logout", 0);
+					SaveSession (True);
+				}else if (strcmp (member, "EndSession") == 0) {
+					/*cover_desktop ();
+					display_progress (True, "Session is ending, please wait ..."); */
+					asdbus_Notify("Session is ending ...", "Closing apps, please wait.", 0);
+					dbus_connection_read_write(ASDBus.session_conn, 0);
+					/* Yield to let other clients process Session Management requests */
+					sleep_a_millisec(300);
+					CloseSessionClients (False);
+				/* we want to end to the very end */
+				}else if (strcmp (member, "Stop") == 0) {
+					asdbus_Notify("Session is over.", "Buy-buy!", 0);
+					dbus_connection_read_write(ASDBus.session_conn, 0);
 					Done (False, NULL);
 				}
 			}

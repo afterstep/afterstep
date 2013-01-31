@@ -464,6 +464,27 @@ save_aswindow_list( ASWindowList *list, char *file )
 	}
 }
 
+Bool
+close_aswindow_iter_func(void *data, void *aux_data)
+{
+	ASWindow *asw = (ASWindow*)data ;
+	if (asw == NULL) return False;
+	
+	if (!ASWIN_HFLAGS(asw,AS_Module) 
+	    && get_flags (asw->hints->protocols, AS_DoesWmDeleteWindow))	{
+		LOCAL_DEBUG_OUT ("sending delete window request to 0x%lX", (unsigned long)asw->w);
+		send_wm_protocol_request(asw->w, _XA_WM_DELETE_WINDOW, CurrentTime);
+	}
+	return True;
+}
+
+void
+close_aswindow_list (ASWindowList *list)
+{
+	iterate_asbidirlist (list->clients, close_aswindow_iter_func, NULL, NULL, False );
+}
+
+
 void
 destroy_aswindow_list( ASWindowList **list, Bool restore_root )
 {
@@ -1179,7 +1200,7 @@ apply_stacking_order( int desk )
 		Window cw = get_desktop_cover_window();
 		int windows_num ; 
 		
-		if( cw != None ) {
+		if( cw != None && !get_flags( AfterStepState, ASS_Shutdown )) {
 			LOCAL_DEBUG_OUT ("desktop cover id = 0x%lX", cw);
 			vector_insert_elem(ids, &cw, 1, NULL, True);
 		}
@@ -1210,37 +1231,39 @@ apply_stacking_order( int desk )
 void
 publish_aswindow_list( ASWindowList *list, Bool stacking_only )
 {
-	int i ;
-	int stack_len = 0;
-	ASWindow **stack = get_stacking_order_list(Scr.Windows, &stack_len );
-	ASVector *ids = get_scratch_ids_vector();
-	
-	/* we maybe called from Destroy, in which case one of the clients may be 
-	   delisted from main list, while still present in it's owner's transients list
-	   which is why we use +1 - This was happening for some clients who'd have 
-	   recursive transients ( transient of a transient of a transient ) 
-	   Since we added check to unroll that sequence in tie_aswindow - problem had gone away, 
-	   but lets keep on adding 1 just in case.
-	 */
-	if( !stacking_only ) 
-	{
-		ASBiDirElem *curr = LIST_START(list->clients);
-		while( curr )
+	if (!get_flags( AfterStepState, ASS_Shutdown )) {
+		int i ;
+		int stack_len = 0;
+		ASWindow **stack = get_stacking_order_list(Scr.Windows, &stack_len );
+		ASVector *ids = get_scratch_ids_vector();
+
+		/* we maybe called from Destroy, in which case one of the clients may be 
+	  	 delisted from main list, while still present in it's owner's transients list
+	  	 which is why we use +1 - This was happening for some clients who'd have 
+	  	 recursive transients ( transient of a transient of a transient ) 
+	  	 Since we added check to unroll that sequence in tie_aswindow - problem had gone away, 
+	  	 but lets keep on adding 1 just in case.
+		 */
+		if( !stacking_only ) 
 		{
-			ASWindow *asw = (ASWindow*)LISTELEM_DATA(curr);
-			vector_insert_elem(ids, &(asw->w), 1, NULL, False);
-			LIST_GOTO_NEXT(curr);	
-		}	 
-		LOCAL_DEBUG_OUT( "Setting Client List property to include %d windows ", PVECTOR_USED(ids) );
-		set_clients_list (Scr.wmprops, PVECTOR_HEAD(Window,ids), PVECTOR_USED(ids));
-		flush_vector( ids );
-	}		  
+			ASBiDirElem *curr = LIST_START(list->clients);
+			while( curr )
+			{
+				ASWindow *asw = (ASWindow*)LISTELEM_DATA(curr);
+				vector_insert_elem(ids, &(asw->w), 1, NULL, False);
+				LIST_GOTO_NEXT(curr);	
+			}	 
+			LOCAL_DEBUG_OUT( "Setting Client List property to include %d windows ", PVECTOR_USED(ids) );
+			set_clients_list (Scr.wmprops, PVECTOR_HEAD(Window,ids), PVECTOR_USED(ids));
+			flush_vector( ids );
+		}		  
 
-	i = stack_len ;
-	while( --i >= 0 )
-		vector_insert_elem(ids, &(stack[i]->w), 1, NULL, False);
+		i = stack_len ;
+		while( --i >= 0 )
+			vector_insert_elem(ids, &(stack[i]->w), 1, NULL, False);
 
-	set_stacking_order (Scr.wmprops, PVECTOR_HEAD(Window,ids), PVECTOR_USED(ids));
+		set_stacking_order (Scr.wmprops, PVECTOR_HEAD(Window,ids), PVECTOR_USED(ids));
+	}
 }
 
 void

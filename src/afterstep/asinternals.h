@@ -405,6 +405,8 @@ extern ASOrientation VertOrientation ;
 /*************************** afterstep.c : ********************************/
 Bool RequestLogout ();
 void Done (Bool restart, char *command);
+void SaveSession (Bool force);
+void CloseSessionClients (Bool only_modules);
 
 /*************************** from aswindow.c : ****************************/
 ASWindowList *init_aswindow_list();
@@ -428,6 +430,8 @@ void remove_aswindow_from_layer( ASWindow *asw, int layer );
 Bool enlist_aswindow( ASWindow *t );
 void delist_aswindow( ASWindow *t );
 void save_aswindow_list( ASWindowList *list, char *file );
+void close_aswindow_list (ASWindowList *list); /* close all windows */
+
 ASWindow* find_topmost_client( int desk, int root_x, int root_y );
 void free_scratch_layers_vector();
 void free_scratch_ids_vector();

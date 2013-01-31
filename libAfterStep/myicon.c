@@ -145,7 +145,9 @@ free_icon_resources (icon_t *icon)
 {
 	if( icon ) 
 	{
+#ifdef DEBUG_ALLOCS
 		LOCAL_DEBUG_OUT( "icon's pixmap to be freed: %lX,%lX,%lX", icon->pix, icon->mask, icon->alpha );
+#endif		
 		destroy_visual_pixmap(ASDefaultVisual, &(icon->pix));
 		destroy_visual_pixmap(ASDefaultVisual, &(icon->mask));
 		destroy_visual_pixmap(ASDefaultVisual, &(icon->alpha));

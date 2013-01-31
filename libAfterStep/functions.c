@@ -345,8 +345,9 @@ free_func_data (FunctionData * data)
 {
 	if (data)
 	{
+#ifdef DEBUG_ALLOCS
 		LOCAL_DEBUG_OUT( "freeing func = \"%s\"", data->name?data->name:"(null)" );
-
+#endif
 		if (data->name)
 		{
 			free (data->name);
@@ -354,7 +355,9 @@ free_func_data (FunctionData * data)
 		}
 		if (data->text)
 		{
+#ifdef DEBUG_ALLOCS		
 			LOCAL_DEBUG_OUT( "func->text = \"%s\"", data->text );
+#endif
 			free (data->text);
 			data->text = NULL;
 		}
@@ -507,7 +510,9 @@ find_complex_func( struct ASHashTable *list, char *name )
 
 void
 free_minipixmap_data (MinipixmapData *minipixmap) {
+#ifdef DEBUG_ALLOCS
 	LOCAL_DEBUG_OUT ("filename = \"%s\", image = %p", minipixmap->filename, minipixmap->image);
+#endif	
 	if( minipixmap->filename )
 		free(minipixmap->filename);
 	if( minipixmap->image )	{
@@ -525,14 +530,18 @@ free_minipixmap_data (MinipixmapData *minipixmap) {
 void
 menu_data_item_destroy(MenuDataItem *mdi)
 {
+#ifdef DEBUG_ALLOCS			
 LOCAL_DEBUG_CALLER_OUT( "menu_data_item_destroy(\"%s\",%p)", ((mdi && mdi->fdata)?(mdi->fdata->name):"NULL"), mdi);
+#endif
 	if( mdi )
 	{
 		if( mdi->magic == MAGIC_MENU_DATA_ITEM )
 		{
 			int i;
 			mdi->magic = 0 ;
+#ifdef DEBUG_ALLOCS			
 LOCAL_DEBUG_OUT( "freeing func data %p", mdi->fdata );
+#endif
 			if( mdi->fdata )
 			{
 				free_func_data( mdi->fdata );
@@ -575,7 +584,9 @@ destroy_menu_data( MenuData **pmd )
 		MenuData *md = *pmd ;
 		if( md->magic == MAGIC_MENU_DATA )
 		{	
+#ifdef DEBUG_ALLOCS
 LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", md->name?md->name:"(null)", md );
+#endif
 			if( md->name )
 				free( md->name );
 			if( md->comment )

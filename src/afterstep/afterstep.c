@@ -635,6 +635,12 @@ CaptureAllWindows (ScreenInfo *scr)
 	}
 }
 
+void CloseAllWindows()
+{
+	
+}
+
+
 /***********************************************************************
  * running Autoexec code ( if any ) :
  ************************************************************************/
@@ -689,6 +695,38 @@ RequestLogout ()
 	if (GnomeSessionClientID)
 		requested = asdbus_Logout (0, 500);
 	return requested;
+}
+
+void SaveSession (Bool force)
+{
+#ifndef NO_SAVEWINDOWS
+	static Bool saved = False;
+	if (!saved || force)
+	{
+		char *fname = make_session_file( Session, AFTER_SAVE, False );
+		save_aswindow_list( Scr.Windows, NULL );
+		free( fname );
+		saved = True;
+	}
+#endif
+}
+
+void CloseSessionClients (Bool only_modules)
+{
+	static Bool done = False;
+	/* Its the end of the session and we better close all non-module windows 
+	   that support the protocol. Otherwise they'll just crash when X connection goes down. 
+		*/
+	if (!done) {
+		if (!only_modules) {
+			show_progress ("Session end: Closing down all remaining windows ...");
+			display_progress (True, "Session end: Closing down all remaining windows ...");
+			close_aswindow_list (Scr.Windows);
+			ASFlushAndSync ();
+			sleep_a_millisec(1000);
+		}
+		done = True;
+	}
 }
 
 void
@@ -756,17 +794,16 @@ LOCAL_DEBUG_CALLER_OUT( "%s restart, cmd=\"%s\"", restart?"Do":"Don't", command?
 #ifndef NO_VIRTUAL
 	MoveViewport (0, 0, False);
 #endif
-#ifndef NO_SAVEWINDOWS
-	if (!restart)
-	{
-		char *fname = make_session_file( Session, AFTER_SAVE, False );
-		save_aswindow_list( Scr.Windows, NULL );
-		free( fname );
-	}
-#endif
 
+	if (!restart)
+		SaveSession (False);
+
+	show_progress ("Closing down all modules ...");
+	display_progress (True, "Closing down all modules ...");
 	/* Close all my pipes */
 	ShutdownModules(False);
+
+	CloseSessionClients (GnomeSessionClientID == NULL || restart);
 
 	desktop_cover_cleanup();
 	

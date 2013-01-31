@@ -409,7 +409,9 @@ void
 menu_data_destroy(ASHashableValue value, void *data)
 {
 	MenuData *md = data ;
+#ifdef DEBUG_ALLOCS
 LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", (char*)value, data );
+#endif
 	if( (char*)value )
 		free( (char*)value );
 	if( md )
