@@ -85,8 +85,6 @@ init_aswindow(ASWindow * t, Bool free_resources )
 	{
 		if( t->transients )
 			destroy_asvector( &(t->transients) );
-		if( t->group_members )
-			destroy_asvector( &(t->group_members) );
 		if( t->status )
 			free( t->status );
 		if( t->hints )

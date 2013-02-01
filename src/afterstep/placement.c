@@ -1076,35 +1076,6 @@ static Bool do_cascade_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry
 	return True;
 }
 
-static Bool do_pointer_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
-{
-	int x = area->x, y = area->y;
-
-	ASQueryPointerRootXY( &x, &y);
-	
-/*fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);*/
-	x += Scr.Vx - (int)asw->status->width/2;
-	y += Scr.Vy - (int)asw->status->height/2;
-/*fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);*/
-	if ( x < area->x ) 
-		x = area->x;
-	else if( x + asw->status->width > area->x+ area->width )
-		x = (area->x+area->width - asw->status->width);
-
-	if ( y < area->y ) 
-		y = area->y;
-	else if( y + asw->status->height > area->y+ area->height )
-		y = (area->y+area->height - asw->status->height);
-
-/*fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);*/
-	asw->status->x = x - asw->status->viewport_x ;
-	asw->status->y = y - asw->status->viewport_y ;
-
-	apply_placement_result_asw( asw, XValue|YValue, x, y, 0, 0 );
-
-	return True;
-}
-
 
 static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
@@ -1155,37 +1126,34 @@ static Bool do_manual_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry 
 	 return (ASWIN_GET_FLAGS(asw,AS_Dead) == 0 && !get_flags(asw->wm_state_transition, ASWT_TO_WITHDRAWN ));
 }
 
-static Bool 
-find_closest_position( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area, ASStatusHints *status, int *closest_x, int *closest_y, int max_layer )
+static int
+move_to_closest_position (ASWindow *asw, ASGeometry *area, ASStatusHints *status, int *x_inout, int *y_inout, int max_layer )
 {
-	ASVector *free_space_list =  build_free_space_list( asw, area, AS_LayerHighest, max_layer );
-	XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
-	int i, selected = -1 ;
-	short x = status->x+Scr.Vx;
-	short y = status->y+Scr.Vy;
-	short selected_x = x ;
-	short selected_y = y ;
-	int selected_factor = 0;
-	unsigned short w = status->width;
-	unsigned short h = status->height;
+	int x = *x_inout;
+	int y = *y_inout;
+	int selected_x = x ;
+	int selected_y = y ;
+	int w = status->width;
+	int h = status->height;
+	int i, selected = -1, selected_factor = 0;;
 
 	LOCAL_DEBUG_OUT( "current=%dx%d%+d%+d", w, h, x, y );
 	/* now we have to find the optimal rectangle from the list */
-	/* pass 1: find rectangle that is the closest to current position :  */
+	ASVector *free_space_list =  build_free_space_list( asw, area, AS_LayerHighest, max_layer );
+	XRectangle *rects = PVECTOR_HEAD(XRectangle,free_space_list);
 	i = PVECTOR_USED(free_space_list);
 	while( --i >= 0 )
 		if( rects[i].width >= w && rects[i].height >=  h  )
 		{
-			short new_x = rects[i].x, new_y = rects[i].y ;
-			short max_x = rects[i].x + rects[i].width - w ;
-			short max_y = rects[i].y + rects[i].height - h ;
+			int new_x = rects[i].x, new_y = rects[i].y ;
+			int max_x = rects[i].x + rects[i].width - w ;
+			int max_y = rects[i].y + rects[i].height - h ;
 			int new_factor ;
 			if( new_x < x )
 				new_x = min( x, max_x );
 			if( new_y < y )
 				new_y = min( y, max_y );
-			new_factor = ((int)x - (int)new_x) * ((int)x - (int)new_x) +
-						 ((int)y - (int)new_y) * ((int)y - (int)new_y);
+			new_factor = (x - new_x) * (x - new_x) + (y - new_y) * (y - new_y);
 
 			if( selected >= 0 && new_factor > selected_factor )
 					continue;
@@ -1196,6 +1164,20 @@ find_closest_position( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area, ASS
 		}
 	LOCAL_DEBUG_OUT( "selected: %d, %+d%+d", selected, selected_x, selected_y );
 	destroy_asvector( &free_space_list );
+	*x_inout = selected_x;
+	*y_inout = selected_y;
+	
+	return selected;
+}
+
+
+static Bool 
+find_closest_position( ASWindow *asw, ASGeometry *area, ASStatusHints *status, int *closest_x, int *closest_y, int max_layer )
+{
+	int selected_x = status->x+Scr.Vx;
+	int selected_y = status->y+Scr.Vy;
+	/* pass 1: find rectangle that is the closest to current position :  */
+	int selected = move_to_closest_position (asw, area, status, &selected_x, &selected_y, max_layer);	
 	if( selected >= 0 ) 
 	{
 		*closest_x = selected_x ;    
@@ -1204,12 +1186,43 @@ find_closest_position( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area, ASS
 	return (selected >= 0);
 }
 
+static Bool do_pointer_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
+{
+	int x = area->x, y = area->y;
+
+	ASQueryPointerRootXY( &x, &y);
+	
+/*fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);*/
+	x += Scr.Vx - (int)asw->status->width/2;
+	y += Scr.Vy - (int)asw->status->height/2;
+/*fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);*/
+	if ( x < area->x ) 
+		x = area->x;
+	else if( x + asw->status->width > area->x+ area->width )
+		x = (area->x+area->width - asw->status->width);
+
+	if ( y < area->y ) 
+		y = area->y;
+	else if( y + asw->status->height > area->y+ area->height )
+		y = (area->y+area->height - asw->status->height);
+
+	move_to_closest_position (asw, area, asw->status, &x, &y, AS_LayerHighest);
+
+/*fprintf( stderr, "%d: x = %d, y = %d\n", __LINE__, x, y);*/
+	asw->status->x = x - asw->status->viewport_x ;
+	asw->status->y = y - asw->status->viewport_y ;
+
+	apply_placement_result_asw( asw, XValue|YValue, x, y, 0, 0 );
+
+	return True;
+}
+
 static Bool do_closest_placement( ASWindow *asw, ASWindowBox *aswbox, ASGeometry *area )
 {
 	int selected_x = 0 ;
 	int selected_y = 0 ;
 
-	if (find_closest_position (asw, aswbox, area, asw->status, &selected_x, &selected_y, AS_LayerHighest))
+	if (find_closest_position (asw, area, asw->status, &selected_x, &selected_y, AS_LayerHighest))
 	{
 		apply_placement_result_asw( asw, XValue|YValue, selected_x, selected_y, 0, 0 );
 		LOCAL_DEBUG_OUT( "success: status(%+d%+d), anchor(%+d,%+d)", asw->status->x, asw->status->y, asw->anchor.x, asw->anchor.y );
@@ -1569,7 +1582,7 @@ void obey_avoid_cover(ASWindow *asw, ASStatusHints *tmp_status, XRectangle *tmp_
 		aswbox.min_layer = AS_LayerLowest;
 		aswbox.max_layer = AS_LayerHighest;
 			
-		if( find_closest_position (asw, &aswbox, &(aswbox.area), tmp_status, &selected_x, &selected_y, max_layer) )
+		if( find_closest_position (asw, &(aswbox.area), tmp_status, &selected_x, &selected_y, max_layer) )
 			apply_placement_result (tmp_status, tmp_anchor, asw->hints, XValue|YValue, selected_x, selected_y, 0, 0);            
 
 		free (aswbox.name);

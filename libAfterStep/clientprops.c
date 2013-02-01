@@ -56,6 +56,9 @@ Atom          _XA_WM_TAKE_FOCUS;
 Atom          _XA_WM_DELETE_WINDOW;
 Atom          _XA_WM_COLORMAP_WINDOWS;
 Atom          _XA_WM_STATE;
+Atom  				_XA_SM_CLIENT_ID;
+Atom  				_XA_WM_WINDOW_ROLE;
+Atom  				_XA_WM_CLIENT_LEADER;
 
 /* Motif hints */
 Atom          _XA_MwmAtom;
@@ -121,6 +124,9 @@ AtomXref      MainHints[] = {
 	{"WM_PROTOCOLS", &_XA_WM_PROTOCOLS},
 	{"WM_COLORMAP_WINDOWS", &_XA_WM_COLORMAP_WINDOWS},
 	{"WM_STATE", &_XA_WM_STATE},
+	{"SM_CLIENT_ID", &_XA_SM_CLIENT_ID},
+	{"WM_WINDOW_ROLE", &_XA_WM_WINDOW_ROLE},
+	{"WM_CLIENT_LEADER", &_XA_WM_CLIENT_LEADER},
 	{"_MOTIF_WM_HINTS", &_XA_MwmAtom},
 	{"_WIN_LAYER", &_XA_WIN_LAYER},
 	{"_WIN_STATE", &_XA_WIN_STATE},

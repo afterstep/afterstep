@@ -1338,8 +1338,7 @@ validate_window_anchor( ASWindow *asw, XRectangle *new_anchor, Bool initial_plac
 		anchor2status ( &status, asw->hints, new_anchor);
 		LOCAL_DEBUG_OUT( "status geometry = %dx%d%+d%+d", status.width, status.height, status.x, status.y );
 
-		if( ASWIN_HFLAGS( asw, AS_AvoidCover|AS_ShortLived ) != AS_AvoidCover )
-		{
+		if (ASWIN_HFLAGS (asw, AS_AvoidCover|AS_ShortLived) != AS_AvoidCover)		{
 			obey_avoid_cover(asw, &status, new_anchor, initial_placement?AS_LayerHighest:ASWIN_LAYER(asw) );
 		}
 	}
@@ -2040,6 +2039,8 @@ change_aswindow_desktop_nontransient( ASWindow *asw, int new_desk, Bool force )
 	}
 }
 
+#if 0	/* TODO do we really need that ??? */
+
 struct ChangeGroupDesktopAuxData
 {
 	Window group_lead ;
@@ -2062,7 +2063,7 @@ LOCAL_DEBUG_OUT( "asw = %p(w = %lX), initiator = %p, to = %p, asw->gl = %lX, gl 
 		change_aswindow_desktop_nontransient( asw, ad->new_desk, ad->force );
 	return True;
 }
-
+#endif
 
 void change_aswindow_desktop( ASWindow *asw, int new_desk, Bool force )
 {
@@ -2076,6 +2077,7 @@ void change_aswindow_desktop( ASWindow *asw, int new_desk, Bool force )
 	
 	change_aswindow_desktop_nontransient( asw, new_desk, force );
 
+#if 0	/* TODO do we really need that ??? */
 	LOCAL_DEBUG_OUT( "group_members = %p; group_lead = %lX", 
 					asw->group_members, asw->hints->group_lead );
 	if( asw->group_members ) 
@@ -2093,6 +2095,7 @@ void change_aswindow_desktop( ASWindow *asw, int new_desk, Bool force )
 		ad.force = force ; 
 		iterate_asbidirlist( Scr.Windows->clients, change_aswindow_desktop_for_group_func, &ad, NULL, False );
 	}
+#endif	
 }
 
 static Bool

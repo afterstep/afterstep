@@ -736,8 +736,8 @@ void CloseSessionClients (Bool only_modules)
 		ASFlushAndSync ();
 		sleep_a_millisec(100);
 	}
-	if (modules_killed > 0)
-	  timer_new (300, &CloseSessionRetryHandler, only_modules);
+/*	if (modules_killed > 0) */
+	  timer_new (100, &CloseSessionRetryHandler, only_modules);
 }
 
 void

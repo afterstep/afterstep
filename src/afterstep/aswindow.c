@@ -49,7 +49,8 @@ void auto_destroy_aswindow ( void *data )
 	}
 }
 
-void destroy_aslayer  (ASHashableValue value, void *data);
+void destroy_aslayer (ASHashableValue value, void *data);
+void destroy_window_group (ASHashableValue value, void *data);
 
 ASWindowList *
 init_aswindow_list()
@@ -59,8 +60,10 @@ init_aswindow_list()
 	list = safecalloc( 1, sizeof(ASWindowList) );
 	list->clients = create_asbidirlist(auto_destroy_aswindow);
 	list->aswindow_xref = create_ashash( 0, NULL, NULL, NULL );
-	list->layers = create_ashash( 7, NULL, desc_long_compare_func, destroy_aslayer );
+	list->layers = create_ashash( 7, NULL, desc_long_compare_func, destroy_aslayer);
 	list->bookmarks = create_ashash( 7, string_hash_value, string_compare, string_destroy_without_data );
+
+	list->window_groups = create_ashash( 0, NULL, NULL, destroy_window_group);
 
 	list->circulate_list = create_asvector( sizeof(ASWindow*) );
 	list->sticky_list = create_asvector( sizeof(ASWindow*) );
@@ -78,6 +81,7 @@ struct SaveWindowAuxData
 	FILE *f;
 	ASHashTable *res_name_counts;
 	Bool only_modules ;
+	ASWindowGroup *group;
 };
 
 int
@@ -264,6 +268,146 @@ make_application_name( ASWindow *asw, char *rclass, char *rname )
 	return name;
 }	  
 
+static void do_save_aswindow (ASWindow *asw, struct SaveWindowAuxData *swad)
+{
+	Bool same_host = (asw->hints->client_host == NULL || mystrcasecmp( asw->hints->client_host, swad->this_host )== 0);
+	if( asw->hints->client_cmd == NULL && same_host )
+	{
+		if( ASWIN_HFLAGS(asw, AS_PID) && asw->hints->pid > 0 )
+			asw->hints->client_cmd = pid2cmd( asw->hints->pid );
+
+	}
+	LOCAL_DEBUG_OUT( "same_host = %d, client_smd = \"%s\"", same_host,
+	asw->hints->client_cmd?asw->hints->client_cmd:"(null)" );
+
+	if( asw->hints->client_cmd != NULL && same_host )
+	{
+		char *pure_geometry = NULL ;
+		char *geom = make_client_geometry_string( ASDefaultScr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy, &pure_geometry );
+		/* format :   [<res_class>]:[<res_name>]:[[#<seq_no>]|<name>]  */
+		int app_no = get_res_name_count( swad->res_name_counts, asw->hints->res_name );
+		char *rname = asw->hints->res_name?asw->hints->res_name:"*" ;
+		char *rclass = asw->hints->res_class?asw->hints->res_class:"*" ;
+		char *name = ASWIN_NAME(asw);
+		char *app_name = "*" ;
+		char *cmd_app = NULL, *cmd_args ;
+		Bool supports_geometry = False ;
+		char *geometry_keyword = NULL ; 
+		char *clean_cmd_args = NULL ;
+		char *original_size = NULL ;
+
+		name = make_application_name( asw, rclass, rname );
+
+		if( name == NULL )
+		{
+			app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+1+15+1 );
+			sprintf( app_name, "%s:%s:#%d", rclass, rname, app_no );
+		}else
+		{
+			app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+strlen(name)+1 );
+			sprintf( app_name, "%s:%s:%s", rclass, rname, name );
+		}
+
+		cmd_args = parse_token(asw->hints->client_cmd, &cmd_app );
+		if (cmd_app != NULL)  /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
+			clean_cmd_args = filter_out_geometry( cmd_args, &geometry_keyword, &original_size ) ;
+
+		if( geometry_keyword == NULL && ASWIN_HFLAGS(asw,AS_Module))
+			geometry_keyword = mystrdup("--geometry"); 
+
+		if( geometry_keyword == NULL ) {
+#if 0	 /* this does more bad then good */		
+			geometry_keyword = mystrdup("-geometry"); 
+#endif				
+		}else
+			supports_geometry = True ;
+
+		if( !ASWIN_HFLAGS(asw,AS_Handles) )
+		{   /* we want to remove size from geometry here, 
+			 * unless it was requested in original cmd-line geometry */
+			stripreplace_geometry_size( &geom, original_size );
+		}	 
+		
+		fprintf( swad->f, 	"\tExec \"I:%s\" %s", app_name, cmd_app ? cmd_app : asw->hints->client_cmd);
+		if (geometry_keyword)
+			fprintf( swad->f, 	" %s %s", geometry_keyword, geom);
+
+		if (asw->group && asw->group->sm_client_id)
+			fprintf( swad->f, 	" --sm-client-id %s", asw->group->sm_client_id);
+
+		if (cmd_app != NULL)
+		{   
+			fprintf( swad->f, 	"\ %s", clean_cmd_args );
+			destroy_string(&cmd_app);	
+		}
+		fprintf( swad->f, 	" &\n");
+
+		destroy_string(&clean_cmd_args);
+		destroy_string(&geometry_keyword);
+		destroy_string(&original_size);
+
+		if( ASWIN_HFLAGS(asw,AS_Module) ) 
+		{
+			fprintf( swad->f, "\tWait \"I:%s\" Layer %d\n", app_name, ASWIN_LAYER(asw));
+		}else if( ASWIN_GET_FLAGS(asw,AS_Sticky) )
+		{
+			if( supports_geometry ) 	  
+				fprintf( swad->f, 	"\tWait \"I:%s\" Layer %d"
+									", Sticky"
+									", StartsOnDesk %d"
+									", %s"
+									"\n",
+									app_name, ASWIN_LAYER(asw),
+									ASWIN_DESK(asw),
+									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+			else
+				fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
+									", Layer %d"
+									", Sticky"
+									", StartsOnDesk %d"
+									", %s"
+									"\n",
+									app_name, pure_geometry,
+									ASWIN_LAYER(asw),
+									ASWIN_DESK(asw),
+									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+		}else
+		{
+			if( supports_geometry ) 
+				fprintf( swad->f, 	"\tWait \"I:%s\" Layer %d"
+									", Slippery"
+									", StartsOnDesk %d"
+									", ViewportX %d"
+									", ViewportY %d"
+									", %s"
+									"\n",
+									app_name, ASWIN_LAYER(asw),
+									ASWIN_DESK(asw),
+									((asw->status->x + asw->status->viewport_x) / Scr.MyDisplayWidth)*Scr.MyDisplayWidth,
+									((asw->status->y + asw->status->viewport_y) / Scr.MyDisplayHeight)*Scr.MyDisplayHeight,
+									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+			else										   
+				fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
+									", Layer %d"
+									", Slippery"
+									", StartsOnDesk %d"
+									", ViewportX %d"
+									", ViewportY %d"
+									", %s"
+									"\n",
+									app_name, pure_geometry,
+									ASWIN_LAYER(asw),
+									ASWIN_DESK(asw),
+									((asw->status->x + asw->status->viewport_x) / Scr.MyDisplayWidth)*Scr.MyDisplayWidth,
+									((asw->status->y + asw->status->viewport_y) / Scr.MyDisplayHeight)*Scr.MyDisplayHeight,
+									ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
+		}	 
+		destroy_string(&pure_geometry);
+		destroy_string(&geom);
+		destroy_string(&app_name);
+	}
+}
+
 Bool
 make_aswindow_cmd_iter_func(void *data, void *aux_data)
 {
@@ -273,7 +417,6 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 	" ":"non ");
 	if( asw && swad )
 	{
-		Bool same_host = (asw->hints->client_host == NULL || mystrcasecmp( asw->hints->client_host, swad->this_host )== 0);
 
 		/* don't want to save windows with short life span - wharf subfolders, menus, dialogs, etc. */
 		if( ASWIN_HFLAGS(asw,AS_ShortLived) ) 
@@ -287,141 +430,12 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 		}else if( swad->only_modules	)
 			return True;
 
-		if( asw->hints->client_cmd == NULL && same_host )
-		{
-			if( ASWIN_HFLAGS(asw, AS_PID) && asw->hints->pid > 0 )
-				asw->hints->client_cmd = pid2cmd( asw->hints->pid );
+		/* we only restart the group leader, then let it worry about its children */
+		if (asw->group != swad->group)
+			return True;
 			
-		}
-		LOCAL_DEBUG_OUT( "same_host = %d, client_smd = \"%s\"", same_host,
-		asw->hints->client_cmd?asw->hints->client_cmd:"(null)" );
-
-		if( asw->hints->client_cmd != NULL && same_host )
-		{
-			char *pure_geometry = NULL ;
-			char *geom = make_client_geometry_string( ASDefaultScr, asw->hints, asw->status, &(asw->anchor), Scr.Vx, Scr.Vy, &pure_geometry );
-			/* format :   [<res_class>]:[<res_name>]:[[#<seq_no>]|<name>]  */
-			int app_no = get_res_name_count( swad->res_name_counts, asw->hints->res_name );
-			char *rname = asw->hints->res_name?asw->hints->res_name:"*" ;
-			char *rclass = asw->hints->res_class?asw->hints->res_class:"*" ;
-			char *name = ASWIN_NAME(asw);
-			char *app_name = "*" ;
-			char *cmd_app = NULL, *cmd_args ;
-			Bool supports_geometry = False ;
-			char *geometry_keyword = NULL ; 
-			char *clean_cmd_args = NULL ;
-			char *original_size = NULL ;
-
-			name = make_application_name( asw, rclass, rname );
-			
-			if( name == NULL )
-			{
-				app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+1+15+1 );
-				sprintf( app_name, "%s:%s:#%d", rclass, rname, app_no );
-			}else
-			{
-				app_name = safemalloc( strlen(rclass)+1+strlen(rname)+1+strlen(name)+1 );
-				sprintf( app_name, "%s:%s:%s", rclass, rname, name );
-			}
-				
-			cmd_args = parse_token(asw->hints->client_cmd, &cmd_app );
-			if (cmd_app != NULL)  /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
-				clean_cmd_args = filter_out_geometry( cmd_args, &geometry_keyword, &original_size ) ;
-			
-			if( geometry_keyword == NULL && ASWIN_HFLAGS(asw,AS_Module))
-				geometry_keyword = mystrdup("--geometry"); 
-				
-			if( geometry_keyword == NULL ) {
-#if 0	 /* this does more bad then good */		
-				geometry_keyword = mystrdup("-geometry"); 
-#endif				
-			}else
-				supports_geometry = True ;
-			
-			if( !ASWIN_HFLAGS(asw,AS_Handles) )
-			{   /* we want to remove size from geometry here, 
-				 * unless it was requested in original cmd-line geometry */
-				stripreplace_geometry_size( &geom, original_size );
-			}	 
-			
-			if (cmd_app != NULL)
-			{   
-				if (geometry_keyword)
-					fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s %s &\n", app_name, cmd_app, geometry_keyword, geom, clean_cmd_args );
-				else
-					fprintf( swad->f, 	"\tExec \"I:%s\" %s %s &\n", app_name, cmd_app, clean_cmd_args );
-				
-				destroy_string(&cmd_app);	
-			}else if (geometry_keyword)
-				fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s &\n", app_name, asw->hints->client_cmd, geometry_keyword, geom );
-			else
-				fprintf( swad->f, 	"\tExec \"I:%s\" %s &\n", app_name, asw->hints->client_cmd);						
-				
-			destroy_string(&clean_cmd_args);
-			destroy_string(&geometry_keyword);
-			destroy_string(&original_size);
-
-			if( ASWIN_HFLAGS(asw,AS_Module) ) 
-			{
-				fprintf( swad->f, "\tWait \"I:%s\" Layer %d\n", app_name, ASWIN_LAYER(asw));
-			}else if( ASWIN_GET_FLAGS(asw,AS_Sticky) )
-			{
-				if( supports_geometry ) 	  
-					fprintf( swad->f, 	"\tWait \"I:%s\" Layer %d"
-										", Sticky"
-										", StartsOnDesk %d"
-										", %s"
-										"\n",
-										app_name, ASWIN_LAYER(asw),
-										ASWIN_DESK(asw),
-										ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
-				else
-					fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
-										", Layer %d"
-										", Sticky"
-										", StartsOnDesk %d"
-										", %s"
-										"\n",
-										app_name, pure_geometry,
-										ASWIN_LAYER(asw),
-										ASWIN_DESK(asw),
-										ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
-			}else
-			{
-				if( supports_geometry ) 
-					fprintf( swad->f, 	"\tWait \"I:%s\" Layer %d"
-										", Slippery"
-										", StartsOnDesk %d"
-										", ViewportX %d"
-										", ViewportY %d"
-										", %s"
-										"\n",
-										app_name, ASWIN_LAYER(asw),
-										ASWIN_DESK(asw),
-										((asw->status->x + asw->status->viewport_x) / Scr.MyDisplayWidth)*Scr.MyDisplayWidth,
-										((asw->status->y + asw->status->viewport_y) / Scr.MyDisplayHeight)*Scr.MyDisplayHeight,
-										ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
-				else										   
-					fprintf( swad->f, 	"\tWait \"I:%s\" DefaultGeometry %s"
-										", Layer %d"
-										", Slippery"
-										", StartsOnDesk %d"
-										", ViewportX %d"
-										", ViewportY %d"
-										", %s"
-										"\n",
-										app_name, pure_geometry,
-										ASWIN_LAYER(asw),
-										ASWIN_DESK(asw),
-										((asw->status->x + asw->status->viewport_x) / Scr.MyDisplayWidth)*Scr.MyDisplayWidth,
-										((asw->status->y + asw->status->viewport_y) / Scr.MyDisplayHeight)*Scr.MyDisplayHeight,
-										ASWIN_GET_FLAGS(asw,AS_Iconic)?"StartIconic":"StartNormal");
-			}	 
-			destroy_string(&pure_geometry);
-			destroy_string(&geom);
-			destroy_string(&app_name);
-		}
-		return True;
+		do_save_aswindow (asw, swad);
+		return (swad->group == NULL);
 	}
 	return False;
 }
@@ -459,12 +473,27 @@ save_aswindow_list( ASWindowList *list, char *file )
 
 	if( swad.f )
 	{
+		ASHashIterator it ;
 		fprintf( swad.f, "Function \"WorkspaceState\"\n" );
 		swad.only_modules = False ;
 		swad.res_name_counts = create_ashash(0, string_hash_value, string_compare, string_destroy);
 		iterate_asbidirlist( list->clients, make_aswindow_cmd_iter_func, &swad, NULL, False );
+
+		if (start_hash_iteration (list->window_groups, &it)) {
+			do	{
+				ASWindowGroup *g = (ASWindowGroup*)curr_hash_data (&it);
+				if (g) {
+					LOCAL_DEBUG_OUT( "group \"%lx\", sm-client-id = \"%s\"", (unsigned long)g->leader, g->sm_client_id ? g->sm_client_id : "none");
+					swad.group = g;
+					iterate_asbidirlist( list->clients, make_aswindow_cmd_iter_func, &swad, NULL, False );
+				}
+			}while (next_hash_item (&it));
+			swad.group = NULL;
+		}
+
 		destroy_ashash( &(swad.res_name_counts) );
 		fprintf( swad.f, "EndFunction\n\n" );
+		
 		fprintf( swad.f, "Function \"WorkspaceModules\"\n" );
 		swad.only_modules = True ;
 		swad.res_name_counts = create_ashash(0, string_hash_value, string_compare, string_destroy);
@@ -529,6 +558,15 @@ ASWindow *window2ASWindow( Window w )
 	ASHashData hdata = {0} ;
 	if( Scr.Windows->aswindow_xref )
 		if( get_hash_item( Scr.Windows->aswindow_xref, AS_HASHABLE(w), &hdata.vptr ) != ASH_Success )
+			hdata.vptr = NULL;
+	return hdata.vptr;
+}
+
+ASWindowGroup *window2ASWindowGroup (Window w)
+{
+	ASHashData hdata = {0} ;
+	if( Scr.Windows->window_groups )
+		if( get_hash_item( Scr.Windows->window_groups, AS_HASHABLE(w), &hdata.vptr ) != ASH_Success )
 			hdata.vptr = NULL;
 	return hdata.vptr;
 }
@@ -793,6 +831,20 @@ destroy_aslayer  (ASHashableValue value, void *data)
 		free( data );
 	}
 }
+
+void
+destroy_window_group  (ASHashableValue value, void *data)
+{
+	if( data )
+	{
+		ASWindowGroup *g = data ;
+		LOCAL_DEBUG_OUT( "destroying window group %p(%lx), sm_client_id = \"%s\"", g, g->leader, g->sm_client_id ? g->sm_client_id : "none");
+		if (g->sm_client_id)
+			free (g->sm_client_id);
+		destroy_asvector( &(g->members));
+		free( data );
+	}
+}
 /********************************************************************************/
 /* ASWindow management */
 
@@ -814,30 +866,34 @@ find_group_lead_aswindow( Window id )
 			LIST_GOTO_NEXT(curr);	
 		}	 
 	}
-	if( gl )
-	{
-		while( gl->group_lead != NULL ) 
-		{
-			if( ASWIN_GET_FLAGS(gl->group_lead, AS_Dead) )
-			{
-				if( gl->group_lead->group_members )
-					vector_remove_elem( gl->group_lead->group_members, &gl );
-				gl->group_lead = NULL ; 
-			}else
-				gl = gl->group_lead;
-		}
-	}
 	return gl;
 }
 
 static void
-add_member_to_group_lead( ASWindow *group_lead, ASWindow *member ) 
+add_member_to_group (ASWindow *asw) 
 {
-	member->group_lead = group_lead ;
-	if( group_lead->group_members == NULL )
-		group_lead->group_members = create_asvector( sizeof( ASWindow* ) );
-/* ATTN: Inserting pointer to a member into the beginning of the list */
-	vector_insert_elem( group_lead->group_members, &member, 1, NULL, True );
+	if (asw && asw->hints->group_lead) {
+		ASWindowGroup *g = window2ASWindowGroup (asw->hints->group_lead);
+		if (g == NULL) {
+			g = safecalloc (1, sizeof(ASWindowGroup));
+			g->leader = asw->hints->group_lead;
+			g->member_count++;
+			if (add_hash_item (Scr.Windows->window_groups, AS_HASHABLE(g->leader), g) != ASH_Success) {
+				free (g);
+				g = NULL;
+			}
+			read_string_property (g->leader, _XA_SM_CLIENT_ID, &(g->sm_client_id));
+		}
+		if (g != NULL) {
+#if 0		
+			if( group_lead->group_members == NULL )
+			group_lead->group_members = create_asvector( sizeof( ASWindow* ) );
+			/* ATTN: Inserting pointer to a member into the beginning of the list */
+			vector_insert_elem( group_lead->group_members, &member, 1, NULL, True );
+#endif			
+		}
+		asw->group = g;	
+	}
 }
 
 void
@@ -905,12 +961,7 @@ tie_aswindow( ASWindow *t )
 			vector_insert_elem( transient_owner->transients, &t, 1, NULL, True );
 		}
 	}
-	if( t->hints->group_lead != None )
-	{
-		ASWindow *group_lead  = find_group_lead_aswindow( t->hints->group_lead );
-		if( group_lead != NULL && group_lead != t )
-			add_member_to_group_lead( group_lead, t );
-	}
+	add_member_to_group (t);
 }
 
 void
@@ -940,13 +991,14 @@ untie_aswindow( ASWindow *t )
 				add_aswindow_to_layer( sublist[i], ASWIN_LAYER(sublist[i]) );				
 			}
 	}
+#if 0 /* Possibly need to remove us from group's list */	
 	if( t->group_lead && t->group_lead->magic == MAGIC_ASWINDOW )
 	{
 		if( t->group_lead->group_members )
 			vector_remove_elem( t->group_lead->group_members, &t );
 		t->group_lead = NULL ;
 	}
-	if( t->group_members && PVECTOR_USED(t->group_members) > 0 )
+	if( t->group)
 	{
 		ASWindow *new_gl ;
 		sublist = PVECTOR_HEAD(ASWindow*,t->group_members);
@@ -964,6 +1016,7 @@ untie_aswindow( ASWindow *t )
 				add_member_to_group_lead( new_gl, sublist[i] ); 				
 			}
 	}
+#endif			
 }
 
 Bool
@@ -1061,11 +1114,12 @@ stack_layer_windows( ASLayer *layer, ASVector *list )
 		ASWindow *asw = members[k] ;
 		if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
 		{
-			LOCAL_DEBUG_OUT( "Group Lead %p", asw->group_lead );
-			if( asw->group_lead ) 
+			LOCAL_DEBUG_OUT( "Group %p", asw->group);
+#if 0	/* TODO do we really need that ??? */		
+			if( asw->group) 
 			{/* transients for any window in the group go on top of non-transients in the group */
-				ASWindow **sublist = PVECTOR_HEAD(ASWindow*,asw->group_lead->group_members);
-				int curr = PVECTOR_USED(asw->group_lead->group_members);
+				ASWindow **sublist = PVECTOR_HEAD(ASWindow*,asw->group->members);
+				int curr = PVECTOR_USED(asw->group->members);
 				LOCAL_DEBUG_OUT( "Group members %d", curr );
 				if( asw->group_lead->transients && !ASWIN_GET_FLAGS(asw->group_lead, AS_Dead) )
 					stack_transients( asw->group_lead, list );
@@ -1076,7 +1130,9 @@ stack_layer_windows( ASLayer *layer, ASVector *list )
 					if( !ASWIN_GET_FLAGS(sublist[curr], AS_Dead) && sublist[curr]->transients ) 
 						stack_transients( sublist[curr], list );
 				}
-			}else if( asw->transients )
+			}else 
+#endif			
+			if( asw->transients )
 				stack_transients( asw, list );
 
 			LOCAL_DEBUG_OUT( "Adding client - %p, w = %lX, frame = %lX", asw, asw->w, asw->frame );
@@ -1404,6 +1460,7 @@ is_overlaping_b( ASWindow *a, ASWindow *b )
 				if( IS_OVERLAPING( a, sublist[i] ) ) 
 					return True ;
 	}
+#if 0	/* TODO do we really need that ??? */
 	if( b->group_members ) 
 	{
 		sublist = PVECTOR_HEAD(ASWindow*, b->group_members);
@@ -1412,6 +1469,7 @@ is_overlaping_b( ASWindow *a, ASWindow *b )
 				if( IS_OVERLAPING( a, sublist[i] ) ) 
 					return True ;
 	}
+#endif	
 	return False;
 }
 
@@ -1431,6 +1489,8 @@ is_overlaping( ASWindow *a, ASWindow *b )
 				if( is_overlaping_b( sublist[i], b ) ) 
 					return True ;
 	}
+
+#if 0	/* TODO do we really need that ??? */
 	if( a->group_members ) 
 	{
 		sublist = PVECTOR_HEAD(ASWindow*, a->group_members);
@@ -1439,6 +1499,7 @@ is_overlaping( ASWindow *a, ASWindow *b )
 				if( is_overlaping_b( sublist[i], b ) ) 
 					return True ;
 	}
+#endif	
 	return False;	
 }
 
@@ -1577,6 +1638,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
 	if( stack_mode != Above && stack_mode != Below )
 		sibling = NULL ;
 
+#if 0	/* TODO do we really need that ??? */
 	if( t->group_members  ) 
 	{
 		int k;
@@ -1595,6 +1657,7 @@ LOCAL_DEBUG_CALLER_OUT( "%p,%lX,%d", t, sibling_window, stack_mode );
 		}	
 		free( group_members );
 	}
+#endif	
 	vector_remove_elem( src_layer->members, &t );
 	vector_insert_elem( dst_layer->members, &t, 1, sibling, above );
 

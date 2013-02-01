@@ -132,6 +132,9 @@ extern Atom _XA_WM_TAKE_FOCUS;
 extern Atom _XA_WM_DELETE_WINDOW;
 extern Atom _XA_WM_COLORMAP_WINDOWS;
 extern Atom _XA_WM_STATE;
+extern Atom _XA_SM_CLIENT_ID;
+extern Atom _XA_WM_WINDOW_ROLE;
+extern Atom _XA_WM_CLIENT_LEADER;
 
 /* Motif hints */
 extern Atom _XA_MwmAtom;

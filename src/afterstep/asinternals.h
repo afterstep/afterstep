@@ -37,6 +37,16 @@ struct MyLook;
 struct ASHintWindow;
 
 struct ASWindow;
+
+typedef struct ASWindowGroup
+{
+	Window  leader;
+	long    member_count;
+	char* 	sm_client_id;
+	
+	struct ASVector*	members ;
+}ASWindowGroup;
+
 typedef struct ASInternalWindow
 {
 	ASMagic  *data;                             /* internal data structure */
@@ -99,8 +109,10 @@ typedef struct ASWindow
 	XRectangle            anchor ;
 	XRectangle            saved_anchor; /* status prior to maximization */
 
-	struct ASWindow      *transient_owner,  *group_lead ;
-	struct ASVector      *transients,       *group_members ;
+	struct ASWindow      *transient_owner;
+	struct ASVector      *transients;
+	
+	ASWindowGroup 			 *group;
 
 
 #define ASWIN_NAME(t)       ((t)->hints->names[0])
@@ -202,6 +214,8 @@ typedef struct ASWindowList
 	struct ASHashTable *layers ;               /* list of ASLayer structures from above hashed by layer num */
 	struct ASHashTable *bookmarks ;            /* list of windows with bookmark names assignet to them */
 
+	struct ASHashTable *window_groups;
+	
 	/* lists of pointers to the ASWindow structures */
 	struct ASVector    *circulate_list ;
 	struct ASVector    *sticky_list ;
