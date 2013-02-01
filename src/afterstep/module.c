@@ -799,6 +799,23 @@ KillAllModulesByName (char *name)
 	}
 }
 
+int
+KillAllModules()
+{
+	int count = 0;
+	if (Modules != NULL)	{
+		register int i = MODULES_NUM;
+		register module_t *list = MODULES_LIST ;
+LOCAL_DEBUG_OUT( "pid(%d),total modules %d. list starts at %p", getpid(), MODULES_NUM, MODULES_LIST );
+		while(--i >= 0 ) {
+			KillModule (&(list[i]), False);
+			count++;
+		}
+	}
+	return count;
+}
+
+
 void
 SendPacket ( int channel, send_data_type msg_type, send_data_type num_datum, ...)
 {

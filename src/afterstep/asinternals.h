@@ -691,6 +691,7 @@ void HandleModuleInOut(unsigned int channel, Bool has_input, Bool has_output);
 
 void KillModuleByName (char *name);
 void KillAllModulesByName (char *name);
+int KillAllModules();
 
 int FindModuleByName (char *name);
 char *GetModuleCmdLineByName(char *name);

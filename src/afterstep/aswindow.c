@@ -328,9 +328,14 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 			if (cmd_app != NULL)  /* we want -geometry to be the first arg, so that terms could correctly launch app with -e arg */
 				clean_cmd_args = filter_out_geometry( cmd_args, &geometry_keyword, &original_size ) ;
 			
-			if( geometry_keyword == NULL ) 
-				geometry_keyword = mystrdup(ASWIN_HFLAGS(asw,AS_Module)?"--geometry":"-geometry"); 
-			else
+			if( geometry_keyword == NULL && ASWIN_HFLAGS(asw,AS_Module))
+				geometry_keyword = mystrdup("--geometry"); 
+				
+			if( geometry_keyword == NULL ) {
+#if 0	 /* this does more bad then good */		
+				geometry_keyword = mystrdup("-geometry"); 
+#endif				
+			}else
 				supports_geometry = True ;
 			
 			if( !ASWIN_HFLAGS(asw,AS_Handles) )
@@ -341,11 +346,17 @@ make_aswindow_cmd_iter_func(void *data, void *aux_data)
 			
 			if (cmd_app != NULL)
 			{   
-				fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s %s &\n", app_name, cmd_app, geometry_keyword, geom, clean_cmd_args );
+				if (geometry_keyword)
+					fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s %s &\n", app_name, cmd_app, geometry_keyword, geom, clean_cmd_args );
+				else
+					fprintf( swad->f, 	"\tExec \"I:%s\" %s %s &\n", app_name, cmd_app, clean_cmd_args );
+				
 				destroy_string(&cmd_app);	
-			}else
+			}else if (geometry_keyword)
 				fprintf( swad->f, 	"\tExec \"I:%s\" %s %s %s &\n", app_name, asw->hints->client_cmd, geometry_keyword, geom );
-			
+			else
+				fprintf( swad->f, 	"\tExec \"I:%s\" %s &\n", app_name, asw->hints->client_cmd);						
+				
 			destroy_string(&clean_cmd_args);
 			destroy_string(&geometry_keyword);
 			destroy_string(&original_size);

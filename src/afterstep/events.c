@@ -1783,6 +1783,7 @@ afterstep_wait_pipes_input(int timeout_sec)
 	AS_FD_SET (ASDBus_fd, &in_fdset);
 	AS_FD_SET (Module_fd, &in_fdset);
 
+	if (Modules != NULL)
 	{   /* adding all the modules pipes to our wait list */
 		register int i = MIN(MODULES_NUM,Module_npipes);
 		register module_t *list = MODULES_LIST;

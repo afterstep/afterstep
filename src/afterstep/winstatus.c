@@ -1487,10 +1487,12 @@ init_aswindow_status( ASWindow *t, ASStatusHints *status )
 		t->status = safecalloc(1, sizeof(ASStatusHints));
 		*(t->status) = *status ;
 	}
-	if( get_flags( status->flags, AS_StartDesktop) && status->desktop != Scr.CurrentDesk )
-		ChangeDesks( status->desktop );
-
-	t->status->desktop = Scr.CurrentDesk ;
+	if( get_flags( status->flags, AS_StartDesktop) && status->desktop != Scr.CurrentDesk ) {
+		t->status->desktop = status->desktop;
+		if (get_flags( AfterStepState, ASS_NormalOperation ))
+			ChangeDesks( status->desktop );
+	}else
+		t->status->desktop = Scr.CurrentDesk ;
 	
 	if( get_flags( status->flags, AS_StartViewportX) && get_flags(AfterStepState, ASS_NormalOperation) )
 	{	
@@ -1896,7 +1898,7 @@ bring_aswindow_on_vscreen( ASWindow *asw )
 Bool
 make_aswindow_visible( ASWindow *asw, Bool deiconify )
 {
-	if (asw == NULL)
+	if (asw == NULL || !get_flags( AfterStepState, ASS_NormalOperation ))
 		return False;
 
 	if( ASWIN_GET_FLAGS( asw, AS_Iconic ) )
@@ -1907,8 +1909,9 @@ make_aswindow_visible( ASWindow *asw, Bool deiconify )
 		}
 	}
 
-	if (ASWIN_DESK(asw) != Scr.CurrentDesk)
+	if (ASWIN_DESK(asw) != Scr.CurrentDesk) {
 		ChangeDesks( ASWIN_DESK(asw));
+	}
 
 	bring_aswindow_on_vscreen( asw );
 
