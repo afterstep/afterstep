@@ -172,7 +172,8 @@ indent:
 		@SRCS=`echo "$(LIB_OBJS) " | sed "s/.o /.c /g"`; \
 		if test "x$$SRCS" == "x"; then exit; fi; \
 		for i in $$SRCS; do \
-		  if (indent -di14 -ts4 -i4 -l120 -lc80 -bad -nbbb -bli0 -c48 -cd48 -ce -cli1 -ncs -nbs -nbbo -hnl < $$i > /tmp/$$i); then \
+#		  if (indent -di14 -ts4 -i4 -l120 -lc80 -bad -nbbb -bli0 -c48 -cd48 -ce -cli1 -ncs -nbs -nbbo -hnl < $$i > /tmp/$$i); then \
+		  if (indent -kr -ts2 -ut -bs -hnl -i2 -lc80 -lps -nbc -nbfda -ncs -nprs -pcs -pi2 -saf -sai -saw -ss < $$i > /tmp/$$i); then \
 		    echo "indent $$i"; \
 		    mv /tmp/$$i $$i; \
 		  fi; \

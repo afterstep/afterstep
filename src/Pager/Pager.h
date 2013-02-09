@@ -78,25 +78,25 @@ typedef struct pager_info
 
 
 typedef enum {
-    WIN_FOCUSED = 0,
-    WIN_STICKY,
-    WIN_UNFOCUSED,
-    WIN_TYPES_NUM
+	WIN_FOCUSED = 0,
+	WIN_STICKY,
+	WIN_UNFOCUSED,
+	WIN_TYPES_NUM
 }PagerWinType;
 
 typedef struct pager_win_attr {
-    unsigned long  back_pixel;
-    Pixmap back_pixmap;
-    GC     foreGC ;
+	unsigned long  back_pixel;
+	Pixmap back_pixmap;
+	GC     foreGC ;
 }PagerWinAttr;
 
 typedef enum {
-    STYLE_FWINDOW=WIN_FOCUSED,
-    STYLE_SWINDOW=WIN_STICKY,
-    STYLE_UWINDOW=WIN_UNFOCUSED,
-    STYLE_ADESK,
-    STYLE_INADESK,
-    STYLE_MAX_STYLE
+	STYLE_FWINDOW=WIN_FOCUSED,
+	STYLE_SWINDOW=WIN_STICKY,
+	STYLE_UWINDOW=WIN_UNFOCUSED,
+	STYLE_ADESK,
+	STYLE_INADESK,
+	STYLE_MAX_STYLE
 } PAGER_STYLES ;
 
 typedef struct pager_look {
@@ -126,11 +126,11 @@ extern PagerLook Look;
 extern ASPipes Pipes;
 
 typedef enum {
-    ATOM_WM_DEL_WIN=0,
-    ATOM_ROOT_PIXMAP,
-    ATOM_STYLES,
-    ATOM_BACKGROUNDS,
-    ATOMS_NUM
+	ATOM_WM_DEL_WIN=0,
+	ATOM_ROOT_PIXMAP,
+	ATOM_STYLES,
+	ATOM_BACKGROUNDS,
+	ATOMS_NUM
 } PagerAtoms ;
 extern ASAtom  Atoms[];
 
@@ -145,7 +145,7 @@ extern int WaitASResponse;
 #define PAGE_MOVE_THRESHOLD		15   /* precent */
 
 #define IS_STICKY(t)	(((t->flags&ICONIFIED)&&(Pager.Flags&STICKY_ICONS))|| \
-	                  (t->flags&STICKY))
+					  (t->flags&STICKY))
 
 /*************************************************************************
  *
@@ -211,9 +211,9 @@ void DrawIconGrid(int erase);
 void SwitchToDesk(int Desk);
 void SwitchToDeskAndPage(int Desk, XEvent *Event);
 int  GetWinAttributes( PagerWindow* t,
-                       XSetWindowAttributes* attributes,
-		       unsigned long *valuemask,
-		       PagerViewPosition* ppos );
+					   XSetWindowAttributes* attributes,
+			   unsigned long *valuemask,
+			   PagerViewPosition* ppos );
 void AddNewWindow(PagerWindow *prev);
 void MoveResizePagerView(PagerWindow *t);
 void ChangeDeskForWindow(PagerWindow *t,long newdesk);
