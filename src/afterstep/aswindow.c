@@ -337,7 +337,7 @@ static void do_save_aswindow (ASWindow *asw, struct SaveWindowAuxData *swad)
 
 		if (cmd_app != NULL)
 		{   
-			fprintf( swad->f, 	"\ %s", clean_cmd_args );
+			fprintf( swad->f," %s", clean_cmd_args);
 			destroy_string(&cmd_app);	
 		}
 		fprintf( swad->f, 	" &\n");

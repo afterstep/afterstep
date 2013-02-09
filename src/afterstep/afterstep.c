@@ -737,7 +737,9 @@ void CloseSessionClients (Bool only_modules)
 		sleep_a_millisec(100);
 	}
 /*	if (modules_killed > 0) */
-	  timer_new (100, &CloseSessionRetryHandler, only_modules);
+	ASHashData d; 
+	d.i = only_modules;
+  timer_new (100, &CloseSessionRetryHandler, d.vptr);
 }
 
 void
