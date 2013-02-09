@@ -36,91 +36,95 @@
  * The following function was written for
  * new hints management code in libafterstep :
  */
-Bool
-afterstep_parent_hints_func(Window parent, ASParentHints *dst )
+Bool afterstep_parent_hints_func (Window parent, ASParentHints * dst)
 {
-	if( dst == NULL || parent == None ) return False ;
+	if (dst == NULL || parent == None)
+		return False;
 
-	memset( dst, 0x00, sizeof(ASParentHints));
-	dst->parent = parent ;
-	if( parent != Scr.Root )
-	{
-		ASWindow     *p = find_group_lead_aswindow( parent );
+	memset (dst, 0x00, sizeof (ASParentHints));
+	dst->parent = parent;
+	if (parent != Scr.Root) {
+		ASWindow *p = find_group_lead_aswindow (parent);
 
-		if( p != NULL ) 
-		{
-			dst->desktop = p->status->desktop ;
-			set_flags( dst->flags, AS_StartDesktop );
+		if (p != NULL) {
+			dst->desktop = p->status->desktop;
+			set_flags (dst->flags, AS_StartDesktop);
 
 			/* we may need to move our viewport so that the parent becomes visible : */
-			if ( !ASWIN_GET_FLAGS(p, AS_Iconic) )
-			{
+			if (!ASWIN_GET_FLAGS (p, AS_Iconic)) {
 #if 0
-				int x, y ;
-				unsigned int width, height ;
-				x = p->status->x - p->decor->west ;
-				y = p->status->y - p->decor->north ;
-				width = p->status->width + p->decor->west + p->decor->east ;
-				height = p->status->height + p->decor->north + p->decor->south ;
+				int x, y;
+				unsigned int width, height;
+				x = p->status->x - p->decor->west;
+				y = p->status->y - p->decor->north;
+				width = p->status->width + p->decor->west + p->decor->east;
+				height = p->status->height + p->decor->north + p->decor->south;
 
-				if( (dst->viewport_x = calculate_viewport( &x, width, p->scr->Vx, p->scr->MyDisplayWidth, p->scr->VxMax)) != p->scr->Vx )
-					set_flags( dst->flags, AS_StartViewportX );
+				if ((dst->viewport_x =
+						 calculate_viewport (&x, width, p->scr->Vx,
+																 p->scr->MyDisplayWidth,
+																 p->scr->VxMax)) != p->scr->Vx)
+					set_flags (dst->flags, AS_StartViewportX);
 
-				if( (dst->viewport_y = calculate_viewport( &y, height, p->scr->Vy, p->scr->MyDisplayHeight, p->scr->VyMax)) != p->scr->Vy )
-					set_flags( dst->flags, AS_StartViewportY );
+				if ((dst->viewport_y =
+						 calculate_viewport (&y, height, p->scr->Vy,
+																 p->scr->MyDisplayHeight,
+																 p->scr->VyMax)) != p->scr->Vy)
+					set_flags (dst->flags, AS_StartViewportY);
 #endif
 			}
 		}
 	}
-	return True ;
+	return True;
 }
 
 
-void
-init_aswindow(ASWindow * t, Bool free_resources )
+void init_aswindow (ASWindow * t, Bool free_resources)
 {
 	if (!t)
 		return;
-	if( free_resources && t->magic == MAGIC_ASWINDOW )
-	{
-		if( t->transients )
-			destroy_asvector( &(t->transients) );
-		if( t->status )
-			free( t->status );
-		if( t->hints )
-			destroy_hints( t->hints, False );
+	if (free_resources && t->magic == MAGIC_ASWINDOW) {
+		if (t->transients)
+			destroy_asvector (&(t->transients));
+		if (t->status)
+			free (t->status);
+		if (t->hints)
+			destroy_hints (t->hints, False);
 	}
 	memset (t, 0x00, sizeof (ASWindow));
-	t->magic = MAGIC_ASWINDOW ;
+	t->magic = MAGIC_ASWINDOW;
 }
 
-void
-check_aswindow_shaped( ASWindow *asw )
+void check_aswindow_shaped (ASWindow * asw)
 {
-	int           boundingShaped= False;
+	int boundingShaped = False;
 #ifdef SHAPE
-	int           dumm, clipShaped= False;
-	unsigned      udumm;
+	int dumm, clipShaped = False;
+	unsigned udumm;
 	XShapeQueryExtents (dpy, asw->w,
-						&boundingShaped, &dumm, &dumm, &udumm, &udumm,
-						&clipShaped, &dumm, &dumm, &udumm, &udumm);
-#endif /* SHAPE */
-	if( boundingShaped )
-		ASWIN_SET_FLAGS( asw, AS_Shaped );
+											&boundingShaped, &dumm, &dumm, &udumm, &udumm,
+											&clipShaped, &dumm, &dumm, &udumm, &udumm);
+#endif													/* SHAPE */
+	if (boundingShaped)
+		ASWIN_SET_FLAGS (asw, AS_Shaped);
 	else
-		ASWIN_CLEAR_FLAGS( asw, AS_Shaped );
+		ASWIN_CLEAR_FLAGS (asw, AS_Shaped);
 }
 
-void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos )
+void quietly_reparent_aswindow (ASWindow * asw, Window dst,
+																Bool user_root_pos)
 {
-	if( asw )
-	{
-		Window cover = get_desktop_cover_window();
-		LOCAL_DEBUG_OUT( "cover = %lX", cover );
-		quietly_reparent_canvas( asw->frame_canvas, dst, AS_FRAME_EVENT_MASK, user_root_pos, cover );
-		quietly_reparent_canvas( asw->icon_canvas, dst, AS_ICON_EVENT_MASK, user_root_pos, cover );
-		if( asw->icon_title_canvas != asw->icon_canvas )
-			quietly_reparent_canvas( asw->icon_title_canvas, dst, AS_ICON_TITLE_EVENT_MASK, user_root_pos, cover );
+	if (asw) {
+		Window cover = get_desktop_cover_window ();
+		LOCAL_DEBUG_OUT ("cover = %lX", cover);
+		quietly_reparent_canvas (asw->frame_canvas, dst, AS_FRAME_EVENT_MASK,
+														 user_root_pos, cover);
+		quietly_reparent_canvas (asw->icon_canvas, dst, AS_ICON_EVENT_MASK,
+														 user_root_pos, cover);
+		if (asw->icon_title_canvas != asw->icon_canvas)
+			quietly_reparent_canvas (asw->icon_title_canvas, dst,
+															 AS_ICON_TITLE_EVENT_MASK, user_root_pos,
+															 cover);
 	}
 }
 
@@ -128,40 +132,41 @@ void quietly_reparent_aswindow( ASWindow *asw, Window dst, Bool user_root_pos )
  * Interprets the property MOTIF_WM_HINTS, sets decoration and functions
  * accordingly
  *****************************************************************************/
-void
-SelectDecor (ASWindow * t)
+void SelectDecor (ASWindow * t)
 {
-	ASHints *hints = t->hints ;
-	ASFlagType tflags = hints->flags ;
+	ASHints *hints = t->hints;
+	ASFlagType tflags = hints->flags;
 
-	if (!get_flags(hints->function_mask,AS_FuncResize) || !get_flags( Scr.Look.flags, DecorateFrames))
-	{
+	if (!get_flags (hints->function_mask, AS_FuncResize)
+			|| !get_flags (Scr.Look.flags, DecorateFrames)) {
 		/* a wide border, with corner tiles */
-		if (get_flags(tflags,AS_Frame))
-			clear_flags( t->hints->flags, AS_Frame );
+		if (get_flags (tflags, AS_Frame))
+			clear_flags (t->hints->flags, AS_Frame);
 	}
 }
 
 
-Bool
-collect_aswindow_hints( ASWindow *asw, ASRawHints *raw_hints )
+Bool collect_aswindow_hints (ASWindow * asw, ASRawHints * raw_hints)
 {
-	if( !collect_hints( ASDefaultScr, asw->w, HINT_ANY, raw_hints ) )
+	if (!collect_hints (ASDefaultScr, asw->w, HINT_ANY, raw_hints))
 		return False;
-	if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
-		print_hints( NULL, NULL, raw_hints );
+	if (is_output_level_under_threshold (OUTPUT_LEVEL_HINTS))
+		print_hints (NULL, NULL, raw_hints);
 
-	if( raw_hints->wm_hints == NULL ) 
-		memset( &(asw->saved_wm_hints), 0x00, sizeof(asw->saved_wm_hints) );
-	else 
-		memcpy( &(asw->saved_wm_hints), raw_hints->wm_hints, sizeof(asw->saved_wm_hints) );
+	if (raw_hints->wm_hints == NULL)
+		memset (&(asw->saved_wm_hints), 0x00, sizeof (asw->saved_wm_hints));
+	else
+		memcpy (&(asw->saved_wm_hints), raw_hints->wm_hints,
+						sizeof (asw->saved_wm_hints));
 
-	if( raw_hints->wm_normal_hints == NULL ) 
-		memset( &(asw->saved_wm_normal_hints), 0x00, sizeof(asw->saved_wm_normal_hints) );
-	else 
-		memcpy( &(asw->saved_wm_normal_hints), raw_hints->wm_normal_hints, sizeof(asw->saved_wm_normal_hints) );
-		
-	return True ;
+	if (raw_hints->wm_normal_hints == NULL)
+		memset (&(asw->saved_wm_normal_hints), 0x00,
+						sizeof (asw->saved_wm_normal_hints));
+	else
+		memcpy (&(asw->saved_wm_normal_hints), raw_hints->wm_normal_hints,
+						sizeof (asw->saved_wm_normal_hints));
+
+	return True;
 }
 
 /***********************************************************************
@@ -177,23 +182,21 @@ collect_aswindow_hints( ASWindow *asw, ASRawHints *raw_hints )
  *	iconm	- flag to tell if this is an icon manager window
  *
  ***********************************************************************/
-ASWindow     *
-AddWindow (Window w, Bool from_map_request)
+ASWindow *AddWindow (Window w, Bool from_map_request)
 {
-	ASWindow     *tmp_win;					   /* new afterstep window structure */
-	ASRawHints    raw_hints ;
-	ASHints      *hints  = NULL;
+	ASWindow *tmp_win;						/* new afterstep window structure */
+	ASRawHints raw_hints;
+	ASHints *hints = NULL;
 	ASStatusHints status;
-	Bool pending_placement ;
+	Bool pending_placement;
 
 
 	/* allocate space for the afterstep window */
 	tmp_win = safecalloc (1, sizeof (ASWindow));
-	init_aswindow( tmp_win, False );
+	init_aswindow (tmp_win, False);
 
 	tmp_win->w = w;
-	if (validate_drawable(w, NULL, NULL) == None)
-	{
+	if (validate_drawable (w, NULL, NULL) == None) {
 		free ((char *)tmp_win);
 		return (NULL);
 	}
@@ -202,44 +205,48 @@ AddWindow (Window w, Bool from_map_request)
 	 * request that happen after we get client's geometry in collect_hints,
 	 * and the moment when we afctually setup client's decorations. 
 	 */
-	XSelectInput( dpy, w, AS_CLIENT_EVENT_MASK );
-		
-	if( collect_aswindow_hints( tmp_win, &raw_hints ) )
-	{
-		hints = merge_hints( &raw_hints, Database, &status, Scr.Look.supported_hints, HINT_ANY, NULL, w );
-		destroy_raw_hints( &raw_hints, True );
-		if( hints )
-		{
-			show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints collected and merged for window %X", w );
-			if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
-			{
-				print_clean_hints( NULL, NULL, hints );
-				print_status_hints( NULL, NULL, &status );
+	XSelectInput (dpy, w, AS_CLIENT_EVENT_MASK);
+
+	if (collect_aswindow_hints (tmp_win, &raw_hints)) {
+		hints =
+				merge_hints (&raw_hints, Database, &status,
+										 Scr.Look.supported_hints, HINT_ANY, NULL, w);
+		destroy_raw_hints (&raw_hints, True);
+		if (hints) {
+			show_debug (__FILE__, __FUNCTION__, __LINE__,
+									"Window management hints collected and merged for window %X",
+									w);
+			if (is_output_level_under_threshold (OUTPUT_LEVEL_HINTS)) {
+				print_clean_hints (NULL, NULL, hints);
+				print_status_hints (NULL, NULL, &status);
 			}
-		}else
-		{
-			show_warning( "Failed to merge window management hints for window %X", w );
+		} else {
+			show_warning
+					("Failed to merge window management hints for window %X", w);
 			free ((char *)tmp_win);
-			XSelectInput( dpy, w, 0 );
+			XSelectInput (dpy, w, 0);
 			return (NULL);
 		}
-		tmp_win->hints = hints ;
-	}else
-	{
-		show_warning( "Unable to obtain window management hints for window %X", w );
+		tmp_win->hints = hints;
+	} else {
+		show_warning ("Unable to obtain window management hints for window %X",
+									w);
 		free ((char *)tmp_win);
-		XSelectInput( dpy, w, 0 );
+		XSelectInput (dpy, w, 0);
 		return (NULL);
 	}
 	SelectDecor (tmp_win);
 
-	tmp_win->wm_state_transition = get_flags(status.flags, AS_Iconic)?ASWT_Withdrawn2Iconic:ASWT_Withdrawn2Normal ;
+	tmp_win->wm_state_transition =
+			get_flags (status.flags,
+								 AS_Iconic) ? ASWT_Withdrawn2Iconic :
+			ASWT_Withdrawn2Normal;
 
-	pending_placement = init_aswindow_status( tmp_win, &status );
+	pending_placement = init_aswindow_status (tmp_win, &status);
 #ifdef SHAPE
 	XShapeSelectInput (dpy, tmp_win->w, ShapeNotifyMask);
 #endif
-	check_aswindow_shaped( tmp_win );
+	check_aswindow_shaped (tmp_win);
 	/*
 	 * Make sure the client window still exists.  We don't want to leave an
 	 * orphan frame window if it doesn't.  Since we now have the server
@@ -247,67 +254,67 @@ AddWindow (Window w, Bool from_map_request)
 	 * reparented, so we'll get a DestroyNotify for it.  We won't have
 	 * gotten one for anything up to here, however.
 	 */
-	ASSync( False );
-	grab_server();
+	ASSync (False);
+	grab_server ();
 /*vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Start Grab vvvvvvvvvvvvvvvvvvvvv */
-	if (validate_drawable(tmp_win->w, NULL, NULL) == None)
-	{
-		destroy_hints(tmp_win->hints, False);
+	if (validate_drawable (tmp_win->w, NULL, NULL) == None) {
+		destroy_hints (tmp_win->hints, False);
 		free ((char *)tmp_win);
-		ungrab_server();
+		ungrab_server ();
 		return (NULL);
 	}
 	XSetWindowBorderWidth (dpy, tmp_win->w, 0);
 
 	/* add the window into the afterstep list */
-	enlist_aswindow( tmp_win );
-	redecorate_window (tmp_win, False );
+	enlist_aswindow (tmp_win);
+	redecorate_window (tmp_win, False);
 	/* saving window management properties : */
-	set_client_desktop( tmp_win->w, ASWIN_DESK(tmp_win));
+	set_client_desktop (tmp_win->w, ASWIN_DESK (tmp_win));
 
 	/* we have to set shape on frame window. If window has title - 
 	 * on_window_title_changed will take care of it - otherwise we force it
 	 * by calling SetShape directly.
 	 */
 
-	if( tmp_win->tbar )
-		on_window_title_changed ( tmp_win, False );
-	else 
-		SetShape( tmp_win, 0 );
+	if (tmp_win->tbar)
+		on_window_title_changed (tmp_win, False);
+	else
+		SetShape (tmp_win, 0);
 	/* Must do it now or else Java will freak out !!! */
 	XMapRaised (dpy, tmp_win->w);
-	/* this must happen before RaiseWindow call or else stacking order fails with BadMatch*/
+	/* this must happen before RaiseWindow call or else stacking order fails with BadMatch */
 	XMapWindow (dpy, tmp_win->frame);
 
 	RaiseWindow (tmp_win);
-	ASSync(False);
+	ASSync (False);
 
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ End Grab ^^^^^^^^^^^^^^^^^^^^ */
-	ungrab_server();
+	ungrab_server ();
 
 	/* doing that for any window seems to resolve java sizing bugs */
 	/* this will get called from set_window_wm_state() again just few lines below
 	   which is a bit of a excess, but we don't seem to have much choice */
-	on_window_status_changed( tmp_win, True );
+	on_window_status_changed (tmp_win, True);
 
 /* We cannot map frame window at that point as it will play havoc with initial placement */
 /*    XMapRaised (dpy, tmp_win->frame); */
-	if( pending_placement )
-	{
-		if( !place_aswindow( tmp_win ) )
-		{
-			LOCAL_DEBUG_OUT( "window status initialization failed for %lX - will put it where it is", w );
-			/* 	Destroy (tmp_win, False);
-				return NULL;
+	if (pending_placement) {
+		if (!place_aswindow (tmp_win)) {
+			LOCAL_DEBUG_OUT
+					("window status initialization failed for %lX - will put it where it is",
+					 w);
+			/*  Destroy (tmp_win, False);
+			   return NULL;
 			 */
 		}
 	}
 
 
-	set_window_wm_state( tmp_win, get_flags(status.flags, AS_Iconic), from_map_request );
- 
-	if( ASWIN_HFLAGS( tmp_win, AS_AvoidCover )  )
-		enforce_avoid_cover( tmp_win );
+	set_window_wm_state (tmp_win, get_flags (status.flags, AS_Iconic),
+											 from_map_request);
+
+	if (ASWIN_HFLAGS (tmp_win, AS_AvoidCover))
+		enforce_avoid_cover (tmp_win);
 
 	/*
 	 * Reparenting generates an UnmapNotify event, followed by a MapNotify.
@@ -316,55 +323,56 @@ AddWindow (Window w, Bool from_map_request)
 	 * again in HandleMapNotify.
 	 */
 	broadcast_config (M_ADD_WINDOW, tmp_win);
-	broadcast_res_names( tmp_win );
-	broadcast_icon_name( tmp_win );
-	broadcast_window_name( tmp_win );
+	broadcast_res_names (tmp_win);
+	broadcast_icon_name (tmp_win);
+	broadcast_window_name (tmp_win);
 
 	InstallWindowColormaps (tmp_win);
-	set_flags( tmp_win->internal_flags, ASWF_WindowComplete) ;
+	set_flags (tmp_win->internal_flags, ASWF_WindowComplete);
 
 	return (tmp_win);
 }
 
 /* hints gets swallowed, but status does not : */
 /* w must be unmapped !!!! */
-ASWindow*
-AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASStatusHints *status)
+ASWindow *AddInternalWindow (Window w, ASInternalWindow ** pinternal,
+														 ASHints ** phints, ASStatusHints * status)
 {
-	ASWindow     *tmp_win;					   /* new afterstep window structure */
-	ASHints      *hints = *phints ;
+	ASWindow *tmp_win;						/* new afterstep window structure */
+	ASHints *hints = *phints;
 
 	/* allocate space for the afterstep window */
 	tmp_win = safecalloc (1, sizeof (ASWindow));
-	init_aswindow( tmp_win, False );
+	init_aswindow (tmp_win, False);
 
 	tmp_win->w = w;
-	if (validate_drawable(w, NULL, NULL) == None)
-	{
+	if (validate_drawable (w, NULL, NULL) == None) {
 		free ((char *)tmp_win);
 		return (NULL);
 	}
 
-	tmp_win->internal = *pinternal ;
-	*pinternal = NULL ;
+	tmp_win->internal = *pinternal;
+	*pinternal = NULL;
 
-	if( hints )
-	{
-		show_debug( __FILE__, __FUNCTION__, __LINE__,  "Window management hints supplied for window %X", w );
-		if( is_output_level_under_threshold(OUTPUT_LEVEL_HINTS) )
-		{
-			print_clean_hints( NULL, NULL, hints );
-			print_status_hints( NULL, NULL, status );
+	if (hints) {
+		show_debug (__FILE__, __FUNCTION__, __LINE__,
+								"Window management hints supplied for window %X", w);
+		if (is_output_level_under_threshold (OUTPUT_LEVEL_HINTS)) {
+			print_clean_hints (NULL, NULL, hints);
+			print_status_hints (NULL, NULL, status);
 		}
 	}
-	tmp_win->hints = hints ;
-	*phints = NULL ;
+	tmp_win->hints = hints;
+	*phints = NULL;
 
 	SelectDecor (tmp_win);
 
-	tmp_win->wm_state_transition = get_flags(status->flags, AS_Iconic)?ASWT_Withdrawn2Iconic:ASWT_Withdrawn2Normal ;
+	tmp_win->wm_state_transition =
+			get_flags (status->flags,
+								 AS_Iconic) ? ASWT_Withdrawn2Iconic :
+			ASWT_Withdrawn2Normal;
 
-	init_aswindow_status( tmp_win, status );
+	init_aswindow_status (tmp_win, status);
 
 #ifdef SHAPE
 	XShapeSelectInput (dpy, tmp_win->w, ShapeNotifyMask);
@@ -373,12 +381,13 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 	XSetWindowBorderWidth (dpy, tmp_win->w, 0);
 
 	/* add the window into the afterstep list */
-	enlist_aswindow( tmp_win );
+	enlist_aswindow (tmp_win);
 
-	redecorate_window       ( tmp_win, False );
-	on_window_title_changed ( tmp_win, False );
-	set_window_wm_state( tmp_win, get_flags(status->flags, AS_Iconic), False );
-	RaiseWindow( tmp_win );
+	redecorate_window (tmp_win, False);
+	on_window_title_changed (tmp_win, False);
+	set_window_wm_state (tmp_win, get_flags (status->flags, AS_Iconic),
+											 False);
+	RaiseWindow (tmp_win);
 /*    activate_aswindow( tmp_win, False, False ); */
 
 	/*
@@ -388,131 +397,128 @@ AddInternalWindow (Window w, ASInternalWindow **pinternal, ASHints **phints, ASS
 	 * again in HandleMapNotify.
 	 */
 	broadcast_config (M_ADD_WINDOW, tmp_win);
-	broadcast_res_names( tmp_win );
-	broadcast_icon_name( tmp_win );
-	broadcast_window_name( tmp_win );
+	broadcast_res_names (tmp_win);
+	broadcast_icon_name (tmp_win);
+	broadcast_window_name (tmp_win);
 
 #if 0
 /* TODO : */
-	if (NeedToResizeToo)
-	{
+	if (NeedToResizeToo) {
 		XWarpPointer (dpy, Scr.Root, Scr.Root, 0, 0, Scr.MyDisplayWidth,
-					  Scr.MyDisplayHeight,
-					  tmp_win->frame_x + (tmp_win->frame_width >> 1),
-					  tmp_win->frame_y + (tmp_win->frame_height >> 1));
+									Scr.MyDisplayHeight,
+									tmp_win->frame_x + (tmp_win->frame_width >> 1),
+									tmp_win->frame_y + (tmp_win->frame_height >> 1));
 		resize_window (tmp_win->w, tmp_win, 0, 0, 0, 0);
 	}
 #endif
 
-	set_flags( tmp_win->internal_flags, ASWF_WindowComplete);
+	set_flags (tmp_win->internal_flags, ASWF_WindowComplete);
 	return (tmp_win);
 }
 
 /***************************************************************************
  * Handles destruction of a window
  ****************************************************************************/
-void
-Destroy (ASWindow *asw, Bool kill_client)
+void Destroy (ASWindow * asw, Bool kill_client)
 {
-	static int nested_level = 0 ;
+	static int nested_level = 0;
 	/*
 	 * Warning, this is also called by HandleUnmapNotify; if it ever needs to
 	 * look at the event, HandleUnmapNotify will have to mash the UnmapNotify
 	 * into a DestroyNotify.
 	 */
-	if (AS_ASSERT(asw))
+	if (AS_ASSERT (asw))
 		return;
-LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, asw->internal?asw->internal->data:NULL );
+	LOCAL_DEBUG_CALLER_OUT ("asw(%p)->internal(%p)->data(%p)", asw,
+													asw->internal,
+													asw->internal ? asw->internal->data : NULL);
 
 	/* we could be recursively called from delist_aswindow call - trying to prevent that : */
-	if( nested_level > 0 )
+	if (nested_level > 0)
 		return;
-	++nested_level ;
+	++nested_level;
 
-	grab_server();
-	if( !ASWIN_GET_FLAGS( asw, AS_Dead ) )
-	{
-		if( validate_drawable( asw->w, NULL, NULL ) == None )
-			ASWIN_SET_FLAGS( asw, AS_Dead );
+	grab_server ();
+	if (!ASWIN_GET_FLAGS (asw, AS_Dead)) {
+		if (validate_drawable (asw->w, NULL, NULL) == None)
+			ASWIN_SET_FLAGS (asw, AS_Dead);
 	}
 
-	if( !ASWIN_GET_FLAGS( asw, AS_Dead ) )
-	{
-		if( asw->internal == NULL )
+	if (!ASWIN_GET_FLAGS (asw, AS_Dead)) {
+		if (asw->internal == NULL)
 			XRemoveFromSaveSet (dpy, asw->w);
 		XSelectInput (dpy, asw->w, NoEventMask);
 	}
 	XUnmapWindow (dpy, asw->frame);
-	grab_window_input( asw, True );
+	grab_window_input (asw, True);
 
-	if( Scr.moveresize_in_progress != NULL &&
-		Scr.moveresize_in_progress->mr == asw->frame_canvas )
-	{
-		complete_interactive_action( Scr.moveresize_in_progress, True );
-		Scr.moveresize_in_progress = NULL ;
-		if( !get_flags( asw->internal_flags, ASWF_WindowComplete) )
-		{
+	if (Scr.moveresize_in_progress != NULL &&
+			Scr.moveresize_in_progress->mr == asw->frame_canvas) {
+		complete_interactive_action (Scr.moveresize_in_progress, True);
+		Scr.moveresize_in_progress = NULL;
+		if (!get_flags (asw->internal_flags, ASWF_WindowComplete)) {
 			/* will be deleted from AddWindow  - can't destroy here, since we are in recursive event loop */
-			ungrab_server();
-			--nested_level ;
+			ungrab_server ();
+			--nested_level;
 			return;
 		}
 		/* otherwise we can delete window normally - there are no recursion */
 	}
 
-	while( timer_remove_by_data( (void*)asw ) );
+	while (timer_remove_by_data ((void *)asw)) ;
 
-	if (!get_flags( AfterStepState, ASS_Shutdown ))	{
+	if (!get_flags (AfterStepState, ASS_Shutdown)) {
 		XSync (dpy, 0);
-		SendPacket (-1, M_DESTROY_WINDOW, 3, asw->w, asw->frame, (unsigned long)asw);
+		SendPacket (-1, M_DESTROY_WINDOW, 3, asw->w, asw->frame,
+								(unsigned long)asw);
 	}
 
-	UninstallWindowColormaps( asw );
-	CheckWarpingFocusDestroyed(asw);
-	CheckGrabbedFocusDestroyed(asw);
+	UninstallWindowColormaps (asw);
+	CheckWarpingFocusDestroyed (asw);
+	CheckGrabbedFocusDestroyed (asw);
 
-	if ( asw == Scr.Windows->focused )
-		focus_prev_aswindow( asw );
+	if (asw == Scr.Windows->focused)
+		focus_prev_aswindow (asw);
 
-	if ( asw == Scr.Windows->ungrabbed )
+	if (asw == Scr.Windows->ungrabbed)
 		Scr.Windows->ungrabbed = NULL;
 
-	if ( asw == Scr.Windows->active )
-	{
-		LOCAL_DEBUG_CALLER_OUT( "CHANGE Scr.Windows->active from %p to NULL", Scr.Windows->active );
+	if (asw == Scr.Windows->active) {
+		LOCAL_DEBUG_CALLER_OUT ("CHANGE Scr.Windows->active from %p to NULL",
+														Scr.Windows->active);
 		Scr.Windows->active = NULL;
 	}
-	if ( asw == Scr.Windows->hilited )
+	if (asw == Scr.Windows->hilited)
 		Scr.Windows->hilited = NULL;
-	if ( asw == Scr.Windows->pressed )
+	if (asw == Scr.Windows->pressed)
 		Scr.Windows->pressed = NULL;
 
-	if (!kill_client && asw->internal == NULL && !ASWIN_HFLAGS(asw,AS_Module))
+	if (!kill_client && asw->internal == NULL
+			&& !ASWIN_HFLAGS (asw, AS_Module))
 		RestoreWithdrawnLocation (asw, True);
 
-	if( asw->internal )
-	{
-		if( asw->internal->destroy )
-			asw->internal->destroy( asw->internal );
-		if( asw->internal->data ) /* in case destroy() above did not work properly */
-			free( asw->internal->data );
-		free( asw->internal );
-		asw->internal = NULL ;
+	if (asw->internal) {
+		if (asw->internal->destroy)
+			asw->internal->destroy (asw->internal);
+		if (asw->internal->data)		/* in case destroy() above did not work properly */
+			free (asw->internal->data);
+		free (asw->internal);
+		asw->internal = NULL;
 	}
 
-	redecorate_window( asw, True );
-	unregister_aswindow( asw->w );
-	remove_iconbox_icon( asw );
-	delist_aswindow( asw );
+	redecorate_window (asw, True);
+	unregister_aswindow (asw->w);
+	remove_iconbox_icon (asw);
+	delist_aswindow (asw);
 
-	init_aswindow( asw, True );
+	init_aswindow (asw, True);
 
 	XSync (dpy, 0);
-	ungrab_server();
+	ungrab_server ();
 
-	memset( asw, 0x00, sizeof(ASWindow));
+	memset (asw, 0x00, sizeof (ASWindow));
 	free (asw);
-	--nested_level ;
+	--nested_level;
 
 	return;
 }
@@ -522,76 +528,72 @@ LOCAL_DEBUG_CALLER_OUT( "asw(%p)->internal(%p)->data(%p)", asw, asw->internal, a
  *	RestoreWithdrawnLocation
  *  Puts windows back where they were before afterstep took over
  ************************************************************************/
-void
-RestoreWithdrawnLocation (ASWindow * asw, Bool restart)
+void RestoreWithdrawnLocation (ASWindow * asw, Bool restart)
 {
 	int x = 0, y = 0;
-	unsigned int width = 0, height = 0, bw = 0 ;
-	Bool map_too = False ;
+	unsigned int width = 0, height = 0, bw = 0;
+	Bool map_too = False;
 
-LOCAL_DEBUG_CALLER_OUT("%p, %d", asw, restart );
+	LOCAL_DEBUG_CALLER_OUT ("%p, %d", asw, restart);
 
-	if (AS_ASSERT(asw))
+	if (AS_ASSERT (asw))
 		return;
 
-	if( asw->status )
-	{
-		if( asw->status->width > 0 )
-			width = asw->status->width ;
-		if( asw->status->height > 0 )
-			width = asw->status->height ;
-		if( get_flags( asw->status->flags, AS_StartBorderWidth) )
-			bw = asw->status->border_width ;
+	if (asw->status) {
+		if (asw->status->width > 0)
+			width = asw->status->width;
+		if (asw->status->height > 0)
+			width = asw->status->height;
+		if (get_flags (asw->status->flags, AS_StartBorderWidth))
+			bw = asw->status->border_width;
 		/* We'll get withdrawn
-			* location in virtual coordinates, so that when window is mapped again
-			* we'll get it in correct position on the virtual screen.
-			* Besides when we map window we check its postion so it would not be
-			* completely off the screen ( if PPosition only, since User can place
-			* window anywhere he wants ).
-			*                             ( Sasha )
-			*/
+		 * location in virtual coordinates, so that when window is mapped again
+		 * we'll get it in correct position on the virtual screen.
+		 * Besides when we map window we check its postion so it would not be
+		 * completely off the screen ( if PPosition only, since User can place
+		 * window anywhere he wants ).
+		 *                             ( Sasha )
+		 */
 
-		make_detach_pos( asw->hints, asw->status, &(asw->anchor), &x, &y );
+		make_detach_pos (asw->hints, asw->status, &(asw->anchor), &x, &y);
 
-		if ( get_flags(asw->status->flags, AS_Iconic ))
-		{
+		if (get_flags (asw->status->flags, AS_Iconic)) {
 			/* if we don't do that while exiting AfterStep -
 			   we will loose the client while starting AS again, as window will be
 			   unmapped, AS will be waiting for it to be mapped by client, and
 			   client will not be aware that it should do so, as WM exits and
 			   startups are transparent for it */
-			map_too = True ;
+			map_too = True;
 		}
 		/*
-		* Prevent the receipt of an UnmapNotify, since that would
-		* cause a transition to the Withdrawn state.
-		*/
-LOCAL_DEBUG_OUT ("map_too = %d", map_too );
+		 * Prevent the receipt of an UnmapNotify, since that would
+		 * cause a transition to the Withdrawn state.
+		 */
+		LOCAL_DEBUG_OUT ("map_too = %d", map_too);
 
-		if( !ASWIN_GET_FLAGS(asw, AS_Dead) )
-		{
+		if (!ASWIN_GET_FLAGS (asw, AS_Dead)) {
 			XSelectInput (dpy, asw->w, NoEventMask);
-			if( get_parent_window( asw->w ) == asw->frame )
-			{
-				ASStatusHints withdrawn_state ;
+			if (get_parent_window (asw->w) == asw->frame) {
+				ASStatusHints withdrawn_state;
 				/* !!! Most of it has been done in datach_basic_widget : */
 				XReparentWindow (dpy, asw->w, Scr.Root, x, y);
-				withdrawn_state.flags = AS_Withdrawn ;
-				withdrawn_state.icon_window = None ;
-				set_client_state( asw->w, &withdrawn_state );
+				withdrawn_state.flags = AS_Withdrawn;
+				withdrawn_state.icon_window = None;
+				set_client_state (asw->w, &withdrawn_state);
 
-				if( width > 0 && height > 0 )
-					XResizeWindow( dpy, asw->w, width, height );
+				if (width > 0 && height > 0)
+					XResizeWindow (dpy, asw->w, width, height);
 				XSetWindowBorderWidth (dpy, asw->w, bw);
-LOCAL_DEBUG_OUT ("map_too = %d", map_too );
-				if( map_too )
+				LOCAL_DEBUG_OUT ("map_too = %d", map_too);
+				if (map_too)
 					XMapWindow (dpy, asw->w);
 /*				else 
 					XUnmapWindow (dpy, asw->w); */
-				XSync( dpy, False );
+				XSync (dpy, False);
 			}
 			/* signaling client that we no longer handle it : */
-			set_multi32bit_property (asw->w, _XA_WM_STATE, _XA_WM_STATE, 2, WithdrawnState, None);
+			set_multi32bit_property (asw->w, _XA_WM_STATE, _XA_WM_STATE, 2,
+															 WithdrawnState, None);
 		}
 	}
 }
@@ -599,4 +601,3 @@ LOCAL_DEBUG_OUT ("map_too = %d", map_too );
 /**********************************************************************/
 /* The End                                                            */
 /**********************************************************************/
-

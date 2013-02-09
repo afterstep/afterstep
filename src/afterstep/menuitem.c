@@ -58,20 +58,18 @@
 /***************************************************************************/
 /*                      Menu functions                                     */
 /***************************************************************************/
-MenuData     *
-FindPopup (const char *name, int quiet)
+MenuData *FindPopup (const char *name, int quiet)
 {
-	MenuData     *md = NULL;
+	MenuData *md = NULL;
 
-	if (name == NULL)
-	{
+	if (name == NULL) {
 		if (!quiet)
 			show_error ("Empty Popup name specifyed");
 		return md;
 	}
 
-	md = find_menu_data( Scr.Feel.Popups, (char*)name );
-	if (!quiet && md == NULL )
+	md = find_menu_data (Scr.Feel.Popups, (char *)name);
+	if (!quiet && md == NULL)
 		show_error ("Popup \"%s\" not defined!", name);
 	return md;
 }
@@ -82,75 +80,71 @@ FindPopup (const char *name, int quiet)
  *  Returned Value:
  *  (MenuData *)
  ***********************************************************************/
-MenuData     *
-CreateMenuData (char *name)
+MenuData *CreateMenuData (char *name)
 {
 	MenuData *md;
-	if( Scr.Feel.Popups == NULL )
-		init_list_of_menus(&(Scr.Feel.Popups), True);
-	md = new_menu_data( Scr.Feel.Popups, name );
-	md->recent_items = -1 ; /* use Scr.Feel.recent_submenu_items by default! */
+	if (Scr.Feel.Popups == NULL)
+		init_list_of_menus (&(Scr.Feel.Popups), True);
+	md = new_menu_data (Scr.Feel.Popups, name);
+	md->recent_items = -1;				/* use Scr.Feel.recent_submenu_items by default! */
 	return md;
 }
 
-void print_func_data(const char *file, const char *func, int line, FunctionData *data);
+void print_func_data (const char *file, const char *func, int line,
+											FunctionData * data);
 
-Bool
-MenuDataItemParse (void *data, const char *buf)
+Bool MenuDataItemParse (void *data, const char *buf)
 {
-	MenuData *menu = (MenuData*)data;
-	FunctionData  *fdata;
+	MenuData *menu = (MenuData *) data;
+	FunctionData *fdata;
 
 	if (buf == NULL)
 		return False;
-	for (; isspace (*buf); buf++);
+	for (; isspace (*buf); buf++) ;
 	if (*buf == '\0' || *buf == '#' || *buf == '*')
 		return False;
 
-	fdata = safecalloc( 1, sizeof(FunctionData));
+	fdata = safecalloc (1, sizeof (FunctionData));
 	if (parse_func (buf, fdata, False) < 0)
 		return False;
-	if (fdata->func != F_ENDPOPUP && fdata->func != F_ENDFUNC)
-	{
+	if (fdata->func != F_ENDPOPUP && fdata->func != F_ENDFUNC) {
 		MenuDataItemFromFunc (menu, fdata);
-		fdata = NULL ;
+		fdata = NULL;
 		return True;
 	}
-	if( fdata )
-	{
+	if (fdata) {
 		free_func_data (fdata);
-		free( fdata );
+		free (fdata);
 	}
-	return False ;
+	return False;
 }
 
-Bool
-FunctionItemParse (void *data, const char *buf)
+Bool FunctionItemParse (void *data, const char *buf)
 {
-	ComplexFunction *func = (ComplexFunction*)data;
-	FunctionData  fdata;
+	ComplexFunction *func = (ComplexFunction *) data;
+	FunctionData fdata;
 
 	if (buf == NULL)
 		return False;
-	for (; isspace (*buf); buf++);
+	for (; isspace (*buf); buf++) ;
 	if (*buf == '\0' || *buf == '#' || *buf == '*')
 		return False;
 
-	init_func_data( &fdata );
+	init_func_data (&fdata);
 	if (parse_func (buf, &fdata, False) < 0)
 		return False;
-	if (fdata.func != F_ENDPOPUP && fdata.func != F_ENDFUNC)
-	{
-		if (!IsMinipixmapFunc(fdata.func))
-		{
-			func->items = realloc(func->items, sizeof(FunctionData)*(func->items_num+1));
-			func->items[func->items_num] = fdata ;
+	if (fdata.func != F_ENDPOPUP && fdata.func != F_ENDFUNC) {
+		if (!IsMinipixmapFunc (fdata.func)) {
+			func->items =
+					realloc (func->items,
+									 sizeof (FunctionData) * (func->items_num + 1));
+			func->items[func->items_num] = fdata;
 			++(func->items_num);
 			return True;
 		}
 	}
 	free_func_data (&fdata);
-	return False ;
+	return False;
 }
 
 /****************************************************************************
@@ -160,21 +154,19 @@ FunctionItemParse (void *data, const char *buf)
  ****************************************************************************/
 
 int
-ParseBody (void *data, FILE * fd, Bool (*item_func)(void *, const char*))
+ParseBody (void *data, FILE * fd, Bool (*item_func) (void *, const char *))
 {
-	int           success = 0;
-	char         *buf;
+	int success = 0;
+	char *buf;
 	register char *ptr;
 
 	buf = safemalloc (MAXLINELENGTH + 1);
-	while ((ptr = fgets (buf, MAXLINELENGTH, fd)) != NULL)
-	{
-		LOCAL_DEBUG_OUT( "parsing Popup line \"%s\"", buf );
+	while ((ptr = fgets (buf, MAXLINELENGTH, fd)) != NULL) {
+		LOCAL_DEBUG_OUT ("parsing Popup line \"%s\"", buf);
 		while (isspace (*ptr))
 			ptr++;
-		if (!item_func(data, ptr))
-			if (mystrncasecmp ("End", ptr, 3) == 0)
-			{
+		if (!item_func (data, ptr))
+			if (mystrncasecmp ("End", ptr, 3) == 0) {
 				success = 1;
 				break;
 			}
@@ -186,31 +178,29 @@ ParseBody (void *data, FILE * fd, Bool (*item_func)(void *, const char*))
 /****************************************************************************
  *  Parses a popup definition
  ****************************************************************************/
-void
-ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
+void ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2)
 {
-	char         *name =  stripcpy2 (tline, 0);
-	MenuData     *mr = CreateMenuData (name);
-	free( name );
-	ParseBody(mr, fd, MenuDataItemParse);
+	char *name = stripcpy2 (tline, 0);
+	MenuData *mr = CreateMenuData (name);
+	free (name);
+	ParseBody (mr, fd, MenuDataItemParse);
 }
 
 /****************************************************************************
  *  Parses a popup definition
  ****************************************************************************/
-void
-ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2)
+void ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2)
 {
-	char         *name =  stripcpy2 (tline, 0);
-	ComplexFunction  *func = NULL ;
+	char *name = stripcpy2 (tline, 0);
+	ComplexFunction *func = NULL;
 
-	if( Scr.Feel.ComplexFunctions == NULL )
-		init_list_of_funcs(&(Scr.Feel.ComplexFunctions), True);
+	if (Scr.Feel.ComplexFunctions == NULL)
+		init_list_of_funcs (&(Scr.Feel.ComplexFunctions), True);
 
-	func = new_complex_func( Scr.Feel.ComplexFunctions, name);
-	free( name );
+	func = new_complex_func (Scr.Feel.ComplexFunctions, name);
+	free (name);
 
-	ParseBody(func, fd, FunctionItemParse);
+	ParseBody (func, fd, FunctionItemParse);
 }
 
 /****************************************************************************
@@ -218,36 +208,34 @@ ParseFunctionEntry (char *tline, FILE * fd, char **junk, int *junk2)
  *  Parses a mouse binding
  *
  ****************************************************************************/
-void
-ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2)
+void ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2)
 {
-	MouseButton  *temp;
-	int           button = 0;
-	int           contexts, mods;
-	FunctionData  *fdata;
+	MouseButton *temp;
+	int button = 0;
+	int contexts, mods;
+	FunctionData *fdata;
 
 	while (isspace (*tline))
 		tline++;
-	while (isdigit (*tline))
-	{
+	while (isdigit (*tline)) {
 		button = button * 10 + (int)((*tline) - '0');
 		tline++;
 	}
 
 	tline = parse_win_context_str (tline, &contexts);
 	tline = parse_modifier_str (tline, &mods);
-	fdata = safecalloc( 1, sizeof(FunctionData) );
-	if (parse_func (tline, fdata, False) < 0)
-	{
-		free_func_data (fdata);				   /* just in case */
-		free(fdata);
+	fdata = safecalloc (1, sizeof (FunctionData));
+	if (parse_func (tline, fdata, False) < 0) {
+		free_func_data (fdata);			/* just in case */
+		free (fdata);
 		return;
 	}
 	if ((contexts & C_WINDOW) && (((mods == 0) || mods == AnyModifier)))
 		Scr.Feel.buttons2grab &= ~(1 << (button - 1));
 
 	temp = Scr.Feel.MouseButtonRoot;
-	Scr.Feel.MouseButtonRoot = (MouseButton *) safecalloc (1, sizeof (MouseButton));
+	Scr.Feel.MouseButtonRoot =
+			(MouseButton *) safecalloc (1, sizeof (MouseButton));
 	Scr.Feel.MouseButtonRoot->NextButton = temp;
 
 	Scr.Feel.MouseButtonRoot->fdata = fdata;
@@ -263,47 +251,43 @@ ParseMouseEntry (char *tline, FILE * fd, char **junk, int *junk2)
  *
  ****************************************************************************/
 
-void
-ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
+void ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 {
-	char         *name = NULL;
-	KeySym        keysym;
-	KeyCode       keycode;
-	int           contexts, mods;
-	FunctionData  *fdata;
-	int           i, min, max;
+	char *name = NULL;
+	KeySym keysym;
+	KeyCode keycode;
+	int contexts, mods;
+	FunctionData *fdata;
+	int i, min, max;
 
 	tline = parse_token (tline, &name);
 	tline = parse_win_context_str (tline, &contexts);
 	tline = parse_modifier_str (tline, &mods);
 
-	fdata = safecalloc( 1, sizeof(FunctionData));
-	if (parse_func (tline, fdata, False) >= 0)
-	{
+	fdata = safecalloc (1, sizeof (FunctionData));
+	if (parse_func (tline, fdata, False) >= 0) {
 		/*
 		 * Don't let a 0 keycode go through, since that means AnyKey to the
 		 * XGrabKey call in GrabKeys().
 		 */
 		keysym = XStringToKeysym (name);
-		if (keysym != NoSymbol && (keycode = XKeysymToKeycode (dpy, keysym)) != 0)
-		{
-			int m ;
+		if (keysym != NoSymbol
+				&& (keycode = XKeysymToKeycode (dpy, keysym)) != 0) {
+			int m;
 			XDisplayKeycodes (dpy, &min, &max);
-			for (m = 0; m <= 8; m++)   /* is 8 really the maximum number of modifiers to search through? */
-			{
+			for (m = 0; m <= 8; m++) {	/* is 8 really the maximum number of modifiers to search through? */
 				for (i = min; i <= max; i++)
 					if (XkbKeycodeToKeysym (dpy, i, m, 0) == keysym)
 						break;
 				if (i <= max)
 					break;
 			}
-	
-			if (i <= max)
-				keycode = i ; 
 
-			if (keycode != 0 )
-			{
-				FuncKey      *tmp = (FuncKey *) safecalloc (1, sizeof (FuncKey));
+			if (i <= max)
+				keycode = i;
+
+			if (keycode != 0) {
+				FuncKey *tmp = (FuncKey *) safecalloc (1, sizeof (FuncKey));
 
 				tmp->next = Scr.Feel.FuncKeyRoot;
 				Scr.Feel.FuncKeyRoot = tmp;
@@ -314,314 +298,312 @@ ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 				tmp->cont = contexts;
 				tmp->mods = mods;
 				tmp->fdata = fdata;
-				fdata = NULL ;
+				fdata = NULL;
 			}
 		}
 	}
-	if( fdata )
-	{
-		free_func_data (fdata);				   /* just in case */
-		free( fdata );
+	if (fdata) {
+		free_func_data (fdata);			/* just in case */
+		free (fdata);
 	}
 	if (name)
 		free (name);
 }
 
-  /****************************************************************************
+	/****************************************************************************
  * generates menu from directory tree
  ****************************************************************************/
 
  /* we assume buf is at least MAXLINELENGTH bytes */
 
-void 
-add_minipixmap_from_dirtree_item( dirtree_t * tree, MenuData *menu )
+void add_minipixmap_from_dirtree_item (dirtree_t * tree, MenuData * menu)
 {
-	FunctionData *fdata = NULL ;
-	if( tree->de != NULL && tree->de->fulliconname != NULL ) 
-		fdata = create_named_function( F_SMALL_MINIPIXMAP, tree->de->fulliconname);
-	else if (tree->icon != NULL) /* should default to: "mini-menu.xpm" */
-		fdata = create_named_function(  get_flags(tree->flags, DIRTREE_ICON_IS_SMALL)?F_SMALL_MINIPIXMAP:F_MINIPIXMAP, 
-										tree->icon);
-	if( fdata ) 
+	FunctionData *fdata = NULL;
+	if (tree->de != NULL && tree->de->fulliconname != NULL)
+		fdata =
+				create_named_function (F_SMALL_MINIPIXMAP, tree->de->fulliconname);
+	else if (tree->icon != NULL)	/* should default to: "mini-menu.xpm" */
+		fdata =
+				create_named_function (get_flags
+															 (tree->flags,
+																DIRTREE_ICON_IS_SMALL) ? F_SMALL_MINIPIXMAP
+															 : F_MINIPIXMAP, tree->icon);
+	if (fdata)
 		menu_data_item_from_func (menu, fdata, False);
-}	 
+}
 
-char *
-add_menuitem_submenu_from_file( FILE *fp2, char *buf, char *title )
+char *add_menuitem_submenu_from_file (FILE * fp2, char *buf, char *title)
 {
-	MenuData *md = NULL ; 
-	long start ;
-	static int submenu_id = DIRTREE_ID ; 
-	char *name = string_from_int( ++submenu_id );
+	MenuData *md = NULL;
+	long start;
+	static int submenu_id = DIRTREE_ID;
+	char *name = string_from_int (++submenu_id);
 
-	md = CreateMenuData( name );
-	start = ftell( fp2 );
-	LOCAL_DEBUG_OUT( "parsing Popup \"%s\"", name );
-	
-	if( !ParseBody( md, fp2, MenuDataItemParse ) )
-	{
-		LOCAL_DEBUG_OUT( "parsing Popup body failed.. cleaning up%s", "" );
-		remove_hash_item( Scr.Feel.Popups, AS_HASHABLE(name), NULL, True );
+	md = CreateMenuData (name);
+	start = ftell (fp2);
+	LOCAL_DEBUG_OUT ("parsing Popup \"%s\"", name);
+
+	if (!ParseBody (md, fp2, MenuDataItemParse)) {
+		LOCAL_DEBUG_OUT ("parsing Popup body failed.. cleaning up%s", "");
+		remove_hash_item (Scr.Feel.Popups, AS_HASHABLE (name), NULL, True);
 		/* delete menu and restore the file pointer */
-		fseek( fp2, start, SEEK_SET );
-		free( name );
-		name = NULL ; 
-	} else if( title != NULL ) 
-	{
-		if( md->first == NULL || md->first->fdata->func != F_TITLE ) 
-		{
-			FunctionData *fdata = create_named_function( F_TITLE, title);
+		fseek (fp2, start, SEEK_SET);
+		free (name);
+		name = NULL;
+	} else if (title != NULL) {
+		if (md->first == NULL || md->first->fdata->func != F_TITLE) {
+			FunctionData *fdata = create_named_function (F_TITLE, title);
 			/* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
 			scan_for_hotkey (fdata->name);
 			menu_data_item_from_func (md, fdata, False);
 		}
-	
+
 	}
-	
+
 	return name;
 }
 
 
 int
-add_menuitem_from_file( FILE *fp2, char *buf, dirtree_t *t, Bool show_unavailable, MenuData *menu ) 
+add_menuitem_from_file (FILE * fp2, char *buf, dirtree_t * t,
+												Bool show_unavailable, MenuData * menu)
 {
-	int lines_read = 0 ;
-	Bool available = True ;
-	char *name = NULL ;
-	FunctionData *fdata = NULL ;
-	FunctionData *valid_func = NULL ; 
-	FunctionData *minipixmap[MINIPIXMAP_TypesNum] = {NULL} ;
+	int lines_read = 0;
+	Bool available = True;
+	char *name = NULL;
+	FunctionData *fdata = NULL;
+	FunctionData *valid_func = NULL;
+	FunctionData *minipixmap[MINIPIXMAP_TypesNum] = { NULL };
 	MinipixmapTypes mini_type;
-	
-	if( fp2 == NULL ) 
+
+	if (fp2 == NULL)
 		return 0;
 	/* try to load a command */
-LOCAL_DEBUG_OUT( "fp2=%p, buf=%p, t=%p", fp2, buf, t);
+	LOCAL_DEBUG_OUT ("fp2=%p, buf=%p, t=%p", fp2, buf, t);
 
-	while( fgets (buf, MAXLINELENGTH, fp2) != NULL) {
-		int parse_err ; 
+	while (fgets (buf, MAXLINELENGTH, fp2) != NULL) {
+		int parse_err;
 
 		++lines_read;
-LOCAL_DEBUG_OUT( "%s", buf );
-		if( fdata == NULL ) 
-			fdata = create_named_function(F_EXEC, NULL);
+		LOCAL_DEBUG_OUT ("%s", buf);
+		if (fdata == NULL)
+			fdata = create_named_function (F_EXEC, NULL);
 		parse_err = parse_func (buf, fdata, True);
-		
+
 		mini_type = GetMinipixmapType (fdata->func);
-LOCAL_DEBUG_OUT ("func = %d, mini_type = %d, name = \"%s\", text = \"%s\"", fdata->func, mini_type, fdata->name, fdata->text); 
-		if (IsMinipixmap(mini_type) && fdata->name == NULL && fdata->text != NULL) {
+		LOCAL_DEBUG_OUT
+				("func = %d, mini_type = %d, name = \"%s\", text = \"%s\"",
+				 fdata->func, mini_type, fdata->name, fdata->text);
+		if (IsMinipixmap (mini_type) && fdata->name == NULL
+				&& fdata->text != NULL) {
 			fdata->name = fdata->text;
 			fdata->text = NULL;
 		}
-		
-		if (parse_err > FUNC_ERR_START && parse_err < 0) /* data is actuall shell command line */
+
+		if (parse_err > FUNC_ERR_START && parse_err < 0)	/* data is actuall shell command line */
 			fdata->text = stripcpy (buf);
-			
+
 		if (fdata->name == NULL)
-			fdata->name = mystrdup( t->stripped_name );
-		
-		if( fdata->func == F_POPUP && fdata->text == NULL ) 
-			fdata->text = add_menuitem_submenu_from_file( fp2, buf, fdata->name );
+			fdata->name = mystrdup (t->stripped_name);
+
+		if (fdata->func == F_POPUP && fdata->text == NULL)
+			fdata->text = add_menuitem_submenu_from_file (fp2, buf, fdata->name);
 
 #ifndef NO_AVAILABILITYCHECK
-		available = check_fdata_availability( fdata );
-		if( !available )
+		available = check_fdata_availability (fdata);
+		if (!available)
 			fdata->func = F_NOP;
-#endif					
-		if (IsMinipixmap(mini_type)) {
-			if( minipixmap[mini_type] == NULL ) {
-				minipixmap[mini_type] = fdata ;
-				fdata = NULL ; 
+#endif
+		if (IsMinipixmap (mini_type)) {
+			if (minipixmap[mini_type] == NULL) {
+				minipixmap[mini_type] = fdata;
+				fdata = NULL;
 			}
-		}else if( fdata->func != F_NOP ) {
-			if( valid_func == NULL ) {
-				valid_func = fdata ; 
-				fdata = NULL ; 
-			}					
+		} else if (fdata->func != F_NOP) {
+			if (valid_func == NULL) {
+				valid_func = fdata;
+				fdata = NULL;
+			}
 		}
 
-		if( fdata ) {
-			if( name == NULL && fdata->name != NULL ) {
-				name = fdata->name ;
-				fdata->name = NULL ;
+		if (fdata) {
+			if (name == NULL && fdata->name != NULL) {
+				name = fdata->name;
+				fdata->name = NULL;
 			}
-			destroy_func_data( &fdata );
+			destroy_func_data (&fdata);
 		}
 	}
-	if( available || show_unavailable)	{	
+	if (available || show_unavailable) {
 		Bool icon_added = False;
-		
-		if( valid_func  ) 
+
+		if (valid_func)
 			menu_data_item_from_func (menu, valid_func, False);
-		else		{
-			fdata = create_named_function(F_NOP, name?name:t->stripped_name);
+		else {
+			fdata =
+					create_named_function (F_NOP, name ? name : t->stripped_name);
 			fdata->text = mystrdup (t->name);
 			menu_data_item_from_func (menu, fdata, False);
 		}
-		
-		for (mini_type = 0 ; mini_type < MINIPIXMAP_TypesNum ; ++mini_type)
+
+		for (mini_type = 0; mini_type < MINIPIXMAP_TypesNum; ++mini_type)
 			if (minipixmap[mini_type]) {
 				menu_data_item_from_func (menu, minipixmap[mini_type], False);
 				icon_added = (mini_type == MINIPIXMAP_Icon);
 			}
-		
+
 		if (!icon_added && t->icon != NULL) {
-			fdata = create_named_function(F_MINIPIXMAP, t->icon);
+			fdata = create_named_function (F_MINIPIXMAP, t->icon);
 			menu_data_item_from_func (menu, fdata, False);
 		}
-	}else	{
-		if( valid_func )
-			destroy_func_data(&valid_func);
-		for (mini_type = 0 ; mini_type < MINIPIXMAP_TypesNum ; ++mini_type)
+	} else {
+		if (valid_func)
+			destroy_func_data (&valid_func);
+		for (mini_type = 0; mini_type < MINIPIXMAP_TypesNum; ++mini_type)
 			if (minipixmap[mini_type])
-				destroy_func_data(&minipixmap[mini_type]);
+				destroy_func_data (&minipixmap[mini_type]);
 	}
-	if (name) 
-		free( name );
-	return lines_read ;
+	if (name)
+		free (name);
+	return lines_read;
 }
 
-static void update_menu_item_from_dirtree( MenuDataItem *menu_item, dirtree_t *t )
+static void update_menu_item_from_dirtree (MenuDataItem * menu_item,
+																					 dirtree_t * t)
 {
-	if( get_flags( t->flags, DIRTREE_NAME_IS_UTF8 ) )
-		set_flags( menu_item->flags, MD_NameIsUTF8 );
-	if( t->Comment ) 
-	{
-		menu_item->comment = interpret_ascii_string( t->Comment );
-		if( get_flags( t->flags, DIRTREE_COMMENT_IS_UTF8 ) )
-			set_flags( menu_item->flags, MD_CommentIsUTF8 );
+	if (get_flags (t->flags, DIRTREE_NAME_IS_UTF8))
+		set_flags (menu_item->flags, MD_NameIsUTF8);
+	if (t->Comment) {
+		menu_item->comment = interpret_ascii_string (t->Comment);
+		if (get_flags (t->flags, DIRTREE_COMMENT_IS_UTF8))
+			set_flags (menu_item->flags, MD_CommentIsUTF8);
 	}
 }
 
-MenuData     *
-dirtree_make_menu2 (dirtree_t * tree, char *buf, Bool reload_submenus)
+MenuData *dirtree_make_menu2 (dirtree_t * tree, char *buf,
+															Bool reload_submenus)
 {
 /*  extern struct config* func_config; */
-	dirtree_t    *t;
-	MenuData     *menu;
-	MenuDataItem    *menu_item;
+	dirtree_t *t;
+	MenuData *menu;
+	MenuDataItem *menu_item;
 	FunctionData *fdata;
 
 	/* make self */
-	if (tree->flags & DIRTREE_KEEPNAME)
-	{
+	if (tree->flags & DIRTREE_KEEPNAME) {
 		menu = CreateMenuData (tree->name);
-		if( get_flags( tree->flags, DIRTREE_NAME_IS_UTF8 ) )
-			set_flags( menu->flags, MD_NameIsUTF8 );
-	}else
-	{
+		if (get_flags (tree->flags, DIRTREE_NAME_IS_UTF8))
+			set_flags (menu->flags, MD_NameIsUTF8);
+	} else {
 		sprintf (buf, "%d", tree->flags & DIRTREE_ID);
 		menu = CreateMenuData (buf);
 	}
-	if( get_flags( tree->flags, DIRTREE_RECENT_ITEMS_SET ) )
-		menu->recent_items = tree->recent_items ;
+	if (get_flags (tree->flags, DIRTREE_RECENT_ITEMS_SET))
+		menu->recent_items = tree->recent_items;
 
 	/* make title */
-	fdata = create_named_function( F_TITLE, tree->name);
+	fdata = create_named_function (F_TITLE, tree->name);
 	/* We exploit that scan_for_hotkey removes & (marking hotkey) from name */
 	scan_for_hotkey (fdata->name);
 	menu_item = menu_data_item_from_func (menu, fdata, False);
-	update_menu_item_from_dirtree( menu_item, tree ); 
-	add_minipixmap_from_dirtree_item( tree, menu );
+	update_menu_item_from_dirtree (menu_item, tree);
+	add_minipixmap_from_dirtree_item (tree, menu);
 
-	for (t = tree->child; t != NULL; t = t->next)
-	{
+	for (t = tree->child; t != NULL; t = t->next) {
 		if (t->flags & DIRTREE_MINIPIXMAP)
 			continue;
-		if (t->flags & DIRTREE_DIR)
-		{
+		if (t->flags & DIRTREE_DIR) {
 /************* Creating Popup Title entry : ************************/
-			fdata = create_named_function((t->child==NULL)?F_NOP:F_POPUP, t->stripped_name);
-			if( reload_submenus )
+			fdata =
+					create_named_function ((t->child == NULL) ? F_NOP : F_POPUP,
+																 t->stripped_name);
+			if (reload_submenus)
 				fdata->popup = dirtree_make_menu2 (t, buf, reload_submenus);
 			else
-				fdata->popup = FindPopup( t->stripped_name, True );
+				fdata->popup = FindPopup (t->stripped_name, True);
 
 			fdata->hotkey = scan_for_hotkey (fdata->name);
-			fdata->text = (t->flags & DIRTREE_KEEPNAME) ? 
-							mystrdup (t->stripped_name) 
-							: string_from_int (t->flags & DIRTREE_ID);
+			fdata->text = (t->flags & DIRTREE_KEEPNAME) ?
+					mystrdup (t->stripped_name)
+					: string_from_int (t->flags & DIRTREE_ID);
 
-			if ((menu_item = menu_data_item_from_func (menu, fdata, False)) != NULL)
-			{
-				update_menu_item_from_dirtree( menu_item, t); 
-				add_minipixmap_from_dirtree_item( t, menu );
+			if ((menu_item =
+					 menu_data_item_from_func (menu, fdata, False)) != NULL) {
+				update_menu_item_from_dirtree (menu_item, t);
+				add_minipixmap_from_dirtree_item (t, menu);
 			}
 /************* Done creating Popup Title entry : ************************/
-		} else if( t->de ) 
-		{
-			if( t->de->type == ASDE_TypeApplication ) 
-			{	
-				fdata = desktop_entry2function( t->de, t->stripped_name);
-				LOCAL_DEBUG_OUT( "adding \"%s\" with function %ld", t->stripped_name, fdata->func );
+		} else if (t->de) {
+			if (t->de->type == ASDE_TypeApplication) {
+				fdata = desktop_entry2function (t->de, t->stripped_name);
+				LOCAL_DEBUG_OUT ("adding \"%s\" with function %ld",
+												 t->stripped_name, fdata->func);
 
 				menu_item = menu_data_item_from_func (menu, fdata, False);
-				update_menu_item_from_dirtree( menu_item, t ); 
-				add_minipixmap_from_dirtree_item( t, menu );
+				update_menu_item_from_dirtree (menu_item, t);
+				add_minipixmap_from_dirtree_item (t, menu);
 			}
-		}else if (t->command.func != F_NOP)
-		{
-			fdata = create_named_function(t->command.func, t->stripped_name);
-			if (t->command.text)
-			{
+		} else if (t->command.func != F_NOP) {
+			fdata = create_named_function (t->command.func, t->stripped_name);
+			if (t->command.text) {
 				int cmd_len = strlen (t->command.text);
 				int path_len = strlen (t->path);
 				fdata->text = NEW_ARRAY (char, cmd_len + 1 + 2 * path_len + 1);
 				sprintf (fdata->text, "%s %s", t->command.text, t->path);
 				/* quote the string so the shell doesn't mangle it */
 				if (t->command.func == F_EXEC)
-					make_shell_str (fdata->text + cmd_len + 1, t->path, 2 * path_len + 1);
+					make_shell_str (fdata->text + cmd_len + 1, t->path,
+													2 * path_len + 1);
 			} else
 				fdata->text = mystrdup (t->path);
-						
+
 #ifndef NO_AVAILABILITYCHECK
-			if( !check_fdata_availability( fdata ) ) 
-				fdata->func = F_NOP ; 
-#endif		
-			LOCAL_DEBUG_OUT( "fdata->text = \"%s\", func = %ld", fdata->text, fdata->func );			
-			if( fdata->func == F_NOP && !get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE) )
-			{	
-				destroy_func_data( &fdata );
-			}else
-			{
+			if (!check_fdata_availability (fdata))
+				fdata->func = F_NOP;
+#endif
+			LOCAL_DEBUG_OUT ("fdata->text = \"%s\", func = %ld", fdata->text,
+											 fdata->func);
+			if (fdata->func == F_NOP
+					&& !get_flags (tree->flags, DIRTREE_SHOW_UNAVAILABLE)) {
+				destroy_func_data (&fdata);
+			} else {
 				menu_item = menu_data_item_from_func (menu, fdata, False);
-				add_minipixmap_from_dirtree_item( t, menu );
+				add_minipixmap_from_dirtree_item (t, menu);
 			}
-		} else
-		{
+		} else {
 			FILE *fp2 = fopen (t->path, "r");
-			int lines_read = add_menuitem_from_file( fp2, buf, t, get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE), menu );
-if( fp2 == NULL ) 
-{
-LOCAL_DEBUG_OUT( "failed to open \"%s\"", t->path?t->path:"(NULL)" );
-}
-			fdata = NULL ; 
-			if( fp2 == NULL || lines_read == 0 )
-			{
-				Bool available = True ;
-				fdata = create_named_function(F_EXEC, t->stripped_name);
+			int lines_read =
+					add_menuitem_from_file (fp2, buf, t,
+																	get_flags (tree->flags,
+																						 DIRTREE_SHOW_UNAVAILABLE),
+																	menu);
+			if (fp2 == NULL) {
+				LOCAL_DEBUG_OUT ("failed to open \"%s\"",
+												 t->path ? t->path : "(NULL)");
+			}
+			fdata = NULL;
+			if (fp2 == NULL || lines_read == 0) {
+				Bool available = True;
+				fdata = create_named_function (F_EXEC, t->stripped_name);
 				fdata->text = mystrdup (t->name);
 #ifndef NO_AVAILABILITYCHECK
-				available = check_fdata_availability( fdata );
-				if( !available )		   
+				available = check_fdata_availability (fdata);
+				if (!available)
 					fdata->func = F_NOP;
-#endif			
-				if( available || get_flags(tree->flags, DIRTREE_SHOW_UNAVAILABLE))
-				{	
+#endif
+				if (available || get_flags (tree->flags, DIRTREE_SHOW_UNAVAILABLE)) {
 					menu_data_item_from_func (menu, fdata, False);
-					if( t->icon != NULL )
-					{
-						fdata = create_named_function(F_MINIPIXMAP, t->icon);
+					if (t->icon != NULL) {
+						fdata = create_named_function (F_MINIPIXMAP, t->icon);
 						MenuDataItemFromFunc (menu, fdata);
 					}
-				}else if( fdata )
-					destroy_func_data(&fdata);					   /* insurance measure */
+				} else if (fdata)
+					destroy_func_data (&fdata);	/* insurance measure */
 			}
-			
+
 			if (fp2)
 				fclose (fp2);
 		}
 	}
 	return menu;
 }
-
