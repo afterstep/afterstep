@@ -31,22 +31,29 @@
 
 #include "afterconf.h"
 
-TermDef       BalloonContentsTerms[] = {
-	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, Name, NULL, BALLOON_SHOW_Name,),
-	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, IconName, NULL, BALLOON_SHOW_IconName,),
-	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, ResClass, NULL, BALLOON_SHOW_ResClass,),
-	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, ResName, NULL, BALLOON_SHOW_ResName,),
-	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, Comment, NULL, BALLOON_SHOW_Comment,),
-	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, Exec, NULL, BALLOON_SHOW_Exec,),
-	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, GenericName, NULL, BALLOON_SHOW_GenericName,),
+TermDef BalloonContentsTerms[] = {
+	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, Name, NULL,
+												 BALLOON_SHOW_Name,),
+	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, IconName, NULL,
+												 BALLOON_SHOW_IconName,),
+	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, ResClass, NULL,
+												 BALLOON_SHOW_ResClass,),
+	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, ResName, NULL,
+												 BALLOON_SHOW_ResName,),
+	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, Comment, NULL,
+												 BALLOON_SHOW_Comment,),
+	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, Exec, NULL,
+												 BALLOON_SHOW_Exec,),
+	ASCF_DEFINE_KEYWORD_F (BALLOON, TF_NO_MYNAME_PREPENDING, GenericName,
+												 NULL, BALLOON_SHOW_GenericName,),
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     BalloonContentsSyntax = {
+SyntaxDef BalloonContentsSyntax = {
 	',',
 	'\n',
 	BalloonContentsTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	' ',
 	" ",
 	"\t",
@@ -70,14 +77,13 @@ flag_options_xref BalloonContentsFlagsXref[] = {
 	{0, 0, 0}
 };
 
-ASFlagType
-ParseBalloonContentsOptions (FreeStorageElem * options)
+ASFlagType ParseBalloonContentsOptions (FreeStorageElem * options)
 {
-	ASFlagType    hints = 0;
+	ASFlagType hints = 0;
 
-	while (options)
-	{
-		LOCAL_DEBUG_OUT ("options(%p)->keyword(\"%s\")", options, options->term->keyword);
+	while (options) {
+		LOCAL_DEBUG_OUT ("options(%p)->keyword(\"%s\")", options,
+										 options->term->keyword);
 		if (options->term != NULL)
 			ReadFlagItem (NULL, &hints, options, BalloonContentsFlagsXref);
 		options = options->next;
@@ -86,7 +92,7 @@ ParseBalloonContentsOptions (FreeStorageElem * options)
 }
 
 
-int           ASDefaultBalloonTypes[] = { BALLOON_ID_START, 0 };
+int ASDefaultBalloonTypes[] = { BALLOON_ID_START, 0 };
 
 /*****************************************************************************
  *
@@ -95,18 +101,17 @@ int           ASDefaultBalloonTypes[] = { BALLOON_ID_START, 0 };
  *
  ****************************************************************************/
 
-balloonConfig *
-Create_balloonConfig ()
+balloonConfig *Create_balloonConfig ()
 {
-	balloonConfig *config = (balloonConfig *) safecalloc (1, sizeof (balloonConfig));
+	balloonConfig *config =
+			(balloonConfig *) safecalloc (1, sizeof (balloonConfig));
 
 	config->type = CONFIG_Balloons_ID;
 
 	return config;
 }
 
-void
-Destroy_balloonConfig (balloonConfig * config)
+void Destroy_balloonConfig (balloonConfig * config)
 {
 	if (!config)
 		return;
@@ -117,13 +122,11 @@ Destroy_balloonConfig (balloonConfig * config)
 	config = NULL;
 }
 
-void
-Print_balloonConfig (balloonConfig * config)
+void Print_balloonConfig (balloonConfig * config)
 {
 	if (config == NULL)
 		fprintf (stderr, "No balloon configuration available \n");
-	else
-	{
+	else {
 		fprintf (stderr, "BALLOON.set_flags = 0x%lX\n", config->set_flags);
 		fprintf (stderr, "BALLOON.flags = 0x%lX\n", config->flags);
 		ASCF_PRINT_FLAGS_KEYWORD (stderr, BALLOON, config, BorderHilite);
@@ -138,26 +141,24 @@ Print_balloonConfig (balloonConfig * config)
 }
 
 void
-balloon_config2look (MyLook * look, ASBalloonLook * balloon_look, balloonConfig * config, const char *default_style)
+balloon_config2look (MyLook * look, ASBalloonLook * balloon_look,
+										 balloonConfig * config, const char *default_style)
 {
-	if (look)
-	{
-		if (balloon_look == NULL)
-		{
+	if (look) {
+		if (balloon_look == NULL) {
 			if (look->balloon_look == NULL)
 				look->balloon_look = create_balloon_look ();
 			balloon_look = look->balloon_look;
 		}
-		if (config == NULL)
-		{
+		if (config == NULL) {
 			balloon_look->show = True;
 			balloon_look->XOffset = 5;
 			balloon_look->YOffset = 5;
-			balloon_look->Style = mystyle_list_find_or_default (look->styles_list, default_style);
+			balloon_look->Style =
+					mystyle_list_find_or_default (look->styles_list, default_style);
 			balloon_look->Delay = 200;
 			balloon_look->CloseDelay = 2000;
-		} else
-		{
+		} else {
 #define MERGE_BALLOON_SCALAR_VAL(val)  balloon_look->val = config->val
 
 			balloon_look->show = get_flags (config->flags, BALLOON_USED);
@@ -167,21 +168,22 @@ balloon_config2look (MyLook * look, ASBalloonLook * balloon_look, balloonConfig 
 			MERGE_BALLOON_SCALAR_VAL (Delay);
 			MERGE_BALLOON_SCALAR_VAL (CloseDelay);
 			balloon_look->Style =
-				mystyle_list_find_or_default (look->styles_list, config->Style ? config->Style : default_style);
+					mystyle_list_find_or_default (look->styles_list,
+																				config->Style ? config->
+																				Style : default_style);
 			MERGE_BALLOON_SCALAR_VAL (TextPaddingX);
 			MERGE_BALLOON_SCALAR_VAL (TextPaddingY);
 		}
 		LOCAL_DEBUG_OUT ("balloon mystyle = %p (\"%s\")", balloon_look->Style,
-						 balloon_look->Style ? balloon_look->Style->name : "none");
+										 balloon_look->Style ? balloon_look->Style->
+										 name : "none");
 
 	}
 }
 
-void
-set_default_balloon_style (balloonConfig * config, const char *style)
+void set_default_balloon_style (balloonConfig * config, const char *style)
 {
-	if (!get_flags (config->set_flags, BALLOON_Style))
-	{
+	if (!get_flags (config->set_flags, BALLOON_Style)) {
 		config->Style = mystrdup (style);
 		set_flags (config->set_flags, BALLOON_Style);
 	}
@@ -193,37 +195,35 @@ flag_options_xref BalloonsFlags[] = {
 };
 
 
-balloonConfig *
-Process_balloonOptions (FreeStorageElem * options, balloonConfig * config, int id_base)
+balloonConfig *Process_balloonOptions (FreeStorageElem * options,
+																			 balloonConfig * config, int id_base)
 {
-	ConfigItem    item;
+	ConfigItem item;
 
 	item.memory = NULL;
 
 	if (config == NULL)
 		config = Create_balloonConfig ();
 
-	for (; options; options = options->next)
-	{
-		int           orig_id = options->term->id;
-		int           id = (int)options->term->id - id_base + BALLOON_ID_START;
+	for (; options; options = options->next) {
+		int orig_id = options->term->id;
+		int id = (int)options->term->id - id_base + BALLOON_ID_START;
 
 		if (id < BALLOON_ID_START || id > BALLOON_ID_END)
 			continue;
 
 		if (options->term == NULL)
 			continue;
-		if (options->term->type == TT_FLAG)
-		{
+		if (options->term->type == TT_FLAG) {
 			options->term->id = id;
-			if (!ReadFlagItemAuto (config, 0, options, &BalloonsFlags[0]))
-			{
-				switch (id)
-				{
-					 ASCF_HANDLE_BEVEL_KEYWORD_CASE (BALLOON, config, options, BorderHilite);
+			if (!ReadFlagItemAuto (config, 0, options, &BalloonsFlags[0])) {
+				switch (id) {
+					ASCF_HANDLE_BEVEL_KEYWORD_CASE (BALLOON, config, options,
+																					BorderHilite);
 				}
 			}
-			LOCAL_DEBUG_OUT ("%s - %lX:%lX", options->term->keyword, config->set_flags, config->flags);
+			LOCAL_DEBUG_OUT ("%s - %lX:%lX", options->term->keyword,
+											 config->set_flags, config->flags);
 			options->term->id = orig_id;
 			continue;
 		}
@@ -231,17 +231,18 @@ Process_balloonOptions (FreeStorageElem * options, balloonConfig * config, int i
 		if (!ReadConfigItem (&item, options))
 			continue;
 
-		switch (id)
-		{
-			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, XOffset);
-			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, YOffset);
-			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, Delay);
-			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, CloseDelay);
-			 ASCF_HANDLE_STRING_KEYWORD_CASE (BALLOON, config, item, Style);
-			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, TextPaddingX);
-			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, TextPaddingY);
-		 default:
-			 item.ok_to_free = 1;
+		switch (id) {
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, XOffset);
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, YOffset);
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, Delay);
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item, CloseDelay);
+			ASCF_HANDLE_STRING_KEYWORD_CASE (BALLOON, config, item, Style);
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item,
+																				TextPaddingX);
+			ASCF_HANDLE_INTEGER_KEYWORD_CASE (BALLOON, config, item,
+																				TextPaddingY);
+		default:
+			item.ok_to_free = 1;
 		}
 	}
 	ReadConfigItem (&item, NULL);
@@ -251,20 +252,19 @@ Process_balloonOptions (FreeStorageElem * options, balloonConfig * config, int i
 void
 MergeBalloonOptions (ASModuleConfig * asm_to, ASModuleConfig * asm_from)
 {
-	if (asm_to && asm_from)
-	{
-		int           i;
+	if (asm_to && asm_from) {
+		int i;
 
-		for (i = 0; asm_to->class->balloon_types[i] > 0 && asm_from->class->balloon_types[i] > 0; ++i)
-		{
+		for (i = 0;
+				 asm_to->class->balloon_types[i] > 0
+				 && asm_from->class->balloon_types[i] > 0; ++i) {
 			balloonConfig *from = asm_from->balloon_configs[i];
 			balloonConfig *to = asm_to->balloon_configs[i];
 
 			if (to == NULL)
 				to = Create_balloonConfig ();
 
-			if (from != NULL)
-			{
+			if (from != NULL) {
 				ASCF_MERGE_FLAGS (to, from);
 				ASCF_MERGE_SCALAR_KEYWORD (BALLOON, to, from, BorderHilite);
 				ASCF_MERGE_SCALAR_KEYWORD (BALLOON, to, from, XOffset);
@@ -286,45 +286,57 @@ MergeBalloonOptions (ASModuleConfig * asm_to, ASModuleConfig * asm_from)
  * 	tail
  *
  */
-FreeStorageElem **
-balloon2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, balloonConfig * config)
+FreeStorageElem **balloon2FreeStorage (SyntaxDef * syntax,
+																			 FreeStorageElem ** tail,
+																			 balloonConfig * config)
 {
 	if (config == NULL || tail == NULL)
 		return tail;
 
 	/* adding balloon free storage here */
 	if (config->set_flags == 0)
-		return tail;						   /* nothing to write */
+		return tail;								/* nothing to write */
 
-	tail = ADD_SET_FLAG (syntax, tail, config->set_flags, BALLOON_USED, BALLOON_USED_ID);
+	tail =
+			ADD_SET_FLAG (syntax, tail, config->set_flags, BALLOON_USED,
+										BALLOON_USED_ID);
 	/* border color */
 	if (config->set_flags & BALLOON_COLOR)
-		tail = String2FreeStorage (syntax, tail, config->border_color, BALLOON_BorderColor_ID);
+		tail =
+				String2FreeStorage (syntax, tail, config->border_color,
+														BALLOON_BorderColor_ID);
 	/* border width */
 	if (config->set_flags & BALLOON_WIDTH)
-		tail = Integer2FreeStorage (syntax, tail, NULL, config->border_width, BALLOON_BorderWidth_ID);
+		tail =
+				Integer2FreeStorage (syntax, tail, NULL, config->border_width,
+														 BALLOON_BorderWidth_ID);
 	/*  */
 	if (config->set_flags & BALLOON_OFFSET)
-		tail = Integer2FreeStorage (syntax, tail, NULL, config->y_offset, BALLOON_YOffset_ID);
+		tail =
+				Integer2FreeStorage (syntax, tail, NULL, config->y_offset,
+														 BALLOON_YOffset_ID);
 	/*  */
 	if (config->set_flags & BALLOON_DELAY)
-		tail = Integer2FreeStorage (syntax, tail, NULL, config->delay, BALLOON_Delay_ID);
+		tail =
+				Integer2FreeStorage (syntax, tail, NULL, config->delay,
+														 BALLOON_Delay_ID);
 	/*  */
 	if (config->set_flags & BALLOON_CLOSE_DELAY)
-		tail = Integer2FreeStorage (syntax, tail, NULL, config->close_delay, BALLOON_CloseDelay_ID);
+		tail =
+				Integer2FreeStorage (syntax, tail, NULL, config->close_delay,
+														 BALLOON_CloseDelay_ID);
 
 	return tail;
 }
 
 void
-BalloonConfig2BalloonLook (BalloonLook * blook, struct balloonConfig *config)
+BalloonConfig2BalloonLook (BalloonLook * blook,
+													 struct balloonConfig *config)
 {
-	if (config && blook)
-	{
+	if (config && blook) {
 		blook->show = (config->set_flags & BALLOON_USED);
 		/* border color */
-		if (config->set_flags & BALLOON_COLOR)
-		{
+		if (config->set_flags & BALLOON_COLOR) {
 			blook->border_color = 0;
 			parse_argb_color (config->border_color, &(blook->border_color));
 		}

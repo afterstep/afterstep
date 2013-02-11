@@ -31,17 +31,17 @@
 
 #define DEBUG_MYSTYLE
 
-TermDef       MyStyleTerms[] = {
+TermDef MyStyleTerms[] = {
 /* including MyStyles definitions here so we can process them correctly */
 	MYSTYLE_TERMS,
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     MyStyleSyntax = {
+SyntaxDef MyStyleSyntax = {
 	'\n',
 	'\0',
 	MyStyleTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	'\t',
 	"",
 	"",
@@ -53,7 +53,8 @@ SyntaxDef     MyStyleSyntax = {
 };
 
 flag_options_xref MyStyleFlags[] = {
-	ASCF_DEFINE_MODULE_FLAG_XREF (MYSTYLE, DrawTextBackground, MyStyleDefinition),
+	ASCF_DEFINE_MODULE_FLAG_XREF (MYSTYLE, DrawTextBackground,
+																MyStyleDefinition),
 	{0, 0, 0}
 };
 
@@ -63,8 +64,7 @@ flag_options_xref MyStyleFlags[] = {
  *
  ****************************************************************************/
 
-MyStyleDefinition *
-AddMyStyleDefinition (MyStyleDefinition ** tail)
+MyStyleDefinition *AddMyStyleDefinition (MyStyleDefinition ** tail)
 {
 	MyStyleDefinition *new_def = safecalloc (1, sizeof (MyStyleDefinition));
 
@@ -74,14 +74,11 @@ AddMyStyleDefinition (MyStyleDefinition ** tail)
 	return new_def;
 }
 
-void
-free_MSD_back_grad (MyStyleDefinition * msd)
+void free_MSD_back_grad (MyStyleDefinition * msd)
 {
-	if (msd->back_grad_npoints > 0)
-	{
-		if (msd->back_grad_colors)
-		{
-			register int  i = msd->back_grad_npoints;
+	if (msd->back_grad_npoints > 0) {
+		if (msd->back_grad_colors) {
+			register int i = msd->back_grad_npoints;
 
 			while (--i >= 0)
 				if (msd->back_grad_colors[i])
@@ -93,23 +90,19 @@ free_MSD_back_grad (MyStyleDefinition * msd)
 	}
 }
 
-void
-DestroyMyStyleDefinitions (MyStyleDefinition ** list)
+void DestroyMyStyleDefinitions (MyStyleDefinition ** list)
 {
-	if (*list)
-	{
+	if (*list) {
 		MyStyleDefinition *pnext = *list;
 
-		while (pnext != NULL)
-		{
+		while (pnext != NULL) {
 			MyStyleDefinition *pdef = pnext;
 
 			pnext = pdef->next;
 			destroy_string (&(pdef->Name));
 			destroy_string (&(pdef->Comment));
-			if (pdef->inherit)
-			{
-				int           i = pdef->inherit_num;
+			if (pdef->inherit) {
+				int i = pdef->inherit_num;
 
 				while (--i >= 0)
 					destroy_string (&(pdef->inherit[i]));
@@ -128,19 +121,16 @@ DestroyMyStyleDefinitions (MyStyleDefinition ** list)
 	}
 }
 
-void
-PrintMyStyleDefinitions (MyStyleDefinition * list)
+void PrintMyStyleDefinitions (MyStyleDefinition * list)
 {
 #ifdef DEBUG_MYSTYLE
-	while (list)
-	{
+	while (list) {
 		if (list->Name)
 			fprintf (stderr, "\nMyStyle \"%s\"", list->Name);
 		if (list->Comment)
 			fprintf (stderr, "\n\tComment \"%s\"", list->Comment);
-		if (list->inherit)
-		{
-			int           i;
+		if (list->inherit) {
+			int i;
 
 			for (i = 0; i < list->inherit_num; ++i)
 				if (list->inherit[i])
@@ -159,35 +149,37 @@ PrintMyStyleDefinitions (MyStyleDefinition * list)
 		fprintf (stderr, "\n\tSliceXEnd %d", list->SliceXEnd);
 		fprintf (stderr, "\n\tSliceYStart %d", list->SliceYStart);
 		fprintf (stderr, "\n\tSliceYEnd %d", list->SliceYEnd);
-		fprintf (stderr, "\n\tBlurSize %dx%d", list->BlurSize.width, list->BlurSize.height);
-		if (get_flags (list->set_flags, MYSTYLE_DrawTextBackground))
-		{
-			fprintf (stderr, "\n\tDrawTextBackground %d", get_flags (list->flags, MYSTYLE_DrawTextBackground) ? 1 : 0);
+		fprintf (stderr, "\n\tBlurSize %dx%d", list->BlurSize.width,
+						 list->BlurSize.height);
+		if (get_flags (list->set_flags, MYSTYLE_DrawTextBackground)) {
+			fprintf (stderr, "\n\tDrawTextBackground %d",
+							 get_flags (list->flags,
+													MYSTYLE_DrawTextBackground) ? 1 : 0);
 		}
 		if (list->overlay && list->overlay_type > TEXTURE_GRADIENT_END)
-			fprintf (stderr, "\n\tOverlay %d \"%s\"", list->overlay_type, list->overlay);
+			fprintf (stderr, "\n\tOverlay %d \"%s\"", list->overlay_type,
+							 list->overlay);
 
-		if (list->texture_type > 0)
-		{
-			if (list->texture_type > TEXTURE_GRADIENT_END)
-			{
+		if (list->texture_type > 0) {
+			if (list->texture_type > TEXTURE_GRADIENT_END) {
 				if (list->back_pixmap)
-					fprintf (stderr, "\n\tBackPixmap %d %s", list->texture_type, list->back_pixmap);
+					fprintf (stderr, "\n\tBackPixmap %d %s", list->texture_type,
+									 list->back_pixmap);
 				else
 					fprintf (stderr, "\n\tBackPixmap %d", list->texture_type);
-			} else
-			{
-				register int  i = 0;
+			} else {
+				register int i = 0;
 
 				fprintf (stderr, "\n\tBackMultiGradient %d", list->back_grad_type);
-				while (i < list->back_grad_npoints)
-				{
-					fprintf (stderr, "\t%s %f", list->back_grad_colors[i], list->back_grad_offsets[i]);
+				while (i < list->back_grad_npoints) {
+					fprintf (stderr, "\t%s %f", list->back_grad_colors[i],
+									 list->back_grad_offsets[i]);
 					++i;
 				}
 			}
 		}
-		fprintf (stderr, "\n#set_flags = 0x%lX", (unsigned long)list->set_flags);
+		fprintf (stderr, "\n#set_flags = 0x%lX",
+						 (unsigned long)list->set_flags);
 		fprintf (stderr, "\n#flags = 0x%lX", (unsigned long)list->flags);
 		fprintf (stderr, "\n~MyStyle\n");
 		list = list->next;
@@ -198,113 +190,118 @@ PrintMyStyleDefinitions (MyStyleDefinition * list)
 void
 HandleMyStyleSpecialTerm (MyStyleDefinition * msd, FreeStorageElem * fs)
 {
-	ConfigItem    item;
+	ConfigItem item;
 
 	item.memory = NULL;
 
 	if (!ReadConfigItem (&item, fs))
 		return;
 
-	switch (fs->term->id)
-	{
-	 case MYSTYLE_Inherit_ID:
-		 {
-			 int           pos = msd->inherit_num++;
+	switch (fs->term->id) {
+	case MYSTYLE_Inherit_ID:
+		{
+			int pos = msd->inherit_num++;
 
-			 msd->inherit = realloc (msd->inherit, sizeof (char *) * msd->inherit_num);
-			 msd->inherit[pos] = item.data.string;
-		 }
-		 break;
-	 case MYSTYLE_BackGradient_ID:
-		 if (fs->argc != 3)
-			 show_error ("invalid number of colors in BackGradient definition (%d)", fs->argc);
-		 else
-		 {
-			 free_MSD_back_grad (msd);
+			msd->inherit =
+					realloc (msd->inherit, sizeof (char *) * msd->inherit_num);
+			msd->inherit[pos] = item.data.string;
+		}
+		break;
+	case MYSTYLE_BackGradient_ID:
+		if (fs->argc != 3)
+			show_error
+					("invalid number of colors in BackGradient definition (%d)",
+					 fs->argc);
+		else {
+			free_MSD_back_grad (msd);
 
-			 msd->back_grad_type = item.data.integer;
-			 msd->texture_type = mystyle_parse_old_gradient (msd->back_grad_type, 0, 0, NULL);
-			 msd->back_grad_npoints = 2;
-			 msd->back_grad_colors = safemalloc (2 * sizeof (char *));
-			 msd->back_grad_offsets = safemalloc (2 * sizeof (double));
-			 msd->back_grad_colors[0] = mystrdup (fs->argv[1]);
-			 msd->back_grad_colors[1] = mystrdup (fs->argv[2]);
-			 msd->back_grad_offsets[1] = 0.0;
-			 msd->back_grad_offsets[1] = 1.0;
-		 }
-		 break;
-	 case MYSTYLE_BackMultiGradient_ID:
-		 if (fs->argc < 4)
-			 show_error ("invalid number of colors in BackMultiGradient definition (%d)", fs->argc);
-		 else
-		 {
-			 int           i;
+			msd->back_grad_type = item.data.integer;
+			msd->texture_type =
+					mystyle_parse_old_gradient (msd->back_grad_type, 0, 0, NULL);
+			msd->back_grad_npoints = 2;
+			msd->back_grad_colors = safemalloc (2 * sizeof (char *));
+			msd->back_grad_offsets = safemalloc (2 * sizeof (double));
+			msd->back_grad_colors[0] = mystrdup (fs->argv[1]);
+			msd->back_grad_colors[1] = mystrdup (fs->argv[2]);
+			msd->back_grad_offsets[1] = 0.0;
+			msd->back_grad_offsets[1] = 1.0;
+		}
+		break;
+	case MYSTYLE_BackMultiGradient_ID:
+		if (fs->argc < 4)
+			show_error
+					("invalid number of colors in BackMultiGradient definition (%d)",
+					 fs->argc);
+		else {
+			int i;
 
-			 free_MSD_back_grad (msd);
+			free_MSD_back_grad (msd);
 
-			 msd->back_grad_type = item.data.integer;
-			 msd->texture_type = mystyle_parse_old_gradient (msd->back_grad_type, 0, 0, NULL);
-			 msd->back_grad_npoints = ((fs->argc - 1) + 1) / 2;
-			 msd->back_grad_colors = safecalloc (msd->back_grad_npoints, sizeof (char *));
-			 msd->back_grad_offsets = safecalloc (msd->back_grad_npoints, sizeof (double));
-			 for (i = 0; i < msd->back_grad_npoints; ++i)
-			 {
-				 msd->back_grad_colors[i] = mystrdup (fs->argv[i * 2 + 1]);
-				 if (i * 2 + 2 < fs->argc)
-					 msd->back_grad_offsets[i] = atof (fs->argv[i * 2 + 2]);
-			 }
-			 msd->back_grad_offsets[msd->back_grad_npoints - 1] = 1.0;
-		 }
-		 break;
-	 case MYSTYLE_BackPixmap_ID:
-		 {
-			 set_string (&(msd->back_pixmap), item.data.string);
-			 msd->texture_type = item.index;
-		 }
-		 break;
-	 case MYSTYLE_Overlay_ID:
-		 {
-			 if (fs->argc > 1)
-			 {
-				 set_string (&(msd->overlay), stripcpy2 (fs->argv[1], False));
-				 msd->overlay_type = item.data.integer;
-			 } else
-				 show_error
-					 ("Error in MyStyle \"%s\": Overlay option uses format :  \"Overlay <type> <mystyle name>\". Ignoring.",
-					  msd->Name);
-		 }
-		 break;
-	 default:
-		 item.ok_to_free = 1;
+			msd->back_grad_type = item.data.integer;
+			msd->texture_type =
+					mystyle_parse_old_gradient (msd->back_grad_type, 0, 0, NULL);
+			msd->back_grad_npoints = ((fs->argc - 1) + 1) / 2;
+			msd->back_grad_colors =
+					safecalloc (msd->back_grad_npoints, sizeof (char *));
+			msd->back_grad_offsets =
+					safecalloc (msd->back_grad_npoints, sizeof (double));
+			for (i = 0; i < msd->back_grad_npoints; ++i) {
+				msd->back_grad_colors[i] = mystrdup (fs->argv[i * 2 + 1]);
+				if (i * 2 + 2 < fs->argc)
+					msd->back_grad_offsets[i] = atof (fs->argv[i * 2 + 2]);
+			}
+			msd->back_grad_offsets[msd->back_grad_npoints - 1] = 1.0;
+		}
+		break;
+	case MYSTYLE_BackPixmap_ID:
+		{
+			set_string (&(msd->back_pixmap), item.data.string);
+			msd->texture_type = item.index;
+		}
+		break;
+	case MYSTYLE_Overlay_ID:
+		{
+			if (fs->argc > 1) {
+				set_string (&(msd->overlay), stripcpy2 (fs->argv[1], False));
+				msd->overlay_type = item.data.integer;
+			} else
+				show_error
+						("Error in MyStyle \"%s\": Overlay option uses format :  \"Overlay <type> <mystyle name>\". Ignoring.",
+						 msd->Name);
+		}
+		break;
+	default:
+		item.ok_to_free = 1;
 	}
 	ReadConfigItem (&item, NULL);
 }
 
-Bool
-CheckMyStyleDefinitionSanity (MyStyleDefinition * msd)
+Bool CheckMyStyleDefinitionSanity (MyStyleDefinition * msd)
 {
 	if (msd == NULL)
 		return False;
 
-	if (msd->Name == NULL)
-	{
-		show_error ("MyStyle without name is encountered and will be ignored.");
+	if (msd->Name == NULL) {
+		show_error
+				("MyStyle without name is encountered and will be ignored.");
 		return False;
 	}
 
-	if (msd->texture_type < TEXTURE_SOLID || msd->texture_type > TEXTURE_TEXTURED_END)
-	{
+	if (msd->texture_type < TEXTURE_SOLID
+			|| msd->texture_type > TEXTURE_TEXTURED_END) {
 		show_error
-			("Error in MyStyle \"%s\": unsupported texture type [%d] in BackPixmap setting. Assuming default of [128] instead.",
-			 msd->Name, msd->texture_type);
-		msd->texture_type = msd->back_pixmap ? TEXTURE_PIXMAP : TEXTURE_TRANSPARENT;
+				("Error in MyStyle \"%s\": unsupported texture type [%d] in BackPixmap setting. Assuming default of [128] instead.",
+				 msd->Name, msd->texture_type);
+		msd->texture_type =
+				msd->back_pixmap ? TEXTURE_PIXMAP : TEXTURE_TRANSPARENT;
 	}
 
 	if (msd->overlay_type != 0)
-		if (msd->overlay_type < TEXTURE_TEXTURED_START || msd->texture_type > TEXTURE_TEXTURED_END)
-		{
-			show_error ("Error in MyStyle \"%s\": unsupported overlay type [%d]. Assuming default of [131] instead.",
-						msd->Name, msd->overlay_type);
+		if (msd->overlay_type < TEXTURE_TEXTURED_START
+				|| msd->texture_type > TEXTURE_TEXTURED_END) {
+			show_error
+					("Error in MyStyle \"%s\": unsupported overlay type [%d]. Assuming default of [131] instead.",
+					 msd->Name, msd->overlay_type);
 			msd->overlay_type = TEXTURE_TRANSPIXMAP_ALPHA;
 		}
 
@@ -312,33 +309,34 @@ CheckMyStyleDefinitionSanity (MyStyleDefinition * msd)
 	return True;
 }
 
-MyStyle      *
-mystyle_find_or_get_from_file (struct ASHashTable * list, const char *name)
+MyStyle *mystyle_find_or_get_from_file (struct ASHashTable * list,
+																				const char *name)
 {
-	MyStyle      *ms;
+	MyStyle *ms;
 
-	if ((ms = mystyle_list_find (list, name)) == NULL)
-	{
-		char         *fn = make_session_data_file (Session, False, S_IFREG, MYSTYLES_DIR, name, NULL);
+	if ((ms = mystyle_list_find (list, name)) == NULL) {
+		char *fn =
+				make_session_data_file (Session, False, S_IFREG, MYSTYLES_DIR,
+																name, NULL);
 
 		if (fn == NULL)
-			fn = make_session_data_file (Session, False, S_IFREG, MYSTYLES_DIR, "mystyle.", name, NULL);
+			fn = make_session_data_file (Session, False, S_IFREG, MYSTYLES_DIR,
+																	 "mystyle.", name, NULL);
 		if (fn == NULL)
-			fn = make_session_data_file (Session, True, S_IFREG, MYSTYLES_DIR, name, NULL);
+			fn = make_session_data_file (Session, True, S_IFREG, MYSTYLES_DIR,
+																	 name, NULL);
 		if (fn == NULL)
-			fn = make_session_data_file (Session, True, S_IFREG, MYSTYLES_DIR, "mystyle.", name, NULL);
-		if (fn != NULL)
-		{
+			fn = make_session_data_file (Session, True, S_IFREG, MYSTYLES_DIR,
+																	 "mystyle.", name, NULL);
+		if (fn != NULL) {
 			FreeStorageElem *Storage = NULL;
 			MyStyleDefinition *msd = NULL;
 
 			Storage = file2free_storage (fn, MyName, &MyStyleSyntax, NULL, NULL);
-			if (Storage)
-			{
+			if (Storage) {
 				msd = free_storage_elem2MyStyleDefinition (Storage, name);
 				DestroyFreeStorage (&Storage);
-				if (msd != NULL)
-				{
+				if (msd != NULL) {
 					ms = mystyle_create_from_definition (list, msd);
 					DestroyMyStyleDefinitions (&msd);
 				}
@@ -349,11 +347,11 @@ mystyle_find_or_get_from_file (struct ASHashTable * list, const char *name)
 	return ms;
 }
 
-MyStyle      *
-mystyle_create_from_definition (struct ASHashTable * list, MyStyleDefinition * def)
+MyStyle *mystyle_create_from_definition (struct ASHashTable * list,
+																				 MyStyleDefinition * def)
 {
-	int           i;
-	MyStyle      *style;
+	int i;
+	MyStyle *style;
 
 	if (def == NULL || def->Name == NULL)
 		return NULL;
@@ -361,115 +359,105 @@ mystyle_create_from_definition (struct ASHashTable * list, MyStyleDefinition * d
 	if ((style = mystyle_find (def->Name)) == NULL)
 		style = mystyle_new_with_name (def->Name);
 
-	if (def->inherit)
-	{
-		for (i = 0; i < def->inherit_num; ++i)
-		{
-			MyStyle      *parent;
+	if (def->inherit) {
+		for (i = 0; i < def->inherit_num; ++i) {
+			MyStyle *parent;
 
-			if (def->inherit[i])
-			{
-				if ((parent = mystyle_find_or_get_from_file (list, def->inherit[i])) != NULL)
+			if (def->inherit[i]) {
+				if ((parent =
+						 mystyle_find_or_get_from_file (list,
+																						def->inherit[i])) != NULL)
 					mystyle_merge_styles (parent, style, True, False);
 				else
 					show_error ("unknown style to inherit: %s\n", def->inherit[i]);
 			}
 		}
 	}
-	if (def->Font)
-	{
-		if (get_flags (style->user_flags, F_FONT))
-		{
+	if (def->Font) {
+		if (get_flags (style->user_flags, F_FONT)) {
 			unload_font (&style->font);
 			clear_flags (style->user_flags, F_FONT);
 		}
 		set_string (&(style->font.name), mystrdup (def->Font));
 		set_flags (style->user_flags, F_FONT);
 	}
-	if (get_flags (def->set_flags, MYSTYLE_TextStyle))
-	{
+	if (get_flags (def->set_flags, MYSTYLE_TextStyle)) {
 		set_flags (style->user_flags, F_TEXTSTYLE);
 		style->text_style = def->TextStyle;
 	}
-	if (get_flags (def->set_flags, MYSTYLE_SLICE_SET))
-	{
+	if (get_flags (def->set_flags, MYSTYLE_SLICE_SET)) {
 		set_flags (style->user_flags, F_SLICE);
 		style->slice_x_start = def->SliceXStart;
 		style->slice_x_end = def->SliceXEnd;
 		style->slice_y_start = def->SliceYStart;
 		style->slice_y_end = def->SliceYEnd;
 	}
-	if (get_flags (def->set_flags, MYSTYLE_BlurSize))
-	{
+	if (get_flags (def->set_flags, MYSTYLE_BlurSize)) {
 		set_flags (style->user_flags, F_BLUR);
 		style->blur_x = def->BlurSize.width;
 		style->blur_y = def->BlurSize.height;
 	}
-	if (def->ForeColor)
-	{
-		if (parse_argb_color (def->ForeColor, &(style->colors.fore)) != def->ForeColor)
+	if (def->ForeColor) {
+		if (parse_argb_color (def->ForeColor, &(style->colors.fore)) !=
+				def->ForeColor)
 			set_flags (style->user_flags, F_FORECOLOR);
 		else
 			show_error ("unable to parse Forecolor \"%s\"", def->ForeColor);
 	}
-	if (def->BackColor)
-	{
-		if (parse_argb_color (def->BackColor, &(style->colors.back)) != def->BackColor)
-		{
+	if (def->BackColor) {
+		if (parse_argb_color (def->BackColor, &(style->colors.back)) !=
+				def->BackColor) {
 			style->relief.fore = GetHilite (style->colors.back);
 			style->relief.back = GetShadow (style->colors.back);
 			set_flags (style->user_flags, F_BACKCOLOR);
 		} else
 			show_error ("unable to parse BackColor \"%s\"", def->BackColor);
 	}
-	if (def->overlay != NULL)
-	{
-		MyStyle      *o = mystyle_find_or_get_from_file (list, def->overlay);
+	if (def->overlay != NULL) {
+		MyStyle *o = mystyle_find_or_get_from_file (list, def->overlay);
 
-		if (o != NULL)
-		{
+		if (o != NULL) {
 			style->overlay = o;
 			style->overlay_type = def->overlay_type;
 		} else
-			show_error ("unknown style to be overlayed with: %s\n", def->overlay);
+			show_error ("unknown style to be overlayed with: %s\n",
+									def->overlay);
 		set_flags (style->user_flags, F_OVERLAY);
 	}
 
-	if (def->texture_type > 0 && def->texture_type <= TEXTURE_GRADIENT_END)
-	{
-		int           type = def->back_grad_type;
-		ASGradient    gradient = { 0 };
-		Bool          success = False;
+	if (def->texture_type > 0 && def->texture_type <= TEXTURE_GRADIENT_END) {
+		int type = def->back_grad_type;
+		ASGradient gradient = { 0 };
+		Bool success = False;
 
-		if (type <= TEXTURE_OLD_GRADIENT_END)
-		{
-			ARGB32        color1 = ARGB32_White, color2 = ARGB32_Black;
+		if (type <= TEXTURE_OLD_GRADIENT_END) {
+			ARGB32 color1 = ARGB32_White, color2 = ARGB32_Black;
 
 			parse_argb_color (def->back_grad_colors[0], &color1);
 			parse_argb_color (def->back_grad_colors[1], &color2);
-			if ((type = mystyle_parse_old_gradient (type, color1, color2, &gradient)) >= 0)
-			{
-				if (style->user_flags & F_BACKGRADIENT)
-				{
+			if ((type =
+					 mystyle_parse_old_gradient (type, color1, color2,
+																			 &gradient)) >= 0) {
+				if (style->user_flags & F_BACKGRADIENT) {
 					free (style->gradient.color);
 					free (style->gradient.offset);
 				}
 				style->gradient = gradient;
 				style->gradient.type = mystyle_translate_grad_type (type);
-				LOCAL_DEBUG_OUT ("style %p type = %d", style, style->gradient.type);
+				LOCAL_DEBUG_OUT ("style %p type = %d", style,
+												 style->gradient.type);
 				success = True;
 			} else
-				show_error ("Error in MyStyle \"%s\": invalid gradient type %d", style->name, type);
-		} else
-		{
-			int           i;
+				show_error ("Error in MyStyle \"%s\": invalid gradient type %d",
+										style->name, type);
+		} else {
+			int i;
 
 			gradient.npoints = def->back_grad_npoints;
 			gradient.color = safecalloc (gradient.npoints, sizeof (ARGB32));
 			gradient.offset = safecalloc (gradient.npoints, sizeof (double));
-			for (i = 0; i < gradient.npoints; ++i)
-			{
-				ARGB32        color = ARGB32_White;
+			for (i = 0; i < gradient.npoints; ++i) {
+				ARGB32 color = ARGB32_White;
 
 				parse_argb_color (def->back_grad_colors[i], &color);
 				gradient.color[i] = color;
@@ -477,8 +465,7 @@ mystyle_create_from_definition (struct ASHashTable * list, MyStyleDefinition * d
 			}
 			gradient.offset[0] = 0.0;
 			gradient.offset[gradient.npoints - 1] = 1.0;
-			if (style->user_flags & F_BACKGRADIENT)
-			{
+			if (style->user_flags & F_BACKGRADIENT) {
 				free (style->gradient.color);
 				free (style->gradient.offset);
 			}
@@ -486,59 +473,58 @@ mystyle_create_from_definition (struct ASHashTable * list, MyStyleDefinition * d
 			style->gradient.type = mystyle_translate_grad_type (type);
 			success = True;
 		}
-		if (success)
-		{
+		if (success) {
 			style->texture_type = def->texture_type;
 			set_flags (style->user_flags, F_BACKGRADIENT);
-		} else
-		{
+		} else {
 			if (gradient.color != NULL)
 				free (gradient.color);
 			if (gradient.offset != NULL)
 				free (gradient.offset);
 			show_error ("Error in MyStyle \"%s\": bad gradient", style->name);
 		}
-	} else if (def->texture_type > TEXTURE_GRADIENT_END && def->texture_type <= TEXTURE_TEXTURED_END)
-	{
-		int           type = def->texture_type;
+	} else if (def->texture_type > TEXTURE_GRADIENT_END
+						 && def->texture_type <= TEXTURE_TEXTURED_END) {
+		int type = def->texture_type;
 
-		if (get_flags (style->user_flags, F_BACKPIXMAP))
-		{
+		if (get_flags (style->user_flags, F_BACKPIXMAP)) {
 			mystyle_free_back_icon (style);
 			clear_flags (style->user_flags, F_BACKTRANSPIXMAP | F_BACKPIXMAP);
 		}
 		clear_flags (style->inherit_flags, F_BACKTRANSPIXMAP | F_BACKPIXMAP);
 		LOCAL_DEBUG_OUT ("calling mystyle_free_back_icon for style %p", style);
 
-		if (type == TEXTURE_TRANSPARENT || type == TEXTURE_TRANSPARENT_TWOWAY)
-		{									   /* treat second parameter as ARGB tint value : */
-			if (parse_argb_color (def->back_pixmap, &(style->tint)) == def->back_pixmap)
-				style->tint = TINT_LEAVE_SAME; /* use no tinting by default */
+		if (type == TEXTURE_TRANSPARENT || type == TEXTURE_TRANSPARENT_TWOWAY) {	/* treat second parameter as ARGB tint value : */
+			if (parse_argb_color (def->back_pixmap, &(style->tint)) ==
+					def->back_pixmap)
+				style->tint = TINT_LEAVE_SAME;	/* use no tinting by default */
 			else if (type == TEXTURE_TRANSPARENT)
 				style->tint = (style->tint >> 1) & 0x7F7F7F7F;	/* converting old style tint */
 /*LOCAL_DEBUG_OUT( "tint is 0x%X (from %s)",  style->tint, tmp);*/
 			set_flags (style->user_flags, F_BACKPIXMAP);
 			style->texture_type = type;
-		} else
-		{									   /* treat second parameter as an image filename : */
-			if (load_icon (&(style->back_icon), def->back_pixmap, get_screen_image_manager (NULL)))
-			{
+		} else {										/* treat second parameter as an image filename : */
+			if (load_icon
+					(&(style->back_icon), def->back_pixmap,
+					 get_screen_image_manager (NULL))) {
 				set_flags (style->user_flags, F_BACKPIXMAP);
 				if (type >= TEXTURE_TRANSPIXMAP)
 					set_flags (style->user_flags, F_BACKTRANSPIXMAP);
 				style->texture_type = type;
 			} else
-				show_error ("Parsing MyStyle \"%s\" failed to load image file \"%s\".", style->name, def->back_pixmap);
+				show_error
+						("Parsing MyStyle \"%s\" failed to load image file \"%s\".",
+						 style->name, def->back_pixmap);
 		}
-		LOCAL_DEBUG_OUT ("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%lX", style->name,
-						 style->texture_type, style->back_icon.image, style->tint);
+		LOCAL_DEBUG_OUT
+				("MyStyle \"%s\": BackPixmap %d image = %p, tint = 0x%lX",
+				 style->name, style->texture_type, style->back_icon.image,
+				 style->tint);
 	}
-	if (get_flags (def->set_flags, MYSTYLE_DrawTextBackground))
-	{
+	if (get_flags (def->set_flags, MYSTYLE_DrawTextBackground)) {
 		if (get_flags (def->flags, MYSTYLE_DrawTextBackground))
 			set_flags (style->user_flags, F_DRAWTEXTBACKGROUND);
-		else
-		{
+		else {
 			clear_flags (style->user_flags, F_DRAWTEXTBACKGROUND);
 			clear_flags (style->inherit_flags, F_DRAWTEXTBACKGROUND);
 		}
@@ -562,14 +548,12 @@ mystyle_create_from_definition (struct ASHashTable * list, MyStyleDefinition * d
  * MyStyleDefinitions become unusable as the result, and get's destroyed
  * pointer to a list becomes NULL !
  */
-void
-ProcessMyStyleDefinitions (MyStyleDefinition ** list)
+void ProcessMyStyleDefinitions (MyStyleDefinition ** list)
 {
 	MyStyleDefinition *pCurr;
 
 	if (list)
-		if (*list)
-		{
+		if (*list) {
 			for (pCurr = *list; pCurr; pCurr = pCurr->next)
 				mystyle_create_from_definition (NULL, pCurr);
 			DestroyMyStyleDefinitions (list);
@@ -585,29 +569,28 @@ mystyle_parse (char *tline, FILE * fd, char **myname, int *mystyle_list)
 
 	if (list == NULL)
 		return;
-	for (tail = list; *tail != NULL; tail = &((*tail)->next));
+	for (tail = list; *tail != NULL; tail = &((*tail)->next)) ;
 
-	Storage = tline_subsyntax_parse ("MyStyle", tline, fd, (char *)myname, &MyStyleSyntax, NULL, NULL);
-	if (Storage)
-	{
+	Storage =
+			tline_subsyntax_parse ("MyStyle", tline, fd, (char *)myname,
+														 &MyStyleSyntax, NULL, NULL);
+	if (Storage) {
 		*tail = free_storage_elem2MyStyleDefinition (Storage, NULL);
 		DestroyFreeStorage (&Storage);
 	}
 }
 
 
-MyStyleDefinition *
-GetMyStyleDefinition (MyStyleDefinition ** list, const char *name, Bool add_new)
+MyStyleDefinition *GetMyStyleDefinition (MyStyleDefinition ** list,
+																				 const char *name, Bool add_new)
 {
 	register MyStyleDefinition *style = NULL;
 
-	if (name)
-	{
+	if (name) {
 		for (style = *list; style != NULL; style = style->next)
 			if (mystrcasecmp (style->Name, name) == 0)
 				break;
-		if (style == NULL && add_new)
-		{									   /* add new style here */
+		if (style == NULL && add_new) {	/* add new style here */
 			style = AddMyStyleDefinition (list);
 			style->Name = mystrdup (name);
 		}
@@ -618,20 +601,19 @@ GetMyStyleDefinition (MyStyleDefinition ** list, const char *name, Bool add_new)
 
 void
 MergeMyStyleText (MyStyleDefinition ** list, const char *name,
-				  const char *new_font, const char *new_fcolor, const char *new_bcolor, int new_style)
+									const char *new_font, const char *new_fcolor,
+									const char *new_bcolor, int new_style)
 {
 	register MyStyleDefinition *style = NULL;
 
-	if ((style = GetMyStyleDefinition (list, name, True)) != NULL)
-	{
+	if ((style = GetMyStyleDefinition (list, name, True)) != NULL) {
 		if (new_font)
 			set_string (&(style->Font), mystrdup (new_font));
 		if (new_fcolor)
 			set_string (&(style->ForeColor), mystrdup (new_fcolor));
 		if (new_bcolor)
 			set_string (&(style->BackColor), mystrdup (new_bcolor));
-		if (new_style >= 0)
-		{
+		if (new_style >= 0) {
 			style->TextStyle = new_style;
 			set_flags (style->set_flags, MYSTYLE_TextStyle);
 		}
@@ -640,7 +622,8 @@ MergeMyStyleText (MyStyleDefinition ** list, const char *name,
 
 void
 MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
-						int type, char *color_from, char *color_to, char *pixmap)
+												int type, char *color_from, char *color_to,
+												char *pixmap)
 {
 	register MyStyleDefinition *style;
 
@@ -648,42 +631,41 @@ MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
 		return;
 
 #if 0
-	if (!get_flags (style->set_flags, F_BACKPIXMAP))
-	{
-		TextureDef   *t = add_texture_def (&(style->back), &(style->back_layers));
+	if (!get_flags (style->set_flags, F_BACKPIXMAP)) {
+		TextureDef *t =
+				add_texture_def (&(style->back), &(style->back_layers));
 
 		type = pixmap_type2texture_type (type);
-		if (TEXTURE_IS_ICON (type))
-		{
-			if (pixmap != NULL)
-			{
-				set_string_value (&(t->data.icon.image), pixmap, &(style->set_flags), F_BACKTEXTURE);
+		if (TEXTURE_IS_ICON (type)) {
+			if (pixmap != NULL) {
+				set_string_value (&(t->data.icon.image), pixmap,
+													&(style->set_flags), F_BACKTEXTURE);
 				t->type = type;
 			}
-		} else if (TEXTURE_IS_GRADIENT (type))
-		{
-			if (color_from != NULL && color_to != NULL)
-			{
+		} else if (TEXTURE_IS_GRADIENT (type)) {
+			if (color_from != NULL && color_to != NULL) {
 				make_old_gradient (t, type, color_from, color_to);
 			}
-		} else if (TEXTURE_IS_TRANSPARENT (type) && pixmap)
-		{
-			set_string_value (&(t->data.icon.tint), pixmap, &(style->set_flags), F_BACKTEXTURE);
+		} else if (TEXTURE_IS_TRANSPARENT (type) && pixmap) {
+			set_string_value (&(t->data.icon.tint), pixmap, &(style->set_flags),
+												F_BACKTEXTURE);
 			style->back[0].type = type;
 		}
 	}
 #endif
 }
 
-FreeStorageElem *
-MyStyleSpecialTerms2FreeStorage (MyStyleDefinition * msd, SyntaxDef * syntax)
+FreeStorageElem *MyStyleSpecialTerms2FreeStorage (MyStyleDefinition * msd,
+																									SyntaxDef * syntax)
 {
-	int           i;
+	int i;
 	FreeStorageElem *fs = NULL;
 	FreeStorageElem **tail = &fs;
 
 	for (i = 0; i < msd->inherit_num; i++)
-		tail = QuotedString2FreeStorage (&MyStyleSyntax, tail, NULL, msd->inherit[i], MYSTYLE_Inherit_ID);
+		tail =
+				QuotedString2FreeStorage (&MyStyleSyntax, tail, NULL,
+																	msd->inherit[i], MYSTYLE_Inherit_ID);
 
 	tail = Flag2FreeStorage (&MyStyleSyntax, tail, MYSTYLE_DONE_ID);
 
@@ -692,10 +674,14 @@ MyStyleSpecialTerms2FreeStorage (MyStyleDefinition * msd, SyntaxDef * syntax)
 	if (get_flags (def->set_flags, F_BACKPIXMAP))
 
 		for (i = 0; i < def->back_layers; i++)
-			tail = TextureDef2FreeStorage (&MyStyleSyntax, tail, &(def->back[i]), MYSTYLE_BACKPIXMAP_ID);
+			tail =
+					TextureDef2FreeStorage (&MyStyleSyntax, tail, &(def->back[i]),
+																	MYSTYLE_BACKPIXMAP_ID);
 	if (get_flags (def->set_flags, F_DRAWTEXTBACKGROUND))
 		tail =
-			Integer2FreeStorage (&MyStyleSyntax, tail, NULL, def->draw_text_background, MYSTYLE_DRAWTEXTBACKGROUND_ID);
+				Integer2FreeStorage (&MyStyleSyntax, tail, NULL,
+														 def->draw_text_background,
+														 MYSTYLE_DRAWTEXTBACKGROUND_ID);
 
 #endif
 

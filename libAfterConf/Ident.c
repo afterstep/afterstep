@@ -32,19 +32,19 @@
  *
  ****************************************************************************/
 
-TermDef       IdentTerms[] = {
+TermDef IdentTerms[] = {
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 
-	{0, NULL, 0, 0, 0}						   /* end of structure */
+	{0, NULL, 0, 0, 0}						/* end of structure */
 
 };
 
-SyntaxDef     IdentSyntax = {
+SyntaxDef IdentSyntax = {
 	'\n',
 	'\0',
 	IdentTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	' ',
 	"",
 	"\t",
@@ -57,10 +57,10 @@ SyntaxDef     IdentSyntax = {
 
 
 
-IdentConfig  *
-CreateIdentConfig ()
+IdentConfig *CreateIdentConfig ()
 {
-	IdentConfig  *config = (IdentConfig *) safecalloc (1, sizeof (IdentConfig));
+	IdentConfig *config =
+			(IdentConfig *) safecalloc (1, sizeof (IdentConfig));
 
 	/* let's initialize Ident's config with some nice values: */
 
@@ -70,24 +70,23 @@ CreateIdentConfig ()
 	return config;
 }
 
-void
-DestroyIdentConfig (IdentConfig * config)
+void DestroyIdentConfig (IdentConfig * config)
 {
 	DestroyMyStyleDefinitions (&(config->style_defs));
 	DestroyFreeStorage (&(config->more_stuff));
 	free (config);
 }
 
-IdentConfig  *
-ParseIdentOptions (const char *filename, char *myname)
+IdentConfig *ParseIdentOptions (const char *filename, char *myname)
 {
-	ConfigData    cd;
-	ConfigDef    *IdentConfigReader;
-	IdentConfig  *config = CreateIdentConfig ();
+	ConfigData cd;
+	ConfigDef *IdentConfigReader;
+	IdentConfig *config = CreateIdentConfig ();
 	FreeStorageElem *Storage = NULL;
 
 	cd.filename = filename;
-	IdentConfigReader = InitConfigReader (myname, &IdentSyntax, CDT_Filename, cd, NULL);
+	IdentConfigReader =
+			InitConfigReader (myname, &IdentSyntax, CDT_Filename, cd, NULL);
 	if (!IdentConfigReader)
 		return config;
 
@@ -112,21 +111,25 @@ ParseIdentOptions (const char *filename, char *myname)
  *
  */
 int
-WriteIdentOptions (const char *filename, char *myname, IdentConfig * config, unsigned long flags)
+WriteIdentOptions (const char *filename, char *myname,
+									 IdentConfig * config, unsigned long flags)
 {
-	ConfigDef    *IdentConfigWriter = NULL;
+	ConfigDef *IdentConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
-	ConfigData    cd;
+	ConfigData cd;
 
 	if (config == NULL)
 		return 1;
 	cd.filename = filename;
-	if ((IdentConfigWriter = InitConfigWriter (myname, &IdentSyntax, CDT_Filename, cd)) == NULL)
+	if ((IdentConfigWriter =
+			 InitConfigWriter (myname, &IdentSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 
 	CopyFreeStorage (&Storage, config->more_stuff);
 	if (config->style_defs)
-		*tail = MyStyleDefinitionsList2free_storage (config->style_defs, &IdentSyntax);
+		*tail =
+				MyStyleDefinitionsList2free_storage (config->style_defs,
+																						 &IdentSyntax);
 	ADVANCE_LINKED_LIST_TAIL (tail);
 
 	/* building free storage here */
@@ -136,9 +139,10 @@ WriteIdentOptions (const char *filename, char *myname, IdentConfig * config, uns
 	DestroyFreeStorage (&Storage);
 	DestroyConfig (IdentConfigWriter);
 
-	if (Storage)
-	{
-		fprintf (stderr, "\n%s:Config Writing warning: Not all Free Storage discarded! Trying again...", myname);
+	if (Storage) {
+		fprintf (stderr,
+						 "\n%s:Config Writing warning: Not all Free Storage discarded! Trying again...",
+						 myname);
 		DestroyFreeStorage (&Storage);
 		fprintf (stderr, (Storage != NULL) ? " failed." : " success.");
 	}

@@ -32,7 +32,7 @@
 
 #include "afterconf.h"
 
-const char   *default_aliases[][2] = {
+const char *default_aliases[][2] = {
 	{"ArcadeGame", "Arcade"},
 	{"Application", "Applications"},
 	{"Game", "Games"},
@@ -46,31 +46,27 @@ const char   *default_aliases[][2] = {
 /* private stuff : 													 */
 /*************************************************************************/
 #if 0
-static char **
-parse_category_list (char *list, int *pnum_return)
+static char **parse_category_list (char *list, int *pnum_return)
 {
-	char        **shortcuts = NULL;
-	int           num = 0;
+	char **shortcuts = NULL;
+	int num = 0;
 
-	if (list)
-	{
-		int           i;
+	if (list) {
+		int i;
 
 		for (i = 0; list[i]; ++i)
 			if (list[i] == ';')
 				++num;
 		if (i > 0 && list[i - 1] != ';')
 			++num;
-		if (num > 0)
-		{
-			int           sc_i = 0;
+		if (num > 0) {
+			int sc_i = 0;
 
 			shortcuts = safecalloc (num + 1, sizeof (char *));
 
 			shortcuts[sc_i++] = &list[0];
 			for (i = 0; list[i]; ++i)
-				if (list[i] == ';')
-				{
+				if (list[i] == ';') {
 					list[i++] = '\0';
 					if (list[i] == '\0' || sc_i >= num)
 						break;
@@ -84,46 +80,38 @@ parse_category_list (char *list, int *pnum_return)
 }
 #endif
 
-static char  *
-filter_desktop_entry_exec (const char *exec)
+static char *filter_desktop_entry_exec (const char *exec)
 {
-	char         *clean_exec = mystrdup (exec);
-	int           start = 0, ts;
+	char *clean_exec = mystrdup (exec);
+	int start = 0, ts;
 
 	while (clean_exec[start] != '\0' && !isspace (clean_exec[start]))
 		++start;
-	while (clean_exec[start] != '\0')
-	{
+	while (clean_exec[start] != '\0') {
 		ts = start;
 		while (isspace (clean_exec[ts]))
 			++ts;
-		if (clean_exec[ts] == '%' && isalpha (clean_exec[ts + 1]))
-		{
-			while (!isspace (clean_exec[ts]) && clean_exec[ts] != '\0')
-			{
+		if (clean_exec[ts] == '%' && isalpha (clean_exec[ts + 1])) {
+			while (!isspace (clean_exec[ts]) && clean_exec[ts] != '\0') {
 				clean_exec[ts] = ' ';
 				++ts;
 			}
 			start = ts;
-		} else if (mystrncasecmp (&clean_exec[ts], "-caption ", 9) == 0)
-		{
+		} else if (mystrncasecmp (&clean_exec[ts], "-caption ", 9) == 0) {
 			ts += 9;
 			while (isspace (clean_exec[ts]))
 				++ts;
-			if (mystrncasecmp (&clean_exec[ts], "\"%c\"", 4) == 0)
-			{
+			if (mystrncasecmp (&clean_exec[ts], "\"%c\"", 4) == 0) {
 				ts += 3;
 				while (start < ts)
 					clean_exec[++start] = ' ';
-			} else if (clean_exec[ts] == '%' && isalpha (clean_exec[ts + 1]))
-			{
+			} else if (clean_exec[ts] == '%' && isalpha (clean_exec[ts + 1])) {
 				ts += 1;
 				while (start < ts)
 					clean_exec[++start] = ' ';
 			}
-		} else if (clean_exec[ts] == '\"')
-		{
-			char         *end = find_doublequotes (&clean_exec[ts]);
+		} else if (clean_exec[ts] == '\"') {
+			char *end = find_doublequotes (&clean_exec[ts]);
 
 			if (end != NULL)
 				start = end - &clean_exec[0];
@@ -131,105 +119,100 @@ filter_desktop_entry_exec (const char *exec)
 				start = ts;
 			++start;
 		} else
-			for (start = ts; !isspace (clean_exec[start]) && clean_exec[start] != '\0'; ++start);
+			for (start = ts;
+					 !isspace (clean_exec[start]) && clean_exec[start] != '\0';
+					 ++start) ;
 	}
-	while (isspace (clean_exec[start - 1]))
-	{
+	while (isspace (clean_exec[start - 1])) {
 		--start;
 		clean_exec[start] = '\0';
 	}
 	return clean_exec;
 }
 
-char         *
-stripcpy_localized (char *ptr)
+char *stripcpy_localized (char *ptr)
 {
-	int           i = 0;
-	static char   default_locale[] = "us";
-	char         *locale = MyArgs.locale[0] ? MyArgs.locale : &default_locale[0];
+	int i = 0;
+	static char default_locale[] = "us";
+	char *locale = MyArgs.locale[0] ? MyArgs.locale : &default_locale[0];
 
-	while (locale[i] != '.' && locale[i] != '\0' && ptr[i] != ']')
-	{
+	while (locale[i] != '.' && locale[i] != '\0' && ptr[i] != ']') {
 		if (ptr[i] != locale[i])
 			break;
 		++i;
 	}
-	if ((locale[i] == '.' || locale[i] == '_' || locale[i] == '\0') && ptr[i] == ']')
+	if ((locale[i] == '.' || locale[i] == '_' || locale[i] == '\0')
+			&& ptr[i] == ']')
 		return stripcpy (ptr + i + 2);
 	return NULL;
 }
 
-static void
-parse_desktop_entry_line (ASDesktopEntry * de, char *ptr)
+static void parse_desktop_entry_line (ASDesktopEntry * de, char *ptr)
 {
 #define PARSE_ASDE_TYPE_VAL(val)	if(mystrncasecmp(ptr, #val, ASDE_KEYWORD_##val##_LEN) == 0){de->type = ASDE_Type##val; return;}
 #define PARSE_ASDE_STRING_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){if( de->val ) free( de->val ) ; de->val = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); return;}
 #define PARSE_ASDE_FLAG_VAL(val)	if(mystrncasecmp(ptr, #val "=", ASDE_KEYWORD_##val##_LEN+1) == 0){char *tmp = stripcpy(ptr+ASDE_KEYWORD_##val##_LEN+1); if( tmp[0] == '1' || mystrcasecmp(tmp, "true") == 0 ) set_flags(de->flags, ASDE_##val); free(tmp); return;}
 
-	if (ptr[0] == 'X' && ptr[1] == '-')
-	{
+	if (ptr[0] == 'X' && ptr[1] == '-') {
 		ptr += 2;
-		if (mystrncasecmp (ptr, "AfterStep-", 10) == 0)
-		{
+		if (mystrncasecmp (ptr, "AfterStep-", 10) == 0) {
 			ptr += 10;
-		PARSE_ASDE_STRING_VAL (IndexName)
-				PARSE_ASDE_STRING_VAL (Aliases)
-				PARSE_ASDE_FLAG_VAL (ASModule)
-				PARSE_ASDE_FLAG_VAL (CheckAvailability)} else if (mystrncasecmp (ptr, "KDE-", 4) == 0)
+			PARSE_ASDE_STRING_VAL (IndexName)
+					PARSE_ASDE_STRING_VAL (Aliases)
+					PARSE_ASDE_FLAG_VAL (ASModule)
+		PARSE_ASDE_FLAG_VAL (CheckAvailability)} else
+				if (mystrncasecmp (ptr, "KDE-", 4) == 0)
 			set_flags (de->flags, ASDE_KDE);
 		else if (mystrncasecmp (ptr, "GNOME-", 6) == 0)
 			set_flags (de->flags, ASDE_GNOME);
-	} else if (mystrncasecmp (ptr, "Name[", 5) == 0 && MyArgs.locale[0] == ptr[5])
-	{
-		char         *val = stripcpy_localized (ptr + 5);
+	} else if (mystrncasecmp (ptr, "Name[", 5) == 0
+						 && MyArgs.locale[0] == ptr[5]) {
+		char *val = stripcpy_localized (ptr + 5);
 
 		if (val)
 			set_string (&(de->Name_localized), val);
-	} else if (mystrncasecmp (ptr, "Type=", 5) == 0)
-	{
+	} else if (mystrncasecmp (ptr, "Type=", 5) == 0) {
 		ptr += 5;
 
-	PARSE_ASDE_TYPE_VAL (Application)
-			PARSE_ASDE_TYPE_VAL (Link)
-			PARSE_ASDE_TYPE_VAL (FSDevice)
-			PARSE_ASDE_TYPE_VAL (Directory)} else if (mystrncasecmp (ptr, "Comment[", 8) == 0 &&
-													  MyArgs.locale[0] == ptr[8])
-	{
-		char         *val = stripcpy_localized (ptr + 8);
+		PARSE_ASDE_TYPE_VAL (Application)
+				PARSE_ASDE_TYPE_VAL (Link)
+				PARSE_ASDE_TYPE_VAL (FSDevice)
+	PARSE_ASDE_TYPE_VAL (Directory)} else
+			if (mystrncasecmp (ptr, "Comment[", 8) == 0
+					&& MyArgs.locale[0] == ptr[8]) {
+		char *val = stripcpy_localized (ptr + 8);
 
 		if (val)
 			set_string (&(de->Comment_localized), val);
-	} else if (mystrncasecmp (ptr, "Encoding=", 9) == 0 && mystrncasecmp (ptr + 9, "UTF-8", 5) != 0)
-	{
+	} else if (mystrncasecmp (ptr, "Encoding=", 9) == 0
+						 && mystrncasecmp (ptr + 9, "UTF-8", 5) != 0) {
 		set_flags (de->flags, ASDE_EncodingNonUTF8);
-	} else
-	{
-	PARSE_ASDE_STRING_VAL (Name)
-			PARSE_ASDE_STRING_VAL (GenericName)
-			PARSE_ASDE_STRING_VAL (Comment)
-			PARSE_ASDE_STRING_VAL (Icon)
-			PARSE_ASDE_STRING_VAL (TryExec)
-			PARSE_ASDE_STRING_VAL (Exec)
-			PARSE_ASDE_STRING_VAL (Path)
-			PARSE_ASDE_STRING_VAL (SwallowTitle)
-			PARSE_ASDE_STRING_VAL (SwallowExec)
-			PARSE_ASDE_STRING_VAL (SortOrder)
-			PARSE_ASDE_STRING_VAL (Categories)
-			PARSE_ASDE_STRING_VAL (OnlyShowIn)
-			PARSE_ASDE_STRING_VAL (NotShowIn)
-			PARSE_ASDE_STRING_VAL (StartupWMClass)
-			PARSE_ASDE_FLAG_VAL (NoDisplay)
-			PARSE_ASDE_FLAG_VAL (Hidden) PARSE_ASDE_FLAG_VAL (Terminal) PARSE_ASDE_FLAG_VAL (StartupNotify)}
+	} else {
+		PARSE_ASDE_STRING_VAL (Name)
+				PARSE_ASDE_STRING_VAL (GenericName)
+				PARSE_ASDE_STRING_VAL (Comment)
+				PARSE_ASDE_STRING_VAL (Icon)
+				PARSE_ASDE_STRING_VAL (TryExec)
+				PARSE_ASDE_STRING_VAL (Exec)
+				PARSE_ASDE_STRING_VAL (Path)
+				PARSE_ASDE_STRING_VAL (SwallowTitle)
+				PARSE_ASDE_STRING_VAL (SwallowExec)
+				PARSE_ASDE_STRING_VAL (SortOrder)
+				PARSE_ASDE_STRING_VAL (Categories)
+				PARSE_ASDE_STRING_VAL (OnlyShowIn)
+				PARSE_ASDE_STRING_VAL (NotShowIn)
+				PARSE_ASDE_STRING_VAL (StartupWMClass)
+				PARSE_ASDE_FLAG_VAL (NoDisplay)
+	PARSE_ASDE_FLAG_VAL (Hidden) PARSE_ASDE_FLAG_VAL (Terminal)
+				PARSE_ASDE_FLAG_VAL (StartupNotify)}
 }
 
 static void
-fix_desktop_entry (ASDesktopEntry * de, const char *default_category, const char *icon_path, const char *origin,
-				   Bool applnk)
+fix_desktop_entry (ASDesktopEntry * de, const char *default_category,
+									 const char *icon_path, const char *origin, Bool applnk)
 {
-	if (de->Categories == NULL && default_category)
-	{
-		if (get_flags (de->flags, ASDE_KDE | ASDE_GNOME) == 0)
-		{
+	if (de->Categories == NULL && default_category) {
+		if (get_flags (de->flags, ASDE_KDE | ASDE_GNOME) == 0) {
 			if (mystrncasecmp (default_category, "KDE", 3) == 0)
 				set_flags (de->flags, ASDE_KDE);
 			else if (mystrncasecmp (default_category, "GNOME", 5) == 0)
@@ -241,21 +224,19 @@ fix_desktop_entry (ASDesktopEntry * de, const char *default_category, const char
 	if (applnk)
 		set_flags (de->flags, ASDE_KDE);
 
-	if (de->Categories != NULL)
-	{
+	if (de->Categories != NULL) {
 		de->categories_len = strlen (de->Categories);
-		de->categories_shortcuts = compound_string2string_list (de->Categories, ';', False, &(de->categories_num));
-		if (get_flags (de->flags, ASDE_KDE | ASDE_GNOME) == 0)
-		{
-			int           i = de->categories_num;
-			ASFlagType    kind = 0;
+		de->categories_shortcuts =
+				compound_string2string_list (de->Categories, ';', False,
+																		 &(de->categories_num));
+		if (get_flags (de->flags, ASDE_KDE | ASDE_GNOME) == 0) {
+			int i = de->categories_num;
+			ASFlagType kind = 0;
 
-			while (--i >= 0 && kind == 0)
-			{
-				char         *ptr = de->categories_shortcuts[i];
+			while (--i >= 0 && kind == 0) {
+				char *ptr = de->categories_shortcuts[i];
 
-				if (ptr[0] == 'X')
-				{
+				if (ptr[0] == 'X') {
 					if (ptr[1] != '-')
 						continue;
 					ptr += 2;
@@ -268,42 +249,41 @@ fix_desktop_entry (ASDesktopEntry * de, const char *default_category, const char
 			set_flags (de->flags, kind);
 		}
 	}
-	if (get_flags (de->flags, ASDE_KDE | ASDE_GNOME) == 0 && de->Name)
-	{
+	if (get_flags (de->flags, ASDE_KDE | ASDE_GNOME) == 0 && de->Name) {
 		if (de->Name[0] == 'G')
 			set_flags (de->flags, ASDE_GNOME);
 		else if (de->Name[0] == 'K')
 			set_flags (de->flags, ASDE_KDE);
 	}
-	if (de->Aliases != NULL)
-	{
+	if (de->Aliases != NULL) {
 		de->aliases_len = strlen (de->Aliases);
-		de->aliases_shortcuts = compound_string2string_list (de->Aliases, ';', False, &(de->aliases_num));
+		de->aliases_shortcuts =
+				compound_string2string_list (de->Aliases, ';', False,
+																		 &(de->aliases_num));
 	}
 
-	if (de->OnlyShowIn != NULL)
-	{
+	if (de->OnlyShowIn != NULL) {
 		de->show_in_len = strlen (de->OnlyShowIn);
-		de->show_in_shortcuts = compound_string2string_list (de->OnlyShowIn, ';', False, &(de->show_in_num));
+		de->show_in_shortcuts =
+				compound_string2string_list (de->OnlyShowIn, ';', False,
+																		 &(de->show_in_num));
 	}
-	if (de->NotShowIn != NULL)
-	{
+	if (de->NotShowIn != NULL) {
 		de->not_show_in_len = strlen (de->NotShowIn);
-		de->not_show_in_shortcuts = compound_string2string_list (de->NotShowIn, ';', False, &(de->not_show_in_num));
+		de->not_show_in_shortcuts =
+				compound_string2string_list (de->NotShowIn, ';', False,
+																		 &(de->not_show_in_num));
 	}
-	if (de->Icon && icon_path)
-	{
-		int           l = strlen (de->Icon);
+	if (de->Icon && icon_path) {
+		int l = strlen (de->Icon);
 
-		if (l < 4 || de->Icon[l - 4] != '.')
-		{
-			char         *tmp = safemalloc (l + 4 + 1);
+		if (l < 4 || de->Icon[l - 4] != '.') {
+			char *tmp = safemalloc (l + 4 + 1);
 
 			strcpy (tmp, de->Icon);
 			strcat (tmp, ".png");
 			de->fulliconname = find_file (tmp, icon_path, R_OK);
-			if (de->fulliconname == NULL)
-			{
+			if (de->fulliconname == NULL) {
 				strcpy (tmp + l, ".svg");
 				de->fulliconname = find_file (tmp, icon_path, R_OK);
 			}
@@ -311,96 +291,104 @@ fix_desktop_entry (ASDesktopEntry * de, const char *default_category, const char
 		}
 		if (de->fulliconname == NULL)
 			de->fulliconname = find_file (de->Icon, icon_path, R_OK);
-		LOCAL_DEBUG_OUT ("icon %s has fullname %s", de->Icon, de->fulliconname ? de->fulliconname : "(null)");
+		LOCAL_DEBUG_OUT ("icon %s has fullname %s", de->Icon,
+										 de->fulliconname ? de->fulliconname : "(null)");
 	}
 	if (de->Exec)
 		de->clean_exec = filter_desktop_entry_exec (de->Exec);
 
 	de->origin = mystrdup (origin);
 
-	if (get_flags (de->flags, ASDE_CheckAvailability))
-	{
+	if (get_flags (de->flags, ASDE_CheckAvailability)) {
 		if (!is_executable_in_path (de->clean_exec))
 			set_flags (de->flags, ASDE_Unavailable);
-		LOCAL_DEBUG_OUT ("checking availability(clean_exec) for \"%s\" - %s available", de->clean_exec,
-						 (get_flags (de->flags, ASDE_Unavailable) ? "not" : ""));
-	} else if (de->TryExec != NULL)
-	{
+		LOCAL_DEBUG_OUT
+				("checking availability(clean_exec) for \"%s\" - %s available",
+				 de->clean_exec,
+				 (get_flags (de->flags, ASDE_Unavailable) ? "not" : ""));
+	} else if (de->TryExec != NULL) {
 		if (!is_executable_in_path (de->TryExec))
 			set_flags (de->flags, ASDE_Unavailable);
-		LOCAL_DEBUG_OUT ("checking availability(TryExec) for \"%s\" - %s available", de->clean_exec,
-						 (get_flags (de->flags, ASDE_Unavailable) ? "not" : ""));
+		LOCAL_DEBUG_OUT
+				("checking availability(TryExec) for \"%s\" - %s available",
+				 de->clean_exec,
+				 (get_flags (de->flags, ASDE_Unavailable) ? "not" : ""));
 	}
 
 }
 
-static ASDesktopEntry *
-parse_desktop_entry (const char *fullfilename, const char *default_category, ASDesktopEntryTypes default_type,
-					 const char *icon_path, Bool applnk)
+static ASDesktopEntry *parse_desktop_entry (const char *fullfilename,
+																						const char *default_category,
+																						ASDesktopEntryTypes
+																						default_type,
+																						const char *icon_path,
+																						Bool applnk)
 {
 	ASDesktopEntry *de = NULL;
-	FILE         *fp = NULL;
+	FILE *fp = NULL;
 
 	if (fullfilename)
 		fp = fopen (fullfilename, "r");
 
-	if (fp)
-	{
-		static char   rb[MAXLINELENGTH + 1];
+	if (fp) {
+		static char rb[MAXLINELENGTH + 1];
 
 		de = create_desktop_entry (default_type);
 		while (fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL)
 			parse_desktop_entry_line (de, &(rb[0]));
-		fix_desktop_entry (de, default_category, icon_path, fullfilename, applnk);
+		fix_desktop_entry (de, default_category, icon_path, fullfilename,
+											 applnk);
 		fclose (fp);
 	}
 	return de;
 }
 
 int
-parse_desktop_entry_list (const char *fullfilename, ASBiDirList * entry_list, const char *default_category,
-						  ASDesktopEntryTypes default_type, const char *icon_path, Bool applnk)
+parse_desktop_entry_list (const char *fullfilename,
+													ASBiDirList * entry_list,
+													const char *default_category,
+													ASDesktopEntryTypes default_type,
+													const char *icon_path, Bool applnk)
 {
 	ASDesktopEntry *de = NULL;
-	int           count = 0;
-	FILE         *fp = NULL;
+	int count = 0;
+	FILE *fp = NULL;
 
 	/*LOCAL_DEBUG_OUT( "PARSING \"%s\"", fullfilename );    */
 	if (fullfilename)
 		fp = fopen (fullfilename, "r");
 
-	if (fp)
-	{
-		static char   rb[MAXLINELENGTH + 1];
+	if (fp) {
+		static char rb[MAXLINELENGTH + 1];
 
-		while (fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL)
-		{
+		while (fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL) {
 			/*LOCAL_DEBUG_OUT( "rb = \"%s\", de = %p", &(rb[0]), de ); */
-			if (rb[0] == '[')
-			{
-				if ((rb[1] == 'D' && (mystrncasecmp (&(rb[2]), "esktop Entry]", 13) == 0 ||
-									  mystrncasecmp (&(rb[2]), "esktopEntry]", 12) == 0)) ||
-					(rb[1] == 'K' && mystrncasecmp (&(rb[2]), "DE Desktop Entry]", 17) == 0))
-				{
-					if (de)
-					{
-						fix_desktop_entry (de, default_category, icon_path, fullfilename, applnk);
+			if (rb[0] == '[') {
+				if ((rb[1] == 'D'
+						 && (mystrncasecmp (&(rb[2]), "esktop Entry]", 13) == 0
+								 || mystrncasecmp (&(rb[2]), "esktopEntry]", 12) == 0))
+						|| (rb[1] == 'K'
+								&& mystrncasecmp (&(rb[2]), "DE Desktop Entry]",
+																	17) == 0)) {
+					if (de) {
+						fix_desktop_entry (de, default_category, icon_path,
+															 fullfilename, applnk);
 						append_bidirelem (entry_list, de);
 					}
 					de = create_desktop_entry (default_type);
 					++count;
-				} else if (de)
-				{
-					fix_desktop_entry (de, default_category, icon_path, fullfilename, applnk);
+				} else if (de) {
+					fix_desktop_entry (de, default_category, icon_path, fullfilename,
+														 applnk);
 					append_bidirelem (entry_list, de);
 					de = NULL;
 				}
 			} else if (de)
 				parse_desktop_entry_line (de, &(rb[0]));
 		}
-		if (de)
-		{
-			fix_desktop_entry (de, default_category, icon_path, fullfilename, applnk);
+		if (de) {
+			fix_desktop_entry (de, default_category, icon_path, fullfilename,
+												 applnk);
 			append_bidirelem (entry_list, de);
 		}
 		fclose (fp);
@@ -411,29 +399,28 @@ parse_desktop_entry_list (const char *fullfilename, ASBiDirList * entry_list, co
 
 
 static void
-parse_desktop_entry_tree (char *fullpath, const char *dirname, ASBiDirList * entry_list, ASDesktopEntry * parent,
-						  const char *icon_path, const char *default_app_category, Bool applnk)
+parse_desktop_entry_tree (char *fullpath, const char *dirname,
+													ASBiDirList * entry_list,
+													ASDesktopEntry * parent, const char *icon_path,
+													const char *default_app_category, Bool applnk)
 {
 	struct direntry **list = NULL;
-	int           list_len, i, curr_dir_index = -1;
-	char         *dir_category = NULL;
+	int list_len, i, curr_dir_index = -1;
+	char *dir_category = NULL;
 	ASDesktopEntry *tmp, *curr_dir = NULL;
 
 
 	list_len = my_scandir (fullpath, &list, no_dots_except_directory, NULL);
 
 	fprintf (stderr, "number of items in %s = %d\n", fullpath, list_len);
-	for (i = 0; i < list_len; i++)
-	{
-		if (!S_ISDIR (list[i]->d_mode) && list[i]->d_name[0] == '.')
-		{
-			if (strcasecmp (list[i]->d_name, ".directory") == 0)
-			{
+	for (i = 0; i < list_len; i++) {
+		if (!S_ISDIR (list[i]->d_mode) && list[i]->d_name[0] == '.') {
+			if (strcasecmp (list[i]->d_name, ".directory") == 0) {
 				curr_dir_index = i;
 				tmp =
-					parse_desktop_entry (fullpath, parent ? parent->Name : NULL, ASDE_TypeDirectory, icon_path, applnk);
-				if (tmp)
-				{
+						parse_desktop_entry (fullpath, parent ? parent->Name : NULL,
+																 ASDE_TypeDirectory, icon_path, applnk);
+				if (tmp) {
 					if (tmp->Name == NULL)
 						tmp->Name = mystrdup (dirname);
 					if (mystrcasecmp (tmp->Name, DEFAULT_DESKTOP_CATEGORY_NAME) != 0)
@@ -445,35 +432,32 @@ parse_desktop_entry_tree (char *fullpath, const char *dirname, ASBiDirList * ent
 			}
 		}
 	}
-	if (curr_dir == NULL)
-	{
-		curr_dir = parse_desktop_entry (fullpath, parent ? parent->Name : NULL, ASDE_TypeDirectory, icon_path, applnk);
-		if (curr_dir)
-		{
-			if (curr_dir->Name == NULL)
-			{
+	if (curr_dir == NULL) {
+		curr_dir =
+				parse_desktop_entry (fullpath, parent ? parent->Name : NULL,
+														 ASDE_TypeDirectory, icon_path, applnk);
+		if (curr_dir) {
+			if (curr_dir->Name == NULL) {
 				curr_dir->Name = mystrdup (dirname);
 				append_bidirelem (entry_list, curr_dir);
 			}
 		}
 	}
-	for (i = 0; i < list_len; i++)
-	{
-		if (list[i]->d_name[0] != '.')
-		{
-			char         *entry_fullpath = make_file_name (fullpath, list[i]->d_name);
+	for (i = 0; i < list_len; i++) {
+		if (list[i]->d_name[0] != '.') {
+			char *entry_fullpath = make_file_name (fullpath, list[i]->d_name);
 
-			if (S_ISDIR (list[i]->d_mode))
-			{
+			if (S_ISDIR (list[i]->d_mode)) {
 /*fprintf(stderr, "Parsing subtree %s.\n", entry_fullpath);*/
-				parse_desktop_entry_tree (entry_fullpath, list[i]->d_name, entry_list, curr_dir, icon_path,
-										  default_app_category, applnk);
-			} else if (i != curr_dir_index)
-			{
+				parse_desktop_entry_tree (entry_fullpath, list[i]->d_name,
+																	entry_list, curr_dir, icon_path,
+																	default_app_category, applnk);
+			} else if (i != curr_dir_index) {
 /*fprintf(stderr, "Parsing subitem %s.\n", entry_fullpath);*/
 				parse_desktop_entry_list (entry_fullpath, entry_list,
-										  dir_category ? dir_category : default_app_category, ASDE_TypeApplication,
-										  icon_path, applnk);
+																	dir_category ? dir_category :
+																	default_app_category,
+																	ASDE_TypeApplication, icon_path, applnk);
 			}
 			free (entry_fullpath);
 		}
@@ -487,16 +471,15 @@ parse_desktop_entry_tree (char *fullpath, const char *dirname, ASBiDirList * ent
 		free (dir_category);
 }
 
-static void
-desktop_entry_destroy_list_item (void *data)
+static void desktop_entry_destroy_list_item (void *data)
 {
 	unref_desktop_entry ((ASDesktopEntry *) data);
 }
 
-static Bool
-register_desktop_entry_list_item (void *data, void *aux_data)
+static Bool register_desktop_entry_list_item (void *data, void *aux_data)
 {
-	register_desktop_entry ((ASCategoryTree *) aux_data, (ASDesktopEntry *) data);
+	register_desktop_entry ((ASCategoryTree *) aux_data,
+													(ASDesktopEntry *) data);
 	return True;
 }
 
@@ -504,29 +487,29 @@ register_desktop_entry_list_item (void *data, void *aux_data)
 /* public methods : 													 */
 /*************************************************************************/
 
-Bool
-load_category_tree (ASCategoryTree * ct)
+Bool load_category_tree (ASCategoryTree * ct)
 {
-	if (ct && ct->dir_list)
-	{
-		int           i;
-		ASBiDirList  *entry_list = create_asbidirlist (desktop_entry_destroy_list_item);
+	if (ct && ct->dir_list) {
+		int i;
+		ASBiDirList *entry_list =
+				create_asbidirlist (desktop_entry_destroy_list_item);
 
-		for (i = 0; i < ct->dir_num; ++i)
-		{
-			Bool          applnk = (strstr (ct->dir_list[i], "/applnk") != NULL);
+		for (i = 0; i < ct->dir_num; ++i) {
+			Bool applnk = (strstr (ct->dir_list[i], "/applnk") != NULL);
 
-			if (CheckDir (ct->dir_list[i]) == 0)
-			{
+			if (CheckDir (ct->dir_list[i]) == 0) {
 /*				fprintf( stderr, "location : \"%s\", applnk == %d\n", ct->dir_list[i], applnk ); 
 */
-				parse_desktop_entry_tree (ct->dir_list[i], NULL, entry_list, NULL, ct->icon_path, ct->name, applnk);
+				parse_desktop_entry_tree (ct->dir_list[i], NULL, entry_list, NULL,
+																	ct->icon_path, ct->name, applnk);
 			} else if (CheckFile (ct->dir_list[i]) == 0)
-				parse_desktop_entry_list (ct->dir_list[i], entry_list, ct->name, ASDE_TypeDirectory, ct->icon_path,
-										  applnk);
+				parse_desktop_entry_list (ct->dir_list[i], entry_list, ct->name,
+																	ASDE_TypeDirectory, ct->icon_path,
+																	applnk);
 		}
 		LOCAL_DEBUG_OUT ("Done parsing for tree %s", ct->name);
-		iterate_asbidirlist (entry_list, register_desktop_entry_list_item, ct, NULL, False);
+		iterate_asbidirlist (entry_list, register_desktop_entry_list_item, ct,
+												 NULL, False);
 		destroy_asbidirlist (&entry_list);
 /*		flush_asbidirlist_memory_pool(); */
 /*		print_unfreed_mem (); */
@@ -535,8 +518,7 @@ load_category_tree (ASCategoryTree * ct)
 	return False;
 }
 
-void
-DestroyCategories ()
+void DestroyCategories ()
 {
 	if (StandardCategories)
 		destroy_category_tree (&StandardCategories);
@@ -552,21 +534,18 @@ DestroyCategories ()
 		destroy_category_tree (&CombinedCategories);
 #ifdef DEBUG_ALLOCS
 /*	print_unfreed_mem (); */
-#endif /* DEBUG_ALLOCS */
+#endif													/* DEBUG_ALLOCS */
 }
 
-void
-save_category_tree_cache (ASCategoryTree * ct, const char *fname)
+void save_category_tree_cache (ASCategoryTree * ct, const char *fname)
 {
-	char         *configfile;
-	FILE         *fp;
+	char *configfile;
+	FILE *fp;
 
 	configfile = make_session_data_file (Session, False, 0, fname, NULL);
-	if (configfile)
-	{
+	if (configfile) {
 		fp = fopen (configfile, "wb");
-		if (fp)
-		{
+		if (fp) {
 			save_category_tree (ct, fp);
 			fclose (fp);
 		}
@@ -574,8 +553,7 @@ save_category_tree_cache (ASCategoryTree * ct, const char *fname)
 	}
 }
 
-void
-UpdateCategoriesCache ()
+void UpdateCategoriesCache ()
 {
 	save_category_tree_cache (AfterStepCategories, AFTERSTEP_CACHE_FILE);
 	save_category_tree_cache (KDECategories, KDE_CACHE_FILE);
@@ -583,53 +561,71 @@ UpdateCategoriesCache ()
 	save_category_tree_cache (OtherCategories, OTHER_CACHE_FILE);
 }
 
-void
-ReloadCategories (Bool cached)
+void ReloadCategories (Bool cached)
 {
-	char         *configfile;
+	char *configfile;
 
 	START_TIME (started);
 
 	DestroyCategories ();
 
-	if ((configfile = make_session_file (Session, STANDARD_CATEGORIES_FILE, False)) != NULL)
-	{
+	if ((configfile =
+			 make_session_file (Session, STANDARD_CATEGORIES_FILE,
+													False)) != NULL) {
 		StandardCategories =
-			create_category_tree ("Default", configfile, Environment ? Environment->pixmap_path : NULL, 0, -1);
+				create_category_tree ("Default", configfile,
+															Environment ? Environment->
+															pixmap_path : NULL, 0, -1);
 		free (configfile);
 	}
 
-	if (cached)
-	{
-		char         *configfile = make_session_data_file (Session, False, 0, AFTERSTEP_CACHE_FILE, NULL);
+	if (cached) {
+		char *configfile =
+				make_session_data_file (Session, False, 0, AFTERSTEP_CACHE_FILE,
+																NULL);
 
 		AfterStepCategories =
-			create_category_tree ("AfterStep", configfile, Environment ? Environment->pixmap_path : NULL, 0, -1);
+				create_category_tree ("AfterStep", configfile,
+															Environment ? Environment->
+															pixmap_path : NULL, 0, -1);
 		free (configfile);
-		configfile = make_session_data_file (Session, False, 0, KDE_CACHE_FILE, NULL);
-		KDECategories = create_category_tree ("KDE", configfile, KDE_ICONS_PATH, 0, -1);
+		configfile =
+				make_session_data_file (Session, False, 0, KDE_CACHE_FILE, NULL);
+		KDECategories =
+				create_category_tree ("KDE", configfile, KDE_ICONS_PATH, 0, -1);
 		free (configfile);
-		configfile = make_session_data_file (Session, False, 0, GNOME_CACHE_FILE, NULL);
-		GNOMECategories = create_category_tree ("GNOME", configfile, GNOME_ICONS_PATH, 0, -1);
+		configfile =
+				make_session_data_file (Session, False, 0, GNOME_CACHE_FILE, NULL);
+		GNOMECategories =
+				create_category_tree ("GNOME", configfile, GNOME_ICONS_PATH, 0,
+															-1);
 		free (configfile);
-		configfile = make_session_data_file (Session, False, 0, OTHER_CACHE_FILE, NULL);
-		OtherCategories = create_category_tree ("OTHER", configfile, OTHER_ICONS_PATH, 0, -1);
+		configfile =
+				make_session_data_file (Session, False, 0, OTHER_CACHE_FILE, NULL);
+		OtherCategories =
+				create_category_tree ("OTHER", configfile, OTHER_ICONS_PATH, 0,
+															-1);
 		free (configfile);
-	} else
-	{
-		char         *path = make_session_apps_path (Session);
+	} else {
+		char *path = make_session_apps_path (Session);
 
-		if (path)
-		{
+		if (path) {
 			AfterStepCategories =
-				create_category_tree ("AfterStep", path, Environment ? Environment->pixmap_path : NULL, 0, -1);
+					create_category_tree ("AfterStep", path,
+																Environment ? Environment->
+																pixmap_path : NULL, 0, -1);
 			free (path);
 		}
 
-		KDECategories = create_category_tree ("KDE", KDE_APPS_PATH, KDE_ICONS_PATH, ASCT_OnlyKDE, -1);
-		GNOMECategories = create_category_tree ("GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH, ASCT_OnlyGNOME, -1);
+		KDECategories =
+				create_category_tree ("KDE", KDE_APPS_PATH, KDE_ICONS_PATH,
+															ASCT_OnlyKDE, -1);
+		GNOMECategories =
+				create_category_tree ("GNOME", GNOME_APPS_PATH, GNOME_ICONS_PATH,
+															ASCT_OnlyGNOME, -1);
 		OtherCategories =
-			create_category_tree ("OTHER", OTHER_APPS_PATH, OTHER_ICONS_PATH, ASCT_ExcludeGNOME | ASCT_ExcludeKDE, -1);
+				create_category_tree ("OTHER", OTHER_APPS_PATH, OTHER_ICONS_PATH,
+															ASCT_ExcludeGNOME | ASCT_ExcludeKDE, -1);
 
 	}
 
@@ -637,8 +633,7 @@ ReloadCategories (Bool cached)
 
 	load_category_tree (StandardCategories);
 	SHOW_TIME ("Standard categories", started);
-	if (!cached)
-	{
+	if (!cached) {
 		add_category_tree_subtree (AfterStepCategories, StandardCategories);
 		add_category_tree_subtree (KDECategories, StandardCategories);
 		add_category_tree_subtree (GNOMECategories, StandardCategories);
@@ -653,7 +648,8 @@ ReloadCategories (Bool cached)
 	load_category_tree (OtherCategories);
 	SHOW_TIME ("Other categories", started);
 
-	LOCAL_DEBUG_OUT ("@ Building up Combined: @@@@@@@@@@@@@@@@@@@@@@@@@@@@%s", "");
+	LOCAL_DEBUG_OUT
+			("@ Building up Combined: @@@@@@@@@@@@@@@@@@@@@@@@@@@@%s", "");
 
 	add_category_tree_subtree (CombinedCategories, StandardCategories);
 	add_category_tree_subtree (CombinedCategories, AfterStepCategories);
@@ -666,13 +662,12 @@ ReloadCategories (Bool cached)
 
 
 #ifdef PRINT_DESKTOP_ENTRIES
-int
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
-	int           i;
+	int i;
 	ASDesktopCategory *dc = NULL;
 	ASCategoryTree *ct = NULL;
-	Bool          cached = False;
+	Bool cached = False;
 
 	InitMyApp ("PrintDesktopEntries", argc, argv, NULL, NULL, 0);
 	InitSession ();
@@ -683,51 +678,52 @@ main (int argc, char **argv)
 	ReloadCategories (cached);
 
 	for (i = 1; i < argc; ++i)
-		if (argv[i] && strcmp (argv[i], "--cached") != 0)
-		{
-			char         *name = NULL;
-			char         *colon = strchr (argv[i], ':');
-			int           len = strlen (argv[i]);
+		if (argv[i] && strcmp (argv[i], "--cached") != 0) {
+			char *name = NULL;
+			char *colon = strchr (argv[i], ':');
+			int len = strlen (argv[i]);
 
-			if (colon == NULL)
-			{
+			if (colon == NULL) {
 				name = safemalloc (len + 1 + 7 + 1);
 				sprintf (name, "%s:Default", argv[i]);
-			} else if (colon[1] == '\0')
-			{
+			} else if (colon[1] == '\0') {
 				name = safemalloc (len + 7 + 1);
 				sprintf (name, "%sDefault", argv[i]);
 			} else
 				name = mystrdup (argv[i]);
 
 			dc = name2desktop_category (name, &ct);
-			if (dc == NULL)
-			{
+			if (dc == NULL) {
 				fprintf (stderr, "Invalid category name \"%s\"", argv[i]);
 				return 0;
 			}
 			free (name);
 			break;
 		}
-	if (dc && ct)
-	{
+	if (dc && ct) {
 		print_category_tree2 (ct, dc);
 
-	} else
-	{
-		fprintf (stderr, "#Standard: ####################################################\n");
+	} else {
+		fprintf (stderr,
+						 "#Standard: ####################################################\n");
 		print_category_tree2 (StandardCategories, NULL);
-		fprintf (stderr, "#AfterStep:####################################################\n");
+		fprintf (stderr,
+						 "#AfterStep:####################################################\n");
 		print_category_tree2 (AfterStepCategories, NULL);
-		fprintf (stderr, "#KDE:      ####################################################\n");
+		fprintf (stderr,
+						 "#KDE:      ####################################################\n");
 		print_category_tree2 (KDECategories, NULL);
-		fprintf (stderr, "#GNOME:    ####################################################\n");
+		fprintf (stderr,
+						 "#GNOME:    ####################################################\n");
 		print_category_tree2 (GNOMECategories, NULL);
-		fprintf (stderr, "#OTHER:   ####################################################\n");
+		fprintf (stderr,
+						 "#OTHER:   ####################################################\n");
 		print_category_tree2 (OtherCategories, NULL);
-		fprintf (stderr, "#Combined: ####################################################\n");
+		fprintf (stderr,
+						 "#Combined: ####################################################\n");
 		print_category_tree2 (CombinedCategories, NULL);
-		fprintf (stderr, "#####################################################\n");
+		fprintf (stderr,
+						 "#####################################################\n");
 	}
 	DestroyCategories ();
 	FreeMyAppResources ();
@@ -754,8 +750,7 @@ main (int argc, char **argv)
  * 		http://www.freedesktop.org/Standards/desktop-entry-spec
 */
 
-int
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
 
 
@@ -767,88 +762,87 @@ main (int argc, char **argv)
 //  ReloadCategories();
 //  ReloadCategories();
 
-	fprintf (stderr, "#Standard: ####################################################\n");
+	fprintf (stderr,
+					 "#Standard: ####################################################\n");
 	print_category_tree2 (StandardCategories, NULL);
-	fprintf (stderr, "#AfterStep: ####################################################\n");
+	fprintf (stderr,
+					 "#AfterStep: ####################################################\n");
 	print_category_tree2 (AfterStepCategories, NULL);
-	fprintf (stderr, "#KDE: ####################################################\n");
+	fprintf (stderr,
+					 "#KDE: ####################################################\n");
 	print_category_tree2 (KDECategories, NULL);
-	fprintf (stderr, "#GNOME: ####################################################\n");
+	fprintf (stderr,
+					 "#GNOME: ####################################################\n");
 	print_category_tree2 (GNOMECategories, NULL);
-	fprintf (stderr, "#OTHER: ####################################################\n");
+	fprintf (stderr,
+					 "#OTHER: ####################################################\n");
 	print_category_tree2 (OtherCategories, NULL);
-	fprintf (stderr, "#Combined: ####################################################\n");
+	fprintf (stderr,
+					 "#Combined: ####################################################\n");
 	print_category_tree2 (CombinedCategories, NULL);
-	fprintf (stderr, "#####################################################\n");
+	fprintf (stderr,
+					 "#####################################################\n");
 
 	DestroyCategories ();
 	FreeMyAppResources ();
 #ifdef DEBUG_ALLOCS
 	print_unfreed_mem ();
-#endif /* DEBUG_ALLOCS */
+#endif													/* DEBUG_ALLOCS */
 	return 1;
 }
 #else
 #ifdef MAKE_STANDARD_CATEGORIES
 /* helper app to generate set of .desktop files for the list */
-int
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
-	char         *doc_str;
-	xml_elem_t   *doc;
-	xml_elem_t   *tr, *td;
+	char *doc_str;
+	xml_elem_t *doc;
+	xml_elem_t *tr, *td;
 
 
 
-	if (argc < 2)
-	{
+	if (argc < 2) {
 		show_error ("Usage: make_standard_categories <source_file_name>\n");
 		exit (1);
 	}
 
 	doc_str = load_file (argv[1]);
-	if (!doc_str)
-	{
-		show_error ("Unable to load file [%s]: %s.\n", argv[1], strerror (errno));
+	if (!doc_str) {
+		show_error ("Unable to load file [%s]: %s.\n", argv[1],
+								strerror (errno));
 		exit (1);
 	}
 
 	doc = xml_parse_doc (doc_str, NULL);
-	if (!doc)
-	{
+	if (!doc) {
 		show_error ("Unable to parse data: %s.\n", strerror (errno));
 		exit (1);
 	}
 
-	for (tr = doc->child; tr; tr = tr->next)
-	{
-		if (strcmp (tr->tag, "tr") == 0)
-		{
-			char         *name = NULL, *parent = NULL, *comment = NULL;
+	for (tr = doc->child; tr; tr = tr->next) {
+		if (strcmp (tr->tag, "tr") == 0) {
+			char *name = NULL, *parent = NULL, *comment = NULL;
 
 			td = tr->child;
-			if (td && td->child && strcmp (td->child->tag, XML_CDATA_STR) == 0)
-			{
+			if (td && td->child && strcmp (td->child->tag, XML_CDATA_STR) == 0) {
 				name = td->child->parm;
 				td = td->next;
-				if (td)
-				{
+				if (td) {
 					if (td->child && strcmp (td->child->tag, XML_CDATA_STR) == 0)
 						comment = td->child->parm;
 					td = td->next;
-					if (td && td->child && strcmp (td->child->tag, XML_CDATA_STR) == 0)
+					if (td && td->child
+							&& strcmp (td->child->tag, XML_CDATA_STR) == 0)
 						parent = td->child->parm;
 				}
 			}
-			if (name && strlen (name) < 200)
-			{
-				char          filename[1024];
-				FILE         *fp;
+			if (name && strlen (name) < 200) {
+				char filename[1024];
+				FILE *fp;
 
 				sprintf (filename, "categories/%s.desktop", name);
 				fp = fopen (filename, "wt");
-				if (fp)
-				{
+				if (fp) {
 					fprintf (fp, "[DesktopEntry]\nName=%s\n", name);
 					fprintf (fp, "X-AfterStep-IndexName=%s\n", name);
 					fprintf (fp, "Categories=%s\n", parent ? parent : "");

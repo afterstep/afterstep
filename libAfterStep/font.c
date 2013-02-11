@@ -3,7 +3,7 @@
 #include "screen.h"
 #include "../libAfterImage/afterimage.h"
 
-const char   *default_font = "fixed";
+const char *default_font = "fixed";
 
 /***************************************************************
  *
@@ -15,13 +15,12 @@ const char   *default_font = "fixed";
 Bool
 l_load_font (const char *file, int line, const char *name, MyFont * font)
 #else
-Bool
-load_font (const char *name_in, MyFont * font)
+Bool load_font (const char *name_in, MyFont * font)
 #endif
 {
-	char         *name;
-	char         *clean_name;
-	int           font_size = asxml_var_get ("font.size");
+	char *name;
+	char *clean_name;
+	int font_size = asxml_var_get ("font.size");
 
 	if (font == NULL)
 		return False;
@@ -32,9 +31,8 @@ load_font (const char *name_in, MyFont * font)
 #if defined(LOG_FONT_CALLS) && defined(DEBUG_ALLOCS)
 	log_call (file, line, "load_font", name);
 #endif
-	if (ASDefaultScr->font_manager == NULL)
-	{
-		char         *path = getenv ("FONT_PATH");
+	if (ASDefaultScr->font_manager == NULL) {
+		char *path = getenv ("FONT_PATH");
 
 		if (path == NULL)
 			path = getenv ("PATH");
@@ -44,9 +42,8 @@ load_font (const char *name_in, MyFont * font)
 	name = name_in ? (char *)name_in : font->name;
 
 	clean_name = name;
-	if (clean_name != NULL)
-	{
-		int           i = 0;
+	if (clean_name != NULL) {
+		int i = 0;
 		register char *ptr = clean_name;
 
 		while (ptr[i])
@@ -54,28 +51,32 @@ load_font (const char *name_in, MyFont * font)
 		while (--i >= 0)
 			if (!isdigit (ptr[i]))
 				break;
-		if ((isspace (ptr[i]) || ptr[i] == '-') && ptr[i + 1])
-		{
+		if ((isspace (ptr[i]) || ptr[i] == '-') && ptr[i + 1]) {
 			font_size = atoi (&(ptr[i + 1]));
 			while (i > 0 && isspace (ptr[i - 1]))
 				--i;
 			clean_name = mystrndup (name, i);
 		}
 	}
-	if (clean_name != NULL)
-	{
-		if ((font->as_font = get_asfont (ASDefaultScr->font_manager, clean_name, 0, font_size, ASF_Freetype)) != NULL)
-			show_progress ("Successfully loaded freetype font \"%s\"", clean_name);
+	if (clean_name != NULL) {
+		if ((font->as_font =
+				 get_asfont (ASDefaultScr->font_manager, clean_name, 0, font_size,
+										 ASF_Freetype)) != NULL)
+			show_progress ("Successfully loaded freetype font \"%s\"",
+										 clean_name);
 	}
-	if (font->as_font == NULL && name != NULL)
-	{
-		if ((font->as_font = get_asfont (ASDefaultScr->font_manager, name, 0, font_size, ASF_GuessWho)) != NULL)
+	if (font->as_font == NULL && name != NULL) {
+		if ((font->as_font =
+				 get_asfont (ASDefaultScr->font_manager, name, 0, font_size,
+										 ASF_GuessWho)) != NULL)
 			show_progress ("Successfully loaded font \"%s\"", name);
 	}
-	if (font->as_font == NULL)
-	{
-		font->as_font = get_asfont (ASDefaultScr->font_manager, default_font, 0, font_size, ASF_GuessWho);
-		show_warning ("failed to load font \"%s\" - using default instead", name);
+	if (font->as_font == NULL) {
+		font->as_font =
+				get_asfont (ASDefaultScr->font_manager, default_font, 0, font_size,
+										ASF_GuessWho);
+		show_warning ("failed to load font \"%s\" - using default instead",
+									name);
 	}
 
 	if (clean_name && clean_name != name)
@@ -93,18 +94,15 @@ load_font (const char *name_in, MyFont * font)
  *
  **************************************************************/
 #if defined(LOG_FONT_CALLS) && defined(DEBUG_ALLOCS)
-void
-l_unload_font (const char *file, int line, MyFont * font)
+void l_unload_font (const char *file, int line, MyFont * font)
 #else
-void
-unload_font (MyFont * font)
+void unload_font (MyFont * font)
 #endif
 {
 #if defined(LOG_FONT_CALLS) && defined(DEBUG_ALLOCS)
 	log_call (file, line, "unload_font", font->name);
 #endif
-	if (font->as_font)
-	{
+	if (font->as_font) {
 		release_font (font->as_font);
 		font->as_font = NULL;
 	}

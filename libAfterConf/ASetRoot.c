@@ -34,15 +34,18 @@
  *
  ****************************************************************************/
 
-TermDef       MyBackgroundTerms[] = {
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_START, "MyBackground", 12, TT_QUOTED_TEXT, BGR_MYBACKGROUND, NULL}
+TermDef MyBackgroundTerms[] = {
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_START, "MyBackground", 12,
+	 TT_QUOTED_TEXT, BGR_MYBACKGROUND, NULL}
 	,
-	{TF_NO_MYNAME_PREPENDING | TF_DONT_SPLIT | TF_DONT_REMOVE_COMMENTS | TF_INDEXED, "Use", 3, TT_OPTIONAL_PATHNAME,
+	{TF_NO_MYNAME_PREPENDING | TF_DONT_SPLIT | TF_DONT_REMOVE_COMMENTS |
+	 TF_INDEXED, "Use", 3, TT_OPTIONAL_PATHNAME,
 	 BGR_USE, NULL}
 	,
 	{TF_NO_MYNAME_PREPENDING, "Cut", 3, TT_GEOMETRY, BGR_CUT, NULL}
 	,
-	{TF_NO_MYNAME_PREPENDING | TF_DONT_REMOVE_COMMENTS, "Tint", 4, TT_COLOR, BGR_TINT, NULL}
+	{TF_NO_MYNAME_PREPENDING | TF_DONT_REMOVE_COMMENTS, "Tint", 4, TT_COLOR,
+	 BGR_TINT, NULL}
 	,
 	{TF_NO_MYNAME_PREPENDING, "Scale", 5, TT_GEOMETRY, BGR_SCALE, NULL}
 	,
@@ -50,16 +53,17 @@ TermDef       MyBackgroundTerms[] = {
 	,
 	{TF_NO_MYNAME_PREPENDING | TF_INDEXED, "Pad", 3, TT_COLOR, BGR_PAD, NULL}
 	,
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyBackground", 13, TT_FLAG, BGR_MYBACKGROUND_END, NULL}
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyBackground", 13,
+	 TT_FLAG, BGR_MYBACKGROUND_END, NULL}
 	,
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     MyBackgroundSyntax = {
+SyntaxDef MyBackgroundSyntax = {
 	'\n',
 	'\0',
 	MyBackgroundTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	' ',
 	"",
 	"\t",
@@ -71,21 +75,23 @@ SyntaxDef     MyBackgroundSyntax = {
 };
 
 
-TermDef       ASetRootTerms[] = {
-	{TF_INDEXED | TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "DeskBack", 8, TT_QUOTED_TEXT, BGR_DESK_BACK, NULL}
+TermDef ASetRootTerms[] = {
+	{TF_INDEXED | TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "DeskBack", 8,
+	 TT_QUOTED_TEXT, BGR_DESK_BACK, NULL}
 	,
 /* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
-	{TF_NO_MYNAME_PREPENDING, "MyBackground", 12, TT_QUOTED_TEXT, BGR_MYBACKGROUND, &MyBackgroundSyntax}
+	{TF_NO_MYNAME_PREPENDING, "MyBackground", 12, TT_QUOTED_TEXT,
+	 BGR_MYBACKGROUND, &MyBackgroundSyntax}
 	,
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     ASetRootSyntax = {
+SyntaxDef ASetRootSyntax = {
 	'\n',
 	'\0',
 	ASetRootTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	' ',
 	"",
 	"\t",
@@ -97,10 +103,10 @@ SyntaxDef     ASetRootSyntax = {
 };
 
 /*****************  Create/Destroy MyBackgroundConfig *****************/
-MyBackgroundConfig *
-CreateMyBackgroundConfig ()
+MyBackgroundConfig *CreateMyBackgroundConfig ()
 {
-	MyBackgroundConfig *config = (MyBackgroundConfig *) safemalloc (sizeof (MyBackgroundConfig));
+	MyBackgroundConfig *config =
+			(MyBackgroundConfig *) safemalloc (sizeof (MyBackgroundConfig));
 
 	config->name = NULL;
 	config->flags = 0;
@@ -114,15 +120,12 @@ CreateMyBackgroundConfig ()
 	return config;
 }
 
-void
-DestroyMyBackgroundConfig (MyBackgroundConfig ** head)
+void DestroyMyBackgroundConfig (MyBackgroundConfig ** head)
 {
-	if (head)
-	{
+	if (head) {
 		MyBackgroundConfig *cur = *head, *next;
 
-		while (cur)
-		{
+		while (cur) {
 			if (cur->name)
 				free (cur->name);
 			if (cur->data)
@@ -140,10 +143,10 @@ DestroyMyBackgroundConfig (MyBackgroundConfig ** head)
 }
 
 /*****************  Create/Destroy DeskBackConfig     *****************/
-DeskBackConfig *
-CreateDeskBackConfig ()
+DeskBackConfig *CreateDeskBackConfig ()
 {
-	DeskBackConfig *config = (DeskBackConfig *) safemalloc (sizeof (DeskBackConfig));
+	DeskBackConfig *config =
+			(DeskBackConfig *) safemalloc (sizeof (DeskBackConfig));
 
 	config->desk = -1;
 	config->back_name = NULL;
@@ -153,15 +156,12 @@ CreateDeskBackConfig ()
 	return config;
 }
 
-void
-DestroyDeskBackConfig (DeskBackConfig ** head)
+void DestroyDeskBackConfig (DeskBackConfig ** head)
 {
-	if (head)
-	{
+	if (head) {
 		DeskBackConfig *cur = *head, *next;
 
-		while (cur)
-		{
+		while (cur) {
 			if (cur->back_name)
 				free (cur->back_name);
 
@@ -175,10 +175,10 @@ DestroyDeskBackConfig (DeskBackConfig ** head)
 
 /*****************  Create/Destroy ASetRootConfig     *****************/
 
-ASetRootConfig *
-CreateASetRootConfig ()
+ASetRootConfig *CreateASetRootConfig ()
 {
-	ASetRootConfig *config = (ASetRootConfig *) safemalloc (sizeof (ASetRootConfig));
+	ASetRootConfig *config =
+			(ASetRootConfig *) safemalloc (sizeof (ASetRootConfig));
 
 	/* let's initialize ASetRoot config with some nice values: */
 	config->my_backs = NULL;
@@ -190,8 +190,7 @@ CreateASetRootConfig ()
 	return config;
 }
 
-void
-DestroyASetRootConfig (ASetRootConfig * config)
+void DestroyASetRootConfig (ASetRootConfig * config)
 {
 	if (config->my_desks)
 		DestroyDeskBackConfig (&(config->my_desks));
@@ -206,78 +205,77 @@ DestroyASetRootConfig (ASetRootConfig * config)
 /*      Actual Parsing                                                 */
 /***********************************************************************/
 
-MyBackgroundConfig *
-ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname)
+MyBackgroundConfig *ParseMyBackgroundOptions (FreeStorageElem * Storage,
+																							char *myname)
 {
 	MyBackgroundConfig *config = CreateMyBackgroundConfig ();
 	FreeStorageElem *pCurr;
-	ConfigItem    item;
+	ConfigItem item;
 
 	item.memory = NULL;
-	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
-	{
+	for (pCurr = Storage; pCurr; pCurr = pCurr->next) {
 		if (pCurr->term == NULL)
 			continue;
 
-		LOCAL_DEBUG_OUT ("options(%p)->keyword(\"%s\")", pCurr, pCurr->term->keyword);
+		LOCAL_DEBUG_OUT ("options(%p)->keyword(\"%s\")", pCurr,
+										 pCurr->term->keyword);
 
-		if (pCurr->term->id == BGR_MYBACKGROUND_END)
-		{
+		if (pCurr->term->id == BGR_MYBACKGROUND_END) {
 			config->flags |= BGFLAG_COMPLETE;
 			continue;
 		}
-		if (!ReadConfigItem (&item, pCurr))
-		{
+		if (!ReadConfigItem (&item, pCurr)) {
 			if (pCurr->term->id == BGR_SCALE)
 				config->flags |= BGFLAG_SCALE;
 			continue;
 		}
 
-		switch (pCurr->term->id)
-		{
-		 case BGR_MYBACKGROUND:
-			 config->name = item.data.string;
-			 break;
-		 case BGR_USE:
-			 config->data = item.data.string;
-			 config->flags &= ~(BGFLAG_FILE | BGFLAG_MYSTYLE);
-			 if (item.index == 0)
-				 config->flags |= BGFLAG_FILE;
-			 else if (item.index == 1)
-				 config->flags |= BGFLAG_MYSTYLE;
-			 break;
-		 case BGR_CUT:
-			 config->cut = item.data.geometry;
-			 config->flags |= BGFLAG_CUT;
-			 break;
-		 case BGR_TINT:
-			 config->tint = item.data.string;
-			 config->flags |= BGFLAG_TINT;
-			 break;
-		 case BGR_SCALE:
-			 config->scale = item.data.geometry;
-			 config->flags |= BGFLAG_SCALE;
-			 break;
-		 case BGR_ALIGN:
-			 config->flags &= ~(BGFLAG_ALIGN_CENTER | BGFLAG_ALIGN_RIGHT | BGFLAG_ALIGN_BOTTOM);
-			 config->flags |= BGFLAG_ALIGN;
-			 if (item.data.integer & 0x1)
-				 config->flags |= BGFLAG_ALIGN_RIGHT;
-			 if (item.data.integer & 0x2)
-				 config->flags |= BGFLAG_ALIGN_BOTTOM;
-			 item.ok_to_free = 1;
-			 break;
-		 case BGR_PAD:
-			 config->pad = item.data.string;
-			 config->flags &= ~(BGFLAG_PAD_VERT | BGFLAG_PAD_HOR);
-			 config->flags |= BGFLAG_PAD;
-			 if (item.index & 0x1)
-				 config->flags |= BGFLAG_PAD_HOR;
-			 if (item.index & 0x2)
-				 config->flags |= BGFLAG_PAD_VERT;
-			 break;
-		 default:
-			 item.ok_to_free = 1;
+		switch (pCurr->term->id) {
+		case BGR_MYBACKGROUND:
+			config->name = item.data.string;
+			break;
+		case BGR_USE:
+			config->data = item.data.string;
+			config->flags &= ~(BGFLAG_FILE | BGFLAG_MYSTYLE);
+			if (item.index == 0)
+				config->flags |= BGFLAG_FILE;
+			else if (item.index == 1)
+				config->flags |= BGFLAG_MYSTYLE;
+			break;
+		case BGR_CUT:
+			config->cut = item.data.geometry;
+			config->flags |= BGFLAG_CUT;
+			break;
+		case BGR_TINT:
+			config->tint = item.data.string;
+			config->flags |= BGFLAG_TINT;
+			break;
+		case BGR_SCALE:
+			config->scale = item.data.geometry;
+			config->flags |= BGFLAG_SCALE;
+			break;
+		case BGR_ALIGN:
+			config->flags &=
+					~(BGFLAG_ALIGN_CENTER | BGFLAG_ALIGN_RIGHT |
+						BGFLAG_ALIGN_BOTTOM);
+			config->flags |= BGFLAG_ALIGN;
+			if (item.data.integer & 0x1)
+				config->flags |= BGFLAG_ALIGN_RIGHT;
+			if (item.data.integer & 0x2)
+				config->flags |= BGFLAG_ALIGN_BOTTOM;
+			item.ok_to_free = 1;
+			break;
+		case BGR_PAD:
+			config->pad = item.data.string;
+			config->flags &= ~(BGFLAG_PAD_VERT | BGFLAG_PAD_HOR);
+			config->flags |= BGFLAG_PAD;
+			if (item.index & 0x1)
+				config->flags |= BGFLAG_PAD_HOR;
+			if (item.index & 0x2)
+				config->flags |= BGFLAG_PAD_VERT;
+			break;
+		default:
+			item.ok_to_free = 1;
 		}
 	}
 	ReadConfigItem (&item, NULL);
@@ -286,7 +284,9 @@ ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname)
 	if (config->name == NULL)
 		show_error ("Background Definition error: name is empty !");
 	else if (!(config->flags & BGFLAG_COMPLETE))
-		show_error ("Background Definition error: [%s] not terminated properly !", config->name);
+		show_error
+				("Background Definition error: [%s] not terminated properly !",
+				 config->name);
 	else
 		clear_flags (config->flags, BGFLAG_BAD);
 
@@ -295,11 +295,10 @@ ParseMyBackgroundOptions (FreeStorageElem * Storage, char *myname)
 	return config;
 }
 
-DeskBackConfig *
-ParseDeskBackOptions (ConfigItem * item, char *myname)
+DeskBackConfig *ParseDeskBackOptions (ConfigItem * item, char *myname)
 {
 	DeskBackConfig *config = CreateDeskBackConfig ();
-	Bool          failed = True;
+	Bool failed = True;
 
 	config->desk = item->index;
 	config->back_name = item->data.string;
@@ -308,7 +307,9 @@ ParseDeskBackOptions (ConfigItem * item, char *myname)
 	if (config->desk < 0)
 		show_error ("Desk Background Definition error: bad desk number !");
 	else if (config->back_name == NULL)
-		show_error ("Desk Background Definition error:  #%d has empty background name!", config->desk);
+		show_error
+				("Desk Background Definition error:  #%d has empty background name!",
+				 config->desk);
 	else
 		failed = False;
 
@@ -317,51 +318,51 @@ ParseDeskBackOptions (ConfigItem * item, char *myname)
 	return config;
 }
 
-void
-FixDeskBacks (ASetRootConfig * config)
+void FixDeskBacks (ASetRootConfig * config)
 {
 	DeskBackConfig *curr_desk;
 
 	if (!config)
 		return;
-	for (curr_desk = config->my_desks; curr_desk; curr_desk = curr_desk->next)
-	{
+	for (curr_desk = config->my_desks; curr_desk;
+			 curr_desk = curr_desk->next) {
 		MyBackgroundConfig *curr_back;
 
-		for (curr_back = config->my_backs; curr_back; curr_back = curr_back->next)
-			if (mystrcasecmp (curr_desk->back_name, curr_back->name) == 0)
-			{
+		for (curr_back = config->my_backs; curr_back;
+				 curr_back = curr_back->next)
+			if (mystrcasecmp (curr_desk->back_name, curr_back->name) == 0) {
 				curr_desk->back = curr_back;
 				break;
 			}
-		if (curr_desk->back == NULL)
-		{									   /* need to create new back as plain image file,
-											      using name from desk definition */
+		if (curr_desk->back == NULL) {	/* need to create new back as plain image file,
+																		   using name from desk definition */
 			curr_desk->back = CreateMyBackgroundConfig ();
 			curr_desk->back->next = config->my_backs;
 			config->my_backs = curr_desk->back;
-			curr_desk->back->name = (char *)safemalloc (strlen (curr_desk->back_name) + 1);
+			curr_desk->back->name =
+					(char *)safemalloc (strlen (curr_desk->back_name) + 1);
 			strcpy (curr_desk->back->name, curr_desk->back_name);
-			curr_desk->back->data = (char *)safemalloc (strlen (curr_desk->back_name) + 1);
+			curr_desk->back->data =
+					(char *)safemalloc (strlen (curr_desk->back_name) + 1);
 			strcpy (curr_desk->back->data, curr_desk->back_name);
 			curr_desk->back->flags |= BGFLAG_FILE | BGFLAG_COMPLETE;
 		}
 	}
 }
 
-ASetRootConfig *
-ParseASetRootOptions (const char *filename, char *myname)
+ASetRootConfig *ParseASetRootOptions (const char *filename, char *myname)
 {
-	ConfigData    cd;
-	ConfigDef    *ConfigReader;
+	ConfigData cd;
+	ConfigDef *ConfigReader;
 	ASetRootConfig *config = CreateASetRootConfig ();
 	MyBackgroundConfig **backs_tail = &(config->my_backs);
 	DeskBackConfig **desks_tail = &(config->my_desks);
 	FreeStorageElem *Storage = NULL, *pCurr;
-	ConfigItem    item;
+	ConfigItem item;
 
 	cd.filename = filename;
-	ConfigReader = InitConfigReader (myname, &ASetRootSyntax, CDT_Filename, cd, NULL);
+	ConfigReader =
+			InitConfigReader (myname, &ASetRootSyntax, CDT_Filename, cd, NULL);
 
 	if (!ConfigReader)
 		return config;
@@ -375,28 +376,26 @@ ParseASetRootOptions (const char *filename, char *myname)
 
 	config->style_defs = free_storage2MyStyleDefinitionsList (Storage);
 
-	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
-	{
+	for (pCurr = Storage; pCurr; pCurr = pCurr->next) {
 		if (pCurr->term == NULL)
 			continue;
 
-		if (pCurr->term->id == BGR_MYBACKGROUND)
-		{
-			if ((*backs_tail = ParseMyBackgroundOptions (pCurr->sub, myname)) != NULL)
+		if (pCurr->term->id == BGR_MYBACKGROUND) {
+			if ((*backs_tail =
+					 ParseMyBackgroundOptions (pCurr->sub, myname)) != NULL)
 				backs_tail = &((*backs_tail)->next);
 			continue;
 		}
 
 		if (!ReadConfigItem (&item, pCurr))
 			continue;
-		switch (pCurr->term->id)
-		{
-		 case BGR_DESK_BACK:
-			 if ((*desks_tail = ParseDeskBackOptions (&item, myname)) != NULL)
-				 desks_tail = &((*desks_tail)->next);
-			 break;
-		 default:
-			 item.ok_to_free = 1;
+		switch (pCurr->term->id) {
+		case BGR_DESK_BACK:
+			if ((*desks_tail = ParseDeskBackOptions (&item, myname)) != NULL)
+				desks_tail = &((*desks_tail)->next);
+			break;
+		default:
+			item.ok_to_free = 1;
 		}
 	}
 	ReadConfigItem (&item, NULL);
@@ -407,16 +406,15 @@ ParseASetRootOptions (const char *filename, char *myname)
 	return config;
 }
 
-void
-myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
+void myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
 {
 	FilePtrAndData fpd;
-	ConfigDef    *ConfigReader;
+	ConfigDef *ConfigReader;
 	MyBackgroundConfig *back_config = NULL;
 	FreeStorageElem *Storage = NULL, *more_stuff = NULL;
-	MyLook       *look = (MyLook *) mylook;
+	MyLook *look = (MyLook *) mylook;
 	MyBackground *myback = NULL;
-	ConfigData    cd;
+	ConfigData cd;
 
 	if (look == NULL)
 		look = get_screen_look (NULL);
@@ -424,9 +422,12 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
 	fpd.fp = fd;
 	fpd.data = safemalloc (12 + 1 + strlen (tline) + 1 + 1);
 	sprintf (fpd.data, "MyBackground %s\n", tline);
-	LOCAL_DEBUG_OUT ("fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data);
+	LOCAL_DEBUG_OUT ("fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline,
+									 fpd.data);
 	cd.fileptranddata = &fpd;
-	ConfigReader = InitConfigReader ((char *)myname, &MyBackgroundSyntax, CDT_FilePtrAndData, cd, NULL);
+	ConfigReader =
+			InitConfigReader ((char *)myname, &MyBackgroundSyntax,
+												CDT_FilePtrAndData, cd, NULL);
 	free (fpd.data);
 
 	if (!ConfigReader)
@@ -461,8 +462,7 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
 	back_config->data = NULL;
 	if (get_flags (back_config->flags, BGFLAG_CUT))
 		myback->cut = back_config->cut;
-	if (get_flags (back_config->flags, BGFLAG_SCALE))
-	{
+	if (get_flags (back_config->flags, BGFLAG_SCALE)) {
 		myback->scale = back_config->scale;
 		if (!get_flags (back_config->scale.flags, WidthValue))
 			myback->scale.width = get_screen_width (NULL);
@@ -479,8 +479,7 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
 		parse_argb_color (back_config->pad, &(myback->pad_color));
 
 	myback->align_flags = NO_ALIGN;
-	if (get_flags (back_config->flags, BGFLAG_PAD_HOR))
-	{
+	if (get_flags (back_config->flags, BGFLAG_PAD_HOR)) {
 		if (get_flags (back_config->flags, BGFLAG_ALIGN_RIGHT))
 			myback->align_flags = ALIGN_RIGHT;
 		else if (get_flags (back_config->flags, BGFLAG_ALIGN_CENTER))
@@ -488,8 +487,7 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
 		else
 			myback->align_flags = ALIGN_LEFT;
 	}
-	if (get_flags (back_config->flags, BGFLAG_PAD_VERT))
-	{
+	if (get_flags (back_config->flags, BGFLAG_PAD_VERT)) {
 		if (get_flags (back_config->flags, BGFLAG_ALIGN_BOTTOM))
 			myback->align_flags |= ALIGN_BOTTOM;
 		else if (get_flags (back_config->flags, BGFLAG_ALIGN_CENTER))
@@ -497,7 +495,8 @@ myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
 		else
 			myback->align_flags = ALIGN_TOP;
 	}
-	LOCAL_DEBUG_OUT ("myback added: name(\"%s\")->type(%d)->data(\"%s\")", myback->name, myback->type, myback->data);
+	LOCAL_DEBUG_OUT ("myback added: name(\"%s\")->type(%d)->data(\"%s\")",
+									 myback->name, myback->type, myback->data);
 	add_myback (look, myback);
 
 	/* final cleanup : */

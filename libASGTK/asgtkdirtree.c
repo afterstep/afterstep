@@ -37,45 +37,46 @@
 
 
 /*  local function prototypes  */
-static void   asgtk_dir_tree_class_init (ASGtkDirTreeClass * klass);
-static void   asgtk_dir_tree_init (ASGtkDirTree * iv);
-static void   asgtk_dir_tree_dispose (GObject * object);
-static void   asgtk_dir_tree_finalize (GObject * object);
-static void   asgtk_dir_tree_style_set (GtkWidget * widget, GtkStyle * prev_style);
-static void   asgtk_dir_tree_refresh_child (GtkTreeStore * dir_store, GtkTreeIter * parent, char *fullchildname,
-											int level);
+static void asgtk_dir_tree_class_init (ASGtkDirTreeClass * klass);
+static void asgtk_dir_tree_init (ASGtkDirTree * iv);
+static void asgtk_dir_tree_dispose (GObject * object);
+static void asgtk_dir_tree_finalize (GObject * object);
+static void asgtk_dir_tree_style_set (GtkWidget * widget,
+																			GtkStyle * prev_style);
+static void asgtk_dir_tree_refresh_child (GtkTreeStore * dir_store,
+																					GtkTreeIter * parent,
+																					char *fullchildname, int level);
 
 
 /*  private variables  */
 static GtkScrolledWindowClass *parent_class = NULL;
 
-GType
-asgtk_dir_tree_get_type (void)
+GType asgtk_dir_tree_get_type (void)
 {
-	static GType  id_type = 0;
+	static GType id_type = 0;
 
-	if (!id_type)
-	{
+	if (!id_type) {
 		static const GTypeInfo id_info = {
 			sizeof (ASGtkDirTreeClass),
 			(GBaseInitFunc) NULL,
 			(GBaseFinalizeFunc) NULL,
 			(GClassInitFunc) asgtk_dir_tree_class_init,
-			NULL,							   /* class_finalize */
-			NULL,							   /* class_data     */
+			NULL,											/* class_finalize */
+			NULL,											/* class_data     */
 			sizeof (ASGtkDirTree),
-			0,								   /* n_preallocs    */
+			0,												/* n_preallocs    */
 			(GInstanceInitFunc) asgtk_dir_tree_init,
 		};
 
-		id_type = g_type_register_static (GTK_TYPE_SCROLLED_WINDOW, "ASGtkDirTree", &id_info, 0);
+		id_type =
+				g_type_register_static (GTK_TYPE_SCROLLED_WINDOW, "ASGtkDirTree",
+																&id_info, 0);
 	}
 
 	return id_type;
 }
 
-static void
-asgtk_dir_tree_class_init (ASGtkDirTreeClass * klass)
+static void asgtk_dir_tree_class_init (ASGtkDirTreeClass * klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -89,16 +90,17 @@ asgtk_dir_tree_class_init (ASGtkDirTreeClass * klass)
 
 }
 
-static void
-asgtk_dir_tree_init (ASGtkDirTree * id)
+static void asgtk_dir_tree_init (ASGtkDirTree * id)
 {
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (id), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (id), GTK_SHADOW_IN);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (id),
+																	GTK_POLICY_AUTOMATIC,
+																	GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (id),
+																			 GTK_SHADOW_IN);
 	id->root = NULL;
 }
 
-static void
-asgtk_dir_tree_dispose (GObject * object)
+static void asgtk_dir_tree_dispose (GObject * object)
 {
 	ASGtkDirTree *dt = ASGTK_DIR_TREE (object);
 
@@ -107,8 +109,7 @@ asgtk_dir_tree_dispose (GObject * object)
 	G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
-static void
-asgtk_dir_tree_finalize (GObject * object)
+static void asgtk_dir_tree_finalize (GObject * object)
 {
 	G_OBJECT_CLASS (parent_class)->finalize (object);
 }
@@ -122,17 +123,17 @@ asgtk_dir_tree_style_set (GtkWidget * widget, GtkStyle * prev_style)
 }
 
 static void
-asgtk_dir_tree_sel_handler (GtkTreeSelection * selection, gpointer user_data)
+asgtk_dir_tree_sel_handler (GtkTreeSelection * selection,
+														gpointer user_data)
 {
 	ASGtkDirTree *dt = ASGTK_DIR_TREE (user_data);
-	GtkTreeIter   iter;
+	GtkTreeIter iter;
 	GtkTreeModel *model;
 
-	if (gtk_tree_selection_get_selected (selection, &model, &iter))
-	{
-		gtk_tree_model_get (model, &iter, TREE_FULLPATH, &(dt->curr_selection), -1);
-	} else
-	{
+	if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
+		gtk_tree_model_get (model, &iter, TREE_FULLPATH, &(dt->curr_selection),
+												-1);
+	} else {
 		dt->curr_selection = NULL;
 	}
 
@@ -141,33 +142,35 @@ asgtk_dir_tree_sel_handler (GtkTreeSelection * selection, gpointer user_data)
 }
 
 static void
-asgtk_dir_tree_expand_handler (GtkTreeView * treeview, GtkTreeIter * iter, GtkTreePath * path, gpointer user_data)
+asgtk_dir_tree_expand_handler (GtkTreeView * treeview, GtkTreeIter * iter,
+															 GtkTreePath * path, gpointer user_data)
 {
 	ASGtkDirTree *dt = ASGTK_DIR_TREE (user_data);
 	GtkTreeModel *model = dt->tree_model;
-	GtkTreeIter   child_iter;
+	GtkTreeIter child_iter;
 
 	gtk_tree_path_down (path);
 	gtk_tree_model_get_iter (model, &child_iter, path);
 
-	do
-	{
-		char         *fullpath;
-		int           scanned = 0;
+	do {
+		char *fullpath;
+		int scanned = 0;
 
-		gtk_tree_model_get (model, &child_iter, TREE_FULLPATH, &fullpath, TREE_SCANNED, &scanned, -1);
+		gtk_tree_model_get (model, &child_iter, TREE_FULLPATH, &fullpath,
+												TREE_SCANNED, &scanned, -1);
 		if (scanned == 1)
 			break;
 
-		asgtk_dir_tree_refresh_child (GTK_TREE_STORE (model), &child_iter, fullpath, 1);
-		gtk_tree_store_set (GTK_TREE_STORE (model), &child_iter, TREE_SCANNED, 1, -1);
+		asgtk_dir_tree_refresh_child (GTK_TREE_STORE (model), &child_iter,
+																	fullpath, 1);
+		gtk_tree_store_set (GTK_TREE_STORE (model), &child_iter, TREE_SCANNED,
+												1, -1);
 	}
 	while (gtk_tree_model_iter_next (model, &child_iter));
 }
 
 /*  public functions  */
-GtkWidget    *
-asgtk_dir_tree_new ()
+GtkWidget *asgtk_dir_tree_new ()
 {
 	ASGtkDirTree *dt;
 	GtkTreeSelection *selection;
@@ -175,20 +178,28 @@ asgtk_dir_tree_new ()
 	dt = g_object_new (ASGTK_TYPE_DIR_TREE, NULL);
 
 	dt->tree_view = GTK_TREE_VIEW (gtk_tree_view_new ());
-	dt->tree_model = GTK_TREE_MODEL (gtk_tree_store_new (TREE_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT));
+	dt->tree_model =
+			GTK_TREE_MODEL (gtk_tree_store_new
+											(TREE_COLUMNS, G_TYPE_STRING, G_TYPE_STRING,
+											 G_TYPE_UINT));
 
 	gtk_container_add (GTK_CONTAINER (dt), GTK_WIDGET (dt->tree_view));
 	gtk_tree_view_set_model (dt->tree_view, dt->tree_model);
 	gtk_widget_show (GTK_WIDGET (dt->tree_view));
 	dt->cell = gtk_cell_renderer_text_new ();
 
-	dt->column = gtk_tree_view_column_new_with_attributes ("", dt->cell, "text", 0, NULL);
-	gtk_tree_view_append_column (dt->tree_view, GTK_TREE_VIEW_COLUMN (dt->column));
+	dt->column =
+			gtk_tree_view_column_new_with_attributes ("", dt->cell, "text", 0,
+																								NULL);
+	gtk_tree_view_append_column (dt->tree_view,
+															 GTK_TREE_VIEW_COLUMN (dt->column));
 
 	selection = gtk_tree_view_get_selection (dt->tree_view);
 	gtk_tree_selection_set_mode (selection, GTK_SELECTION_SINGLE);
-	g_signal_connect (selection, "changed", G_CALLBACK (asgtk_dir_tree_sel_handler), dt);
-	g_signal_connect (dt->tree_view, "row-expanded", G_CALLBACK (asgtk_dir_tree_expand_handler), dt);
+	g_signal_connect (selection, "changed",
+										G_CALLBACK (asgtk_dir_tree_sel_handler), dt);
+	g_signal_connect (dt->tree_view, "row-expanded",
+										G_CALLBACK (asgtk_dir_tree_expand_handler), dt);
 
 	colorize_gtk_tree_view_window (GTK_WIDGET (dt));
 	LOCAL_DEBUG_OUT ("created image ASGtkDirTree object %p", dt);
@@ -196,7 +207,8 @@ asgtk_dir_tree_new ()
 }
 
 void
-asgtk_dir_tree_set_root (ASGtkDirTree * dt, char *root, GtkTreeModel * saved_model)
+asgtk_dir_tree_set_root (ASGtkDirTree * dt, char *root,
+												 GtkTreeModel * saved_model)
 {
 	GtkTreeModel *old_model;
 
@@ -217,7 +229,10 @@ asgtk_dir_tree_set_root (ASGtkDirTree * dt, char *root, GtkTreeModel * saved_mod
 	if (saved_model != NULL)
 		dt->tree_model = g_object_ref (saved_model);
 	else
-		dt->tree_model = GTK_TREE_MODEL (gtk_tree_store_new (TREE_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT));
+		dt->tree_model =
+				GTK_TREE_MODEL (gtk_tree_store_new
+												(TREE_COLUMNS, G_TYPE_STRING, G_TYPE_STRING,
+												 G_TYPE_UINT));
 	gtk_tree_view_set_model (dt->tree_view, dt->tree_model);
 
 	asgtk_dir_tree_refresh (dt);
@@ -225,21 +240,21 @@ asgtk_dir_tree_set_root (ASGtkDirTree * dt, char *root, GtkTreeModel * saved_mod
 
 }
 
-GtkTreeModel *
-asgtk_dir_tree_get_model (ASGtkDirTree * dt)
+GtkTreeModel *asgtk_dir_tree_get_model (ASGtkDirTree * dt)
 {
 	return g_object_ref (dt->tree_model);
 }
 
-void
-asgtk_dir_tree_set_title (ASGtkDirTree * dt, const gchar * title)
+void asgtk_dir_tree_set_title (ASGtkDirTree * dt, const gchar * title)
 {
 	g_return_if_fail (ASGTK_IS_DIR_TREE (dt));
 	gtk_tree_view_column_set_title (dt->column, title);
 }
 
 void
-asgtk_dir_tree_set_sel_handler (ASGtkDirTree * dt, _ASGtkDirTree_sel_handler sel_change_handler, gpointer user_data)
+asgtk_dir_tree_set_sel_handler (ASGtkDirTree * dt,
+																_ASGtkDirTree_sel_handler
+																sel_change_handler, gpointer user_data)
 {
 	g_return_if_fail (ASGTK_IS_DIR_TREE (dt));
 
@@ -248,10 +263,9 @@ asgtk_dir_tree_set_sel_handler (ASGtkDirTree * dt, _ASGtkDirTree_sel_handler sel
 
 }
 
-char         *
-asgtk_dir_tree_get_selection (ASGtkDirTree * dt)
+char *asgtk_dir_tree_get_selection (ASGtkDirTree * dt)
 {
-	char         *result = NULL;
+	char *result = NULL;
 
 	if (ASGTK_IS_DIR_TREE (dt))
 		result = mystrdup (dt->curr_selection);
@@ -260,38 +274,38 @@ asgtk_dir_tree_get_selection (ASGtkDirTree * dt)
 }
 
 static void
-asgtk_dir_tree_refresh_child (GtkTreeStore * dir_store, GtkTreeIter * parent, char *fullchildname, int level)
+asgtk_dir_tree_refresh_child (GtkTreeStore * dir_store,
+															GtkTreeIter * parent, char *fullchildname,
+															int level)
 {
-	if (--level >= 0)
-	{
-		GtkTreeIter   iter;
+	if (--level >= 0) {
+		GtkTreeIter iter;
 		struct direntry **list = NULL;
-		int           n = my_scandir (fullchildname, &list, NULL, NULL);
+		int n = my_scandir (fullchildname, &list, NULL, NULL);
 
-		if (n > 0)
-		{
-			int           i;
+		if (n > 0) {
+			int i;
 
-			for (i = 0; i < n; i++)
-			{
-				if (S_ISDIR (list[i]->d_mode))
-				{
-					Bool          skip = False;
+			for (i = 0; i < n; i++) {
+				if (S_ISDIR (list[i]->d_mode)) {
+					Bool skip = False;
 
-					if (list[i]->d_name[0] == '.')
-					{
+					if (list[i]->d_name[0] == '.') {
 						skip = (list[i]->d_name[1] == '\0' ||
-								(list[i]->d_name[1] == '.' && list[i]->d_name[2] == '\0'));
+										(list[i]->d_name[1] == '.'
+										 && list[i]->d_name[2] == '\0'));
 					}
-					if (!skip)
-					{
-						char         *fulldirname = make_file_name (fullchildname, list[i]->d_name);
+					if (!skip) {
+						char *fulldirname =
+								make_file_name (fullchildname, list[i]->d_name);
 
 						gtk_tree_store_append (dir_store, &iter, parent);
-						gtk_tree_store_set (dir_store, &iter, TREE_NAME, list[i]->d_name, TREE_FULLPATH, fulldirname,
-											TREE_SCANNED, 0, -1);
+						gtk_tree_store_set (dir_store, &iter, TREE_NAME,
+																list[i]->d_name, TREE_FULLPATH,
+																fulldirname, TREE_SCANNED, 0, -1);
 						if (level > 0)
-							asgtk_dir_tree_refresh_child (dir_store, &iter, fulldirname, level - 1);
+							asgtk_dir_tree_refresh_child (dir_store, &iter, fulldirname,
+																						level - 1);
 						free (fulldirname);
 					}
 				}
@@ -303,11 +317,10 @@ asgtk_dir_tree_refresh_child (GtkTreeStore * dir_store, GtkTreeIter * parent, ch
 }
 
 
-void
-asgtk_dir_tree_refresh (ASGtkDirTree * dt)
+void asgtk_dir_tree_refresh (ASGtkDirTree * dt)
 {
 	GtkTreeStore *dir_store;
-	GtkTreeIter   iter;
+	GtkTreeIter iter;
 
 	g_return_if_fail (ASGTK_IS_DIR_TREE (dt));
 
@@ -315,10 +328,10 @@ asgtk_dir_tree_refresh (ASGtkDirTree * dt)
 
 	gtk_tree_store_clear (dir_store);
 
-	if (dt->root != NULL)
-	{
+	if (dt->root != NULL) {
 		gtk_tree_store_append (dir_store, &iter, NULL);
-		gtk_tree_store_set (dir_store, &iter, TREE_NAME, dt->root, TREE_FULLPATH, dt->root, TREE_SCANNED, 1, -1);
+		gtk_tree_store_set (dir_store, &iter, TREE_NAME, dt->root,
+												TREE_FULLPATH, dt->root, TREE_SCANNED, 1, -1);
 		asgtk_dir_tree_refresh_child (dir_store, &iter, dt->root, 2);
 	}
 #if 0
@@ -327,43 +340,48 @@ asgtk_dir_tree_refresh (ASGtkDirTree * dt)
 	gtk_list_store_clear (GTK_LIST_STORE (dt->tree_model));
 	destroy_asimage_list (&(dt->entries));
 	dt->curr_selection = NULL;
-	if (dt->fulldirname)
-	{
-		int           count;
-		GtkTreeIter   iter;
+	if (dt->fulldirname) {
+		int count;
+		GtkTreeIter iter;
 		ASImageListEntry *curr;
-		int           mini_ext_len = dt->mini_extension ? strlen (dt->mini_extension) : 0;
+		int mini_ext_len =
+				dt->mini_extension ? strlen (dt->mini_extension) : 0;
 
-		dt->entries = get_asimage_list (get_screen_visual (NULL), dt->fulldirname,
-										0, get_screen_image_manager (NULL)->gamma, 0, 0, 0, &count, NULL);
+		dt->entries =
+				get_asimage_list (get_screen_visual (NULL), dt->fulldirname, 0,
+													get_screen_image_manager (NULL)->gamma, 0, 0, 0,
+													&count, NULL);
 
 		curr = dt->entries;
-		while (curr)
-		{
-			Bool          mini = False;
+		while (curr) {
+			Bool mini = False;
 
 			LOCAL_DEBUG_OUT ("adding item \"%s\"", curr->name);
-			if (mini_ext_len > 1)
-			{
+			if (mini_ext_len > 1) {
 				if (dt->mini_extension[mini_ext_len - 1] == '.')
-					mini = (strncmp (curr->name, dt->mini_extension, mini_ext_len) == 0);
-				else
-				{
-					int           name_len = strlen (curr->name);
+					mini =
+							(strncmp (curr->name, dt->mini_extension, mini_ext_len) ==
+							 0);
+				else {
+					int name_len = strlen (curr->name);
 
 					if (name_len > mini_ext_len)
 						mini =
-							(strncmp (&(curr->name[name_len - mini_ext_len]), dt->mini_extension, mini_ext_len) == 0);
+								(strncmp
+								 (&(curr->name[name_len - mini_ext_len]),
+									dt->mini_extension, mini_ext_len) == 0);
 				}
 			}
-			if (!mini && curr->type <= ASIT_Supported)
-			{
+			if (!mini && curr->type <= ASIT_Supported) {
 				gtk_list_store_append (GTK_LIST_STORE (dt->tree_model), &iter);
-				gtk_list_store_set (GTK_LIST_STORE (dt->tree_model), &iter, 0, curr->name, 1, curr, -1);
+				gtk_list_store_set (GTK_LIST_STORE (dt->tree_model), &iter, 0,
+														curr->name, 1, curr, -1);
 				if (++items == 1)
-					gtk_tree_selection_select_iter (gtk_tree_view_get_selection (dt->tree_view), &iter);
+					gtk_tree_selection_select_iter (gtk_tree_view_get_selection
+																					(dt->tree_view), &iter);
 				else if (strcmp (curr->name, curr_sel) == 0)
-					gtk_tree_selection_select_iter (gtk_tree_view_get_selection (dt->tree_view), &iter);
+					gtk_tree_selection_select_iter (gtk_tree_view_get_selection
+																					(dt->tree_view), &iter);
 			}
 			curr = curr->next;
 		}
@@ -382,17 +400,16 @@ asgtk_dir_tree_refresh (ASGtkDirTree * dt)
 	}
 	if (curr_sel)
 		free (curr_sel);
-	if (items == 0)
-	{
-		asgtk_dir_tree_sel_handler (gtk_tree_view_get_selection (dt->tree_view), dt);
+	if (items == 0) {
+		asgtk_dir_tree_sel_handler (gtk_tree_view_get_selection
+																(dt->tree_view), dt);
 	}
 #endif
 }
 
-GtkTreePath  *
-asgtk_dir_tree_get_curr_path (ASGtkDirTree * dt)
+GtkTreePath *asgtk_dir_tree_get_curr_path (ASGtkDirTree * dt)
 {
-	GtkTreePath  *path = NULL;
+	GtkTreePath *path = NULL;
 	GtkTreeViewColumn *focus_column = NULL;
 
 	gtk_tree_view_get_cursor (dt->tree_view, &path, &focus_column);
@@ -402,8 +419,7 @@ asgtk_dir_tree_get_curr_path (ASGtkDirTree * dt)
 void
 asgtk_dir_tree_restore_curr_path (ASGtkDirTree * dt, GtkTreePath * path)
 {
-	if (path)
-	{
+	if (path) {
 		gtk_tree_view_expand_to_path (dt->tree_view, path);
 		gtk_tree_view_set_cursor (dt->tree_view, path, dt->column, FALSE);
 	}

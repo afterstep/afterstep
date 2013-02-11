@@ -37,17 +37,14 @@
 /* Our data :                                        				  */
 /**********************************************************************/
 /* Storing window list as hash table hashed by client window ID :     */
-ASHashTable  *_as_Winlist = NULL;
+ASHashTable *_as_Winlist = NULL;
 
-static void
-window_data_destroy (ASHashableValue val, void *data)
+static void window_data_destroy (ASHashableValue val, void *data)
 {
 	ASWindowData *wd = data;
 
-	if (wd)
-	{
-		if (wd->magic == MAGIC_ASWindowData)
-		{
+	if (wd) {
+		if (wd->magic == MAGIC_ASWindowData) {
 			if (wd->window_name)
 				free (wd->window_name);
 			if (wd->window_name_matched)
@@ -58,8 +55,7 @@ window_data_destroy (ASHashableValue val, void *data)
 				free (wd->res_class);
 			if (wd->res_name)
 				free (wd->res_name);
-			if (wd->canvas)
-			{
+			if (wd->canvas) {
 				XDestroyWindow (dpy, wd->canvas->w);
 				destroy_ascanvas (&(wd->canvas));
 			}
@@ -71,13 +67,11 @@ window_data_destroy (ASHashableValue val, void *data)
 	}
 }
 
-void
-destroy_window_data (ASWindowData * wd)
+void destroy_window_data (ASWindowData * wd)
 {
 	if (wd == NULL)
 		return;
-	if (wd->magic == MAGIC_ASWindowData)
-	{
+	if (wd->magic == MAGIC_ASWindowData) {
 		if (_as_Winlist)
 			remove_hash_item (_as_Winlist, AS_HASHABLE (wd->client), NULL, True);
 		else
@@ -86,40 +80,38 @@ destroy_window_data (ASWindowData * wd)
 		free (wd);
 }
 
-ASWindowData *
-fetch_window_by_id (Window w)
+ASWindowData *fetch_window_by_id (Window w)
 {
-	ASHashData    hdata = { 0 };
+	ASHashData hdata = { 0 };
 	if (_as_Winlist != NULL)
 		get_hash_item (_as_Winlist, AS_HASHABLE (w), &hdata.vptr);
 	return (ASWindowData *) hdata.vptr;
 }
 
-ASWindowData *
-add_window_data (ASWindowData * wd)
+ASWindowData *add_window_data (ASWindowData * wd)
 {
 	if (wd == NULL)
 		return NULL;
 	if (_as_Winlist == NULL)
 		_as_Winlist = create_ashash (7, NULL, NULL, window_data_destroy);
 	/* show_activity( "adding window %X", wd->client ); */
-	if (add_hash_item (_as_Winlist, AS_HASHABLE (wd->client), wd) != ASH_Success)
-	{
+	if (add_hash_item (_as_Winlist, AS_HASHABLE (wd->client), wd) !=
+			ASH_Success) {
 		window_data_destroy (0, wd);
 		wd = NULL;
 	}
 	return wd;
 }
 
-void
-window_data_cleanup ()
+void window_data_cleanup ()
 {
 	if (_as_Winlist)
 		destroy_ashash (&_as_Winlist);
 }
 
 WindowPacketResult
-handle_window_packet (send_data_type type, send_data_type * data, ASWindowData ** pdata)
+handle_window_packet (send_data_type type, send_data_type * data,
+											ASWindowData ** pdata)
 {
 	ASWindowData *wd;
 	WindowPacketResult res = WP_Handled;
@@ -128,10 +120,8 @@ handle_window_packet (send_data_type type, send_data_type * data, ASWindowData *
 		return WP_Error;
 
 	wd = *pdata;
-	if (wd == NULL)
-	{
-		if ((type & WINDOW_CONFIG_MASK))
-		{
+	if (wd == NULL) {
+		if ((type & WINDOW_CONFIG_MASK)) {
 			wd = safecalloc (1, sizeof (ASWindowData));
 			wd->magic = MAGIC_ASWindowData;
 			wd->client = data[0];
@@ -141,21 +131,17 @@ handle_window_packet (send_data_type type, send_data_type * data, ASWindowData *
 				return WP_Error;
 		} else
 			return WP_Error;
-	} else
-	{
-		if (wd->magic != MAGIC_ASWindowData || wd->client != data[0] || wd->frame != data[1] || wd->ref_ptr != data[2])
+	} else {
+		if (wd->magic != MAGIC_ASWindowData || wd->client != data[0]
+				|| wd->frame != data[1] || wd->ref_ptr != data[2])
 			return WP_Error;
-		if (type == M_DESTROY_WINDOW)
-		{
+		if (type == M_DESTROY_WINDOW) {
 			destroy_window_data (wd);
 			*pdata = NULL;
 			return WP_DataDeleted;
-		} else if ((type & WINDOW_STATE_MASK))
-		{
-			if (type == M_FOCUS_CHANGE)
-			{
-				if (wd->focused != data[3])
-				{
+		} else if ((type & WINDOW_STATE_MASK)) {
+			if (type == M_FOCUS_CHANGE) {
+				if (wd->focused != data[3]) {
 					res = WP_DataChanged;
 					wd->focused = data[3];
 				}
@@ -163,44 +149,40 @@ handle_window_packet (send_data_type type, send_data_type * data, ASWindowData *
 			return res;
 		}
 	}
-	if ((type & WINDOW_NAME_MASK))
-	{										   /* read in the name */
-		char        **dst = NULL;
-		INT32         encoding = data[3];
-		CARD32       *pbuf = &(data[4]);
-		char         *new_name = deserialize_string (&pbuf, NULL);
+	if ((type & WINDOW_NAME_MASK)) {	/* read in the name */
+		char **dst = NULL;
+		INT32 encoding = data[3];
+		CARD32 *pbuf = &(data[4]);
+		char *new_name = deserialize_string (&pbuf, NULL);
 
 		LOCAL_DEBUG_OUT ("name received \"%s\"", new_name);
-		switch (type)
-		{
-		 case M_WINDOW_NAME:
-			 dst = &(wd->window_name);
-			 wd->window_name_encoding = encoding;
-			 break;
-		 case M_WINDOW_NAME_MATCHED:
-			 dst = &(wd->window_name_matched);
-			 wd->window_name_matched_encoding = encoding;
-			 break;
-		 case M_ICON_NAME:
-			 dst = &(wd->icon_name);
-			 wd->icon_name_encoding = encoding;
-			 break;
-		 case M_RES_CLASS:
-			 dst = &(wd->res_class);
-			 wd->res_class_encoding = encoding;
-			 break;
-		 case M_RES_NAME:
-			 dst = &(wd->res_name);
-			 wd->res_name_encoding = encoding;
-			 break;
-		 default:
-			 free (new_name);
-			 return WP_Error;
+		switch (type) {
+		case M_WINDOW_NAME:
+			dst = &(wd->window_name);
+			wd->window_name_encoding = encoding;
+			break;
+		case M_WINDOW_NAME_MATCHED:
+			dst = &(wd->window_name_matched);
+			wd->window_name_matched_encoding = encoding;
+			break;
+		case M_ICON_NAME:
+			dst = &(wd->icon_name);
+			wd->icon_name_encoding = encoding;
+			break;
+		case M_RES_CLASS:
+			dst = &(wd->res_class);
+			wd->res_class_encoding = encoding;
+			break;
+		case M_RES_NAME:
+			dst = &(wd->res_name);
+			wd->res_name_encoding = encoding;
+			break;
+		default:
+			free (new_name);
+			return WP_Error;
 		}
-		if (*dst)
-		{
-			if (strcmp (*dst, new_name) == 0)
-			{
+		if (*dst) {
+			if (strcmp (*dst, new_name) == 0) {
 				free (new_name);
 				return WP_Handled;
 			}
@@ -244,16 +226,13 @@ handle_window_packet (send_data_type type, send_data_type * data, ASWindowData *
 	return res;
 }
 
-void
-iterate_window_data (iter_list_data_handler iter_func, void *aux_data)
+void iterate_window_data (iter_list_data_handler iter_func, void *aux_data)
 {
-	if (iter_func && _as_Winlist)
-	{
+	if (iter_func && _as_Winlist) {
 		ASHashIterator i;
 
 		if (start_hash_iteration (_as_Winlist, &i))
-			do
-			{
+			do {
 				ASWindowData *data = curr_hash_data (&i);
 
 				if (!iter_func (data, aux_data))
@@ -263,65 +242,58 @@ iterate_window_data (iter_list_data_handler iter_func, void *aux_data)
 	}
 }
 
-char         *
-get_window_name (ASWindowData * wd, ASNameTypes type, INT32 * encoding)
+char *get_window_name (ASWindowData * wd, ASNameTypes type,
+											 INT32 * encoding)
 {
-	char         *vname = NULL;
+	char *vname = NULL;
 
-	if (wd != NULL && type < ASN_NameTypes)
-	{
-		switch (type)
-		{
-		 case ASN_Name:
-			 vname = wd->window_name;
-			 if (encoding)
-				 *encoding = wd->window_name_encoding;
-			 break;
-		 case ASN_IconName:
-			 vname = wd->icon_name;
-			 if (encoding)
-				 *encoding = wd->icon_name_encoding;
-			 break;
-		 case ASN_ResClass:
-			 vname = wd->res_class;
-			 if (encoding)
-				 *encoding = wd->res_class_encoding;
-			 break;
-		 case ASN_ResName:
-			 vname = wd->res_name;
-			 if (encoding)
-				 *encoding = wd->res_name_encoding;
-			 break;
-		 case ASN_NameMatched:
-			 vname = wd->window_name_matched;
-			 if (encoding)
-				 *encoding = wd->window_name_matched_encoding;
-			 break;
-		 case ASN_NameTypes:
-			 break;
+	if (wd != NULL && type < ASN_NameTypes) {
+		switch (type) {
+		case ASN_Name:
+			vname = wd->window_name;
+			if (encoding)
+				*encoding = wd->window_name_encoding;
+			break;
+		case ASN_IconName:
+			vname = wd->icon_name;
+			if (encoding)
+				*encoding = wd->icon_name_encoding;
+			break;
+		case ASN_ResClass:
+			vname = wd->res_class;
+			if (encoding)
+				*encoding = wd->res_class_encoding;
+			break;
+		case ASN_ResName:
+			vname = wd->res_name;
+			if (encoding)
+				*encoding = wd->res_name_encoding;
+			break;
+		case ASN_NameMatched:
+			vname = wd->window_name_matched;
+			if (encoding)
+				*encoding = wd->window_name_matched_encoding;
+			break;
+		case ASN_NameTypes:
+			break;
 		}
-		if (vname == NULL)
-		{
-			if (wd->window_name)
-			{
+		if (vname == NULL) {
+			if (wd->window_name) {
 				if (encoding)
 					*encoding = wd->window_name_encoding;
 				return wd->window_name;
 			}
-			if (wd->icon_name)
-			{
+			if (wd->icon_name) {
 				if (encoding)
 					*encoding = wd->icon_name_encoding;
 				return wd->icon_name;
 			}
-			if (wd->res_class)
-			{
+			if (wd->res_class) {
 				if (encoding)
 					*encoding = wd->res_class_encoding;
 				return wd->res_class;
 			}
-			if (wd->res_name)
-			{
+			if (wd->res_name) {
 				if (encoding)
 					*encoding = wd->res_name_encoding;
 				return wd->res_name;

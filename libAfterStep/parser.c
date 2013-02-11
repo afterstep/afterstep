@@ -52,16 +52,15 @@
 #include "functions.h"
 #include "../libAfterBase/xml.h"
 
-char         *_disabled_keyword = DISABLED_KEYWORD;
-char         *_unknown_keyword = "unknown";
+char *_disabled_keyword = DISABLED_KEYWORD;
+char *_unknown_keyword = "unknown";
 
 static ASHashTable *Keyword2IDHash = NULL;
 
 
-void
-register_keyword_id (const char *keyword, int id)
+void register_keyword_id (const char *keyword, int id)
 {
-	ASHashData    hdata = { 0 };
+	ASHashData hdata = { 0 };
 
 	if (Keyword2IDHash == NULL)
 		Keyword2IDHash = create_ashash (0, NULL, NULL, NULL);
@@ -70,59 +69,58 @@ register_keyword_id (const char *keyword, int id)
 	add_hash_item (Keyword2IDHash, AS_HASHABLE (id), hdata.vptr);
 }
 
-const char   *
-keyword_id2keyword (int id)
+const char *keyword_id2keyword (int id)
 {
-	ASHashData    hdata = { 0 };
+	ASHashData hdata = { 0 };
 
 	if (Keyword2IDHash == NULL)
 		return _unknown_keyword;
 
-	if (get_hash_item (Keyword2IDHash, AS_HASHABLE (id), &hdata.vptr) == ASH_Success)
+	if (get_hash_item (Keyword2IDHash, AS_HASHABLE (id), &hdata.vptr) ==
+			ASH_Success)
 		return hdata.cptr;
 
 	return _unknown_keyword;
 }
 
 
-void
-flush_keyword_ids ()
+void flush_keyword_ids ()
 {
 	if (Keyword2IDHash != NULL)
 		destroy_ashash (&Keyword2IDHash);
 }
 
-void
-BuildHash (SyntaxDef * syntax)
+void BuildHash (SyntaxDef * syntax)
 {
-	register int  i;
+	register int i;
 
 	LOCAL_DEBUG_CALLER_OUT ("syntax = \"%s\"", syntax->display_name);
 
 	if (syntax->term_hash_size <= 0)
 		syntax->term_hash_size = TERM_HASH_SIZE;
-	if (syntax->term_hash == NULL)
-	{
-		syntax->term_hash = create_ashash (syntax->term_hash_size, option_hash_value, option_compare, NULL);
+	if (syntax->term_hash == NULL) {
+		syntax->term_hash =
+				create_ashash (syntax->term_hash_size, option_hash_value,
+											 option_compare, NULL);
 		LOCAL_DEBUG_OUT ("created hash %p", syntax->term_hash);
 	}
 	LOCAL_DEBUG_OUT ("adding hash entries ... %s", "");
-	for (i = 0; syntax->terms[i].keyword; i++)
-	{
-		add_hash_item (syntax->term_hash, AS_HASHABLE (syntax->terms[i].keyword), (void *)&(syntax->terms[i]));
+	for (i = 0; syntax->terms[i].keyword; i++) {
+		add_hash_item (syntax->term_hash,
+									 AS_HASHABLE (syntax->terms[i].keyword),
+									 (void *)&(syntax->terms[i]));
 		register_keyword_id (syntax->terms[i].keyword, syntax->terms[i].id);
 	}
 	LOCAL_DEBUG_OUT ("%d hash entries added.", i);
 }
 
-void
-PrepareSyntax (SyntaxDef * syntax)
+void PrepareSyntax (SyntaxDef * syntax)
 {
-	if (syntax)
-	{
-		register int  i;
+	if (syntax) {
+		register int i;
 
-		LOCAL_DEBUG_OUT ("syntax = \"%s\", recursion = %d", syntax->display_name, syntax->recursion);
+		LOCAL_DEBUG_OUT ("syntax = \"%s\", recursion = %d",
+										 syntax->display_name, syntax->recursion);
 		if (syntax->recursion > 0)
 			return;
 		syntax->recursion++;
@@ -138,14 +136,13 @@ PrepareSyntax (SyntaxDef * syntax)
 	}
 }
 
-void
-FreeSyntaxHash (SyntaxDef * syntax)
+void FreeSyntaxHash (SyntaxDef * syntax)
 {
-	if (syntax)
-	{
-		register int  i;
+	if (syntax) {
+		register int i;
 
-		LOCAL_DEBUG_CALLER_OUT ("syntax = \"%s\", recursion = %d", syntax->display_name, syntax->recursion);
+		LOCAL_DEBUG_CALLER_OUT ("syntax = \"%s\", recursion = %d",
+														syntax->display_name, syntax->recursion);
 
 		if (syntax->recursion > 0)
 			return;
@@ -166,14 +163,12 @@ FreeSyntaxHash (SyntaxDef * syntax)
 }
 
 /* Syntax and storage stack operations */
-void
-PushSyntax (ConfigDef * config, SyntaxDef * syntax)
+void PushSyntax (ConfigDef * config, SyntaxDef * syntax)
 {
-	SyntaxStack  *pnew = (SyntaxStack *) safecalloc (1, sizeof (SyntaxStack));
+	SyntaxStack *pnew = (SyntaxStack *) safecalloc (1, sizeof (SyntaxStack));
 
 	/* saving our status to be able to come back to it later */
-	if (config->current_syntax)
-	{
+	if (config->current_syntax) {
 		config->current_syntax->current_term = config->current_term;
 		config->current_syntax->current_flags = config->current_flags;
 	}
@@ -181,19 +176,17 @@ PushSyntax (ConfigDef * config, SyntaxDef * syntax)
 	config->current_term = NULL;
 	pnew->next = config->current_syntax;
 	pnew->syntax = syntax;
-	if (config->syntax && syntax->terminator == '\n')
-	{										   /* handling prepending */
-		SyntaxDef    *csyntax = config->syntax;
-		int           len = strlen (csyntax->prepend_sub);
-		register int  i;
-		char         *tmp;
+	if (config->syntax && syntax->terminator == '\n') {	/* handling prepending */
+		SyntaxDef *csyntax = config->syntax;
+		int len = strlen (csyntax->prepend_sub);
+		register int i;
+		char *tmp;
 
-		if (config->current_prepend_allocated - config->current_prepend_size <= len)
-		{
+		if (config->current_prepend_allocated - config->current_prepend_size <=
+				len) {
 			config->current_prepend_allocated += len + 1;
 			tmp = safemalloc (config->current_prepend_allocated);
-			if (config->current_prepend)
-			{
+			if (config->current_prepend) {
 				strcpy (tmp, config->current_prepend);
 				free (config->current_prepend);
 			}
@@ -208,17 +201,16 @@ PushSyntax (ConfigDef * config, SyntaxDef * syntax)
 
 	}
 	LOCAL_DEBUG_OUT ("%p: \"%s\", old is %p:  current_prepend = [%s]\n",
-					 syntax, syntax->display_name, config->syntax, config->current_prepend);
+									 syntax, syntax->display_name, config->syntax,
+									 config->current_prepend);
 	config->current_syntax = pnew;
 	config->syntax = syntax;
 }
 
-int
-PopSyntax (ConfigDef * config)
+int PopSyntax (ConfigDef * config)
 {
-	if (config->current_syntax->next)
-	{
-		SyntaxStack  *pold = config->current_syntax;
+	if (config->current_syntax->next) {
+		SyntaxStack *pold = config->current_syntax;
 
 		config->current_syntax = config->current_syntax->next;
 		config->syntax = config->current_syntax->syntax;
@@ -228,12 +220,14 @@ PopSyntax (ConfigDef * config)
 		config->current_flags = config->current_syntax->current_flags;
 
 		LOCAL_DEBUG_OUT ("%p: \"%s\", old is %p: term = \"%s\"\n",
-						 config->syntax, config->syntax->display_name,
-						 pold->syntax, config->current_term ? config->current_term->keyword : "");
+										 config->syntax, config->syntax->display_name,
+										 pold->syntax,
+										 config->current_term ? config->current_term->
+										 keyword : "");
 
-		if (pold->syntax->terminator == '\n')
-		{
-			if ((config->current_prepend_size -= strlen (config->syntax->prepend_sub)) >= 0)
+		if (pold->syntax->terminator == '\n') {
+			if ((config->current_prepend_size -=
+					 strlen (config->syntax->prepend_sub)) >= 0)
 				config->current_prepend[config->current_prepend_size] = '\0';
 		}
 /*fprintf( stderr, "PopSyntax(%s) current_prepend = [%s]\n", pold->syntax->display_name, config->current_prepend );
@@ -244,22 +238,20 @@ PopSyntax (ConfigDef * config)
 	return 0;
 }
 
-void
-PushStorage (ConfigDef * config, void *storage)
+void PushStorage (ConfigDef * config, void *storage)
 {
-	StorageStack *pnew = (StorageStack *) safecalloc (1, sizeof (StorageStack));
+	StorageStack *pnew =
+			(StorageStack *) safecalloc (1, sizeof (StorageStack));
 
 	pnew->storage = storage;
 	pnew->next = config->current_tail;
 	config->current_tail = pnew;
 }
 
-int
-PopStorage (ConfigDef * config)
+int PopStorage (ConfigDef * config)
 {
 	if (config->current_tail)
-		if (config->current_tail->next)
-		{
+		if (config->current_tail->next) {
 			StorageStack *pold = config->current_tail;
 
 			config->current_tail = config->current_tail->next;
@@ -270,27 +262,27 @@ PopStorage (ConfigDef * config)
 }
 
 
-void
-config_error (ConfigDef * config, char *err_text)
+void config_error (ConfigDef * config, char *err_text)
 {
-	if (config)
-	{
-		char         *eol = strchr (config->tline, '\n');
+	if (config) {
+		char *eol = strchr (config->tline, '\n');
 
 		if (eol)
 			*eol = '\0';
 		show_error ("in %s (line %d):%s[%.50s]",
-					config->current_syntax->syntax->display_name, config->line_count, err_text, config->tline);
+								config->current_syntax->syntax->display_name,
+								config->line_count, err_text, config->tline);
 		if (eol)
 			*eol = '\n';
 	}
 }
 
 /* Creating and Initializing new ConfigDef */
-ConfigDef    *
-NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigData source, SpecialFunc special, int create)
+ConfigDef *NewConfig (char *myname, SyntaxDef * syntax,
+											ConfigDataType type, ConfigData source,
+											SpecialFunc special, int create)
 {
-	ConfigDef    *new_conf;
+	ConfigDef *new_conf;
 
 	if (myname == NULL)
 		return NULL;
@@ -301,48 +293,49 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigData sou
 	new_conf->fp = NULL;
 	new_conf->flags = 0;
 	if (source.vptr != NULL)
-		switch (type)
-		{
-		 case CDT_Filename:
-			 {
-				 char         *realfilename = put_file_home (source.filename);
+		switch (type) {
+		case CDT_Filename:
+			{
+				char *realfilename = put_file_home (source.filename);
 
-				 if (!realfilename)
-				 {
-					 free (new_conf);
-					 return NULL;
-				 }
-				 new_conf->fd =
+				if (!realfilename) {
+					free (new_conf);
+					return NULL;
+				}
+				new_conf->fd =
 #ifdef __CYGWIN__
-					 open (realfilename, create ? O_CREAT | O_RDONLY | O_BINARY : O_RDONLY,
-						   S_IRUSR | S_IWUSR | S_IRGRP | O_BINARY);
+						open (realfilename,
+									create ? O_CREAT | O_RDONLY | O_BINARY : O_RDONLY,
+									S_IRUSR | S_IWUSR | S_IRGRP | O_BINARY);
 #else
-					 open (realfilename, create ? O_CREAT | O_RDONLY : O_RDONLY, S_IRUSR | S_IWUSR | S_IRGRP);
+						open (realfilename, create ? O_CREAT | O_RDONLY : O_RDONLY,
+									S_IRUSR | S_IWUSR | S_IRGRP);
 #endif
-				 free (realfilename);
-				 set_flags (new_conf->flags, CP_NeedToCloseFile);
-			 }
-			 break;
-		 case CDT_FilePtr:
-			 new_conf->fp = source.fileptr;
-			 new_conf->fd = fileno (new_conf->fp);
-			 break;
-		 case CDT_FileDesc:
-			 new_conf->fd = *source.filedesc;
-			 break;
-		 case CDT_Data:
-			 break;
-		 case CDT_FilePtrAndData:
-			 new_conf->fp = source.fileptranddata->fp;
-			 new_conf->fd = fileno (new_conf->fp);
-			 set_flags (new_conf->flags, CP_ReadLines);
-			 break;
+				free (realfilename);
+				set_flags (new_conf->flags, CP_NeedToCloseFile);
+			}
+			break;
+		case CDT_FilePtr:
+			new_conf->fp = source.fileptr;
+			new_conf->fd = fileno (new_conf->fp);
+			break;
+		case CDT_FileDesc:
+			new_conf->fd = *source.filedesc;
+			break;
+		case CDT_Data:
+			break;
+		case CDT_FilePtrAndData:
+			new_conf->fp = source.fileptranddata->fp;
+			new_conf->fd = fileno (new_conf->fp);
+			set_flags (new_conf->flags, CP_ReadLines);
+			break;
 
 		}
 
-	if (new_conf->fd != -1 && new_conf->fp == NULL)
-	{
-		new_conf->fp = fdopen (new_conf->fd, get_flags (new_conf->flags, CP_ReadLines) ? "rt" : "rb");
+	if (new_conf->fd != -1 && new_conf->fp == NULL) {
+		new_conf->fp =
+				fdopen (new_conf->fd,
+								get_flags (new_conf->flags, CP_ReadLines) ? "rt" : "rb");
 		set_flags (new_conf->flags, CP_NeedToFCloseFile);
 	}
 
@@ -367,37 +360,37 @@ NewConfig (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigData sou
 	new_conf->tline = new_conf->tdata = new_conf->tline_start = NULL;
 	new_conf->current_term = NULL;
 	new_conf->current_data_size = MAXLINELENGTH + 1;
-	new_conf->current_data = (char *)safemalloc (new_conf->current_data_size);
+	new_conf->current_data =
+			(char *)safemalloc (new_conf->current_data_size);
 	new_conf->current_data_len = 0;
 	new_conf->cursor = NULL;
 	return new_conf;
 }
 
 /* reader initialization */
-ConfigDef    *
-InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigData source, SpecialFunc special)
+ConfigDef *InitConfigReader (char *myname, SyntaxDef * syntax,
+														 ConfigDataType type, ConfigData source,
+														 SpecialFunc special)
 {
-	ConfigDef    *new_conf = NewConfig (myname, syntax, type, source, special, False);
+	ConfigDef *new_conf =
+			NewConfig (myname, syntax, type, source, special, False);
 
 	if (new_conf == NULL)
 		return NULL;
-	if (source.vptr == NULL)
-	{
+	if (source.vptr == NULL) {
 		DestroyConfig (new_conf);
 		return NULL;
 	}
 
-	if (type == CDT_Data)
-	{
+	if (type == CDT_Data) {
 		/* allocate to store entire data */
 		new_conf->buffer_size = strlen (source.data) + 1;
 		new_conf->buffer = (char *)safemalloc (new_conf->buffer_size);
 		strcpy (new_conf->buffer, source.data);
 		new_conf->bytes_in = new_conf->buffer_size - 1;
-	} else if (type == CDT_FilePtrAndData)
-	{
+	} else if (type == CDT_FilePtrAndData) {
 		FilePtrAndData *fpd = source.fileptranddata;
-		int           buf_len = fpd->data ? strlen (fpd->data) : 0;
+		int buf_len = fpd->data ? strlen (fpd->data) : 0;
 
 		if (buf_len < MAXLINELENGTH)
 			buf_len = MAXLINELENGTH;
@@ -407,8 +400,7 @@ InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigD
 			strcpy (new_conf->buffer, fpd->data);
 		else
 			new_conf->buffer[0] = '\0';
-	} else
-	{
+	} else {
 		new_conf->buffer_size = MAXLINELENGTH + 1;
 		new_conf->buffer = (char *)safemalloc (new_conf->buffer_size);
 		new_conf->buffer[0] = '\0';
@@ -423,21 +415,20 @@ InitConfigReader (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigD
 
 /* debugging stuff */
 #ifdef DEBUG_PARSER
-void
-PrintSyntax (SyntaxDef * syntax)
+void PrintSyntax (SyntaxDef * syntax)
 {
 	if (syntax->recursion > 0)
 		return;
 	syntax->recursion++;
 
 	fprintf (stderr, "\nSentence Terminator: [0x%2.2x]", syntax->terminator);
-	fprintf (stderr, "\nConfig Terminator:   [0x%2.2x]", syntax->file_terminator);
+	fprintf (stderr, "\nConfig Terminator:   [0x%2.2x]",
+					 syntax->file_terminator);
 	syntax->recursion--;
 }
 
 
-void
-PrintConfigReader (ConfigDef * config)
+void PrintConfigReader (ConfigDef * config)
 {
 	PrintSyntax (config->syntax);
 }
@@ -446,18 +437,17 @@ PrintConfigReader (ConfigDef * config)
 
 
 /* reader de-initialization */
-void
-DestroyConfig (ConfigDef * config)
+void DestroyConfig (ConfigDef * config)
 {
 	free (config->myname);
 	if (config->buffer)
 		free (config->buffer);
 	if (config->current_data)
 		free (config->current_data);
-	while (PopSyntax (config));
+	while (PopSyntax (config)) ;
 	if (config->current_syntax)
 		free (config->current_syntax);
-	while (PopStorage (config));
+	while (PopStorage (config)) ;
 	if (config->current_prepend)
 		free (config->current_prepend);
 	if (config->current_tail)
@@ -471,15 +461,13 @@ DestroyConfig (ConfigDef * config)
 	free (config);
 }
 
-void
-print_trimmed_str (char *prompt, char *str)
+void print_trimmed_str (char *prompt, char *str)
 {
 #ifdef LOCAL_DEBUG
-	int           i = 0;
-	char          tmp;
+	int i = 0;
+	char tmp;
 
-	while (str[i] && i < 20)
-	{
+	while (str[i] && i < 20) {
 		if (str[i] == '\n')
 			str[i] = '}';
 		++i;
@@ -498,19 +486,20 @@ void
 ProcessSubSyntax (ConfigDef * config, void *storage, SyntaxDef * syntax)
 {
 	PushStorage (config, storage);
-	LOCAL_DEBUG_OUT ("Old_syntax = \"%s\", new_syntax = \"%s\"", config->syntax->display_name, syntax->display_name);
-	if (config->syntax->terminator == syntax->file_terminator)
-	{										   /* need to push back term's data into config buffer */
-		int           skip_tokens = 0;
+	LOCAL_DEBUG_OUT ("Old_syntax = \"%s\", new_syntax = \"%s\"",
+									 config->syntax->display_name, syntax->display_name);
+	if (config->syntax->terminator == syntax->file_terminator) {	/* need to push back term's data into config buffer */
+		int skip_tokens = 0;
 
 		config->cursor = config->tdata;
 		skip_tokens = GetTermUseTokensCount (config->current_term);
-		if (get_flags (config->current_term->flags, TF_NAMED | TF_INDEXED | TF_DIRECTION_INDEXED))
+		if (get_flags
+				(config->current_term->flags,
+				 TF_NAMED | TF_INDEXED | TF_DIRECTION_INDEXED))
 			++skip_tokens;
 		if (skip_tokens > 0)
 			config->cursor = tokenskip (config->cursor, skip_tokens);
-	} else if (config->syntax->terminator == syntax->terminator)
-	{										   /* need to push back entire term's line into config buffer */
+	} else if (config->syntax->terminator == syntax->terminator) {	/* need to push back entire term's line into config buffer */
 		config->cursor = config->tline_start;
 	}
 
@@ -519,22 +508,20 @@ ProcessSubSyntax (ConfigDef * config, void *storage, SyntaxDef * syntax)
 	PushSyntax (config, syntax);
 }
 
-void
-ProcessStatement (ConfigDef * config)
+void ProcessStatement (ConfigDef * config)
 {
 	if (config && config->statement_handler)
 		config->statement_handler (config);
 }
 
-char         *
-GetToNextLine (ConfigDef * config)
+char *GetToNextLine (ConfigDef * config)
 {
 	register char terminator = config->syntax->terminator;
 	register char file_terminator = config->syntax->file_terminator;
-	register char *cur = config->cursor, *buffer_end = &(config->buffer[config->bytes_in]);
+	register char *cur = config->cursor, *buffer_end =
+			&(config->buffer[config->bytes_in]);
 
-	for (; *cur != '\0' && cur < buffer_end; cur++)
-	{
+	for (; *cur != '\0' && cur < buffer_end; cur++) {
 		if (*cur == '\n')
 			config->line_count++;
 		if (*cur == terminator)
@@ -547,20 +534,16 @@ GetToNextLine (ConfigDef * config)
 
 	config->cursor = cur;
 
-	if (cur >= buffer_end)
-	{
-		if (config->fp)
-		{
-			if (get_flags (config->flags, CP_ReadLines))
-			{
+	if (cur >= buffer_end) {
+		if (config->fp) {
+			if (get_flags (config->flags, CP_ReadLines)) {
 				LOCAL_DEBUG_OUT ("Reading Lines ...%s", "");
 				if (!fgets (config->buffer, config->buffer_size - 1, config->fp))
 					return NULL;
 				config->bytes_in = strlen (config->buffer);
 				config->cursor = &(config->buffer[0]);
-			} else
-			{
-				register int  i;
+			} else {
+				register int i;
 				register char *ptr = config->buffer;
 
 				LOCAL_DEBUG_OUT ("Reading Buffer ...%s", "");
@@ -574,13 +557,12 @@ GetToNextLine (ConfigDef * config)
 					if (ptr[i] == '\n')
 						break;
 				i++;
-				if (i > 0)
-				{
+				if (i > 0) {
 					lseek (config->fd, i - (config->bytes_in), SEEK_CUR);
 					config->bytes_in = i;
 				}
 				ptr[config->bytes_in] = '\0';
-#ifdef __CYGWIN__							   /* fuck Microsoft !!!!! */
+#ifdef __CYGWIN__								/* fuck Microsoft !!!!! */
 				while (--i >= 0)
 					if (ptr[i] == 0x0D)
 						ptr[i] = 0x0A;
@@ -607,19 +589,16 @@ GetToNextLine (ConfigDef * config)
    or config->syntax.file_terminator or EOF is reached
    Return: NULL if end of config reached, otherwise same as tline.
  */
-char         *
-GetNextStatement (ConfigDef * config)
+char *GetNextStatement (ConfigDef * config)
 {
-	char         *cur = config->cursor;		   /* don't forget to save it back ! */
+	char *cur = config->cursor;		/* don't forget to save it back ! */
 	register char *data;
-	char          terminator = config->syntax->terminator;
-	char          file_terminator = config->syntax->file_terminator;
+	char terminator = config->syntax->terminator;
+	char file_terminator = config->syntax->file_terminator;
 
-	while (1)
-	{
-		config->tline_start = cur;			   /* remember beginning of the entire config option */
-		for (; *cur != '\0' && *cur != terminator; cur++)
-		{
+	while (1) {
+		config->tline_start = cur;	/* remember beginning of the entire config option */
+		for (; *cur != '\0' && *cur != terminator; cur++) {
 			if (*cur == file_terminator)
 				return NULL;
 #ifdef __CYGWIN__
@@ -628,31 +607,28 @@ GetNextStatement (ConfigDef * config)
 			if (!isspace ((int)*cur))
 #endif
 			{
-				register int  i;
+				register int i;
 
 				config->current_flags = CF_NONE;
 
-				if (*cur == COMMENTS_CHAR)
-				{							   /* let's check for DISABLE keyword */
+				if (*cur == COMMENTS_CHAR) {	/* let's check for DISABLE keyword */
 					print_trimmed_str ("comments at", cur);
 					for (i = 1; i < DISABLED_KEYWORD_SIZE; i++)
 						if (cur[i] == '\0' || cur[i] != _disabled_keyword[i])
 							break;
-					if (i == DISABLED_KEYWORD_SIZE)
-					{						   /* comments - skip entire line */
+					if (i == DISABLED_KEYWORD_SIZE) {	/* comments - skip entire line */
 						config->current_flags |= CF_DISABLED_OPTION;
 						/* let's skip few spaces here */
 						while (isspace ((int)cur[i]) && cur[i] != terminator)
 							++i;
 						if (cur[i] == '\0' || cur[i] == terminator)
-							break;			   /* not a valid option */
+							break;						/* not a valid option */
 						cur = &cur[i];
 					} else
 						set_flags (config->current_flags, CF_PUBLIC_OPTION);	/* comments are always public */
 				}
 
-				if (*cur == MYNAME_CHAR)
-				{							   /* check if we have MyName here */
+				if (*cur == MYNAME_CHAR) {	/* check if we have MyName here */
 					register char *mname = config->myname;
 
 					print_trimmed_str ("private option at", cur);
@@ -660,16 +636,14 @@ GetNextStatement (ConfigDef * config)
 					for (i = 0; mname[i] != '\0' && cur[i] != '\0'; ++i)
 						if (tolower (mname[i]) != tolower (cur[i]))
 							break;
-					if (mname[i] != '\0')
-					{						   /* that was a foreign optiion - belongs to the other executable */
+					if (mname[i] != '\0') {	/* that was a foreign optiion - belongs to the other executable */
 						if (get_flags (config->flags, CP_IgnoreForeign))
 							break;
 						set_flags (config->current_flags, CF_FOREIGN_OPTION);
 						/* keeping *MyName part of the token  without leading * for foreign options */
 					} else
-						cur += i;			   /* skipping *MyName part of the token */
-				} else
-				{
+						cur += i;						/* skipping *MyName part of the token */
+				} else {
 					if (*cur == terminator || *cur == file_terminator)	/* public option keyword may not be empty ! */
 						break;
 					if (get_flags (config->flags, CP_IgnorePublic))
@@ -677,34 +651,37 @@ GetNextStatement (ConfigDef * config)
 					set_flags (config->current_flags, CF_PUBLIC_OPTION);
 					print_trimmed_str ("public option at", cur);
 				}
-				config->tline = cur;		   /*that will be the begginnig of the term */
+				config->tline = cur;		/*that will be the begginnig of the term */
 
 				/* now we should copy everything from after the first space to
 				   config->current_data and set current_data_len ; (unless its a comment) */
-				if (*cur != COMMENTS_CHAR)
-				{
+				if (*cur != COMMENTS_CHAR) {
 					i = 0;
-					while (cur[i] && !isspace ((int)cur[i]) && cur[i] != terminator && cur[i] != file_terminator)
+					while (cur[i] && !isspace ((int)cur[i]) && cur[i] != terminator
+								 && cur[i] != file_terminator)
 						++i;
-					while (isspace ((int)cur[i]) && cur[i] != terminator && cur[i] != file_terminator)
+					while (isspace ((int)cur[i]) && cur[i] != terminator
+								 && cur[i] != file_terminator)
 						++i;
 				} else
 					i = 1;
 
-				cur = &(cur[i]);			   /* that will be the beginning of our data */
+				cur = &(cur[i]);				/* that will be the beginning of our data */
 				config->tdata = cur;
 				print_trimmed_str ("data start at :", cur);
 				data = config->current_data;
-				for (i = 0; cur[i] && cur[i] != terminator && cur[i] != file_terminator; ++i)
-				{
+				for (i = 0;
+						 cur[i] && cur[i] != terminator && cur[i] != file_terminator;
+						 ++i) {
 					/* buffer overrun prevention */
-					if (i >= config->current_data_size)
-					{
+					if (i >= config->current_data_size) {
 						config->current_data_size += MAXLINELENGTH >> 3;
-						config->current_data = (char *)realloc (config->current_data, config->current_data_size);
-						if (config->current_data == NULL)
-						{
-							config_error (config, "Not enough memory to hold option's arguments");
+						config->current_data =
+								(char *)realloc (config->current_data,
+																 config->current_data_size);
+						if (config->current_data == NULL) {
+							config_error (config,
+														"Not enough memory to hold option's arguments");
 							return NULL;
 						}
 						data = config->current_data;
@@ -716,10 +693,8 @@ GetNextStatement (ConfigDef * config)
 				/* now let's go back and remove trailing spaces */
 				if (config->tdata[0] == file_terminator)
 					set_flags (config->current_flags, CF_LAST_OPTION);
-				else
-				{
-					while (--i >= 0)
-					{
+				else {
+					while (--i >= 0) {
 						if (config->tdata[i] == file_terminator)
 							set_flags (config->current_flags, CF_LAST_OPTION);
 						if (!isspace ((int)data[i]))
@@ -737,7 +712,7 @@ GetNextStatement (ConfigDef * config)
 
 				if (*cur && *cur == terminator)
 					cur++;
-				config->cursor = cur;		   /* Saving position for future use */
+				config->cursor = cur;		/* Saving position for future use */
 				return config->tline;
 			}
 		}
@@ -749,30 +724,36 @@ GetNextStatement (ConfigDef * config)
 }
 
 
-TermDef       _as_comments_term = { TF_NO_MYNAME_PREPENDING, "#", 1, TT_COMMENT, TT_COMMENT, NULL };
-TermDef       _as_unknown_term_public = { TF_NO_MYNAME_PREPENDING, "unknown", 7, TT_ANY, TT_ANY, NULL };
-TermDef       _as_unknown_term_private = { 0, "unknown", 7, TT_ANY, TT_ANY, NULL };
+TermDef _as_comments_term =
+		{ TF_NO_MYNAME_PREPENDING, "#", 1, TT_COMMENT, TT_COMMENT, NULL };
+TermDef _as_unknown_term_public =
+		{ TF_NO_MYNAME_PREPENDING, "unknown", 7, TT_ANY, TT_ANY, NULL };
+TermDef _as_unknown_term_private =
+		{ 0, "unknown", 7, TT_ANY, TT_ANY, NULL };
 
-TermDef      *
-FindStatementTerm (char *tline, SyntaxDef * syntax)
+TermDef *FindStatementTerm (char *tline, SyntaxDef * syntax)
 {
-	ASHashData    hdata = { 0 };
-	LOCAL_DEBUG_OUT ("looking for pterm for [%c%c%c...]in hash table  %p of the syntax %s ", tline[0], tline[1],
-					 tline[2], syntax->term_hash, syntax->display_name);
+	ASHashData hdata = { 0 };
+	LOCAL_DEBUG_OUT
+			("looking for pterm for [%c%c%c...]in hash table  %p of the syntax %s ",
+			 tline[0], tline[1], tline[2], syntax->term_hash,
+			 syntax->display_name);
 	if (tline[0] == COMMENTS_CHAR)
 		return &_as_comments_term;
 
-	if (isspace (tline[0]))
-	{
-		int           i = 0;
+	if (isspace (tline[0])) {
+		int i = 0;
 
 		while (isspace (tline[i]))
 			++i;
 		if (tline[i] == '~')
-			if (get_hash_item (syntax->term_hash, AS_HASHABLE (&tline[i]), &hdata.vptr) == ASH_Success)
+			if (get_hash_item
+					(syntax->term_hash, AS_HASHABLE (&tline[i]),
+					 &hdata.vptr) == ASH_Success)
 				return hdata.vptr;
 	}
-	if (get_hash_item (syntax->term_hash, AS_HASHABLE (tline), &hdata.vptr) != ASH_Success)
+	if (get_hash_item (syntax->term_hash, AS_HASHABLE (tline), &hdata.vptr)
+			!= ASH_Success)
 		hdata.vptr = NULL;
 	LOCAL_DEBUG_OUT ("FOUND pterm %p", hdata.vptr);
 	return hdata.vptr;
@@ -781,57 +762,50 @@ FindStatementTerm (char *tline, SyntaxDef * syntax)
 
 
 /* main parsing procedure */
-int
-config2tree_storage (ConfigDef * config, ASTreeStorageModel ** tail)
+int config2tree_storage (ConfigDef * config, ASTreeStorageModel ** tail)
 {
-	int           TopLevel = 0;
+	int TopLevel = 0;
 
 	PushStorage (config, tail);
 	/* get line */
-	while (!TopLevel)
-	{
-		while (GetNextStatement (config))
-		{									   /* untill not end of text */
-			TermDef      *pterm = NULL;
+	while (!TopLevel) {
+		while (GetNextStatement (config)) {	/* untill not end of text */
+			TermDef *pterm = NULL;
 			unsigned long flags = 0;
 
 #ifdef DEBUG_PARSER
-			fprintf (stderr, "\nSentence Found:[%.50s ...]\n,\tData=\t[%s]", config->tline, config->current_data);
+			fprintf (stderr, "\nSentence Found:[%.50s ...]\n,\tData=\t[%s]",
+							 config->tline, config->current_data);
 			fprintf (stderr, "\nLooking for the Term...");
 #endif
 			/* find term */
-			if (get_flags (config->current_flags, CF_FOREIGN_OPTION))
-			{
-				int           i = 0;
+			if (get_flags (config->current_flags, CF_FOREIGN_OPTION)) {
+				int i = 0;
 
-				do
-				{
-					++i;					   /* it's ok - we can start with 1, since myname should have at least 1 char */
+				do {
+					++i;									/* it's ok - we can start with 1, since myname should have at least 1 char */
 					pterm = FindStatementTerm (&(config->tline[i]), config->syntax);
 				}
-				while (pterm == NULL && !isspace (config->tline[i]) && config->tline[i] != '\0');
+				while (pterm == NULL && !isspace (config->tline[i])
+							 && config->tline[i] != '\0');
 			} else
 				pterm = FindStatementTerm (config->tline, config->syntax);
 
 			if (pterm == NULL)
 				pterm = get_flags (config->current_flags, CF_PUBLIC_OPTION) ?
-					&_as_unknown_term_public : &_as_unknown_term_private;
+						&_as_unknown_term_public : &_as_unknown_term_private;
 
 			config->current_term = pterm;
 
 			LOCAL_DEBUG_OUT ("Term:[%s]", config->current_term->keyword);
-			if (isspace (config->tline[0]) && pterm->keyword_len > 0 &&
-				mystrncasecmp (pterm->keyword, config->current_data, pterm->keyword_len) == 0)
-			{								   /* we need to skip one token in current_data :  */
-				char         *src = tokenskip (config->current_data, 1);
-				char         *dst = config->current_data;
+			if (isspace (config->tline[0]) && pterm->keyword_len > 0 && mystrncasecmp (pterm->keyword, config->current_data, pterm->keyword_len) == 0) {	/* we need to skip one token in current_data :  */
+				char *src = tokenskip (config->current_data, 1);
+				char *dst = config->current_data;
 
-				if (src != dst)
-				{
-					int           i = 0;
+				if (src != dst) {
+					int i = 0;
 
-					do
-					{
+					do {
 						dst[i] = src[i];
 					}
 					while (src[++i]);
@@ -840,18 +814,15 @@ config2tree_storage (ConfigDef * config, ASTreeStorageModel ** tail)
 			}
 			if (get_flags (pterm->flags, TF_OBSOLETE))
 				config_error (config,
-							  "Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
+											"Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
 			if (get_flags (pterm->flags, TF_PHONY))
 				set_flags (config->flags, CF_PHONY_OPTION);
-			if (get_flags (pterm->flags, TF_SPECIAL_PROCESSING))
-			{
-				if (config->special)
-				{
+			if (get_flags (pterm->flags, TF_SPECIAL_PROCESSING)) {
+				if (config->special) {
 					flags = (*(config->special)) (config);
 					if (get_flags (flags, SPECIAL_BREAK))
 						break;
-					if (get_flags (flags, SPECIAL_STORAGE_ADDED))
-					{
+					if (get_flags (flags, SPECIAL_STORAGE_ADDED)) {
 						ASTreeStorageModel **ctail = config->current_tail->storage;
 
 						while (*ctail)
@@ -864,27 +835,27 @@ config2tree_storage (ConfigDef * config, ASTreeStorageModel ** tail)
 				ProcessStatement (config);
 			/* Process Statement may alter config's state as it may dive into subconfig - 
 			 * must make sure that did not happen : */
-			if (config->current_term)
-			{
-				if (get_flags (config->current_term->flags, TF_SYNTAX_TERMINATOR) || IsLastOption (config))
+			if (config->current_term) {
+				if (get_flags (config->current_term->flags, TF_SYNTAX_TERMINATOR)
+						|| IsLastOption (config))
 					break;
 			}
-		}									   /* end while( GetNextStatement() ) */
+		}														/* end while( GetNextStatement() ) */
 		/* trying to see if we can get to higher level syntax */
 		if (!PopSyntax (config))
 			TopLevel = 1;
 		if (!PopStorage (config))
 			TopLevel = 1;
 		while ((TopLevel != 1) &&
-			   ((config->current_term &&
-				 (config->current_term->flags & TF_SYNTAX_TERMINATOR)) || IsLastOption (config)))
-		{
+					 ((config->current_term &&
+						 (config->current_term->flags & TF_SYNTAX_TERMINATOR))
+						|| IsLastOption (config))) {
 			if (!PopSyntax (config))
 				TopLevel = 1;
 			if (!PopStorage (config))
 				TopLevel = 1;
 		}
-	}										   /* end while( !TopLevel ) */
+	}															/* end while( !TopLevel ) */
 
 	return 1;
 }
@@ -895,8 +866,7 @@ config2tree_storage (ConfigDef * config, ASTreeStorageModel ** tail)
 /*                        Assorted utility functions                                    */
 /****************************************************************************************/
 /* service functions */
-void
-FlushConfigBuffer (ConfigDef * config)
+void FlushConfigBuffer (ConfigDef * config)
 {
 	config->buffer[0] = '\0';
 	config->cursor = &(config->buffer[0]);
@@ -907,53 +877,48 @@ FlushConfigBuffer (ConfigDef * config)
 /*                   config Writing stuff                                  */
 /***************************************************************************/
 /* writer initialization */
-ConfigDef    *
-InitConfigWriter (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigData source)
+ConfigDef *InitConfigWriter (char *myname, SyntaxDef * syntax,
+														 ConfigDataType type, ConfigData source)
 {
 #ifdef WITH_CONFIG_WRITER
-	ConfigDef    *new_conf = NewConfig (myname, syntax, type, source, NULL, True);
+	ConfigDef *new_conf =
+			NewConfig (myname, syntax, type, source, NULL, True);
 
 	if (new_conf == NULL)
 		return NULL;
-	if (source.vptr != NULL)
-	{
-		if (type == CDT_Data)
-		{
-			if ((new_conf->buffer_size = strlen (source.data)) > 0)
-			{
+	if (source.vptr != NULL) {
+		if (type == CDT_Data) {
+			if ((new_conf->buffer_size = strlen (source.data)) > 0) {
 				new_conf->buffer = safemalloc (++(new_conf->buffer_size));
 				strcpy (new_conf->buffer, source.data);
 			}
-		} else
-		{									   /* reading entire file in memory here */
-			struct stat   file_stats;
+		} else {										/* reading entire file in memory here */
+			struct stat file_stats;
 
 			if (new_conf->fd != -1)
-				if (fstat (new_conf->fd, &file_stats) == 0)
-				{
-					if ((new_conf->buffer_size = file_stats.st_size) > 0)
-					{
-						int           bytes_read;
+				if (fstat (new_conf->fd, &file_stats) == 0) {
+					if ((new_conf->buffer_size = file_stats.st_size) > 0) {
+						int bytes_read;
 
-						new_conf->buffer = (char *)safemalloc (++new_conf->buffer_size);
-						if ((bytes_read = read (new_conf->fd, new_conf->buffer, file_stats.st_size)) > 0)
+						new_conf->buffer =
+								(char *)safemalloc (++new_conf->buffer_size);
+						if ((bytes_read =
+								 read (new_conf->fd, new_conf->buffer,
+											 file_stats.st_size)) > 0)
 							new_conf->buffer[bytes_read] = '\0';
-						else
-						{
+						else {
 							free (new_conf->buffer);
 							new_conf->buffer = NULL;
 							new_conf->buffer_size = 0;
 						}
-					} else
-					{						   /* file is empty, so continuing onto creating a new file */
+					} else {							/* file is empty, so continuing onto creating a new file */
 						new_conf->buffer = safemalloc (1);
 						new_conf->buffer[0] = '\0';
 						new_conf->buffer_size = 1;
 					}
 				}
 		}
-		if (new_conf->buffer == NULL)
-		{
+		if (new_conf->buffer == NULL) {
 			DestroyConfig (new_conf);
 			return NULL;
 		}
@@ -975,25 +940,28 @@ InitConfigWriter (char *myname, SyntaxDef * syntax, ConfigDataType type, ConfigD
  */
 
 void
-WriteBlock (struct WriteBuffer *t_buffer, char *block_start, char *block_end)
+WriteBlock (struct WriteBuffer *t_buffer, char *block_start,
+						char *block_end)
 {
-	size_t        bytes_to_add;
+	size_t bytes_to_add;
 
 	if (t_buffer == NULL || block_start == NULL)
 		return;
-	bytes_to_add = (block_end == NULL) ? strlen (block_start) : block_end - block_start;
+	bytes_to_add =
+			(block_end == NULL) ? strlen (block_start) : block_end - block_start;
 	if (bytes_to_add <= 0)
 		return;
 	/*make sure we always have 1 byte left at the end ( for trailing 0 ) */
 	/*                     and 1 byte left for file terminator           */
-	if (t_buffer->allocated < t_buffer->used + bytes_to_add + 2)
-	{										   /* growing buffer by 1/8 of it's size */
-		size_t        add_size = t_buffer->used + bytes_to_add + 2 - t_buffer->allocated;
+	if (t_buffer->allocated < t_buffer->used + bytes_to_add + 2) {	/* growing buffer by 1/8 of it's size */
+		size_t add_size =
+				t_buffer->used + bytes_to_add + 2 - t_buffer->allocated;
 
 		if (add_size < (t_buffer->allocated >> 3))
 			add_size = (t_buffer->allocated >> 3);
 		if (t_buffer->buffer != NULL && t_buffer->allocated > 0)
-			t_buffer->buffer = realloc (t_buffer->buffer, t_buffer->allocated + add_size);
+			t_buffer->buffer =
+					realloc (t_buffer->buffer, t_buffer->allocated + add_size);
 		else
 			t_buffer->buffer = safemalloc (t_buffer->allocated + add_size);
 		t_buffer->allocated += add_size;
@@ -1003,8 +971,7 @@ WriteBlock (struct WriteBuffer *t_buffer, char *block_start, char *block_end)
 }
 
 
-char         *
-parser_add_terminator (char *ptr, char terminator)
+char *parser_add_terminator (char *ptr, char terminator)
 {
 	if (*ptr != terminator && (*ptr == '\0' && *(ptr - 1) != terminator))
 		*(ptr++) = terminator;
@@ -1013,14 +980,17 @@ parser_add_terminator (char *ptr, char terminator)
 
 
 int
-WriteFreeStorageToFile (const char *filename, const char *myname, SyntaxDef * syntax, FreeStorageElem * fs,
-						ASFlagType flags)
+WriteFreeStorageToFile (const char *filename, const char *myname,
+												SyntaxDef * syntax, FreeStorageElem * fs,
+												ASFlagType flags)
 {
-	ConfigDef    *Writer = NULL;
-	ConfigData    cd;
+	ConfigDef *Writer = NULL;
+	ConfigData cd;
 
 	cd.filename = filename;
-	if ((Writer = InitConfigWriter ((char *)myname, syntax, CDT_Filename, cd)) == NULL)
+	if ((Writer =
+			 InitConfigWriter ((char *)myname, syntax, CDT_Filename,
+												 cd)) == NULL)
 		return 2;
 
 	cd.filename = filename;

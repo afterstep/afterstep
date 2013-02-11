@@ -32,30 +32,45 @@
 #include "afterconf.h"
 
 
-TermDef       AlignTerms[] = {
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Left, NULL, ALIGN_LEFT, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Top, NULL, ALIGN_TOP, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Right, NULL, ALIGN_RIGHT, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Bottom, NULL, ALIGN_BOTTOM, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, HTiled, NULL, RESIZE_H, RESIZE_H_SCALE),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, VTiled, NULL, RESIZE_V, RESIZE_V_SCALE),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, HScaled, NULL, RESIZE_H | RESIZE_H_SCALE, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, VScaled, NULL, RESIZE_V | RESIZE_V_SCALE, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, LabelSize, NULL, FIT_LABEL_SIZE, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, LabelWidth, NULL, FIT_LABEL_WIDTH, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, LabelHeight, NULL, FIT_LABEL_HEIGHT, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Center, NULL, ALIGN_CENTER, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, HCenter, NULL, ALIGN_HCENTER, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, VCenter, NULL, ALIGN_VCENTER, 0),
-	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, None, NULL, NO_ALIGN, ALIGN_MASK),
+TermDef AlignTerms[] = {
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Left, NULL,
+												 ALIGN_LEFT, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Top, NULL,
+												 ALIGN_TOP, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Right, NULL,
+												 ALIGN_RIGHT, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Bottom, NULL,
+												 ALIGN_BOTTOM, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, HTiled, NULL,
+												 RESIZE_H, RESIZE_H_SCALE),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, VTiled, NULL,
+												 RESIZE_V, RESIZE_V_SCALE),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, HScaled, NULL,
+												 RESIZE_H | RESIZE_H_SCALE, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, VScaled, NULL,
+												 RESIZE_V | RESIZE_V_SCALE, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, LabelSize, NULL,
+												 FIT_LABEL_SIZE, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, LabelWidth, NULL,
+												 FIT_LABEL_WIDTH, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, LabelHeight, NULL,
+												 FIT_LABEL_HEIGHT, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, Center, NULL,
+												 ALIGN_CENTER, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, HCenter, NULL,
+												 ALIGN_HCENTER, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, VCenter, NULL,
+												 ALIGN_VCENTER, 0),
+	ASCF_DEFINE_KEYWORD_F (ALIGN, TF_NO_MYNAME_PREPENDING, None, NULL,
+												 NO_ALIGN, ALIGN_MASK),
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     AlignSyntax = {
+SyntaxDef AlignSyntax = {
 	',',
 	'\n',
 	AlignTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	' ',
 	" ",
 	"\t",
@@ -97,23 +112,31 @@ flag_options_xref AlignFlagsXref[] = {
 };
 
 
-TermDef       BevelTerms[] = {
-	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, None, NULL, NO_HILITE, HILITE_MASK),
-	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Left, NULL, LEFT_HILITE, 0),
-	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Top, NULL, TOP_HILITE, 0),
-	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Right, NULL, RIGHT_HILITE, 0),
-	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Bottom, NULL, BOTTOM_HILITE, 0),
-	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Extra, NULL, EXTRA_HILITE, 0),
-	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, NoOutline, NULL, NO_HILITE_OUTLINE, 0),
-	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, NoInline, NULL, NO_HILITE_INLINE, 0),
+TermDef BevelTerms[] = {
+	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, None, NULL,
+												 NO_HILITE, HILITE_MASK),
+	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Left, NULL,
+												 LEFT_HILITE, 0),
+	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Top, NULL,
+												 TOP_HILITE, 0),
+	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Right, NULL,
+												 RIGHT_HILITE, 0),
+	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Bottom, NULL,
+												 BOTTOM_HILITE, 0),
+	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, Extra, NULL,
+												 EXTRA_HILITE, 0),
+	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, NoOutline, NULL,
+												 NO_HILITE_OUTLINE, 0),
+	ASCF_DEFINE_KEYWORD_F (BEVEL, TF_NO_MYNAME_PREPENDING, NoInline, NULL,
+												 NO_HILITE_INLINE, 0),
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     BevelSyntax = {
+SyntaxDef BevelSyntax = {
 	',',
 	'\n',
 	BevelTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	' ',
 	" ",
 	"\t",
@@ -140,14 +163,13 @@ flag_options_xref BevelFlagsXref[] = {
 
 
 
-ASFlagType
-ParseBevelOptions (FreeStorageElem * options)
+ASFlagType ParseBevelOptions (FreeStorageElem * options)
 {
-	ASFlagType    bevel = 0;
+	ASFlagType bevel = 0;
 
-	while (options)
-	{
-		LOCAL_DEBUG_OUT ("options(%p)->keyword(\"%s\")", options, options->term->keyword);
+	while (options) {
+		LOCAL_DEBUG_OUT ("options(%p)->keyword(\"%s\")", options,
+										 options->term->keyword);
 		if (options->term != NULL)
 			ReadFlagItem (NULL, &bevel, options, BevelFlagsXref);
 		options = options->next;
@@ -155,29 +177,26 @@ ParseBevelOptions (FreeStorageElem * options)
 	return bevel;
 }
 
-ASFlagType
-ParseAlignOptions (FreeStorageElem * options)
+ASFlagType ParseAlignOptions (FreeStorageElem * options)
 {
-	ASFlagType    align = 0;
+	ASFlagType align = 0;
 
-	while (options)
-	{
-		LOCAL_DEBUG_OUT ("options(%p)->keyword(\"%s\")", options, options->term->keyword);
-		if (options->term != NULL)
-		{
-			switch (options->term->id)
-			{
-			 case ALIGN_Center_ID:
-				 set_flags (align, ALIGN_CENTER);
-				 break;
-			 case ALIGN_HCenter_ID:
-				 set_flags (align, ALIGN_HCENTER);
-				 break;
-			 case ALIGN_VCenter_ID:
-				 set_flags (align, ALIGN_VCENTER);
-				 break;
-			 default:
-				 ReadFlagItem (NULL, &align, options, AlignFlagsXref);
+	while (options) {
+		LOCAL_DEBUG_OUT ("options(%p)->keyword(\"%s\")", options,
+										 options->term->keyword);
+		if (options->term != NULL) {
+			switch (options->term->id) {
+			case ALIGN_Center_ID:
+				set_flags (align, ALIGN_CENTER);
+				break;
+			case ALIGN_HCenter_ID:
+				set_flags (align, ALIGN_HCENTER);
+				break;
+			case ALIGN_VCenter_ID:
+				set_flags (align, ALIGN_VCENTER);
+				break;
+			default:
+				ReadFlagItem (NULL, &align, options, AlignFlagsXref);
 			}
 		}
 		options = options->next;
@@ -188,30 +207,31 @@ ParseAlignOptions (FreeStorageElem * options)
 
 
 void
-flags_parse (char *tline, FILE * fd, char *myname, int *pflags, SyntaxDef * syntax,
-			 ASFlagType (*parse_flags) (FreeStorageElem *))
+flags_parse (char *tline, FILE * fd, char *myname, int *pflags,
+						 SyntaxDef * syntax,
+						 ASFlagType (*parse_flags) (FreeStorageElem *))
 {
 	FreeStorageElem *Storage = NULL;
 
 	if (pflags == NULL)
 		return;
 
-	Storage = tline_subsyntax_parse (NULL, tline, fd, myname, syntax, NULL, NULL);
-	if (Storage)
-	{
+	Storage =
+			tline_subsyntax_parse (NULL, tline, fd, myname, syntax, NULL, NULL);
+	if (Storage) {
 		*pflags = parse_flags (Storage);
 		DestroyFreeStorage (&Storage);
 	}
 }
 
-void
-align_parse (char *tline, FILE * fd, char **myname, int *palign)
+void align_parse (char *tline, FILE * fd, char **myname, int *palign)
 {
-	flags_parse (tline, fd, (char *)myname, palign, &AlignSyntax, ParseAlignOptions);
+	flags_parse (tline, fd, (char *)myname, palign, &AlignSyntax,
+							 ParseAlignOptions);
 }
 
-void
-bevel_parse (char *tline, FILE * fd, char **myname, int *pbevel)
+void bevel_parse (char *tline, FILE * fd, char **myname, int *pbevel)
 {
-	flags_parse (tline, fd, (char *)myname, pbevel, &BevelSyntax, ParseBevelOptions);
+	flags_parse (tline, fd, (char *)myname, pbevel, &BevelSyntax,
+							 ParseBevelOptions);
 }

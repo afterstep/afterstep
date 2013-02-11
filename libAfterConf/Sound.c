@@ -41,61 +41,82 @@
  ****************************************************************************/
 
 /* number after strings here is the len of str */
-TermDef       EventTerms[] = {
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "add_window", 10, TT_FILENAME, EVENT_WindowAdded_ID, NULL}
+TermDef EventTerms[] = {
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "add_window", 10, TT_FILENAME,
+	 EVENT_WindowAdded_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "window_names", 8, TT_FILENAME, EVENT_WindowNames_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "window_names", 8, TT_FILENAME,
+	 EVENT_WindowNames_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "destroy_window", 14, TT_FILENAME, EVENT_WindowDestroyed_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "destroy_window", 14,
+	 TT_FILENAME, EVENT_WindowDestroyed_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "focus_change", 12, TT_FILENAME, EVENT_WindowActivated_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "focus_change", 12,
+	 TT_FILENAME, EVENT_WindowActivated_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "raise_window", 12, TT_FILENAME, EVENT_WindowRaised_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "raise_window", 12,
+	 TT_FILENAME, EVENT_WindowRaised_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "iconify", 7, TT_FILENAME, EVENT_WindowIconified_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "iconify", 7, TT_FILENAME,
+	 EVENT_WindowIconified_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "deiconify", 9, TT_FILENAME, EVENT_WindowDeiconified_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "deiconify", 9, TT_FILENAME,
+	 EVENT_WindowDeiconified_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "shade", 5, TT_FILENAME, EVENT_WindowShaded_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "shade", 5, TT_FILENAME,
+	 EVENT_WindowShaded_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "unshade", 7, TT_FILENAME, EVENT_WindowUnshaded_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "unshade", 7, TT_FILENAME,
+	 EVENT_WindowUnshaded_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "stick", 5, TT_FILENAME, EVENT_WindowStuck_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "stick", 5, TT_FILENAME,
+	 EVENT_WindowStuck_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "unstick", 7, TT_FILENAME, EVENT_WindowUnstuck_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "unstick", 7, TT_FILENAME,
+	 EVENT_WindowUnstuck_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "maximize", 8, TT_FILENAME, EVENT_WindowMaximized_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "maximize", 8, TT_FILENAME,
+	 EVENT_WindowMaximized_ID, NULL}
 	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "restore", 7, TT_FILENAME, EVENT_WindowRestored_ID, NULL}
-	,
-
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "stuck", 5, TT_FILENAME, EVENT_WindowStuck_ID, NULL}
-	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "unstuck", 7, TT_FILENAME, EVENT_WindowUnstuck_ID, NULL}
-	,
-
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "new_background", 14, TT_FILENAME, EVENT_BackgroundChanged_ID, NULL}
-	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "new_viewport", 12, TT_FILENAME, EVENT_DeskViewportChanged_ID, NULL}
-	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "startup", 7, TT_FILENAME, EVENT_Startup_ID, NULL}
-	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "shutdown", 8, TT_FILENAME, EVENT_Shutdown_ID, NULL}
-	,
-
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "config", 6, TT_FILENAME, EVENT_Config_ID, NULL}
-	,
-	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "module_config", 13, TT_FILENAME, EVENT_ModuleConfig_ID, NULL}
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "restore", 7, TT_FILENAME,
+	 EVENT_WindowRestored_ID, NULL}
 	,
 
-	{0, NULL, 0, 0, 0}						   /* end of structure */
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "stuck", 5, TT_FILENAME,
+	 EVENT_WindowStuck_ID, NULL}
+	,
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "unstuck", 7, TT_FILENAME,
+	 EVENT_WindowUnstuck_ID, NULL}
+	,
+
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "new_background", 14,
+	 TT_FILENAME, EVENT_BackgroundChanged_ID, NULL}
+	,
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "new_viewport", 12,
+	 TT_FILENAME, EVENT_DeskViewportChanged_ID, NULL}
+	,
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "startup", 7, TT_FILENAME,
+	 EVENT_Startup_ID, NULL}
+	,
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "shutdown", 8, TT_FILENAME,
+	 EVENT_Shutdown_ID, NULL}
+	,
+
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "config", 6, TT_FILENAME,
+	 EVENT_Config_ID, NULL}
+	,
+	{TF_DONT_SPLIT | TF_NO_MYNAME_PREPENDING, "module_config", 13,
+	 TT_FILENAME, EVENT_ModuleConfig_ID, NULL}
+	,
+
+	{0, NULL, 0, 0, 0}						/* end of structure */
 };
 
-SyntaxDef     SoundEventsSyntax = {
+SyntaxDef SoundEventsSyntax = {
 	',',
 	'\n',
 	EventTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	' ',
 	"",
 	"\t",
@@ -107,7 +128,7 @@ SyntaxDef     SoundEventsSyntax = {
 };
 
 
-TermDef       SoundTerms[] = {
+TermDef SoundTerms[] = {
 	{TF_DONT_SPLIT, "Path", 8, TT_TEXT, SOUND_PATH_ID, NULL}
 	,
 	{TF_DONT_SPLIT, "PcmDevice", 7, TT_TEXT, SOUND_PCMDEVICE_ID, NULL}
@@ -122,15 +143,15 @@ TermDef       SoundTerms[] = {
 	,
 	{0, "", 0, TT_FLAG, SOUND_SOUND_ID, &SoundEventsSyntax}
 	,
-	{0, NULL, 0, 0, 0}						   /* end of structure */
+	{0, NULL, 0, 0, 0}						/* end of structure */
 
 };
 
-SyntaxDef     SoundSyntax = {
+SyntaxDef SoundSyntax = {
 	'\n',
 	'\0',
 	SoundTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	' ',
 	"",
 	"\t",
@@ -143,10 +164,10 @@ SyntaxDef     SoundSyntax = {
 
 /************** Create/Destroy SoundConfig ***************/
 
-SoundConfig  *
-CreateSoundConfig ()
+SoundConfig *CreateSoundConfig ()
 {
-	SoundConfig  *config = (SoundConfig *) safecalloc (1, sizeof (SoundConfig));
+	SoundConfig *config =
+			(SoundConfig *) safecalloc (1, sizeof (SoundConfig));
 
 	/* let's initialize Sound's config with some nice values: */
 /*
@@ -158,10 +179,9 @@ CreateSoundConfig ()
 	return config;
 }
 
-void
-DestroySoundConfig (SoundConfig * config)
+void DestroySoundConfig (SoundConfig * config)
 {
-	register int  i;
+	register int i;
 
 	for (i = EVENT_ID_END - EVENT_ID_START - 1; i >= 0; i--)
 		if (config->sounds[i])
@@ -176,18 +196,18 @@ DestroySoundConfig (SoundConfig * config)
 
 /************ Actual Parsing **************/
 
-SoundConfig  *
-ParseSoundOptions (const char *filename, char *myname)
+SoundConfig *ParseSoundOptions (const char *filename, char *myname)
 {
-	ConfigData    cd;
-	ConfigDef    *SoundConfigReader;
-	SoundConfig  *config = CreateSoundConfig ();
+	ConfigData cd;
+	ConfigDef *SoundConfigReader;
+	SoundConfig *config = CreateSoundConfig ();
 
 	FreeStorageElem *Storage = NULL, *pCurr;
-	ConfigItem    item;
+	ConfigItem item;
 
 	cd.filename = filename;
-	SoundConfigReader = InitConfigReader (myname, &SoundSyntax, CDT_Filename, cd, NULL);
+	SoundConfigReader =
+			InitConfigReader (myname, &SoundSyntax, CDT_Filename, cd, NULL);
 	if (!SoundConfigReader)
 		return config;
 
@@ -198,8 +218,7 @@ ParseSoundOptions (const char *filename, char *myname)
 	/* getting rid of all the crap first */
 	StorageCleanUp (&Storage, &(config->more_stuff), CF_DISABLED_OPTION);
 
-	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
-	{
+	for (pCurr = Storage; pCurr; pCurr = pCurr->next) {
 		if (pCurr->term == NULL)
 			continue;
 
@@ -207,49 +226,50 @@ ParseSoundOptions (const char *filename, char *myname)
 			if (!ReadConfigItem (&item, pCurr))
 				continue;
 
-			switch (pCurr->term->id)
-			{
-			 case SOUND_SOUND_ID:
-				 if (pCurr->sub)
-				 {
-					 if (pCurr->sub->term && pCurr->sub->argv)
-						 if (pCurr->sub->term->id >= EVENT_ID_START && pCurr->sub->term->id < EVENT_ID_END)
-							 set_string (&(config->sounds[pCurr->sub->term->id - EVENT_ID_START]),
-										 mystrdup (pCurr->sub->argv[0]));
-				 }
-				 break;
-			 case SOUND_PCMDEVICE_ID:
-				 //set_string( &(config->pcmdevice), item.data.string );
-				 config->pcmdevice = item.data.string;
-				 break;
-			 case SOUND_PATH_ID:
-				 config->path = item.data.string;
-				 break;
+			switch (pCurr->term->id) {
+			case SOUND_SOUND_ID:
+				if (pCurr->sub) {
+					if (pCurr->sub->term && pCurr->sub->argv)
+						if (pCurr->sub->term->id >= EVENT_ID_START
+								&& pCurr->sub->term->id < EVENT_ID_END)
+							set_string (&
+													(config->
+													 sounds[pCurr->sub->term->id - EVENT_ID_START]),
+													mystrdup (pCurr->sub->argv[0]));
+				}
+				break;
+			case SOUND_PCMDEVICE_ID:
+				//set_string( &(config->pcmdevice), item.data.string );
+				config->pcmdevice = item.data.string;
+				break;
+			case SOUND_PATH_ID:
+				config->path = item.data.string;
+				break;
 
-			 case SOUND_DEBUG_ID:
-				 config->debug = (int)item.data.integer;
-				 break;
+			case SOUND_DEBUG_ID:
+				config->debug = (int)item.data.integer;
+				break;
 /*				 
 			 case SOUND_DELAY_ID:
 			 	 set_flags( config->set_flags, SOUND_SET_DELAY );
 				 config->delay = (int)item.data.integer;
 				 break;
 	*/
-				 /*
-				    case SOUND_RPLAY_HOST_ID:
-				    set_string_value( &(config->rplay_host), item.data.string, &(config->set_flags), SOUND_SET_RPLAY_HOST );
-				    break;
-				    case SOUND_RPLAY_PRI_ID:
-				    set_flags( config->set_flags, SOUND_SET_RPLAY_PRIORITY );
-				    config->rplay_priority = (int)item.data.integer;
-				    break;
-				    case SOUND_RPLAY_VOL_ID:
-				    set_flags( config->set_flags, SOUND_SET_RPLAY_VOLUME );
-				    config->rplay_volume = (int)item.data.integer;
-				    break;
-				  */
-			 default:
-				 item.ok_to_free = 1;
+				/*
+				   case SOUND_RPLAY_HOST_ID:
+				   set_string_value( &(config->rplay_host), item.data.string, &(config->set_flags), SOUND_SET_RPLAY_HOST );
+				   break;
+				   case SOUND_RPLAY_PRI_ID:
+				   set_flags( config->set_flags, SOUND_SET_RPLAY_PRIORITY );
+				   config->rplay_priority = (int)item.data.integer;
+				   break;
+				   case SOUND_RPLAY_VOL_ID:
+				   set_flags( config->set_flags, SOUND_SET_RPLAY_VOLUME );
+				   config->rplay_volume = (int)item.data.integer;
+				   break;
+				 */
+			default:
+				item.ok_to_free = 1;
 			}
 		}
 	}
@@ -263,27 +283,33 @@ ParseSoundOptions (const char *filename, char *myname)
 }
 
 int
-WriteSoundOptions (const char *filename, char *myname, SoundConfig * config, unsigned long flags)
+WriteSoundOptions (const char *filename, char *myname,
+									 SoundConfig * config, unsigned long flags)
 {
-	ConfigDef    *SoundConfigWriter = NULL;
+	ConfigDef *SoundConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
-	register int  i;
-	ConfigData    cd;
+	register int i;
+	ConfigData cd;
 
 	if (config == NULL)
 		return 1;
 	cd.filename = filename;
 
-	if ((SoundConfigWriter = InitConfigWriter (myname, &SoundSyntax, CDT_Filename, cd)) == NULL)
+	if ((SoundConfigWriter =
+			 InitConfigWriter (myname, &SoundSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 	CopyFreeStorage (&Storage, config->more_stuff);
 	/* building free storage here */
 	/* PCM Device */
 	if (config->pcmdevice)
-		tail = String2FreeStorage (&SoundSyntax, tail, config->pcmdevice, SOUND_PCMDEVICE_ID);
+		tail =
+				String2FreeStorage (&SoundSyntax, tail, config->pcmdevice,
+														SOUND_PCMDEVICE_ID);
 
 	if (config->debug)
-		tail = Integer2FreeStorage (&SoundSyntax, tail, NULL, config->debug, SOUND_DEBUG_ID);
+		tail =
+				Integer2FreeStorage (&SoundSyntax, tail, NULL, config->debug,
+														 SOUND_DEBUG_ID);
 	/* delay */
 /*
 	if( get_flags(config->set_flags, SOUND_SET_DELAY) )
@@ -303,13 +329,13 @@ WriteSoundOptions (const char *filename, char *myname, SoundConfig * config, uns
 
 	/* line structure */
 	for (i = EVENT_ID_END - EVENT_ID_START - 1; i >= 0; i--)
-		if (config->sounds[i])
-		{
+		if (config->sounds[i]) {
 			FreeStorageElem **dtail = tail;
 
 			tail = Flag2FreeStorage (&SoundSyntax, tail, SOUND_SOUND_ID);
 			if (*dtail)
-				Path2FreeStorage (&SoundEventsSyntax, &((*dtail)->sub), NULL, config->sounds[i], EVENT_ID_START + i);
+				Path2FreeStorage (&SoundEventsSyntax, &((*dtail)->sub), NULL,
+													config->sounds[i], EVENT_ID_START + i);
 		}
 
 	/* writing config into the file */
@@ -317,9 +343,10 @@ WriteSoundOptions (const char *filename, char *myname, SoundConfig * config, uns
 	DestroyFreeStorage (&Storage);
 	DestroyConfig (SoundConfigWriter);
 
-	if (Storage)
-	{
-		fprintf (stderr, "\n%s:Config Writing warning: Not all Free Storage discarded! Trying again...", myname);
+	if (Storage) {
+		fprintf (stderr,
+						 "\n%s:Config Writing warning: Not all Free Storage discarded! Trying again...",
+						 myname);
 		DestroyFreeStorage (&Storage);
 		fprintf (stderr, (Storage != NULL) ? " failed." : " success.");
 	}

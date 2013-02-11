@@ -55,10 +55,9 @@
 
 extern ASASCommandState ASCommandState;
 
-void
-move_handler (ASWindowData * wd, void *data)
+void move_handler (ASWindowData * wd, void *data)
 {
-	move_params  *params = (move_params *) data;
+	move_params *params = (move_params *) data;
 
 	/* used by SendNumCommand */
 	send_signed_data_type vals[2];
@@ -75,8 +74,7 @@ move_handler (ASWindowData * wd, void *data)
 
 }
 
-void
-resize_handler (ASWindowData * wd, void *data)
+void resize_handler (ASWindowData * wd, void *data)
 {
 	resize_params *params = (resize_params *) data;
 
@@ -95,15 +93,13 @@ resize_handler (ASWindowData * wd, void *data)
 
 }
 
-void
-kill_handler (ASWindowData * wd, void *data)
+void kill_handler (ASWindowData * wd, void *data)
 {
 	LOCAL_DEBUG_OUT ("Kill handler called");
 	SendNumCommand (F_DESTROY, NULL, NULL, NULL, wd->client);
 }
 
-void
-jump_handler (ASWindowData * wd, void *data)
+void jump_handler (ASWindowData * wd, void *data)
 {
 	/* used by SendNumCommand */
 	send_signed_data_type vals[1];
@@ -122,8 +118,7 @@ jump_handler (ASWindowData * wd, void *data)
 	SendNumCommand (F_FOCUS, NULL, NULL, NULL, wd->client);
 }
 
-void
-ls_handler (ASWindowData * wd, void *data)
+void ls_handler (ASWindowData * wd, void *data)
 {
 	fprintf (stdout, "Name: %s\n", wd->window_name);
 	fprintf (stdout, "X: %ld\n", wd->frame_rect.x);
@@ -133,8 +128,7 @@ ls_handler (ASWindowData * wd, void *data)
 	fprintf (stdout, "\n");
 }
 
-void
-iconify_handler (ASWindowData * wd, void *data)
+void iconify_handler (ASWindowData * wd, void *data)
 {
 	/* used by SendNumCommand */
 	send_signed_data_type vals[1];
@@ -152,8 +146,7 @@ iconify_handler (ASWindowData * wd, void *data)
 
 }
 
-void
-deiconify_handler (ASWindowData * wd, void *data)
+void deiconify_handler (ASWindowData * wd, void *data)
 {
 	/* used by SendNumCommand */
 	send_signed_data_type vals[1];
@@ -173,10 +166,9 @@ deiconify_handler (ASWindowData * wd, void *data)
 
 
 
-void
-send_to_desk_handler (ASWindowData * wd, void *data)
+void send_to_desk_handler (ASWindowData * wd, void *data)
 {
-	int           dest = (int)((send_to_desk_params *) data)->desk;
+	int dest = (int)((send_to_desk_params *) data)->desk;
 
 	/* used by SendNumCommand */
 	send_signed_data_type vals[1];
@@ -190,12 +182,12 @@ send_to_desk_handler (ASWindowData * wd, void *data)
 
 	/* send to desk if it's not already on this desk */
 	if (wd->desk != dest)
-		SendNumCommand (F_CHANGE_WINDOWS_DESK, NULL, &(vals[0]), &(units[0]), wd->client);
+		SendNumCommand (F_CHANGE_WINDOWS_DESK, NULL, &(vals[0]), &(units[0]),
+										wd->client);
 
 }
 
-void
-center_handler (ASWindowData * wd, void *data)
+void center_handler (ASWindowData * wd, void *data)
 {
 	/* used by SendNumCommand */
 	send_signed_data_type vals[2];
@@ -214,8 +206,7 @@ center_handler (ASWindowData * wd, void *data)
 	SendNumCommand (F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client);
 }
 
-void
-raise_handler (ASWindowData * wd, void *data)
+void raise_handler (ASWindowData * wd, void *data)
 {
 	SendNumCommand (F_RAISE, NULL, NULL, NULL, wd->client);
 }

@@ -56,14 +56,14 @@ extern SyntaxDef AlignSyntax;
     ASCF_DEFINE_KEYWORD  (ASMOUNT, 0			    , Vertical			, TT_FLAG	,  NULL)
 
 
-TermDef       ASMountFeelTerms[] = {
+TermDef ASMountFeelTerms[] = {
 	/* Feel */
 //  ASMOUNT_FEEL_TERMS,
 	BALLOON_FEEL_TERMS,
 	{0, NULL, 0, 0, 0}
 };
 
-TermDef       ASMountLookTerms[] = {
+TermDef ASMountLookTerms[] = {
 	/* Look */
 	ASMOUNT_LOOK_TERMS,
 /* now special cases that should be processed by it's own handlers */
@@ -71,7 +71,7 @@ TermDef       ASMountLookTerms[] = {
 	{0, NULL, 0, 0, 0}
 };
 
-TermDef       ASMountPrivateTerms[] = {
+TermDef ASMountPrivateTerms[] = {
 	ASMOUNT_PRIVATE_TERMS,
 	BALLOON_FLAG_TERM,
 	{0, NULL, 0, 0, 0}
@@ -80,7 +80,7 @@ TermDef       ASMountPrivateTerms[] = {
 #define ASMOUNT_ALL_TERMS	ASMOUNT_PRIVATE_TERMS, ASMOUNT_LOOK_TERMS
 
 
-TermDef       ASMountDefaultsTerms[] = {
+TermDef ASMountDefaultsTerms[] = {
 
 	ASMOUNT_ALL_TERMS,
 /* now special cases that should be processed by it's own handlers */
@@ -89,12 +89,14 @@ TermDef       ASMountDefaultsTerms[] = {
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     ASMountDefaultsSyntax =
-	{ '\n', '\0', ASMountDefaultsTerms, 0, ' ', "", "\t", "Module:ASMount_defaults", "ASMount",
-"AfterStep module for mounting/unmounting volumes", NULL, 0 };
+SyntaxDef ASMountDefaultsSyntax =
+		{ '\n', '\0', ASMountDefaultsTerms, 0, ' ', "", "\t",
+"Module:ASMount_defaults", "ASMount",
+	"AfterStep module for mounting/unmounting volumes", NULL, 0
+};
 
 
-TermDef       ASMountTerms[] = {
+TermDef ASMountTerms[] = {
 	INCLUDE_MODULE_DEFAULTS (&ASMountDefaultsSyntax),
 
 	ASMOUNT_ALL_TERMS,
@@ -107,18 +109,29 @@ TermDef       ASMountTerms[] = {
 };
 
 
-SyntaxDef     ASMountFeelSyntax =
-	{ '\n', '\0', ASMountFeelTerms, 0, '\t', "", "\t", "ASMountFeel", "ASMountFeel",
-"AfterStep Volumes manager module feel", NULL, 0 };
-SyntaxDef     ASMountLookSyntax =
-	{ '\n', '\0', ASMountLookTerms, 0, '\t', "", "\t", "ASMountLook", "ASMountLook",
-"AfterStep Volumes manager module look", NULL, 0 };
-SyntaxDef     ASMountPrivateSyntax =
-	{ '\n', '\0', ASMountPrivateTerms, 0, '\t', "", "\t", "ASMount", "ASMount", "AfterStep Volumes manager module",
-NULL, 0 };
-SyntaxDef     ASMountSyntax =
-	{ '\n', '\0', ASMountTerms, 0, ' ', "", "\t", "Module:ASMount", "ASMount",
-"AfterStep module for management of storage volumes", NULL, 0 };
+SyntaxDef ASMountFeelSyntax =
+		{ '\n', '\0', ASMountFeelTerms, 0, '\t', "", "\t", "ASMountFeel",
+"ASMountFeel",
+	"AfterStep Volumes manager module feel", NULL, 0
+};
+
+SyntaxDef ASMountLookSyntax =
+		{ '\n', '\0', ASMountLookTerms, 0, '\t', "", "\t", "ASMountLook",
+"ASMountLook",
+	"AfterStep Volumes manager module look", NULL, 0
+};
+
+SyntaxDef ASMountPrivateSyntax =
+		{ '\n', '\0', ASMountPrivateTerms, 0, '\t', "", "\t", "ASMount",
+"ASMount", "AfterStep Volumes manager module",
+	NULL, 0
+};
+
+SyntaxDef ASMountSyntax =
+		{ '\n', '\0', ASMountTerms, 0, ' ', "", "\t", "Module:ASMount",
+"ASMount",
+	"AfterStep module for management of storage volumes", NULL, 0
+};
 
 
 flag_options_xref ASMountFlags[] = {
@@ -128,9 +141,11 @@ flag_options_xref ASMountFlags[] = {
 	{0, 0, 0}
 };
 
-static void   InitASMountConfig (ASModuleConfig * asm_config, Bool free_resources);
-void          ASMount_fs2config (ASModuleConfig * asmodule_config, FreeStorageElem * Storage);
-void          MergeASMountOptions (ASModuleConfig * to, ASModuleConfig * from);
+static void InitASMountConfig (ASModuleConfig * asm_config,
+															 Bool free_resources);
+void ASMount_fs2config (ASModuleConfig * asmodule_config,
+												FreeStorageElem * Storage);
+void MergeASMountOptions (ASModuleConfig * to, ASModuleConfig * from);
 
 
 static ASModuleConfigClass _asmount_config_class = { CONFIG_ASMount_ID,
@@ -149,8 +164,7 @@ static ASModuleConfigClass _asmount_config_class = { CONFIG_ASMount_ID,
 	ASDefaultBalloonTypes
 };
 
-ASModuleConfigClass *
-getASMountConfigClass ()
+ASModuleConfigClass *getASMountConfigClass ()
 {
 	return &_asmount_config_class;
 }
@@ -161,10 +175,8 @@ InitASMountConfig (ASModuleConfig * asm_config, Bool free_resources)
 {
 	ASMountConfig *config = AS_ASMOUNT_CONFIG (asm_config);
 
-	if (config)
-	{
-		if (free_resources)
-		{
+	if (config) {
+		if (free_resources) {
 			destroy_string (&(config->MountedStyle));
 			destroy_string (&(config->UnmountedStyle));
 		}
@@ -174,15 +186,15 @@ InitASMountConfig (ASModuleConfig * asm_config, Bool free_resources)
 	}
 }
 
-void
-PrintASMountConfig (ASMountConfig * config)
+void PrintASMountConfig (ASMountConfig * config)
 {
 	fprintf (stderr, "ASMountConfig = %p;\n", config);
 	if (config == NULL)
 		return;
 
 	fprintf (stderr, "ASMountConfig.flags = 0x%lX;\n", config->flags);
-	fprintf (stderr, "ASMountConfig.set_flags = 0x%lX;\n", config->set_flags);
+	fprintf (stderr, "ASMountConfig.set_flags = 0x%lX;\n",
+					 config->set_flags);
 	ASCF_PRINT_FLAG_KEYWORD (stderr, ASMOUNT, config, ShapeToContents);
 	ASCF_PRINT_FLAG_KEYWORD (stderr, ASMOUNT, config, Vertical);
 	ASCF_PRINT_GEOMETRY_KEYWORD (stderr, ASMOUNT, config, TileSize);
@@ -196,31 +208,29 @@ PrintASMountConfig (ASMountConfig * config)
 }
 
 void
-ASMount_fs2config (ASModuleConfig * asmodule_config, FreeStorageElem * Storage)
+ASMount_fs2config (ASModuleConfig * asmodule_config,
+									 FreeStorageElem * Storage)
 {
 	FreeStorageElem *pCurr;
-	ConfigItem    item;
+	ConfigItem item;
 	ASMountConfig *config = AS_ASMOUNT_CONFIG (asmodule_config);
 
 	if (config == NULL)
 		return;
 
 	item.memory = NULL;
-	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
-	{
+	for (pCurr = Storage; pCurr; pCurr = pCurr->next) {
 		if (pCurr->term == NULL)
 			continue;
 
-		if (pCurr->term->type == TT_FLAG)
-		{
-			if (pCurr->term->id == ASMOUNT_Bevel_ID)
-			{
-				set_scalar_value (&(config->MountedBevel), ParseBevelOptions (pCurr->sub),
-								  &(config->set_flags), ASMOUNT_Bevel);
+		if (pCurr->term->type == TT_FLAG) {
+			if (pCurr->term->id == ASMOUNT_Bevel_ID) {
+				set_scalar_value (&(config->MountedBevel),
+													ParseBevelOptions (pCurr->sub),
+													&(config->set_flags), ASMOUNT_Bevel);
 				config->UnmountedBevel = config->MountedBevel;
 			}
-		} else
-		{
+		} else {
 			if (!ReadConfigItem (&item, pCurr))
 				continue;
 
@@ -239,8 +249,7 @@ MergeASMountOptions (ASModuleConfig * asm_to, ASModuleConfig * asm_from)
 	ASMountConfig *to = AS_ASMOUNT_CONFIG (asm_to);
 	ASMountConfig *from = AS_ASMOUNT_CONFIG (asm_from);
 
-	if (to && from)
-	{
+	if (to && from) {
 		ASCF_MERGE_FLAGS (to, from);
 		ASCF_MERGE_GEOMETRY_KEYWORD (ASMOUNT, to, from, TileSize);
 		ASCF_MERGE_STRING_KEYWORD (ASMOUNT, to, from, MountedStyle);
@@ -249,17 +258,19 @@ MergeASMountOptions (ASModuleConfig * asm_to, ASModuleConfig * asm_from)
 	SHOW_TIME ("to parsing", option_time);
 }
 
-ASFlagType
-DigestASMountAlign (ASMountConfig * Config, ASFlagType align)
+ASFlagType DigestASMountAlign (ASMountConfig * Config, ASFlagType align)
 {
 	return align;
 }
 
 void
-CheckASMountConfigSanity (ASMountConfig * Config, ASGeometry * default_tile_size)
+CheckASMountConfigSanity (ASMountConfig * Config,
+													ASGeometry * default_tile_size)
 {
 	if (Config == NULL)
-		Config = AS_ASMOUNT_CONFIG (create_ASModule_config (getASMountConfigClass ()));
+		Config =
+				AS_ASMOUNT_CONFIG (create_ASModule_config
+													 (getASMountConfigClass ()));
 
 	if (default_tile_size && default_tile_size->flags != 0)
 		Config->TileSize = *default_tile_size;

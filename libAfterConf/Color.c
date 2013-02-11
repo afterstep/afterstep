@@ -42,7 +42,7 @@
  ****************************************************************************/
 #define COLOR_TERM(n,len)  {TF_NO_MYNAME_PREPENDING, #n, len, TT_COLOR, COLOR_##n##_ID , NULL}
 
-TermDef       ColorTerms[] = {
+TermDef ColorTerms[] = {
 	COLOR_TERM (Base, 4),
 	COLOR_TERM (Inactive1, 9),
 	COLOR_TERM (Inactive2, 9),
@@ -81,11 +81,11 @@ TermDef       ColorTerms[] = {
 };
 
 
-SyntaxDef     ColorSyntax = {
+SyntaxDef ColorSyntax = {
 	'\n',
 	'\0',
 	ColorTerms,
-	0,										   /* use default hash size */
+	0,														/* use default hash size */
 	' ',
 	"",
 	"\t",
@@ -96,36 +96,33 @@ SyntaxDef     ColorSyntax = {
 	0
 };
 
-ColorConfig  *
-CreateColorConfig ()
+ColorConfig *CreateColorConfig ()
 {
 	return safecalloc (1, sizeof (ColorConfig));
 }
 
-void
-DestroyColorConfig (ColorConfig * config)
+void DestroyColorConfig (ColorConfig * config)
 {
-	if (config)
-	{
+	if (config) {
 		DestroyFreeStorage (&(config->more_stuff));
 		free (config);
 	}
 }
 
 
-void
-PrintColorConfig (ColorConfig * config)
+void PrintColorConfig (ColorConfig * config)
 {
 }
 
-ColorConfig  *
-ParseColorOptions (const char *filename, char *myname)
+ColorConfig *ParseColorOptions (const char *filename, char *myname)
 {
-	ColorConfig  *config = CreateColorConfig ();
+	ColorConfig *config = CreateColorConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
-	ConfigItem    item;
+	ConfigItem item;
 
-	Storage = file2free_storage (filename, myname, &ColorSyntax, NULL, &(config->more_stuff));
+	Storage =
+			file2free_storage (filename, myname, &ColorSyntax, NULL,
+												 &(config->more_stuff));
 	if (Storage == NULL)
 		return config;
 
@@ -133,9 +130,8 @@ ParseColorOptions (const char *filename, char *myname)
 
 	LOCAL_DEBUG_OUT ("Storage = %p", Storage);
 
-	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
-	{
-		int           index;
+	for (pCurr = Storage; pCurr; pCurr = pCurr->next) {
+		int index;
 
 		LOCAL_DEBUG_OUT ("pCurr = %p", pCurr);
 		if (pCurr->term == NULL)
@@ -144,16 +140,16 @@ ParseColorOptions (const char *filename, char *myname)
 			continue;
 		index = pCurr->term->id - COLOR_ID_START;
 		LOCAL_DEBUG_OUT ("id %d, index = %d", pCurr->term->id, index);
-		if (index >= 0 && index < ASMC_MainColors)
-		{
+		if (index >= 0 && index < ASMC_MainColors) {
 			LOCAL_DEBUG_OUT ("index %d is \"%s\"", index, item.data.string);
-			if (parse_argb_color (item.data.string, &(config->main_colors[index])) != item.data.string)
-			{
-				LOCAL_DEBUG_OUT ("Parsed color %d as #%8.8lX", index, (unsigned long)config->main_colors[index]);
+			if (parse_argb_color
+					(item.data.string,
+					 &(config->main_colors[index])) != item.data.string) {
+				LOCAL_DEBUG_OUT ("Parsed color %d as #%8.8lX", index,
+												 (unsigned long)config->main_colors[index]);
 				set_flags (config->set_main_colors, (0x01 << index));
 			}
-		} else if (pCurr->term->id == COLOR_Angle_ID)
-		{
+		} else if (pCurr->term->id == COLOR_Angle_ID) {
 			config->angle = item.data.integer;
 			set_flags (config->set_main_colors, COLOR_Angle);
 		}
@@ -172,30 +168,31 @@ ParseColorOptions (const char *filename, char *myname)
  *
  */
 int
-WriteColorOptions (const char *filename, char *myname, ColorConfig * config, unsigned long flags)
+WriteColorOptions (const char *filename, char *myname,
+									 ColorConfig * config, unsigned long flags)
 {
-	ConfigDef    *ColorConfigWriter = NULL;
+	ConfigDef *ColorConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
-	ConfigData    cd;
+	ConfigData cd;
 
-	char          color_buffer[128];
-	int           i;
+	char color_buffer[128];
+	int i;
 
 	if (config == NULL)
 		return 1;
 	cd.filename = filename;
-	if ((ColorConfigWriter = InitConfigWriter (myname, &ColorSyntax, CDT_Filename, cd)) == NULL)
+	if ((ColorConfigWriter =
+			 InitConfigWriter (myname, &ColorSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 
 	CopyFreeStorage (&Storage, config->more_stuff);
 
 	/* building free storage here */
 	LOCAL_DEBUG_OUT ("0x%lX", config->set_main_colors);
-	for (i = 0; i < ASMC_MainColors; ++i)
-	{
-		ARGB32        c = config->main_colors[i];
-		CARD32        a, r, g, b, h, s, v;
-		char         *tmp[1];
+	for (i = 0; i < ASMC_MainColors; ++i) {
+		ARGB32 c = config->main_colors[i];
+		CARD32 a, r, g, b, h, s, v;
+		char *tmp[1];
 		FreeStorageElem **pelem;
 
 		a = ARGB32_ALPHA8 (c);
@@ -210,21 +207,28 @@ WriteColorOptions (const char *filename, char *myname, ColorConfig * config, uns
 		g = g >> 8;
 		b = b >> 8;
 		tmp[0] = &(color_buffer[0]);
-		sprintf (color_buffer, "#%2.2lX%2.2lX%2.2lX%2.2lX  \t\t# or ahsv(%ld,%ld,%ld,%ld) or argb(%ld,%ld,%ld,%ld)",
-				 (unsigned long)a, (unsigned long)r, (unsigned long)g, (unsigned long)b, (long)a, (long)h, (long)s,
-				 (long)v, (long)a, (long)r, (long)g, (long)b);
+		sprintf (color_buffer,
+						 "#%2.2lX%2.2lX%2.2lX%2.2lX  \t\t# or ahsv(%ld,%ld,%ld,%ld) or argb(%ld,%ld,%ld,%ld)",
+						 (unsigned long)a, (unsigned long)r, (unsigned long)g,
+						 (unsigned long)b, (long)a, (long)h, (long)s, (long)v, (long)a,
+						 (long)r, (long)g, (long)b);
 		pelem = tail;
 		LOCAL_DEBUG_OUT ("tail  = %p", tail);
-		tail = Strings2FreeStorage (&ColorSyntax, tail, &(tmp[0]), 1, COLOR_ID_START + i);
+		tail =
+				Strings2FreeStorage (&ColorSyntax, tail, &(tmp[0]), 1,
+														 COLOR_ID_START + i);
 
 		LOCAL_DEBUG_OUT ("i = %d, tail  = %p, *pelem = %p", i, tail, pelem);
-		if (*pelem && !get_flags (config->set_main_colors, 0x01 << i) && i != ASMC_Base)
+		if (*pelem && !get_flags (config->set_main_colors, 0x01 << i)
+				&& i != ASMC_Base)
 			set_flags ((*pelem)->flags, CF_DISABLED_OPTION);
 	}
 
 	/* colorscheme angle */
 	if (get_flags (config->set_main_colors, COLOR_Angle))
-		tail = Integer2FreeStorage (&ColorSyntax, tail, NULL, config->angle, COLOR_Angle_ID);
+		tail =
+				Integer2FreeStorage (&ColorSyntax, tail, NULL, config->angle,
+														 COLOR_Angle_ID);
 
 	/* writing config into the file */
 	cd.filename = filename;
@@ -232,23 +236,22 @@ WriteColorOptions (const char *filename, char *myname, ColorConfig * config, uns
 	DestroyFreeStorage (&Storage);
 	DestroyConfig (ColorConfigWriter);
 
-	if (Storage)
-	{
-		fprintf (stderr, "\n%s:Config Writing warning: Not all Free Storage discarded! Trying again...", myname);
+	if (Storage) {
+		fprintf (stderr,
+						 "\n%s:Config Writing warning: Not all Free Storage discarded! Trying again...",
+						 myname);
 		DestroyFreeStorage (&Storage);
 		fprintf (stderr, (Storage != NULL) ? " failed." : " success.");
 	}
 	return 0;
 }
 
-ColorConfig  *
-ASColorScheme2ColorConfig (ASColorScheme * cs)
+ColorConfig *ASColorScheme2ColorConfig (ASColorScheme * cs)
 {
-	ColorConfig  *config = NULL;
+	ColorConfig *config = NULL;
 
-	if (cs)
-	{
-		int           i;
+	if (cs) {
+		int i;
 
 		config = CreateColorConfig ();
 		config->angle = cs->angle;
@@ -259,51 +262,52 @@ ASColorScheme2ColorConfig (ASColorScheme * cs)
 	return config;
 }
 
-ASColorScheme *
-ColorConfig2ASColorScheme (ColorConfig * config)
+ASColorScheme *ColorConfig2ASColorScheme (ColorConfig * config)
 {
 	ASColorScheme *cs = NULL;
 
-	if (config)
-	{
-		int           i;
-		int           angle = ASCS_DEFAULT_ANGLE;
+	if (config) {
+		int i;
+		int angle = ASCS_DEFAULT_ANGLE;
 
 		if (get_flags (config->set_main_colors, COLOR_Angle))
 			angle = config->angle;
 		cs = make_ascolor_scheme (config->main_colors[ASMC_Base], angle);
 		for (i = 0; i < ASMC_MainColors; ++i)
-			if (i != ASMC_Base && get_flags (config->set_main_colors, (0x01 << i)))
+			if (i != ASMC_Base
+					&& get_flags (config->set_main_colors, (0x01 << i)))
 				cs->main_colors[i] = config->main_colors[i];
 
 		for (i = 0; i < ASMC_MainColors; ++i)
-			make_color_scheme_hsv (cs->main_colors[i], &(cs->main_hues[i]), &(cs->main_saturations[i]),
-								   &(cs->main_values[i]));
+			make_color_scheme_hsv (cs->main_colors[i], &(cs->main_hues[i]),
+														 &(cs->main_saturations[i]),
+														 &(cs->main_values[i]));
 
 		cs->set_main_colors = config->set_main_colors;
 	}
 	return cs;
 }
 
-void
-LoadColorScheme ()
+void LoadColorScheme ()
 {
 	ASColorScheme *cs = NULL;
-	const char   *const_configfile;
+	const char *const_configfile;
 
 	/* first we need to load the colorscheme */
 	if ((const_configfile =
-		 get_session_file (Session, get_screen_current_desk (NULL), F_CHANGE_COLORSCHEME, False)) != NULL)
-	{
-		ColorConfig  *config = ParseColorOptions (const_configfile, MyName);
+			 get_session_file (Session, get_screen_current_desk (NULL),
+												 F_CHANGE_COLORSCHEME, False)) != NULL) {
+		ColorConfig *config = ParseColorOptions (const_configfile, MyName);
 
-		if (config)
-		{
+		if (config) {
 			cs = ColorConfig2ASColorScheme (config);
 			DestroyColorConfig (config);
-			show_progress ("COLORSCHEME loaded from \"%s\" ...", const_configfile);
+			show_progress ("COLORSCHEME loaded from \"%s\" ...",
+										 const_configfile);
 		} else
-			show_progress ("COLORSCHEME file format is unrecognizeable in \"%s\" ...", const_configfile);
+			show_progress
+					("COLORSCHEME file format is unrecognizeable in \"%s\" ...",
+					 const_configfile);
 
 	} else
 		show_warning ("COLORSCHEME is not set");
@@ -317,11 +321,12 @@ LoadColorScheme ()
 }
 
 Bool
-translate_gtkrc_template_file (const char *template_fname, const char *output_fname)
+translate_gtkrc_template_file (const char *template_fname,
+															 const char *output_fname)
 {
-	static char   buffer[MAXLINELENGTH];
-	FILE         *src_fp = NULL, *dst_fp = NULL;
-	int           good_strings = 0;
+	static char buffer[MAXLINELENGTH];
+	FILE *src_fp = NULL, *dst_fp = NULL;
+	int good_strings = 0;
 
 	if (template_fname == NULL || output_fname == NULL)
 		return False;;
@@ -330,46 +335,44 @@ translate_gtkrc_template_file (const char *template_fname, const char *output_fn
 	dst_fp = fopen (output_fname, "w");
 	if (dst_fp == NULL)
 		show_warning ("Failed to open file \"%s\" for writing", output_fname);
-	if (src_fp != NULL && dst_fp != NULL)
-	{
-		while (fgets (&buffer[0], MAXLINELENGTH, src_fp))
-		{
-			int           i = 0;
+	if (src_fp != NULL && dst_fp != NULL) {
+		while (fgets (&buffer[0], MAXLINELENGTH, src_fp)) {
+			int i = 0;
 
 			while (isspace (buffer[i]))
 				++i;
-			if (buffer[i] != '\n' && buffer[i] != '#' && buffer[i] != '\0' && buffer[i] != '\r')
-			{
+			if (buffer[i] != '\n' && buffer[i] != '#' && buffer[i] != '\0'
+					&& buffer[i] != '\r') {
 				++good_strings;
 				if (strncmp (&buffer[i], "fg[", 3) == 0 ||
-					strncmp (&buffer[i], "bg[", 3) == 0 ||
-					strncmp (&buffer[i], "text[", 5) == 0 ||
-					strncmp (&buffer[i], "base[", 5) == 0 ||
-					strncmp (&buffer[i], "light[", 6) == 0 ||
-					strncmp (&buffer[i], "dark[", 5) == 0 || strncmp (&buffer[i], "mid[", 4) == 0)
-				{
-					while (buffer[i] != '\0' && buffer[i] != '\"' && buffer[i] != '\{')
+						strncmp (&buffer[i], "bg[", 3) == 0 ||
+						strncmp (&buffer[i], "text[", 5) == 0 ||
+						strncmp (&buffer[i], "base[", 5) == 0 ||
+						strncmp (&buffer[i], "light[", 6) == 0 ||
+						strncmp (&buffer[i], "dark[", 5) == 0
+						|| strncmp (&buffer[i], "mid[", 4) == 0) {
+					while (buffer[i] != '\0' && buffer[i] != '\"'
+								 && buffer[i] != '\{')
 						++i;
-					if (buffer[i] == '\"')
-					{
-						char         *token = &buffer[i + 1];
+					if (buffer[i] == '\"') {
+						char *token = &buffer[i + 1];
 
-						if (isalpha (token[0]))
-						{
-							int           len = 0;
+						if (isalpha (token[0])) {
+							int len = 0;
 
 							while (token[len] != '\0' && token[len] != '\"')
 								++len;
-							if (token[len] == '\"' && len > 0)
-							{
-								ARGB32        argb;
+							if (token[len] == '\"' && len > 0) {
+								ARGB32 argb;
 
-								if (parse_argb_color (token, &argb) != token)
-								{
+								if (parse_argb_color (token, &argb) != token) {
 									fwrite (&(buffer[0]), 1, i + 1, dst_fp);
-									fprintf (dst_fp, "#%2.2lX%2.2lX%2.2lX", (unsigned long)ARGB32_RED8 (argb),
-											 (unsigned long)ARGB32_GREEN8 (argb), (unsigned long)ARGB32_BLUE8 (argb));
-									fwrite (&(token[len]), 1, strlen (&(token[len])), dst_fp);
+									fprintf (dst_fp, "#%2.2lX%2.2lX%2.2lX",
+													 (unsigned long)ARGB32_RED8 (argb),
+													 (unsigned long)ARGB32_GREEN8 (argb),
+													 (unsigned long)ARGB32_BLUE8 (argb));
+									fwrite (&(token[len]), 1, strlen (&(token[len])),
+													dst_fp);
 									continue;
 								}
 							}
@@ -389,37 +392,35 @@ translate_gtkrc_template_file (const char *template_fname, const char *output_fn
 }
 
 Bool
-translate_kcsrc_template_file (const char *template_fname, const char *output_fname)
+translate_kcsrc_template_file (const char *template_fname,
+															 const char *output_fname)
 {
 /* this prolly needs to be rewritten using libAfterBase/kde.c code	: */
-	int           good_strings = 0;
-	xml_elem_t   *KDE_cs, *group;
+	int good_strings = 0;
+	xml_elem_t *KDE_cs, *group;
 
 	if (template_fname == NULL || output_fname == NULL)
 		return False;;
 
 	KDE_cs = load_KDE_config (template_fname);
-	for (group = KDE_cs->child; group != NULL; group = group->next)
-	{
-		xml_elem_t   *item;
+	for (group = KDE_cs->child; group != NULL; group = group->next) {
+		xml_elem_t *item;
 
 		for (item = group->child; item != NULL; item = item->next)
-			if (item->tag_id == KDEConfig_item && IsTagCDATA (item->child))
-			{
-				char         *parm = item->child->parm;
+			if (item->tag_id == KDEConfig_item && IsTagCDATA (item->child)) {
+				char *parm = item->child->parm;
 
 				++good_strings;
-				if (*parm == '\"')
-				{
-					ARGB32        argb;
+				if (*parm == '\"') {
+					ARGB32 argb;
 
 					++parm;
-					if (parse_argb_color (parm, &argb) != parm)
-					{
-						char         *tmp = safemalloc (32);
+					if (parse_argb_color (parm, &argb) != parm) {
+						char *tmp = safemalloc (32);
 
 						sprintf (tmp, "%ld,%ld,%ld", (unsigned long)ARGB32_RED8 (argb),
-								 (unsigned long)ARGB32_GREEN8 (argb), (unsigned long)ARGB32_BLUE8 (argb));
+										 (unsigned long)ARGB32_GREEN8 (argb),
+										 (unsigned long)ARGB32_BLUE8 (argb));
 						free (item->child->parm);
 						item->child->parm = tmp;
 					}
@@ -433,17 +434,15 @@ translate_kcsrc_template_file (const char *template_fname, const char *output_fn
 }
 
 
-Bool
-UpdateGtkRC (ASEnvironment * e)
+Bool UpdateGtkRC (ASEnvironment * e)
 {
-	Bool          result = False;
-	char         *src;
+	Bool result = False;
+	char *src;
 
 	/* first we need to load the colorscheme */
 	if (e == NULL)
 		return False;
-	if (e->gtkrc_path != NULL && strcmp (e->gtkrc_path, "/dev/null") != 0)
-	{
+	if (e->gtkrc_path != NULL && strcmp (e->gtkrc_path, "/dev/null") != 0) {
 		src = make_session_file (Session, GTKRC_TEMPLATE_FILE, False);
 		if (src)
 			result = translate_gtkrc_template_file (src, e->gtkrc_path);
@@ -451,8 +450,8 @@ UpdateGtkRC (ASEnvironment * e)
 		destroy_string (&src);
 	}
 
-	if (e->gtkrc20_path != NULL && strcmp (e->gtkrc20_path, "/dev/null") != 0)
-	{
+	if (e->gtkrc20_path != NULL
+			&& strcmp (e->gtkrc20_path, "/dev/null") != 0) {
 		src = make_session_file (Session, GTKRC20_TEMPLATE_FILE, False);
 		/* first we need to load the colorscheme */
 		if (src)
@@ -463,25 +462,27 @@ UpdateGtkRC (ASEnvironment * e)
 	return result;
 }
 
-static        Bool
+static Bool
 SetKDEGlobalsColorScheme (const char *new_cs_file, const char *cs_name)
 {
-	char         *kdeglobals_fname = copy_replace_envvar (KDEGLOBALS_FILE);
-	xml_elem_t   *KDE_cs = load_KDE_config (new_cs_file);
-	xml_elem_t   *KDE_globals = load_KDE_config (kdeglobals_fname);
-	xml_elem_t   *KDE_group = get_KDE_config_group (KDE_globals, "KDE", True);
-	xml_elem_t   *CS_group = get_KDE_config_group (KDE_cs, "Color Scheme", False);
+	char *kdeglobals_fname = copy_replace_envvar (KDEGLOBALS_FILE);
+	xml_elem_t *KDE_cs = load_KDE_config (new_cs_file);
+	xml_elem_t *KDE_globals = load_KDE_config (kdeglobals_fname);
+	xml_elem_t *KDE_group = get_KDE_config_group (KDE_globals, "KDE", True);
+	xml_elem_t *CS_group =
+			get_KDE_config_group (KDE_cs, "Color Scheme", False);
 
-	if (CS_group)
-	{
-		xml_elem_t   *WM_group = get_KDE_config_group (KDE_globals, "WM", True);
-		xml_elem_t   *General_group = get_KDE_config_group (KDE_globals, "General", True);
+	if (CS_group) {
+		xml_elem_t *WM_group = get_KDE_config_group (KDE_globals, "WM", True);
+		xml_elem_t *General_group =
+				get_KDE_config_group (KDE_globals, "General", True);
 
 		merge_KDE_config_groups (CS_group, WM_group);
 		merge_KDE_config_groups (CS_group, General_group);
 	}
 
-	set_KDE_config_group_item (KDE_group, "colorScheme", cs_name ? cs_name : new_cs_file);
+	set_KDE_config_group_item (KDE_group, "colorScheme",
+														 cs_name ? cs_name : new_cs_file);
 
 	save_KDE_config (kdeglobals_fname, KDE_globals);
 	xml_elem_delete (NULL, KDE_globals);
@@ -493,25 +494,22 @@ SetKDEGlobalsColorScheme (const char *new_cs_file, const char *cs_name)
 	return (CS_group != NULL);
 }
 
-Bool
-UpdateKCSRC ()
+Bool UpdateKCSRC ()
 {
-	Bool          result = False;
-	char         *src = make_session_file (Session, KSCRC_TEMPLATE_FILE, False);
-	char         *dst = make_session_rc_file (Session, KCSRC_FILE);
+	Bool result = False;
+	char *src = make_session_file (Session, KSCRC_TEMPLATE_FILE, False);
+	char *dst = make_session_rc_file (Session, KCSRC_FILE);
 
 	/* first we need to load the colorscheme */
 	if (src && dst)
 		result = translate_kcsrc_template_file (src, dst);
 
-	if (result)
-	{
-		char         *cs_filename = dst;
-		char         *kcs_path = copy_replace_envvar (KDECS_DIR);
+	if (result) {
+		char *cs_filename = dst;
+		char *kcs_path = copy_replace_envvar (KDECS_DIR);
 
-		if (CheckDir (kcs_path) == 0)
-		{
-			char         *fullcs_filename;
+		if (CheckDir (kcs_path) == 0) {
+			char *fullcs_filename;
 
 			cs_filename = mystrdup (AS_KCSRC_FILE);
 			fullcs_filename = make_file_name (kcs_path, cs_filename);
@@ -535,18 +533,18 @@ UpdateKCSRC ()
 #if 0
 /* relevant KDE code for reference : */
 
-void
-KColorScheme::load ()
+void KColorScheme::load ()
 {
-	KConfig      *config = KGlobal::config ();
+	KConfig *config = KGlobal::config ();
 
 	config->setGroup ("KDE");
-	QString       currentScheme = config->readEntry ("colorScheme");
+	QString currentScheme = config->readEntry ("colorScheme");
 
-	QString       currentSchemeSearch = currentScheme.left (currentScheme.length () - QString (".kcsrc").length ());
+	QString currentSchemeSearch =
+			currentScheme.left (currentScheme.length () -
+													QString (".kcsrc").length ());
 
-	if (SchemeListItem * item = findSchemeListItem (currentSchemeSearch))
-	{
+	if (SchemeListItem * item = findSchemeListItem (currentSchemeSearch)) {
 		item->setSelected (true);
 		m_ui->schemeList->setCurrentItem (item);
 		m_ui->schemeList->ensureItemVisible (item);
@@ -554,30 +552,28 @@ KColorScheme::load ()
 	m_currentScheme->setInheritedScheme (currentSchemeSearch);
 	currentSchemeChanged ();
 
-	KConfig       cfg ("kcmdisplayrc", true, false);
+	KConfig cfg ("kcmdisplayrc", true, false);
 
 	cfg.setGroup ("X11");
-	bool          exportColors = cfg.readBoolEntry ("exportKDEColors", true);
+	bool exportColors = cfg.readBoolEntry ("exportKDEColors", true);
 
 	m_ui->exportColorsCB->setChecked (exportColors);
 
-	emit          changed (false);
+	emit changed (false);
 }
 
 
 
 
-void
-KColorScheme::save ()
+void KColorScheme::save ()
 {
 	// apply the current scheme data
-	if (m_selectedScheme && m_currentScheme)
-	{
-		KConfig      *c = KGlobal::config ();
+	if (m_selectedScheme && m_currentScheme) {
+		KConfig *c = KGlobal::config ();
 
 		writeSchemeConfig (c, "General", "WM", "KDE", *m_currentScheme);
 // this also translates into :
-		KConfig      *cfg = KGlobal::config ();
+		KConfig *cfg = KGlobal::config ();
 
 		cfg->setGroup ("General");
 		cfg->writeEntry ("background", cs->back, true, true);
@@ -601,11 +597,13 @@ KColorScheme::save ()
 		cfg->writeEntry ("activeTitleBtnBg", cs->aTitleBtnBack, true, true);
 		cfg->writeEntry ("inactiveTitleBtnBg", cs->iTitleBtnBack, true, true);
 		if (cs->aTitleBtnBlend != cs->aTitleBtnBack)
-			cfg->writeEntry ("activeTitleBtnBlend", cs->aTitleBtnBlend, true, true);
+			cfg->writeEntry ("activeTitleBtnBlend", cs->aTitleBtnBlend, true,
+											 true);
 		else
 			cfg->writeEntry ("activeTitleBtnBlend", "", true, true);
 		if (cs->iTitleBtnBlend != cs->iTitleBtnBack)
-			cfg->writeEntry ("inactiveTitleBtnBlend", cs->iTitleBtnBlend, true, true);
+			cfg->writeEntry ("inactiveTitleBtnBlend", cs->iTitleBtnBlend, true,
+											 true);
 		else
 			cfg->writeEntry ("inactiveTitleBtnBlend", "", true, true);
 
@@ -613,11 +611,14 @@ KColorScheme::save ()
 		cfg->writeEntry ("contrast", cs->contrast, true, true);
 		cfg->sync ();
 
-		c->writeEntry ("colorScheme", QString ("%1.kcsrc").arg (m_selectedScheme->visibleName ()), true, true);
+		c->writeEntry ("colorScheme",
+									 QString ("%1.kcsrc").arg (m_selectedScheme->
+																						 visibleName ()), true, true);
 		c->sync ();
 
 		// KDE-1.x support
-		KSimpleConfig *c2 = new KSimpleConfig (QDir::homeDirPath () + "/.kderc");
+		KSimpleConfig *c2 =
+				new KSimpleConfig (QDir::homeDirPath () + "/.kderc");
 
 		c2->setGroup ("General");
 		write (c2, CS_StandardBackground, *m_currentScheme);
@@ -627,57 +628,54 @@ KColorScheme::save ()
 		write (c2, CS_Background, *m_currentScheme);
 		write (c2, CS_SelectedText, *m_currentScheme);
 		c2->sync ();
-		delete        c2;
+		delete c2;
 	}
 
-	KConfig       cfg2 ("kcmdisplayrc", false, false);
+	KConfig cfg2 ("kcmdisplayrc", false, false);
 
 	cfg2.setGroup ("X11");
-	bool          exportColors = m_ui->exportColorsCB->isChecked ();
+	bool exportColors = m_ui->exportColorsCB->isChecked ();
 
 	cfg2.writeEntry ("exportKDEColors", exportColors);
 	cfg2.sync ();
 	QApplication::syncX ();
 
 	// Notify all qt-only apps of the KDE palette changes
-	uint          flags = KRdbExportQtColors;
+	uint flags = KRdbExportQtColors;
 
 	if (exportColors)
 		flags |= KRdbExportColors;
-	else
-	{
+	else {
 #if defined Q_WS_X11 && !defined K_WS_QTONLY
 		// Undo the property xrdb has placed on the root window (if any),
 		// i.e. remove all entries, including ours
 		XDeleteProperty (qt_xdisplay (), qt_xrootwin (), XA_RESOURCE_MANAGER);
 #endif
 	}
-	runRdb (flags);							   // Save the palette to qtrc for KStyles
+	runRdb (flags);								// Save the palette to qtrc for KStyles
 
 	// Notify all KDE applications
 	KIPC::sendMessageAll (KIPC::PaletteChanged);
 
-	emit          changed (false);
+	emit changed (false);
 }
 
-void
-runRdb (uint flags)
+void runRdb (uint flags)
 {
 	// Obtain the application palette that is about to be set.
-	QPalette      newPal = KApplication::createApplicationPalette ();
-	bool          exportColors = flags & KRdbExportColors;
-	bool          exportQtColors = flags & KRdbExportQtColors;
-	bool          exportQtSettings = flags & KRdbExportQtSettings;
-	bool          exportXftSettings = flags & KRdbExportXftSettings;
+	QPalette newPal = KApplication::createApplicationPalette ();
+	bool exportColors = flags & KRdbExportColors;
+	bool exportQtColors = flags & KRdbExportQtColors;
+	bool exportQtSettings = flags & KRdbExportQtSettings;
+	bool exportXftSettings = flags & KRdbExportXftSettings;
 
-	KConfig       kglobals ("kdeglobals", true, false);
+	KConfig kglobals ("kdeglobals", true, false);
 
 	kglobals.setGroup ("KDE");
 
-	KTempFile     tmpFile;
+	KTempFile tmpFile;
 
-	if (tmpFile.status () != 0)
-	{
+	if (tmpFile.status () != 0) {
 		kdDebug () << "Couldn't open temp file" << endl;
 		exit (0);
 	}
@@ -685,45 +683,55 @@ runRdb (uint flags)
 	QFile & tmp = *(tmpFile.file ());
 
 	// Export colors to non-(KDE/Qt) apps (e.g. Motif, GTK+ apps)
-	if (exportColors)
-	{
+	if (exportColors) {
 		KGlobal::dirs ()->addResourceType ("appdefaults",
-										   KStandardDirs::kde_default ("data") + "kdisplay/app-defaults/");
-		QColorGroup   cg = newPal.active ();
+																			 KStandardDirs::
+																			 kde_default ("data") +
+																			 "kdisplay/app-defaults/");
+		QColorGroup cg = newPal.active ();
 
 		KGlobal::locale ()->insertCatalogue ("krdb");
 		createGtkrc (true, cg, 1);
 		createGtkrc (true, cg, 2);
 
-		QString       preproc;
-		QColor        backCol = cg.background ();
+		QString preproc;
+		QColor backCol = cg.background ();
 
 		addColorDef (preproc, "FOREGROUND", cg.foreground ());
 		addColorDef (preproc, "BACKGROUND", backCol);
-		addColorDef (preproc, "HIGHLIGHT", backCol.light (100 + (2 * KGlobalSettings::contrast () + 4) * 16 / 1));
-		addColorDef (preproc, "LOWLIGHT", backCol.dark (100 + (2 * KGlobalSettings::contrast () + 4) * 10));
+		addColorDef (preproc, "HIGHLIGHT",
+								 backCol.light (100 +
+																(2 * KGlobalSettings::contrast () +
+																 4) * 16 / 1));
+		addColorDef (preproc, "LOWLIGHT",
+								 backCol.dark (100 +
+															 (2 * KGlobalSettings::contrast () +
+																4) * 10));
 		addColorDef (preproc, "SELECT_BACKGROUND", cg.highlight ());
 		addColorDef (preproc, "SELECT_FOREGROUND", cg.highlightedText ());
 		addColorDef (preproc, "WINDOW_BACKGROUND", cg.base ());
 		addColorDef (preproc, "WINDOW_FOREGROUND", cg.foreground ());
-		addColorDef (preproc, "INACTIVE_BACKGROUND", KGlobalSettings::inactiveTitleColor ());
-		addColorDef (preproc, "INACTIVE_FOREGROUND", KGlobalSettings::inactiveTitleColor ());
-		addColorDef (preproc, "ACTIVE_BACKGROUND", KGlobalSettings::activeTitleColor ());
-		addColorDef (preproc, "ACTIVE_FOREGROUND", KGlobalSettings::activeTitleColor ());
+		addColorDef (preproc, "INACTIVE_BACKGROUND",
+								 KGlobalSettings::inactiveTitleColor ());
+		addColorDef (preproc, "INACTIVE_FOREGROUND",
+								 KGlobalSettings::inactiveTitleColor ());
+		addColorDef (preproc, "ACTIVE_BACKGROUND",
+								 KGlobalSettings::activeTitleColor ());
+		addColorDef (preproc, "ACTIVE_FOREGROUND",
+								 KGlobalSettings::activeTitleColor ());
 		//---------------------------------------------------------------
 
 		tmp.writeBlock (preproc.latin1 (), preproc.length ());
 
-		QStringList   list;
+		QStringList list;
 
-		QStringList   adPaths = KGlobal::dirs ()->findDirs ("appdefaults", "");
+		QStringList adPaths = KGlobal::dirs ()->findDirs ("appdefaults", "");
 
-		for (QStringList::ConstIterator it = adPaths.begin (); it != adPaths.end (); ++it)
-		{
-			QDir          dSys (*it);
+		for (QStringList::ConstIterator it = adPaths.begin ();
+				 it != adPaths.end (); ++it) {
+			QDir dSys (*it);
 
-			if (dSys.exists ())
-			{
+			if (dSys.exists ()) {
 				dSys.setFilter (QDir::Files);
 				dSys.setSorting (QDir::Name);
 				dSys.setNameFilter ("*.ad");
@@ -731,12 +739,13 @@ runRdb (uint flags)
 			}
 		}
 
-		for (QStringList::ConstIterator it = list.begin (); it != list.end (); it++)
+		for (QStringList::ConstIterator it = list.begin (); it != list.end ();
+				 it++)
 			copyFile (tmp, locate ("appdefaults", *it), true);
 	}
 	// Merge ~/.Xresources or fallback to ~/.Xdefaults
-	QString       homeDir = QDir::homeDirPath ();
-	QString       xResources = homeDir + "/.Xresources";
+	QString homeDir = QDir::homeDirPath ();
+	QString xResources = homeDir + "/.Xresources";
 
 	// very primitive support for ~/.Xresources by appending it
 	if (QFile::exists (xResources))
@@ -745,9 +754,9 @@ runRdb (uint flags)
 		copyFile (tmp, homeDir + "/.Xdefaults", true);
 
 	// Export the Xcursor theme & size settings
-	QString       theme = kglobals.readEntry ("cursorTheme", QString ());
-	QString       size = kglobals.readEntry ("cursorSize", QString ());
-	QString       contents;
+	QString theme = kglobals.readEntry ("cursorTheme", QString ());
+	QString size = kglobals.readEntry ("cursorSize", QString ());
+	QString contents;
 
 	if (!theme.isNull ())
 		contents = "Xcursor.theme: " + theme + '\n';
@@ -755,12 +764,11 @@ runRdb (uint flags)
 	if (!size.isNull ())
 		contents += "Xcursor.size: " + size + '\n';
 
-	if (exportXftSettings)
-	{
+	if (exportXftSettings) {
 		kglobals.setGroup ("General");
 
-		QString       hintStyle (kglobals.readEntry ("XftHintStyle", "hintmedium")),
-			subPixel (kglobals.readEntry ("XftSubPixel"));
+		QString hintStyle (kglobals.readEntry ("XftHintStyle", "hintmedium")),
+				subPixel (kglobals.readEntry ("XftSubPixel"));
 
 		contents += "Xft.antialias: ";
 		if (QSettings ().readBoolEntry ("/qt/useXft"))
@@ -771,8 +779,7 @@ runRdb (uint flags)
 		contents += "\nXft.hinting: ";
 		if (hintStyle.isEmpty ())
 			contents += "-1";
-		else
-		{
+		else {
 			if (hintStyle != "hintnone")
 				contents += "1";
 			else
@@ -788,7 +795,7 @@ runRdb (uint flags)
 
 	tmpFile.close ();
 
-	KProcess      proc;
+	KProcess proc;
 
 #ifndef NDEBUG
 	proc << "xrdb" << "-merge" << tmpFile.name ();
@@ -803,9 +810,8 @@ runRdb (uint flags)
 	applyGtkStyles (exportColors, 2);
 
 	/* Qt exports */
-	if (exportQtColors || exportQtSettings)
-	{
-		QSettings    *settings = new QSettings;
+	if (exportQtColors || exportQtSettings) {
+		QSettings *settings = new QSettings;
 
 		if (exportQtColors)
 			applyQtColors (kglobals, *settings, newPal);	// For kcmcolors
@@ -813,7 +819,7 @@ runRdb (uint flags)
 		if (exportQtSettings)
 			applyQtSettings (kglobals, *settings);	// For kcmstyle
 
-		delete        settings;
+		delete settings;
 
 		QApplication::flushX ();
 
@@ -824,25 +830,26 @@ runRdb (uint flags)
 		// Qt-only apps without adversely affecting ourselves.
 
 		// Cheat and use the current timestamp, since we just saved to qtrc.
-		QDateTime     settingsstamp = QDateTime::currentDateTime ();
+		QDateTime settingsstamp = QDateTime::currentDateTime ();
 
-		static Atom   qt_settings_timestamp = 0;
+		static Atom qt_settings_timestamp = 0;
 
-		if (!qt_settings_timestamp)
-		{
-			QString       atomname ("_QT_SETTINGS_TIMESTAMP_");
+		if (!qt_settings_timestamp) {
+			QString atomname ("_QT_SETTINGS_TIMESTAMP_");
 
-			atomname += XDisplayName (0);	   // Use the $DISPLAY envvar.
-			qt_settings_timestamp = XInternAtom (qt_xdisplay (), atomname.latin1 (), False);
+			atomname += XDisplayName (0);	// Use the $DISPLAY envvar.
+			qt_settings_timestamp =
+					XInternAtom (qt_xdisplay (), atomname.latin1 (), False);
 		}
 
-		QBuffer       stamp;
-		QDataStream   s (stamp.buffer (), IO_WriteOnly);
+		QBuffer stamp;
+		QDataStream s (stamp.buffer (), IO_WriteOnly);
 
 		s << settingsstamp;
 		XChangeProperty (qt_xdisplay (), qt_xrootwin (), qt_settings_timestamp,
-						 qt_settings_timestamp, 8, PropModeReplace,
-						 (unsigned char *)stamp.buffer ().data (), stamp.buffer ().size ());
+										 qt_settings_timestamp, 8, PropModeReplace,
+										 (unsigned char *)stamp.buffer ().data (),
+										 stamp.buffer ().size ());
 		QApplication::flushX ();
 	}
 }
@@ -850,19 +857,22 @@ runRdb (uint flags)
 static void
 applyQtColors (KConfig & kglobals, QSettings & settings, QPalette & newPal)
 {
-	QStringList   actcg, inactcg, discg;
+	QStringList actcg, inactcg, discg;
 
 	/* export kde color settings */
-	int           i;
+	int i;
 
 	for (i = 0; i < QColorGroup::NColorRoles; i++)
-		actcg << newPal.color (QPalette::Active, (QColorGroup::ColorRole) i).name ();
+		actcg << newPal.color (QPalette::Active,
+													 (QColorGroup::ColorRole) i).name ();
 	for (i = 0; i < QColorGroup::NColorRoles; i++)
-		inactcg << newPal.color (QPalette::Inactive, (QColorGroup::ColorRole) i).name ();
+		inactcg << newPal.color (QPalette::Inactive,
+														 (QColorGroup::ColorRole) i).name ();
 	for (i = 0; i < QColorGroup::NColorRoles; i++)
-		discg << newPal.color (QPalette::Disabled, (QColorGroup::ColorRole) i).name ();
+		discg << newPal.color (QPalette::Disabled,
+													 (QColorGroup::ColorRole) i).name ();
 
-	while (!settings.writeEntry ("/qt/Palette/active", actcg));
+	while (!settings.writeEntry ("/qt/Palette/active", actcg)) ;
 	settings.writeEntry ("/qt/Palette/inactive", inactcg);
 	settings.writeEntry ("/qt/Palette/disabled", discg);
 
@@ -870,7 +880,7 @@ applyQtColors (KConfig & kglobals, QSettings & settings, QPalette & newPal)
 	kglobals.setGroup ("WM");
 
 	// active colors
-	QColor        clr = newPal.active ().background ();
+	QColor clr = newPal.active ().background ();
 
 	clr = kglobals.readColorEntry ("activeBackground", &clr);
 	settings.writeEntry ("/qt/KWinPalette/activeBackground", clr.name ());
@@ -905,7 +915,8 @@ applyQtColors (KConfig & kglobals, QSettings & settings, QPalette & newPal)
 	settings.writeEntry ("/qt/KWinPalette/inactiveTitleBtnBg", clr.name ());
 
 	kglobals.setGroup ("KDE");
-	settings.writeEntry ("/qt/KDE/contrast", kglobals.readNumEntry ("contrast", 7));
+	settings.writeEntry ("/qt/KDE/contrast",
+											 kglobals.readNumEntry ("contrast", 7));
 }
 
 #endif

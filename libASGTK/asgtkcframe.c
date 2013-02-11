@@ -32,36 +32,38 @@
 #include "asgtkcframe.h"
 
 /*  local function prototypes  */
-static void   asgtk_collapsing_frame_class_init (ASGtkCollapsingFrameClass * klass);
-static void   asgtk_collapsing_frame_init (ASGtkCollapsingFrame * self);
-static void   asgtk_collapsing_frame_dispose (GObject * object);
-static void   asgtk_collapsing_frame_finalize (GObject * object);
-static void   asgtk_collapsing_frame_style_set (GtkWidget * widget, GtkStyle * prev_style);
+static void asgtk_collapsing_frame_class_init (ASGtkCollapsingFrameClass *
+																							 klass);
+static void asgtk_collapsing_frame_init (ASGtkCollapsingFrame * self);
+static void asgtk_collapsing_frame_dispose (GObject * object);
+static void asgtk_collapsing_frame_finalize (GObject * object);
+static void asgtk_collapsing_frame_style_set (GtkWidget * widget,
+																							GtkStyle * prev_style);
 
 
 /*  private variables  */
 static GtkFrameClass *parent_class = NULL;
 
-GType
-asgtk_collapsing_frame_get_type (void)
+GType asgtk_collapsing_frame_get_type (void)
 {
-	static GType  id_type = 0;
+	static GType id_type = 0;
 
-	if (!id_type)
-	{
+	if (!id_type) {
 		static const GTypeInfo id_info = {
 			sizeof (ASGtkCollapsingFrameClass),
 			(GBaseInitFunc) NULL,
 			(GBaseFinalizeFunc) NULL,
 			(GClassInitFunc) asgtk_collapsing_frame_class_init,
-			NULL,							   /* class_finalize */
-			NULL,							   /* class_data     */
+			NULL,											/* class_finalize */
+			NULL,											/* class_data     */
 			sizeof (ASGtkCollapsingFrame),
-			0,								   /* n_preallocs    */
+			0,												/* n_preallocs    */
 			(GInstanceInitFunc) asgtk_collapsing_frame_init,
 		};
 
-		id_type = g_type_register_static (GTK_TYPE_FRAME, "ASGtkCollapsingFrame", &id_info, 0);
+		id_type =
+				g_type_register_static (GTK_TYPE_FRAME, "ASGtkCollapsingFrame",
+																&id_info, 0);
 	}
 
 	return id_type;
@@ -82,33 +84,30 @@ asgtk_collapsing_frame_class_init (ASGtkCollapsingFrameClass * klass)
 
 }
 
-static void
-asgtk_collapsing_frame_init (ASGtkCollapsingFrame * self)
+static void asgtk_collapsing_frame_init (ASGtkCollapsingFrame * self)
 {
 }
 
-static void
-asgtk_collapsing_frame_dispose (GObject * object)
+static void asgtk_collapsing_frame_dispose (GObject * object)
 {
 /*  	ASGtkCollapsingFrame *self = ASGTK_COLLAPSING_FRAME (object); */
 	G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
-static void
-asgtk_collapsing_frame_finalize (GObject * object)
+static void asgtk_collapsing_frame_finalize (GObject * object)
 {
 	G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
 static void
-asgtk_collapsing_frame_style_set (GtkWidget * widget, GtkStyle * prev_style)
+asgtk_collapsing_frame_style_set (GtkWidget * widget,
+																	GtkStyle * prev_style)
 {
 	GTK_WIDGET_CLASS (parent_class)->style_set (widget, prev_style);
 }
 
 
-static void
-collapse_container_part (GtkWidget * widget, gpointer data)
+static void collapse_container_part (GtkWidget * widget, gpointer data)
 {
 	if (data)
 		gtk_widget_hide (widget);
@@ -117,11 +116,14 @@ collapse_container_part (GtkWidget * widget, gpointer data)
 }
 
 static void
-on_collapse_toggle (GtkToggleButton * hide_button, ASGtkCollapsingFrame * self)
+on_collapse_toggle (GtkToggleButton * hide_button,
+										ASGtkCollapsingFrame * self)
 {
-	long          collapsed = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (hide_button));
+	long collapsed =
+			gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (hide_button));
 
-	gtk_container_forall (GTK_CONTAINER (self), collapse_container_part, (gpointer) collapsed);
+	gtk_container_forall (GTK_CONTAINER (self), collapse_container_part,
+												(gpointer) collapsed);
 	if (collapsed)
 		gtk_widget_show (self->header);
 
@@ -131,14 +133,17 @@ on_collapse_toggle (GtkToggleButton * hide_button, ASGtkCollapsingFrame * self)
 
 
 /*  public functions  */
-GtkWidget    *
-asgtk_collapsing_frame_new (const char *label, const char *hide_text)
+GtkWidget *asgtk_collapsing_frame_new (const char *label,
+																			 const char *hide_text)
 {
-	ASGtkCollapsingFrame *self = g_object_new (ASGTK_TYPE_COLLAPSING_FRAME, NULL);
+	ASGtkCollapsingFrame *self =
+			g_object_new (ASGTK_TYPE_COLLAPSING_FRAME, NULL);
 
-	GtkWidget    *hbox = gtk_hbox_new (FALSE, 0);
-	GtkWidget    *label_widget = gtk_label_new (label);
-	GtkWidget    *checkbox = gtk_check_button_new_with_label (hide_text ? hide_text : "( collapse this frame)");
+	GtkWidget *hbox = gtk_hbox_new (FALSE, 0);
+	GtkWidget *label_widget = gtk_label_new (label);
+	GtkWidget *checkbox =
+			gtk_check_button_new_with_label (hide_text ? hide_text :
+																			 "( collapse this frame)");
 
 
 	gtk_box_pack_start (GTK_BOX (hbox), label_widget, TRUE, TRUE, 5);
@@ -146,7 +151,8 @@ asgtk_collapsing_frame_new (const char *label, const char *hide_text)
 	gtk_widget_show_all (hbox);
 	gtk_widget_show (hbox);
 	gtk_frame_set_label_widget (GTK_FRAME (self), hbox);
-	g_signal_connect ((gpointer) checkbox, "clicked", G_CALLBACK (on_collapse_toggle), self);
+	g_signal_connect ((gpointer) checkbox, "clicked",
+										G_CALLBACK (on_collapse_toggle), self);
 
 	self->header = hbox;
 	self->collapse_button = checkbox;
@@ -164,5 +170,6 @@ void
 asgtk_collapsing_frame_set_open (ASGtkCollapsingFrame * self, Bool open)
 {
 	g_return_if_fail (ASGTK_IS_COLLAPSING_FRAME (self));
-	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (self->collapse_button), open ? FALSE : TRUE);
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (self->collapse_button),
+																open ? FALSE : TRUE);
 }

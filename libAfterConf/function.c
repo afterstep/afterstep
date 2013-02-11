@@ -34,8 +34,7 @@
  ****************************************************************************/
 extern SyntaxDef WharfSyntax;
 
-unsigned long
-TrailingFuncSpecial (ConfigDef * config, int skip_tokens)
+unsigned long TrailingFuncSpecial (ConfigDef * config, int skip_tokens)
 {
 	register char *cur;
 
@@ -50,17 +49,15 @@ TrailingFuncSpecial (ConfigDef * config, int skip_tokens)
 	 * since those are not parts of following function */
 	cur = tokenskip (config->cursor, skip_tokens);
 
-	if (*cur != '\0')
-	{
-		TermDef      *pterm;
+	if (*cur != '\0') {
+		TermDef *pterm;
 
 		config->cursor = cur;
 		/* we are at the beginning of the function definition right now - lets process it : */
 		/* read in entire function definition */
 		GetNextStatement (config);
 		/* lets find us the term for this definition */
-		if ((pterm = FindStatementTerm (config->tline, config->syntax)) != NULL)
-		{									   /* we have a valid function definition : */
+		if ((pterm = FindStatementTerm (config->tline, config->syntax)) != NULL) {	/* we have a valid function definition : */
 			config->current_term = pterm;
 			/* we do not want to continue processing the rest of the config as
 			 * a functions : */
@@ -75,12 +72,13 @@ TrailingFuncSpecial (ConfigDef * config, int skip_tokens)
 }
 
 
-FreeStorageElem **
-Func2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, FunctionData * func)
+FreeStorageElem **Func2FreeStorage (SyntaxDef * syntax,
+																		FreeStorageElem ** tail,
+																		FunctionData * func)
 {
-	TermDef      *pterm;
+	TermDef *pterm;
 	FreeStorageElem *new_elem;
-	TermDef      *folder_term = func2fterm (F_Folder, False);
+	TermDef *folder_term = func2fterm (F_Folder, False);
 
 	if (func == NULL || tail == NULL)
 		return tail;
@@ -91,20 +89,19 @@ Func2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, FunctionData * fu
 
 	pterm = FindTerm (pFuncSyntax, TT_ANY, func->func);
 	/* adding balloon free storage here */
-	if ((new_elem = AddFreeStorageElem (syntax, tail, pterm, WHARF_Wharf_ID)) != NULL)
-	{
-		char         *argv[1 + MAX_FUNC_ARGS];
-		int           len = 0;
+	if ((new_elem =
+			 AddFreeStorageElem (syntax, tail, pterm, WHARF_Wharf_ID)) != NULL) {
+		char *argv[1 + MAX_FUNC_ARGS];
+		int len = 0;
 
-		register int  i;
+		register int i;
 		register char *dst;
 		register char *src;
 
 		for (i = 0; i <= MAX_FUNC_ARGS; i++)
 			argv[i] = NULL;
 
-		if (func->name)
-		{
+		if (func->name) {
 			src = func->name;
 			len += 1 + strlen (src) + 1 + 1;
 			dst = argv[new_elem->argc] = safemalloc (len);
@@ -116,19 +113,17 @@ Func2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, FunctionData * fu
 			new_elem->argc++;
 		}
 
-		if (get_flags (pterm->flags, USES_NUMVALS))
-		{
-			int           max_args = MAX_FUNC_ARGS;
-			CARD32        default_val = 0;
+		if (get_flags (pterm->flags, USES_NUMVALS)) {
+			int max_args = MAX_FUNC_ARGS;
+			CARD32 default_val = 0;
 
 			if ((default_val = default_func_val (func->func)) != 0)
 				for (; 0 < max_args; max_args--)
 					if (func->func_val[max_args - 1] != default_val)
 						break;
 
-			for (i = 0; i < max_args; i++)
-			{
-				int           val_len;
+			for (i = 0; i < max_args; i++) {
+				int val_len;
 
 				if ((src = string_from_int ((int)(func->func_val[i]))) == NULL)
 					continue;
@@ -139,9 +134,8 @@ Func2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, FunctionData * fu
 
 				if (func->unit[i] == '\0')
 					argv[new_elem->argc] = src;
-				else
-				{
-					char         *tmp = src;
+				else {
+					char *tmp = src;
 
 					val_len++;
 					dst = argv[new_elem->argc] = safemalloc (val_len + 1);
@@ -154,22 +148,19 @@ Func2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, FunctionData * fu
 				len += val_len + 1;
 				new_elem->argc++;
 			}
-		} else if (func->text != NULL)
-		{
+		} else if (func->text != NULL) {
 			argv[new_elem->argc] = mystrdup (func->text);
 			len += strlen (argv[new_elem->argc]) + 1;
 			new_elem->argc++;
 		}
-		if (len > 0)
-		{
-			new_elem->argv = (char **)safemalloc (sizeof (char *) * new_elem->argc);
+		if (len > 0) {
+			new_elem->argv =
+					(char **)safemalloc (sizeof (char *) * new_elem->argc);
 
 			dst = safemalloc (len);
-			for (i = 0; i < new_elem->argc; i++)
-			{
+			for (i = 0; i < new_elem->argc; i++) {
 				new_elem->argv[i] = dst;
-				if ((src = argv[i]) != NULL)
-				{
+				if ((src = argv[i]) != NULL) {
 					while (*src)
 						*(dst++) = *(src++);
 					*(dst++) = '\0';
@@ -182,15 +173,15 @@ Func2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, FunctionData * fu
 	return tail;
 }
 
-FunctionData *
-String2Func (const char *string, FunctionData * p_fdata, Bool quiet)
+FunctionData *String2Func (const char *string, FunctionData * p_fdata,
+													 Bool quiet)
 {
 	FreeStorageElem *storage;
-	TermDef      *folder_term = func2fterm (F_Folder, True);
-	TermDef      *fterm;
-	char         *ptr = (char *)string;
-	ConfigItem    item;
-	int           res;
+	TermDef *folder_term = func2fterm (F_Folder, True);
+	TermDef *fterm;
+	char *ptr = (char *)string;
+	ConfigItem item;
+	int res;
 
 	if (ptr == NULL || folder_term == NULL)
 		return NULL;
@@ -232,30 +223,27 @@ String2Func (const char *string, FunctionData * p_fdata, Bool quiet)
 	return p_fdata;
 }
 
-ComplexFunction *
-FreeStorage2ComplexFunction (FreeStorageElem * storage, ConfigItem * item, struct ASHashTable * list)
+ComplexFunction *FreeStorage2ComplexFunction (FreeStorageElem * storage,
+																							ConfigItem * item,
+																							struct ASHashTable * list)
 {
 	ComplexFunction *cf = NULL;
-	ConfigItem    l_item;
+	ConfigItem l_item;
 
-	if (storage && storage->sub)
-	{
-		if (item == NULL)
-		{
+	if (storage && storage->sub) {
+		if (item == NULL) {
 			l_item.memory = NULL;
 			if (ReadConfigItem (&l_item, storage))
 				item = &l_item;
 		}
 
-		if (item != NULL)
-		{
+		if (item != NULL) {
 			cf = new_complex_func (list, item->data.string);
-			item->ok_to_free = 1;			   /* gets copied anyways */
+			item->ok_to_free = 1;			/* gets copied anyways */
 		}
-		if (cf)
-		{
+		if (cf) {
 			FreeStorageElem *pCurr;
-			int           start = cf->items_num;
+			int start = cf->items_num;
 			FunctionData *tmp = cf->items;
 
 			for (pCurr = storage->sub->next; pCurr; pCurr = pCurr->next)
@@ -264,19 +252,17 @@ FreeStorage2ComplexFunction (FreeStorageElem * storage, ConfigItem * item, struc
 			/* tmp should never be anything but NULL, since we replace
 			 * old functions rather then append to those */
 			cf->items = safecalloc (cf->items_num, sizeof (FunctionData));
-			if (tmp)
-			{
+			if (tmp) {
 				memcpy (cf->items, tmp, start * sizeof (FunctionData));
 				free (tmp);
 			}
-			for (pCurr = storage->sub->next; pCurr; pCurr = pCurr->next)
-			{
+			for (pCurr = storage->sub->next; pCurr; pCurr = pCurr->next) {
 				if (pCurr->term)
-					if (pCurr->term->type == TT_FUNCTION && ReadConfigItem (item, pCurr))
-					{
-						if (item->data.function->func != F_ENDFUNC)
-						{
-							copy_func_data (&(cf->items[start++]), (item->data.function));
+					if (pCurr->term->type == TT_FUNCTION
+							&& ReadConfigItem (item, pCurr)) {
+						if (item->data.function->func != F_ENDFUNC) {
+							copy_func_data (&(cf->items[start++]),
+															(item->data.function));
 							memset (item->data.function, 0x00, sizeof (FunctionData));
 						}
 						item->ok_to_free = True;
@@ -288,18 +274,21 @@ FreeStorage2ComplexFunction (FreeStorageElem * storage, ConfigItem * item, struc
 	return cf;
 }
 
-FreeStorageElem **
-ComplexFunction2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ComplexFunction * cf)
+FreeStorageElem **ComplexFunction2FreeStorage (SyntaxDef * syntax,
+																							 FreeStorageElem ** tail,
+																							 ComplexFunction * cf)
 {
 	FreeStorageElem **new_tail;
-	register int  i;
+	register int i;
 
 	if (cf == NULL)
 		return tail;
 	if (cf->magic != MAGIC_COMPLEX_FUNC)
 		return tail;
 
-	new_tail = QuotedString2FreeStorage (syntax, tail, NULL, cf->name, FEEL_Function_ID);
+	new_tail =
+			QuotedString2FreeStorage (syntax, tail, NULL, cf->name,
+																FEEL_Function_ID);
 	if (new_tail == tail)
 		return tail;
 
@@ -322,10 +311,13 @@ complex_function_parse (char *tline, FILE * fd, char *list, int *count)
 	if (list == NULL || count == NULL)
 		return;
 
-	Storage = tline_subsyntax_parse ("Function", tline, fd, (char *)get_application_name (), pFuncSyntax, NULL, NULL);
-	if (Storage)
-	{
-		FreeStorage2ComplexFunction (Storage, NULL, (struct ASHashTable *)list);
+	Storage =
+			tline_subsyntax_parse ("Function", tline, fd,
+														 (char *)get_application_name (), pFuncSyntax,
+														 NULL, NULL);
+	if (Storage) {
+		FreeStorage2ComplexFunction (Storage, NULL,
+																 (struct ASHashTable *)list);
 		DestroyFreeStorage (&Storage);
 	}
 }

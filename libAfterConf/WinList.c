@@ -85,14 +85,14 @@ extern SyntaxDef AlignSyntax;
     ASCF_DEFINE_KEYWORD(WINLIST, TF_OBSOLETE	, MaxWidth			, TT_UINTEGER	, NULL)
 
 
-TermDef       WinListFeelTerms[] = {
+TermDef WinListFeelTerms[] = {
 	/* Feel */
 	WINLIST_FEEL_TERMS,
 	BALLOON_FEEL_TERMS,
 	{0, NULL, 0, 0, 0}
 };
 
-TermDef       WinListLookTerms[] = {
+TermDef WinListLookTerms[] = {
 	/* Look */
 	WINLIST_LOOK_TERMS,
 /* now special cases that should be processed by it's own handlers */
@@ -100,7 +100,7 @@ TermDef       WinListLookTerms[] = {
 	{0, NULL, 0, 0, 0}
 };
 
-TermDef       WinListPrivateTerms[] = {
+TermDef WinListPrivateTerms[] = {
 	WINLIST_PRIVATE_TERMS,
 	BALLOON_FLAG_TERM,
 	{0, NULL, 0, 0, 0}
@@ -109,7 +109,7 @@ TermDef       WinListPrivateTerms[] = {
 #define WINLIST_ALL_TERMS	WINLIST_PRIVATE_TERMS,WINLIST_FEEL_TERMS, WINLIST_LOOK_TERMS
 
 
-TermDef       WinListDefaultsTerms[] = {
+TermDef WinListDefaultsTerms[] = {
 
 	WINLIST_ALL_TERMS,
 	{TF_OBSOLETE, "Orientation", 11, TT_TEXT, WINLIST_Orientation_ID, NULL},
@@ -119,12 +119,14 @@ TermDef       WinListDefaultsTerms[] = {
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef     WinListDefaultsSyntax =
-	{ '\n', '\0', WinListDefaultsTerms, 0, ' ', "", "\t", "Module:WinList_defaults", "WinList",
-"AfterStep module displaying list of opened windows", NULL, 0 };
+SyntaxDef WinListDefaultsSyntax =
+		{ '\n', '\0', WinListDefaultsTerms, 0, ' ', "", "\t",
+"Module:WinList_defaults", "WinList",
+	"AfterStep module displaying list of opened windows", NULL, 0
+};
 
 
-TermDef       WinListTerms[] = {
+TermDef WinListTerms[] = {
 	INCLUDE_MODULE_DEFAULTS (&WinListDefaultsSyntax),
 
 	WINLIST_ALL_TERMS,
@@ -138,18 +140,29 @@ TermDef       WinListTerms[] = {
 };
 
 
-SyntaxDef     WinListFeelSyntax =
-	{ '\n', '\0', WinListFeelTerms, 0, '\t', "", "\t", "WinListFeel", "WinListFeel",
-"AfterStep window list module feel", NULL, 0 };
-SyntaxDef     WinListLookSyntax =
-	{ '\n', '\0', WinListLookTerms, 0, '\t', "", "\t", "WinListLook", "WinListLook",
-"AfterStep window list module look", NULL, 0 };
-SyntaxDef     WinListPrivateSyntax =
-	{ '\n', '\0', WinListPrivateTerms, 0, '\t', "", "\t", "WinList", "WinList", "AfterStep window list module", NULL,
-0 };
-SyntaxDef     WinListSyntax =
-	{ '\n', '\0', WinListTerms, 0, ' ', "", "\t", "Module:WinList", "WinList",
-"AfterStep module displaying list of opened windows", NULL, 0 };
+SyntaxDef WinListFeelSyntax =
+		{ '\n', '\0', WinListFeelTerms, 0, '\t', "", "\t", "WinListFeel",
+"WinListFeel",
+	"AfterStep window list module feel", NULL, 0
+};
+
+SyntaxDef WinListLookSyntax =
+		{ '\n', '\0', WinListLookTerms, 0, '\t', "", "\t", "WinListLook",
+"WinListLook",
+	"AfterStep window list module look", NULL, 0
+};
+
+SyntaxDef WinListPrivateSyntax =
+		{ '\n', '\0', WinListPrivateTerms, 0, '\t', "", "\t", "WinList",
+"WinList", "AfterStep window list module", NULL,
+	0
+};
+
+SyntaxDef WinListSyntax =
+		{ '\n', '\0', WinListTerms, 0, ' ', "", "\t", "Module:WinList",
+"WinList",
+	"AfterStep module displaying list of opened windows", NULL, 0
+};
 
 /*
 	int        type ; 
@@ -175,13 +188,16 @@ flag_options_xref WinListFlags[] = {
 	ASCF_DEFINE_MODULE_FLAG_XREF (WINLIST, UseSkipList, WinListConfig),
 	ASCF_DEFINE_MODULE_FLAG_XREF (WINLIST, ShapeToContents, WinListConfig),
 	ASCF_DEFINE_MODULE_FLAG_XREF (WINLIST, ShowIcon, WinListConfig),
-	ASCF_DEFINE_MODULE_FLAG_XREF (WINLIST, ScaleIconToTextHeight, WinListConfig),
+	ASCF_DEFINE_MODULE_FLAG_XREF (WINLIST, ScaleIconToTextHeight,
+																WinListConfig),
 	{0, 0, 0}
 };
 
-static void   InitWinListConfig (ASModuleConfig * asm_config, Bool free_resources);
-void          WinList_fs2config (ASModuleConfig * asmodule_config, FreeStorageElem * Storage);
-void          MergeWinListOptions (ASModuleConfig * to, ASModuleConfig * from);
+static void InitWinListConfig (ASModuleConfig * asm_config,
+															 Bool free_resources);
+void WinList_fs2config (ASModuleConfig * asmodule_config,
+												FreeStorageElem * Storage);
+void MergeWinListOptions (ASModuleConfig * to, ASModuleConfig * from);
 
 
 static ASModuleConfigClass _winlist_config_class = { CONFIG_WinList_ID,
@@ -200,8 +216,7 @@ static ASModuleConfigClass _winlist_config_class = { CONFIG_WinList_ID,
 	ASDefaultBalloonTypes
 };
 
-ASModuleConfigClass *
-getWinListConfigClass ()
+ASModuleConfigClass *getWinListConfigClass ()
 {
 	return &_winlist_config_class;
 }
@@ -212,11 +227,9 @@ InitWinListConfig (ASModuleConfig * asm_config, Bool free_resources)
 {
 	WinListConfig *config = AS_WINLIST_CONFIG (asm_config);
 
-	if (config)
-	{
-		if (free_resources)
-		{
-			int           i;
+	if (config) {
+		if (free_resources) {
+			int i;
 
 			destroy_string (&(config->UnfocusedStyle));
 			destroy_string (&(config->FocusedStyle));
@@ -252,8 +265,7 @@ InitWinListConfig (ASModuleConfig * asm_config, Bool free_resources)
 		config->IconAlign = NO_ALIGN;
 		config->IconLocation = 0;
 		config->ShowHints = WINLIST_DEFAULT_ShowHints;
-		if (!free_resources)
-		{
+		if (!free_resources) {
 			config->NoCollides = safecalloc (2, sizeof (char *));;
 			config->NoCollides[0] = mystrdup (CLASS_PAGER);
 			config->NoCollides[1] = mystrdup (CLASS_WHARF);
@@ -263,17 +275,17 @@ InitWinListConfig (ASModuleConfig * asm_config, Bool free_resources)
 	}
 }
 
-void
-PrintWinListConfig (WinListConfig * config)
+void PrintWinListConfig (WinListConfig * config)
 {
-	int           i;
+	int i;
 
 	fprintf (stderr, "WinListConfig = %p;\n", config);
 	if (config == NULL)
 		return;
 
 	fprintf (stderr, "WinListConfig.flags = 0x%lX;\n", config->flags);
-	fprintf (stderr, "WinListConfig.set_flags = 0x%lX;\n", config->set_flags);
+	fprintf (stderr, "WinListConfig.set_flags = 0x%lX;\n",
+					 config->set_flags);
 	ASCF_PRINT_FLAG_KEYWORD (stderr, WINLIST, config, FillRowsFirst);
 	ASCF_PRINT_FLAG_KEYWORD (stderr, WINLIST, config, UseSkipList);
 	ASCF_PRINT_GEOMETRY_KEYWORD (stderr, WINLIST, config, Geometry);
@@ -308,86 +320,83 @@ PrintWinListConfig (WinListConfig * config)
 	fprintf (stderr, "WinListConfig.gravity = %d;\n", config->gravity);
 
 	for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
-		ASCF_PRINT_IDX_COMPOUND_STRING_KEYWORD (stderr, WINLIST, config, Action, ',', i);
+		ASCF_PRINT_IDX_COMPOUND_STRING_KEYWORD (stderr, WINLIST, config,
+																						Action, ',', i);
 
 	ASCF_PRINT_INT_KEYWORD (stderr, WINLIST, config, NoCollidesSpacing);
 
 }
 
 void
-WinList_fs2config (ASModuleConfig * asmodule_config, FreeStorageElem * Storage)
+WinList_fs2config (ASModuleConfig * asmodule_config,
+									 FreeStorageElem * Storage)
 {
 	FreeStorageElem *pCurr;
-	ConfigItem    item;
+	ConfigItem item;
 	WinListConfig *config = AS_WINLIST_CONFIG (asmodule_config);
 
 	if (config == NULL)
 		return;
 
 	item.memory = NULL;
-	for (pCurr = Storage; pCurr; pCurr = pCurr->next)
-	{
+	for (pCurr = Storage; pCurr; pCurr = pCurr->next) {
 		if (pCurr->term == NULL)
 			continue;
 
-		if (pCurr->term->type == TT_FLAG)
-		{
-			if (pCurr->term->id == WINLIST_Bevel_ID)
-			{
-				set_scalar_value (&(config->FBevel), ParseBevelOptions (pCurr->sub),
-								  &(config->set_flags), WINLIST_Bevel);
+		if (pCurr->term->type == TT_FLAG) {
+			if (pCurr->term->id == WINLIST_Bevel_ID) {
+				set_scalar_value (&(config->FBevel),
+													ParseBevelOptions (pCurr->sub),
+													&(config->set_flags), WINLIST_Bevel);
 				config->UBevel = config->SBevel = config->FBevel;
 			}
-		} else
-		{
+		} else {
 			if (!ReadConfigItem (&item, pCurr))
 				continue;
 
-			switch (pCurr->term->id)
-			{
-			 case WINLIST_Spacing_ID:
-				 set_flags (config->set_flags, WINLIST_Spacing);
-				 config->HSpacing = config->VSpacing = item.data.integer;
-				 break;
-			 case WINLIST_CompositionMethod_ID:
-				 set_flags (config->set_flags, WINLIST_CompositionMethod);
-				 config->FCompositionMethod =
-					 config->UCompositionMethod = config->SCompositionMethod = item.data.integer;
-				 break;
-			 case WINLIST_MaxWidth_ID:
-				 set_flags (config->set_flags, WINLIST_MinSize | WINLIST_MaxSize);
-				 config->MaxSize.width = config->MinSize.width = item.data.integer;
-				 break;
+			switch (pCurr->term->id) {
+			case WINLIST_Spacing_ID:
+				set_flags (config->set_flags, WINLIST_Spacing);
+				config->HSpacing = config->VSpacing = item.data.integer;
+				break;
+			case WINLIST_CompositionMethod_ID:
+				set_flags (config->set_flags, WINLIST_CompositionMethod);
+				config->FCompositionMethod =
+						config->UCompositionMethod = config->SCompositionMethod =
+						item.data.integer;
+				break;
+			case WINLIST_MaxWidth_ID:
+				set_flags (config->set_flags, WINLIST_MinSize | WINLIST_MaxSize);
+				config->MaxSize.width = config->MinSize.width = item.data.integer;
+				break;
 
-			 case WINLIST_Action_ID:
-				 {
-					 char         *ptr = item.data.string;
-					 int           action_no = 0, i;
+			case WINLIST_Action_ID:
+				{
+					char *ptr = item.data.string;
+					int action_no = 0, i;
 
-					 if (mystrncasecmp (ptr, "Click", 5) == 0)
-						 ptr += 5;
-					 if (isdigit (ptr[0]))
-					 {
-						 action_no = atoi (ptr);
-						 if (action_no <= 0)
-							 action_no = 1;
-						 --action_no;
-						 action_no %= MAX_MOUSE_BUTTONS;
-						 i = 0;
-						 while (!isspace (ptr[i]) && ptr[i])
-							 ++i;
-						 while (isspace (ptr[i]) && ptr[i])
-							 ++i;
-						 ptr += i;
-					 }
-					 if (*ptr)
-					 {
-						 destroy_string_list (config->Action[action_no], 0);
-						 config->Action[action_no] = comma_string2list (ptr);
-					 }
-					 item.ok_to_free = 1;
-				 }
-				 break;
+					if (mystrncasecmp (ptr, "Click", 5) == 0)
+						ptr += 5;
+					if (isdigit (ptr[0])) {
+						action_no = atoi (ptr);
+						if (action_no <= 0)
+							action_no = 1;
+						--action_no;
+						action_no %= MAX_MOUSE_BUTTONS;
+						i = 0;
+						while (!isspace (ptr[i]) && ptr[i])
+							++i;
+						while (isspace (ptr[i]) && ptr[i])
+							++i;
+						ptr += i;
+					}
+					if (*ptr) {
+						destroy_string_list (config->Action[action_no], 0);
+						config->Action[action_no] = comma_string2list (ptr);
+					}
+					item.ok_to_free = 1;
+				}
+				break;
 
 #define HANDLE_COLLIDES_ITEM(type) \
 	if( item.data.string != NULL ) { \
@@ -395,13 +404,13 @@ WinList_fs2config (ASModuleConfig * asmodule_config, FreeStorageElem * Storage)
 		config->type##Collides[config->type##Collides_nitems] = item.data.string ; \
 		++config->type##Collides_nitems ; }	break
 
-			 case WINLIST_NoCollides_ID:
-				 HANDLE_COLLIDES_ITEM (No);
-			 case WINLIST_AllowCollides_ID:
-				 HANDLE_COLLIDES_ITEM (Allow);
+			case WINLIST_NoCollides_ID:
+				HANDLE_COLLIDES_ITEM (No);
+			case WINLIST_AllowCollides_ID:
+				HANDLE_COLLIDES_ITEM (Allow);
 
-			 default:
-				 item.ok_to_free = 1;
+			default:
+				item.ok_to_free = 1;
 			}
 		}
 	}
@@ -412,15 +421,14 @@ WinList_fs2config (ASModuleConfig * asmodule_config, FreeStorageElem * Storage)
 void
 MergeWinListOptions (ASModuleConfig * asm_to, ASModuleConfig * asm_from)
 {
-	int           i;
+	int i;
 
 	START_TIME (option_time);
 
 	WinListConfig *to = AS_WINLIST_CONFIG (asm_to);
 	WinListConfig *from = AS_WINLIST_CONFIG (asm_from);
 
-	if (to && from)
-	{
+	if (to && from) {
 
 		/* Need to merge new config with what we have already : */
 		/* now lets check the config sanity : */
@@ -461,8 +469,7 @@ MergeWinListOptions (ASModuleConfig * asm_to, ASModuleConfig * asm_from)
 		ASCF_MERGE_SCALAR_KEYWORD (WINLIST, to, from, ShowHints);
 
 		for (i = 0; i < MAX_MOUSE_BUTTONS; ++i)
-			if (from->Action[i])
-			{
+			if (from->Action[i]) {
 				destroy_string_list (to->Action[i], 0);
 				to->Action[i] = from->Action[i];
 				from->Action[i] = NULL;
@@ -481,52 +488,51 @@ MergeWinListOptions (ASModuleConfig * asm_to, ASModuleConfig * asm_from)
 	SHOW_TIME ("to parsing", option_time);
 }
 
-ASFlagType
-DigestWinListAlign (WinListConfig * Config, ASFlagType align)
+ASFlagType DigestWinListAlign (WinListConfig * Config, ASFlagType align)
 {
-	LOCAL_DEBUG_OUT ("Align = 0x%8.8lx, IconAlign = 0x%8.8lx, Location = %d", align, Config->IconAlign,
-					 Config->IconLocation);
+	LOCAL_DEBUG_OUT ("Align = 0x%8.8lx, IconAlign = 0x%8.8lx, Location = %d",
+									 align, Config->IconAlign, Config->IconLocation);
 
-	if (!get_flags (Config->set_flags, WINLIST_IconLocation))
-	{
+	if (!get_flags (Config->set_flags, WINLIST_IconLocation)) {
 		if (get_flags (align, PAD_H_MASK) == ALIGN_RIGHT)
 			Config->IconLocation = 6;
 		else if (get_flags (align, PAD_H_MASK) == ALIGN_LEFT)
 			Config->IconLocation = 4;
 	}
-	if (!get_flags (Config->set_flags, WINLIST_IconAlign))
-	{
-		if (get_flags (align, PAD_H_MASK) == PAD_H_MASK)
-		{
-			if (Config->IconLocation == 0 || Config->IconLocation == 4)
-			{
+	if (!get_flags (Config->set_flags, WINLIST_IconAlign)) {
+		if (get_flags (align, PAD_H_MASK) == PAD_H_MASK) {
+			if (Config->IconLocation == 0 || Config->IconLocation == 4) {
 				Config->IconAlign = ALIGN_RIGHT;
 				align = (align & (~PAD_H_MASK)) | ALIGN_LEFT;
-			} else if (Config->IconLocation == 6)
-			{
+			} else if (Config->IconLocation == 6) {
 				Config->IconAlign = ALIGN_LEFT;
 				align = (align & (~PAD_H_MASK)) | ALIGN_RIGHT;
 			}
 		} else if (get_flags (align, PAD_H_MASK) == ALIGN_LEFT &&
-				   (Config->IconLocation == 0 || Config->IconLocation == 4))
+							 (Config->IconLocation == 0 || Config->IconLocation == 4))
 			Config->IconAlign = ALIGN_VCENTER;
-		else if (get_flags (align, PAD_H_MASK) == ALIGN_RIGHT && Config->IconLocation == 6)
+		else if (get_flags (align, PAD_H_MASK) == ALIGN_RIGHT
+						 && Config->IconLocation == 6)
 			Config->IconAlign = ALIGN_VCENTER;
 	}
-	LOCAL_DEBUG_OUT ("Align = 0x%8.8lx, IconAlign = 0x%8.8lx, Location = %d", align, Config->IconAlign,
-					 Config->IconLocation);
+	LOCAL_DEBUG_OUT ("Align = 0x%8.8lx, IconAlign = 0x%8.8lx, Location = %d",
+									 align, Config->IconAlign, Config->IconLocation);
 	return align;
 
 }
 
 void
-CheckWinListConfigSanity (WinListConfig * Config, ASGeometry * default_geometry, int default_gravity,
-						  int max_columns_override, int max_rows_override)
+CheckWinListConfigSanity (WinListConfig * Config,
+													ASGeometry * default_geometry,
+													int default_gravity, int max_columns_override,
+													int max_rows_override)
 {
-	int           i;
+	int i;
 
 	if (Config == NULL)
-		Config = AS_WINLIST_CONFIG (create_ASModule_config (getWinListConfigClass ()));
+		Config =
+				AS_WINLIST_CONFIG (create_ASModule_config
+													 (getWinListConfigClass ()));
 
 	if (max_columns_override > 0)
 		Config->MaxColumns = max_columns_override;
@@ -537,11 +543,11 @@ CheckWinListConfigSanity (WinListConfig * Config, ASGeometry * default_geometry,
 	if (Config->MaxRows > MAX_WINLIST_WINDOW_COUNT || Config->MaxRows == 0)
 		Config->MaxRows = MAX_WINLIST_WINDOW_COUNT;
 
-	if (Config->MaxColumns > MAX_WINLIST_WINDOW_COUNT || Config->MaxColumns == 0)
+	if (Config->MaxColumns > MAX_WINLIST_WINDOW_COUNT
+			|| Config->MaxColumns == 0)
 		Config->MaxColumns = MAX_WINLIST_WINDOW_COUNT;
 
-	if (max_columns_override > 0 && max_rows_override > 0)
-	{
+	if (max_columns_override > 0 && max_rows_override > 0) {
 		if (Config->MaxColumns > Config->MaxRows)
 			set_flags (Config->flags, ASWL_RowsFirst);
 		else
@@ -551,38 +557,42 @@ CheckWinListConfigSanity (WinListConfig * Config, ASGeometry * default_geometry,
 	if (default_geometry && default_geometry->flags != 0)
 		Config->Geometry = *default_geometry;
 
-	if (get_flags (Config->Geometry.flags, WidthValue) && Config->Geometry.width > 0)
+	if (get_flags (Config->Geometry.flags, WidthValue)
+			&& Config->Geometry.width > 0)
 		Config->MinSize.width = Config->MaxSize.width = Config->Geometry.width;
 
 	Config->gravity = StaticGravity;
 	if (get_flags (Config->Geometry.flags, XNegative))
-		Config->gravity = get_flags (Config->Geometry.flags, YNegative) ? SouthEastGravity : NorthEastGravity;
+		Config->gravity =
+				get_flags (Config->Geometry.flags,
+									 YNegative) ? SouthEastGravity : NorthEastGravity;
 	else if (get_flags (Config->Geometry.flags, YNegative))
 		Config->gravity = SouthWestGravity;
 
-	LOCAL_DEBUG_OUT ("gravity = %d, default_gravity = %d", Config->gravity, default_gravity);
+	LOCAL_DEBUG_OUT ("gravity = %d, default_gravity = %d", Config->gravity,
+									 default_gravity);
 	if (default_gravity != ForgetGravity)
 		Config->gravity = default_gravity;
 
-	Config->anchor_x = get_flags (Config->Geometry.flags, XValue) ? Config->Geometry.x : 0;
+	Config->anchor_x =
+			get_flags (Config->Geometry.flags, XValue) ? Config->Geometry.x : 0;
 	if (get_flags (Config->Geometry.flags, XNegative))
 		Config->anchor_x += Scr.MyDisplayWidth;
 
-	Config->anchor_y = get_flags (Config->Geometry.flags, YValue) ? Config->Geometry.y : 0;
+	Config->anchor_y =
+			get_flags (Config->Geometry.flags, YValue) ? Config->Geometry.y : 0;
 	if (get_flags (Config->Geometry.flags, YNegative))
 		Config->anchor_y += Scr.MyDisplayHeight;
 
 	/* ASN_NameTypes - is a valid value now - meaning that there won't be any name - only an icon */
 	Config->UseName %= ASN_NameTypes + 1;
 
-	if (Config->UseName == ASN_NameTypes)
-	{
-		if (get_flags (Config->flags, WINLIST_ShowIcon))
-		{
+	if (Config->UseName == ASN_NameTypes) {
+		if (get_flags (Config->flags, WINLIST_ShowIcon)) {
 			/* clear_flags(Config->flags, WINLIST_ScaleIconToTextHeight);  
 			   - can use xml vars to determine text instead or icons turn out too big */
 		} else
-			Config->UseName = 0;			   /* default - ASN_Name */
+			Config->UseName = 0;			/* default - ASN_Name */
 	}
 
 	if (get_flags (Config->flags, WINLIST_ShowIcon))
