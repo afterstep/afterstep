@@ -39,24 +39,42 @@
  ****************************************************************************/
 
 TermDef       BaseTerms[] = {
-    {TF_NO_MYNAME_PREPENDING, "ModulePath", 10,     TT_PATHNAME, BASE_MODULE_PATH_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "SoundPath", 9,       TT_PATHNAME, BASE_SOUND_PATH_ID , NULL},
-    {TF_NO_MYNAME_PREPENDING, "IconPath", 8,        TT_PATHNAME, BASE_ICON_PATH_ID  , NULL},
-    {TF_NO_MYNAME_PREPENDING, "PixmapPath", 10,     TT_PATHNAME, BASE_PIXMAP_PATH_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "FontPath", 8,        TT_PATHNAME, BASE_FONT_PATH_ID,   NULL},
-    {TF_NO_MYNAME_PREPENDING, "CursorPath", 10,     TT_PATHNAME, BASE_CURSOR_PATH_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Path", 4,            TT_PATHNAME, BASE_MYNAME_PATH_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "gtkrcPath", 9,       TT_PATHNAME, BASE_GTKRC_PATH_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "gtkrc20Path", 11,    TT_PATHNAME, BASE_GTKRC20_PATH_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "DeskTopSize", 11,    TT_GEOMETRY, BASE_DESKTOP_SIZE_ID   , NULL},
-    {TF_NO_MYNAME_PREPENDING, "DeskTopScale", 12,   TT_INTEGER,  BASE_DESKTOP_SCALE_ID  , NULL},
-    {TF_NO_MYNAME_PREPENDING|TF_INDEXED, "TermCommand", 11,    TT_TEXT,     BASE_TermCommand_ID  , NULL},
-    {TF_NO_MYNAME_PREPENDING|TF_INDEXED, "BrowserCommand", 14,    TT_TEXT,     BASE_BrowserCommand_ID  , NULL},
-    {TF_NO_MYNAME_PREPENDING|TF_INDEXED, "EditorCommand", 13,    TT_TEXT,     BASE_EditorCommand_ID  , NULL},
-    {TF_NO_MYNAME_PREPENDING, "DisableSharedMemory", 19,   TT_FLAG,  BASE_NoSharedMemory_ID  , NULL},
-    {TF_NO_MYNAME_PREPENDING, "DisableKDEGlobalsTheming", 24,   TT_FLAG,  BASE_NoKDEGlobalsTheming_ID  , NULL},
-    {TF_NO_MYNAME_PREPENDING, "NoModuleNameCollisions", 22,   TT_INTEGER,  BASE_NoModuleNameCollisions_ID  , NULL},
-    {TF_NO_MYNAME_PREPENDING, "IconTheme", 9,     	TT_TEXT,     BASE_IconTheme_ID  , NULL},
+	{TF_NO_MYNAME_PREPENDING, "ModulePath", 10, TT_PATHNAME, BASE_MODULE_PATH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "SoundPath", 9, TT_PATHNAME, BASE_SOUND_PATH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "IconPath", 8, TT_PATHNAME, BASE_ICON_PATH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "PixmapPath", 10, TT_PATHNAME, BASE_PIXMAP_PATH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "FontPath", 8, TT_PATHNAME, BASE_FONT_PATH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "CursorPath", 10, TT_PATHNAME, BASE_CURSOR_PATH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Path", 4, TT_PATHNAME, BASE_MYNAME_PATH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "gtkrcPath", 9, TT_PATHNAME, BASE_GTKRC_PATH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "gtkrc20Path", 11, TT_PATHNAME, BASE_GTKRC20_PATH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "DeskTopSize", 11, TT_GEOMETRY, BASE_DESKTOP_SIZE_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "DeskTopScale", 12, TT_INTEGER, BASE_DESKTOP_SCALE_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING | TF_INDEXED, "TermCommand", 11, TT_TEXT, BASE_TermCommand_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING | TF_INDEXED, "BrowserCommand", 14, TT_TEXT, BASE_BrowserCommand_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING | TF_INDEXED, "EditorCommand", 13, TT_TEXT, BASE_EditorCommand_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "DisableSharedMemory", 19, TT_FLAG, BASE_NoSharedMemory_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "DisableKDEGlobalsTheming", 24, TT_FLAG, BASE_NoKDEGlobalsTheming_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "NoModuleNameCollisions", 22, TT_INTEGER, BASE_NoModuleNameCollisions_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "IconTheme", 9, TT_TEXT, BASE_IconTheme_ID, NULL}
+	,
 	{0, NULL, 0, 0, 0}
 };
 
@@ -76,9 +94,11 @@ SyntaxDef     BaseSyntax = {
 };
 
 flag_options_xref BaseFlags[] = {
-	{BASE_NO_SHARED_MEMORY, BASE_NoSharedMemory_ID, 0},
-	{BASE_NO_KDEGLOBALS_THEMING, BASE_NoKDEGlobalsTheming_ID, 0},
-    {0, 0, 0}
+	{BASE_NO_SHARED_MEMORY, BASE_NoSharedMemory_ID, 0}
+	,
+	{BASE_NO_KDEGLOBALS_THEMING, BASE_NoKDEGlobalsTheming_ID, 0}
+	,
+	{0, 0, 0}
 };
 
 
@@ -99,25 +119,26 @@ CreateBaseConfig ()
 void
 DestroyBaseConfig (BaseConfig * config)
 {
-	int i = MAX_TOOL_COMMANDS;
-	destroy_string( &(config->module_path) );
-	destroy_string( &(config->sound_path) );
-	destroy_string( &(config->icon_path) );
-	destroy_string( &(config->pixmap_path) );
-	destroy_string( &(config->font_path) );
-	destroy_string( &(config->cursor_path) );
-	destroy_string( &(config->myname_path) );
-	destroy_string( &(config->gtkrc_path) );
-	destroy_string( &(config->gtkrc20_path));
-	destroy_string( &(config->IconTheme));
+	int           i = MAX_TOOL_COMMANDS;
 
-	while( --i >= 0 ) 
-	{	
-		destroy_string( &( config->term_command[i] ) );
-		destroy_string( &( config->browser_command[i] ) );
-		destroy_string( &( config->editor_command[i] ) );
+	destroy_string (&(config->module_path));
+	destroy_string (&(config->sound_path));
+	destroy_string (&(config->icon_path));
+	destroy_string (&(config->pixmap_path));
+	destroy_string (&(config->font_path));
+	destroy_string (&(config->cursor_path));
+	destroy_string (&(config->myname_path));
+	destroy_string (&(config->gtkrc_path));
+	destroy_string (&(config->gtkrc20_path));
+	destroy_string (&(config->IconTheme));
+
+	while (--i >= 0)
+	{
+		destroy_string (&(config->term_command[i]));
+		destroy_string (&(config->browser_command[i]));
+		destroy_string (&(config->editor_command[i]));
 	}
-	
+
 	DestroyFreeStorage (&(config->more_stuff));
 	free (config);
 }
@@ -129,7 +150,7 @@ ParseBaseOptions (const char *filename, char *myname)
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 
-	Storage = file2free_storage(filename, myname, &BaseSyntax, NULL, &(config->more_stuff) );
+	Storage = file2free_storage (filename, myname, &BaseSyntax, NULL, &(config->more_stuff));
 	if (Storage == NULL)
 		return config;
 
@@ -140,40 +161,40 @@ ParseBaseOptions (const char *filename, char *myname)
 		if (pCurr->term == NULL)
 			continue;
 		if (ReadFlagItem (&(config->set_flags), &(config->flags), pCurr, BaseFlags))
-            continue;
+			continue;
 		if (!ReadConfigItem (&item, pCurr))
 			continue;
 		switch (pCurr->term->id)
 		{
 		 case BASE_MODULE_PATH_ID:
-			 set_string( &(config->module_path), item.data.string );
+			 set_string (&(config->module_path), item.data.string);
 			 break;
 		 case BASE_SOUND_PATH_ID:
-			 set_string( &(config->sound_path), item.data.string );
+			 set_string (&(config->sound_path), item.data.string);
 			 break;
 		 case BASE_ICON_PATH_ID:
-			 set_string( &(config->icon_path), item.data.string );
+			 set_string (&(config->icon_path), item.data.string);
 			 break;
 		 case BASE_PIXMAP_PATH_ID:
-			 set_string( &(config->pixmap_path), item.data.string );
+			 set_string (&(config->pixmap_path), item.data.string);
 			 break;
 		 case BASE_FONT_PATH_ID:
-			 set_string( &(config->font_path), item.data.string );
+			 set_string (&(config->font_path), item.data.string);
 			 break;
 		 case BASE_CURSOR_PATH_ID:
-			 set_string( &(config->cursor_path), item.data.string );
+			 set_string (&(config->cursor_path), item.data.string);
 			 break;
 		 case BASE_MYNAME_PATH_ID:
-			 set_string( &(config->myname_path), item.data.string );
+			 set_string (&(config->myname_path), item.data.string);
 			 break;
 		 case BASE_GTKRC_PATH_ID:
-			 set_string( &(config->gtkrc_path), item.data.string );
+			 set_string (&(config->gtkrc_path), item.data.string);
 			 break;
 		 case BASE_GTKRC20_PATH_ID:
-			 set_string( &(config->gtkrc20_path), item.data.string );
+			 set_string (&(config->gtkrc20_path), item.data.string);
 			 break;
 		 case BASE_DESKTOP_SIZE_ID:
-		 	 set_flags( config->set_flags, BASE_DESKTOP_SIZE_SET );
+			 set_flags (config->set_flags, BASE_DESKTOP_SIZE_SET);
 			 config->desktop_size = item.data.geometry;
 			 /* errorneous value check */
 			 if (!(config->desktop_size.flags & WidthValue))
@@ -183,36 +204,36 @@ ParseBaseOptions (const char *filename, char *myname)
 			 config->desktop_size.flags = WidthValue | HeightValue;
 			 break;
 		 case BASE_DESKTOP_SCALE_ID:
-		 	 set_flags( config->set_flags, BASE_DESKTOP_SCALE_SET );
+			 set_flags (config->set_flags, BASE_DESKTOP_SCALE_SET);
 			 config->desktop_scale = item.data.integer;
 			 /* errorneous value check */
 			 if (config->desktop_scale < 1)
 				 config->desktop_scale = 1;
 			 break;
-		case BASE_NoModuleNameCollisions_ID :
-		 	 set_flags( config->set_flags, BASE_NoModuleNameCollisions_SET );
-			 config->NoModuleNameCollisions = item.data.integer ; 
+		 case BASE_NoModuleNameCollisions_ID:
+			 set_flags (config->set_flags, BASE_NoModuleNameCollisions_SET);
+			 config->NoModuleNameCollisions = item.data.integer;
 			 break;
-		case BASE_TermCommand_ID :
-		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
-			 	set_string(&(config->term_command[item.index]), item.data.string );		 	
-			 else				
-			 	item.ok_to_free = 1;
-			break;
-    	 case BASE_BrowserCommand_ID :
-		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
-			 	set_string(&(config->browser_command[item.index]), item.data.string );		 	
-			 else				
-			 	item.ok_to_free = 1;
-			break;
-	   	 case BASE_EditorCommand_ID :	
-		 	 if( item.index  < MAX_TOOL_COMMANDS && item.index >= 0 ) 
-			 	set_string(&(config->editor_command[item.index]), item.data.string );		 	
-			 else				
-			 	item.ok_to_free = 1;
-			break;
+		 case BASE_TermCommand_ID:
+			 if (item.index < MAX_TOOL_COMMANDS && item.index >= 0)
+				 set_string (&(config->term_command[item.index]), item.data.string);
+			 else
+				 item.ok_to_free = 1;
+			 break;
+		 case BASE_BrowserCommand_ID:
+			 if (item.index < MAX_TOOL_COMMANDS && item.index >= 0)
+				 set_string (&(config->browser_command[item.index]), item.data.string);
+			 else
+				 item.ok_to_free = 1;
+			 break;
+		 case BASE_EditorCommand_ID:
+			 if (item.index < MAX_TOOL_COMMANDS && item.index >= 0)
+				 set_string (&(config->editor_command[item.index]), item.data.string);
+			 else
+				 item.ok_to_free = 1;
+			 break;
 		 case BASE_IconTheme_ID:
-			 set_string( &(config->IconTheme), item.data.string );
+			 set_string (&(config->IconTheme), item.data.string);
 			 break;
 		 default:
 			 item.ok_to_free = 1;
@@ -235,11 +256,11 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsig
 {
 	ConfigDef    *BaseConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
-	ConfigData cd ;
+	ConfigData    cd;
 
 	if (config == NULL)
 		return 1;
-	cd.filename = filename ;
+	cd.filename = filename;
 	if ((BaseConfigWriter = InitConfigWriter (myname, &BaseSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 
@@ -272,9 +293,9 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config, unsig
 	tail = Geometry2FreeStorage (&BaseSyntax, tail, &(config->desktop_size), BASE_DESKTOP_SIZE_ID);
 
 	/* desktop_scale */
-    tail = Integer2FreeStorage (&BaseSyntax, tail, NULL, config->desktop_scale, BASE_DESKTOP_SCALE_ID);
+	tail = Integer2FreeStorage (&BaseSyntax, tail, NULL, config->desktop_scale, BASE_DESKTOP_SCALE_ID);
 
-	cd.filename = filename ;
+	cd.filename = filename;
 	/* writing config into the file */
 	WriteConfig (BaseConfigWriter, Storage, CDT_Filename, &cd, flags);
 	DestroyFreeStorage (&Storage);
@@ -292,241 +313,237 @@ ExtractPath (BaseConfig * config,
 			 char **sound_path,
 			 char **icon_path,
 			 char **pixmap_path,
-			 char **font_path,
-			 char **cursor_path,
-			 char **myname_path,
-			 char **gtkrc_path,
-			 char **gtkrc20_path)
+			 char **font_path, char **cursor_path, char **myname_path, char **gtkrc_path, char **gtkrc20_path)
 {
-	register char *tmp ;
+	register char *tmp;
+
 	if (config)
 	{
-		if (module_path && config->module_path )
+		if (module_path && config->module_path)
 		{
 			tmp = copy_replace_envvar (config->module_path);
-			set_string(module_path, tmp );
+			set_string (module_path, tmp);
 		}
 		if (sound_path && config->sound_path)
 		{
 			tmp = copy_replace_envvar (config->sound_path);
-			set_string(sound_path, tmp );
+			set_string (sound_path, tmp);
 		}
 		if (icon_path && config->icon_path)
 		{
 			tmp = copy_replace_envvar (config->icon_path);
-			set_string(icon_path, tmp );
+			set_string (icon_path, tmp);
 		}
 		if (pixmap_path && config->pixmap_path)
 		{
 			tmp = copy_replace_envvar (config->pixmap_path);
-			set_string(pixmap_path, tmp );
+			set_string (pixmap_path, tmp);
 		}
 		if (font_path && config->font_path)
 		{
 			tmp = copy_replace_envvar (config->font_path);
-			set_string(font_path, tmp );
+			set_string (font_path, tmp);
 		}
 		if (cursor_path && config->cursor_path)
 		{
 			tmp = copy_replace_envvar (config->cursor_path);
-			set_string(cursor_path, tmp );
+			set_string (cursor_path, tmp);
 		}
 		if (myname_path && config->myname_path)
 		{
 			tmp = copy_replace_envvar (config->myname_path);
-			set_string(myname_path, tmp );
+			set_string (myname_path, tmp);
 		}
 		if (gtkrc_path && config->gtkrc_path)
 		{
 			tmp = make_session_rc_file (Session, config->gtkrc_path);
-			set_string(gtkrc_path, tmp );
+			set_string (gtkrc_path, tmp);
 		}
 		if (gtkrc20_path && config->gtkrc20_path)
 		{
 			tmp = make_session_rc_file (Session, config->gtkrc20_path);
-			set_string(gtkrc20_path, tmp );
+			set_string (gtkrc20_path, tmp);
 		}
 	}
 }
 
 void
-BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv )
+BaseConfig2ASEnvironment (register BaseConfig * config, ASEnvironment ** penv)
 {
 	register ASEnvironment *env = *penv;
-	if( env == NULL )
-		env = make_default_environment();
+
+	if (env == NULL)
+		env = make_default_environment ();
 	ExtractPath (config, &(env->module_path),
-		            	&(env->sound_path),
-						&(env->icon_path),
-						&(env->pixmap_path),
-						&(env->font_path),
-						&(env->cursor_path),
-						NULL,
-						&(env->gtkrc_path),
-						&(env->gtkrc20_path));
-	set_string (&(env->IconTheme), mystrdup(config->IconTheme));
+				 &(env->sound_path),
+				 &(env->icon_path),
+				 &(env->pixmap_path),
+				 &(env->font_path), &(env->cursor_path), NULL, &(env->gtkrc_path), &(env->gtkrc20_path));
+	set_string (&(env->IconTheme), mystrdup (config->IconTheme));
 	if (config->desktop_size.flags & WidthValue)
-		env->desk_pages_h = config->desktop_size.width ;
+		env->desk_pages_h = config->desktop_size.width;
 	else
-		env->desk_pages_h = 0 ;
+		env->desk_pages_h = 0;
 
 	if (config->desktop_size.flags & HeightValue)
-		env->desk_pages_v = config->desktop_size.height ;
+		env->desk_pages_v = config->desktop_size.height;
 	else
-		env->desk_pages_v = 0 ;
-	env->desk_scale = config->desktop_scale ;
-	
-	switch( config->NoModuleNameCollisions%3 )
-	{
-		case 0 : env->module_name_collision = ASE_AllowModuleNameCollision ; break;
-		case 1 : env->module_name_collision = ASE_KillOldModuleOnNameCollision ; break;
-		case 2 : env->module_name_collision = ASE_KillNewModuleOnNameCollision ; break;
-	}
-	
-	set_environment_tool_from_list( env, ASTool_Term, config->term_command, MAX_TOOL_COMMANDS );
-	set_environment_tool_from_list( env, ASTool_Browser, config->browser_command, MAX_TOOL_COMMANDS );
-	set_environment_tool_from_list( env, ASTool_Editor, config->editor_command, MAX_TOOL_COMMANDS );
+		env->desk_pages_v = 0;
+	env->desk_scale = config->desktop_scale;
 
-	if( get_flags(config->set_flags, BASE_NO_SHARED_MEMORY ) )
-	{	
-		if( get_flags(config->flags, BASE_NO_SHARED_MEMORY ) )
-			set_flags( env->flags, ASE_NoSharedMemory );
-		else
-			clear_flags( env->flags, ASE_NoSharedMemory );
+	switch (config->NoModuleNameCollisions % 3)
+	{
+	 case 0:
+		 env->module_name_collision = ASE_AllowModuleNameCollision;
+		 break;
+	 case 1:
+		 env->module_name_collision = ASE_KillOldModuleOnNameCollision;
+		 break;
+	 case 2:
+		 env->module_name_collision = ASE_KillNewModuleOnNameCollision;
+		 break;
 	}
-	if( get_flags(config->set_flags, BASE_NO_KDEGLOBALS_THEMING ) )
-	{	
-		if( get_flags(config->flags, BASE_NO_KDEGLOBALS_THEMING ) )
-			set_flags( env->flags, ASE_NoKDEGlobalsTheming );
+
+	set_environment_tool_from_list (env, ASTool_Term, config->term_command, MAX_TOOL_COMMANDS);
+	set_environment_tool_from_list (env, ASTool_Browser, config->browser_command, MAX_TOOL_COMMANDS);
+	set_environment_tool_from_list (env, ASTool_Editor, config->editor_command, MAX_TOOL_COMMANDS);
+
+	if (get_flags (config->set_flags, BASE_NO_SHARED_MEMORY))
+	{
+		if (get_flags (config->flags, BASE_NO_SHARED_MEMORY))
+			set_flags (env->flags, ASE_NoSharedMemory);
 		else
-			clear_flags( env->flags, ASE_NoKDEGlobalsTheming );
+			clear_flags (env->flags, ASE_NoSharedMemory);
 	}
-	*penv = env ;
+	if (get_flags (config->set_flags, BASE_NO_KDEGLOBALS_THEMING))
+	{
+		if (get_flags (config->flags, BASE_NO_KDEGLOBALS_THEMING))
+			set_flags (env->flags, ASE_NoKDEGlobalsTheming);
+		else
+			clear_flags (env->flags, ASE_NoKDEGlobalsTheming);
+	}
+	*penv = env;
 }
 
 Bool
-ReloadASEnvironment( ASImageManager **old_imageman, 
-					 ASFontManager **old_fontman, 
-					 BaseConfig **config_return, 
-					 Bool flush_images, Bool support_shared_images )
+ReloadASEnvironment (ASImageManager ** old_imageman,
+					 ASFontManager ** old_fontman,
+					 BaseConfig ** config_return, Bool flush_images, Bool support_shared_images)
 {
-	char *old_pixmap_path = NULL ;
-	char *old_font_path = NULL ;
-    char *configfile = NULL ;
-	BaseConfig *config = NULL ;
-	ASEnvironment *e = NULL ;
-	ScreenInfo *scr = get_current_screen();
+	char         *old_pixmap_path = NULL;
+	char         *old_font_path = NULL;
+	char         *configfile = NULL;
+	BaseConfig   *config = NULL;
+	ASEnvironment *e = NULL;
+	ScreenInfo   *scr = get_current_screen ();
 
-	if( Environment != NULL )
+	if (Environment != NULL)
 	{
-		old_pixmap_path = Environment->pixmap_path ;
-		Environment->pixmap_path = NULL ;
-		old_font_path   = Environment->font_path ;
-		Environment->font_path   = NULL ;
+		old_pixmap_path = Environment->pixmap_path;
+		Environment->pixmap_path = NULL;
+		old_font_path = Environment->font_path;
+		Environment->font_path = NULL;
 	}
 
-	configfile = Session->overriding_file ;
-	if( configfile == NULL )
-		configfile = make_session_file(Session, BASE_FILE, False/* no longer use #bpp in filenames */ );
-	if( configfile != NULL )
+	configfile = Session->overriding_file;
+	if (configfile == NULL)
+		configfile = make_session_file (Session, BASE_FILE, False /* no longer use #bpp in filenames */ );
+	if (configfile != NULL)
 	{
 		config = ParseBaseOptions (configfile, MyName);
-		if( config != NULL )
-			show_progress("BASE configuration loaded from \"%s\" ...", configfile);
+		if (config != NULL)
+			show_progress ("BASE configuration loaded from \"%s\" ...", configfile);
 		else
-			show_progress("BASE could not be loaded from \"%s\" ...", configfile);
-		if( configfile != Session->overriding_file )
-			free( configfile );
-	}else
-        show_warning("BASE configuration file cannot be found");
+			show_progress ("BASE could not be loaded from \"%s\" ...", configfile);
+		if (configfile != Session->overriding_file)
+			free (configfile);
+	} else
+		show_warning ("BASE configuration file cannot be found");
 
-	if( config == NULL )
+	if (config == NULL)
 	{
-		if( Environment != NULL )
+		if (Environment != NULL)
 		{
-			Environment->pixmap_path = old_pixmap_path ;
-			Environment->font_path 	 = old_font_path ;
-			return  False;
+			Environment->pixmap_path = old_pixmap_path;
+			Environment->font_path = old_font_path;
+			return False;
 		}
 		/* otherwise we should use default values  - Environment should never be NULL */
-		Environment = make_default_environment();
-	}else
+		Environment = make_default_environment ();
+	} else
 	{
-		BaseConfig2ASEnvironment( config, &Environment );
-		if( config_return )
-			*config_return = config ;
+		BaseConfig2ASEnvironment (config, &Environment);
+		if (config_return)
+			*config_return = config;
 		else
 			DestroyBaseConfig (config);
 	}
 
-	e = Environment ;
+	e = Environment;
 	/* Save base filename to pass to modules */
-    if( mystrcmp(old_pixmap_path, e->pixmap_path) == 0 ||
-		(e->pixmap_path != NULL && scr->image_manager == NULL) ||
-		flush_images )
-    {
-		reload_screen_image_manager( scr, old_imageman );
+	if (mystrcmp (old_pixmap_path, e->pixmap_path) == 0 ||
+		(e->pixmap_path != NULL && scr->image_manager == NULL) || flush_images)
+	{
+		reload_screen_image_manager (scr, old_imageman);
 	}
-	if( old_pixmap_path && old_pixmap_path != e->pixmap_path )
-    	free( old_pixmap_path );
+	if (old_pixmap_path && old_pixmap_path != e->pixmap_path)
+		free (old_pixmap_path);
 
-	if( mystrcmp(old_font_path, e->font_path) == 0 ||
-		(e->font_path != NULL && scr->font_manager == NULL) )
-    {
-		if( old_fontman )
+	if (mystrcmp (old_font_path, e->font_path) == 0 || (e->font_path != NULL && scr->font_manager == NULL))
+	{
+		if (old_fontman)
 		{
-			*old_fontman = scr->font_manager ;
-		}else if( scr->font_manager )
-			destroy_font_manager( scr->font_manager, False );
+			*old_fontman = scr->font_manager;
+		} else if (scr->font_manager)
+			destroy_font_manager (scr->font_manager, False);
 
-        scr->font_manager = create_font_manager( dpy, e->font_path, NULL );
-		set_xml_font_manager( scr->font_manager );
-	    show_progress("Font Path changed to \"%s\" ...", e->font_path?e->font_path:"");
-    }
-    if( old_font_path && old_font_path != e->font_path )
-        free( old_font_path );
+		scr->font_manager = create_font_manager (dpy, e->font_path, NULL);
+		set_xml_font_manager (scr->font_manager);
+		show_progress ("Font Path changed to \"%s\" ...", e->font_path ? e->font_path : "");
+	}
+	if (old_font_path && old_font_path != e->font_path)
+		free (old_font_path);
 
-	if( e->desk_pages_h > 0 )
+	if (e->desk_pages_h > 0)
 	{
 		if (e->desk_pages_h <= 100)
-			scr->VxMax = (e->desk_pages_h-1)*scr->MyDisplayWidth ;
-		else 
-		{
-			scr->VxMax = MAX(e->desk_pages_h,scr->MyDisplayWidth) - scr->MyDisplayWidth;
-			e->desk_pages_h = (e->desk_pages_h+scr->MyDisplayWidth-1)/scr->MyDisplayWidth;
-		}
-	}else
-		scr->VxMax = 0 ;
-	if( e->desk_pages_v > 0 )
-	{
-		if( e->desk_pages_v <= 100 )
-			scr->VyMax = (e->desk_pages_v-1)*scr->MyDisplayHeight ;
+			scr->VxMax = (e->desk_pages_h - 1) * scr->MyDisplayWidth;
 		else
 		{
-			scr->VyMax = MAX(e->desk_pages_v,scr->MyDisplayHeight) - scr->MyDisplayHeight;
-			e->desk_pages_v = (e->desk_pages_v+scr->MyDisplayHeight-1)/scr->MyDisplayHeight;
+			scr->VxMax = MAX (e->desk_pages_h, scr->MyDisplayWidth) - scr->MyDisplayWidth;
+			e->desk_pages_h = (e->desk_pages_h + scr->MyDisplayWidth - 1) / scr->MyDisplayWidth;
 		}
-	}else
-		scr->VyMax = 0 ;
-		
+	} else
+		scr->VxMax = 0;
+	if (e->desk_pages_v > 0)
+	{
+		if (e->desk_pages_v <= 100)
+			scr->VyMax = (e->desk_pages_v - 1) * scr->MyDisplayHeight;
+		else
+		{
+			scr->VyMax = MAX (e->desk_pages_v, scr->MyDisplayHeight) - scr->MyDisplayHeight;
+			e->desk_pages_v = (e->desk_pages_v + scr->MyDisplayHeight - 1) / scr->MyDisplayHeight;
+		}
+	} else
+		scr->VyMax = 0;
+
 	scr->VScale = e->desk_scale;
-	if( scr->VScale <= 1 ) 
-		scr->VScale = 2 ;
-	else if( scr->VScale >= scr->MyDisplayHeight/2 ) 
-		scr->VScale = scr->MyDisplayHeight/2 ;
+	if (scr->VScale <= 1)
+		scr->VScale = 2;
+	else if (scr->VScale >= scr->MyDisplayHeight / 2)
+		scr->VScale = scr->MyDisplayHeight / 2;
 
 #ifdef XSHMIMAGE
-	if( support_shared_images ) 
+	if (support_shared_images)
 	{
-		if(get_flags( e->flags, ASE_NoSharedMemory ) )
+		if (get_flags (e->flags, ASE_NoSharedMemory))
 			disable_shmem_images ();
 		else
 			enable_shmem_images ();
 	}
-SHOW_CHECKPOINT;
+	SHOW_CHECKPOINT;
 #endif
 
-	
-	return (config!=NULL);
-}
 
+	return (config != NULL);
+}

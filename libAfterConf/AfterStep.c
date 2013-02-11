@@ -33,27 +33,26 @@
 
 #include "afterconf.h"
 
-SyntaxDef DummyFuncSyntax = {
-    '\0',   '\n',	NULL,
-	0, 		' ',	"",			"\t",
+SyntaxDef     DummyFuncSyntax = {
+	'\0', '\n', NULL,
+	0, ' ', "", "\t",
 	"AfterStep Function",
 	"Functions",
 	"built in AfterStep functions",
-	NULL,	0
+	NULL, 0
 };
 
 SyntaxDef     DummyPopupFuncSyntax = {
-	'\n',	'\0',	NULL,
-	0, 		' ',	"\t",		"\t",
-    "Popup/Complex function definition",
+	'\n', '\0', NULL,
+	0, ' ', "\t", "\t",
+	"Popup/Complex function definition",
 	"Popup",
-	"",	
-	NULL,	0
+	"",
+	NULL, 0
 };
 
-TermDef       DummyTerms[] =
-{
-    {0, NULL, 0, 0, 0}
+TermDef       DummyTerms[] = {
+	{0, NULL, 0, 0, 0}
 };
 
 
@@ -62,7 +61,7 @@ SyntaxDef     ArrangeSyntax = {
 	'\0',
 	DummyTerms,
 	0,										   /* use default hash size */
-    ' ',
+	' ',
 	"",
 	"\t",
 	"Module:Arrange",
@@ -78,7 +77,7 @@ SyntaxDef     WinCommandSyntax = {
 	'\0',
 	DummyTerms,
 	0,										   /* use default hash size */
-    ' ',
+	' ',
 	"",
 	"\t",
 	"Module:WinCommand",
@@ -89,63 +88,80 @@ SyntaxDef     WinCommandSyntax = {
 };
 
 
-TermDef       SupportedHintsTerms[] =
-{
-    {TF_NO_MYNAME_PREPENDING, "ICCCM", 5, TT_FLAG, HINTS_ICCCM_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "GroupLead", 9, TT_FLAG, HINTS_GroupLead_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_FLAG, HINTS_Transient_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Motif", 5, TT_FLAG, HINTS_Motif_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Gnome", 5, TT_FLAG, HINTS_Gnome_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "KDE", 10, TT_FLAG, HINTS_KDE_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "ExtendedWM", 10, TT_FLAG, HINTS_ExtendedWM_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Xresources", 10, TT_FLAG, HINTS_XResources_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "AfterStepDB",11, TT_FLAG, HINTS_ASDatabase_ID, NULL},
-    {0, NULL, 0, 0, 0}
+TermDef       SupportedHintsTerms[] = {
+	{TF_NO_MYNAME_PREPENDING, "ICCCM", 5, TT_FLAG, HINTS_ICCCM_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "GroupLead", 9, TT_FLAG, HINTS_GroupLead_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Transient", 9, TT_FLAG, HINTS_Transient_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Motif", 5, TT_FLAG, HINTS_Motif_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Gnome", 5, TT_FLAG, HINTS_Gnome_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "KDE", 10, TT_FLAG, HINTS_KDE_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "ExtendedWM", 10, TT_FLAG, HINTS_ExtendedWM_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Xresources", 10, TT_FLAG, HINTS_XResources_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "AfterStepDB", 11, TT_FLAG, HINTS_ASDatabase_ID, NULL}
+	,
+	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef SupportedHintsSyntax = {',','\n',SupportedHintsTerms,7,' '," ","\t","Look Supported hints list","SupportedHints","",NULL,0};
+SyntaxDef     SupportedHintsSyntax =
+	{ ',', '\n', SupportedHintsTerms, 7, ' ', " ", "\t", "Look Supported hints list", "SupportedHints", "", NULL, 0 };
 
-TermDef       PlacementStrategyTerms[] =
-{
-    {TF_NO_MYNAME_PREPENDING, "SmartPlacement", 14, TT_FLAG, 	FEEL_SmartPlacement_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "RandomPlacement", 15, TT_FLAG, 	FEEL_RandomPlacement_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Tile", 5, TT_FLAG, 				FEEL_Tile_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Cascade", 7, TT_FLAG, 			FEEL_Cascade_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "UnderPointer", 12, TT_FLAG, 			FEEL_UnderPointer_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Manual", 6, TT_FLAG, 			FEEL_Manual_ID, NULL},
-    {0, NULL, 0, 0, 0}
+TermDef       PlacementStrategyTerms[] = {
+	{TF_NO_MYNAME_PREPENDING, "SmartPlacement", 14, TT_FLAG, FEEL_SmartPlacement_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "RandomPlacement", 15, TT_FLAG, FEEL_RandomPlacement_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Tile", 5, TT_FLAG, FEEL_Tile_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Cascade", 7, TT_FLAG, FEEL_Cascade_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "UnderPointer", 12, TT_FLAG, FEEL_UnderPointer_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Manual", 6, TT_FLAG, FEEL_Manual_ID, NULL}
+	,
+	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef PlacementStrategySyntax = {',','\n',PlacementStrategyTerms,7,' '," ","\t","Window Placement types","Placement",
+SyntaxDef     PlacementStrategySyntax =
+	{ ',', '\n', PlacementStrategyTerms, 7, ' ', " ", "\t", "Window Placement types", "Placement",
 	"AfterStep supports several different window placement policies."
-	" Some of them designed to fill free space, and some allowing for windows to be placed on top of others.",NULL,0};
+		" Some of them designed to fill free space, and some allowing for windows to be placed on top of others.", NULL,
+		0
+};
 
 
-extern SyntaxDef     MyBackgroundSyntax ;      /* see ASetRoot.c */
+extern SyntaxDef MyBackgroundSyntax;		   /* see ASetRoot.c */
+
 /**************************************************************************
  * WindowBox terms : 
- *************************************************************************/ 
+ *************************************************************************/
 TermDef       WindowBoxTerms[] = {
-    {TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "WindowBox", 9, TT_QUOTED_TEXT, WINDOWBOX_START_ID, NULL},
-    {TF_NO_MYNAME_PREPENDING, "Area", 4,              TT_GEOMETRY,WINDOWBOX_Area_ID   	  	 , NULL},
-    {TF_NO_MYNAME_PREPENDING, "Virtual", 7,           TT_FLAG,    WINDOWBOX_Virtual_ID       , NULL},
-    {TF_NO_MYNAME_PREPENDING, "MinWidth", 8,          TT_INTEGER, WINDOWBOX_MinWidth_ID	  	 , NULL},
-    {TF_NO_MYNAME_PREPENDING, "MinHeight", 9,         TT_INTEGER, WINDOWBOX_MinHeight_ID	 , NULL},
-    {TF_NO_MYNAME_PREPENDING, "MaxWidth", 8,          TT_INTEGER, WINDOWBOX_MaxWidth_ID	  	 , NULL},
-    {TF_NO_MYNAME_PREPENDING, "MaxHeight", 9,         TT_INTEGER, WINDOWBOX_MaxHeight_ID	 , NULL},
-    {TF_NO_MYNAME_PREPENDING, "FirstTry", 8,          TT_INTEGER, WINDOWBOX_FirstTry_ID	  	 , &PlacementStrategySyntax},
-    {TF_NO_MYNAME_PREPENDING, "ThenTry", 7,           TT_INTEGER, WINDOWBOX_ThenTry_ID 	  	 , &PlacementStrategySyntax},
-    {TF_NO_MYNAME_PREPENDING, "Desk", 4,              TT_INTEGER, WINDOWBOX_Desk_ID          , NULL},
-    {TF_NO_MYNAME_PREPENDING, "MinLayer", 8,          TT_INTEGER, WINDOWBOX_MinLayer_ID      , NULL},
-    {TF_NO_MYNAME_PREPENDING, "MaxLayer", 8,          TT_INTEGER, WINDOWBOX_MaxLayer_ID      , NULL},
-    {TF_NO_MYNAME_PREPENDING, "VerticalPriority", 16, TT_FLAG,    WINDOWBOX_VerticalPriority_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "ReverseOrder", 12,     TT_FLAG,    WINDOWBOX_ReverseOrder_ID    , NULL},
-	{TF_NO_MYNAME_PREPENDING, "ReverseOrderHorizontal", 22,     TT_FLAG,    WINDOWBOX_ReverseOrderHorizontal_ID    , NULL},
-	{TF_NO_MYNAME_PREPENDING, "ReverseOrderVertical", 20,       TT_FLAG,    WINDOWBOX_ReverseOrderVertical_ID    , NULL},
-	{TF_NO_MYNAME_PREPENDING, "XSpacing", 8,       	  TT_INTEGER, WINDOWBOX_XSpacing_ID		, NULL},
-	{TF_NO_MYNAME_PREPENDING, "YSpacing", 8,       	  TT_INTEGER, WINDOWBOX_YSpacing_ID    	, NULL},
-    {TF_NO_MYNAME_PREPENDING |
-	 TF_SYNTAX_TERMINATOR,    "~WindowBox", 10, TT_FLAG, WINDOWBOX_DONE_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_START, "WindowBox", 9, TT_QUOTED_TEXT, WINDOWBOX_START_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "Area", 4, TT_GEOMETRY, WINDOWBOX_Area_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "Virtual", 7, TT_FLAG, WINDOWBOX_Virtual_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "MinWidth", 8, TT_INTEGER, WINDOWBOX_MinWidth_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "MinHeight", 9, TT_INTEGER, WINDOWBOX_MinHeight_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "MaxWidth", 8, TT_INTEGER, WINDOWBOX_MaxWidth_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "MaxHeight", 9, TT_INTEGER, WINDOWBOX_MaxHeight_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "FirstTry", 8, TT_INTEGER, WINDOWBOX_FirstTry_ID, &PlacementStrategySyntax},
+	{TF_NO_MYNAME_PREPENDING, "ThenTry", 7, TT_INTEGER, WINDOWBOX_ThenTry_ID, &PlacementStrategySyntax},
+	{TF_NO_MYNAME_PREPENDING, "Desk", 4, TT_INTEGER, WINDOWBOX_Desk_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "MinLayer", 8, TT_INTEGER, WINDOWBOX_MinLayer_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "MaxLayer", 8, TT_INTEGER, WINDOWBOX_MaxLayer_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "VerticalPriority", 16, TT_FLAG, WINDOWBOX_VerticalPriority_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "ReverseOrder", 12, TT_FLAG, WINDOWBOX_ReverseOrder_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "ReverseOrderHorizontal", 22, TT_FLAG, WINDOWBOX_ReverseOrderHorizontal_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "ReverseOrderVertical", 20, TT_FLAG, WINDOWBOX_ReverseOrderVertical_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "XSpacing", 8, TT_INTEGER, WINDOWBOX_XSpacing_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "YSpacing", 8, TT_INTEGER, WINDOWBOX_YSpacing_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~WindowBox", 10, TT_FLAG, WINDOWBOX_DONE_ID, NULL},
 	{0, NULL, 0, 0, 0}
 };
 
@@ -153,51 +169,49 @@ SyntaxDef     WindowBoxSyntax = {
 	'\n',
 	'\0',
 	WindowBoxTerms,
-    7,                                         /* hash size */
+	7,										   /* hash size */
 	'\t',
 	"",
 	"\t",
 	"Feel WindowBox definition",
 	"FeelWindowBox",
 	"defines placement policy for certain type of windows, based on desk, window attributes, window size, etc."
-	" Useful for xinerama configurations, where windows should not be placed in between screens.",
+		" Useful for xinerama configurations, where windows should not be placed in between screens.",
 	NULL,
 	0
 };
 
 /**************************************************************************
  * .include file terms : 
- *************************************************************************/ 
+ *************************************************************************/
 
-TermDef includeTerms[] =
-{
-  /* focus : */
-  {TF_NO_MYNAME_PREPENDING, "include",12            , TT_FUNCTION   , INCLUDE_include_ID          	, NULL},
-  {TF_NO_MYNAME_PREPENDING, "keepname", 12          , TT_FLAG       , INCLUDE_keepname_ID          	, NULL},
-  {TF_NO_MYNAME_PREPENDING, "extension", 12         , TT_TEXT       , INCLUDE_extension_ID          , NULL},
-  {TF_NO_MYNAME_PREPENDING, "miniextension", 12     , TT_TEXT       , INCLUDE_miniextension_ID      , NULL},
-  {TF_NO_MYNAME_PREPENDING, "minipixmap", 12        , TT_FILENAME   , INCLUDE_minipixmap_ID         , NULL},
-  {TF_NO_MYNAME_PREPENDING, "command", 12           , TT_FLAG  		, INCLUDE_command_ID          	, &DummyFuncSyntax},
-  {TF_NO_MYNAME_PREPENDING, "order", 12           	, TT_INTEGER    , INCLUDE_order_ID       		, NULL},
-  {TF_NO_MYNAME_PREPENDING, "RecentSubmenuItems", 12, TT_INTEGER    , INCLUDE_RecentSubmenuItems_ID , NULL},
-  {TF_NO_MYNAME_PREPENDING, "name", 12           	, TT_TEXT       , INCLUDE_name_ID          		, NULL},
-  {0, NULL, 0, 0, 0}
+TermDef       includeTerms[] = {
+	/* focus : */
+	{TF_NO_MYNAME_PREPENDING, "include", 12, TT_FUNCTION, INCLUDE_include_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "keepname", 12, TT_FLAG, INCLUDE_keepname_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "extension", 12, TT_TEXT, INCLUDE_extension_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "miniextension", 12, TT_TEXT, INCLUDE_miniextension_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "minipixmap", 12, TT_FILENAME, INCLUDE_minipixmap_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "command", 12, TT_FLAG, INCLUDE_command_ID, &DummyFuncSyntax},
+	{TF_NO_MYNAME_PREPENDING, "order", 12, TT_INTEGER, INCLUDE_order_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "RecentSubmenuItems", 12, TT_INTEGER, INCLUDE_RecentSubmenuItems_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "name", 12, TT_TEXT, INCLUDE_name_ID, NULL},
+	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef includeSyntax =
-{
-  '\n',
-  '\0',
-  includeTerms,
-  0,				/* use default hash size */
-  '\t',
-  "",
-  "\t",
-  "include",
-  "include",
-  "include file for Popups",
-  NULL,
-  0
+SyntaxDef     includeSyntax = {
+	'\n',
+	'\0',
+	includeTerms,
+	0,										   /* use default hash size */
+	'\t',
+	"",
+	"\t",
+	"include",
+	"include",
+	"include file for Popups",
+	NULL,
+	0
 };
 
 /**************************************************************************
@@ -242,7 +256,7 @@ SyntaxDef includeSyntax =
     {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "ButtonMaxColors", 15, TT_UINTEGER, LOOK_ButtonMaxColors_ID, NULL}, \
     {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "ButtonPixmap", 12, TT_FILENAME, LOOK_ButtonPixmap_ID, NULL}, \
     {TF_OBSOLETE   |TF_NO_MYNAME_PREPENDING, "TitleTextMode", 13, TT_UINTEGER, LOOK_TitleTextMode_ID, NULL}
-	
+
 
 #define AFTERSTEP_LOOK_TERMS \
 	{TF_NO_MYNAME_PREPENDING, "IconBox", 7, TT_BOX, LOOK_IconBox_ID, NULL}, \
@@ -309,7 +323,7 @@ SyntaxDef includeSyntax =
 
 #define POPUP_TERM 		{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Popup",5                   , TT_QUOTED_TEXT, FEEL_Popup_ID             , &DummyPopupFuncSyntax}
 #define FUNCTION_TERM 	{TF_NO_MYNAME_PREPENDING|TF_SYNTAX_START, "Function",8                , TT_QUOTED_TEXT, FEEL_Function_ID          , &DummyPopupFuncSyntax}
-  
+
 #define AFTERSTEP_FEEL_TERMS \
   {TF_NO_MYNAME_PREPENDING, "ClickToFocus",12           , TT_FLAG       , FEEL_ClickToFocus_ID          , NULL}, \
   {TF_NO_MYNAME_PREPENDING, "SloppyFocus",11            , TT_FLAG       , FEEL_SloppyFocus_ID           , NULL}, \
@@ -377,7 +391,7 @@ SyntaxDef includeSyntax =
 
 #define AFTERSTEP_WINDOWBOX_TERMS \
   {TF_NO_MYNAME_PREPENDING, "WindowBox", 9,				TT_QUOTED_TEXT, FEEL_WindowBox_ID				, &WindowBoxSyntax}
-    
+
 	/* obsolete stuff : */
 #define OBSOLETE_AFTERSTEP_FEEL_TERMS \
   {TF_OBSOLETE|TF_NO_MYNAME_PREPENDING, "MWMFunctionHints",16       , TT_FLAG       , FEEL_MWMFunctionHints_ID  , NULL}, \
@@ -402,16 +416,16 @@ TermDef       LookTerms[] = {
     {TF_NO_MYNAME_PREPENDING, "MenuFrame", 16, TT_QUOTED_TEXT, LOOK_MenuFrame_ID, NULL},
 	{TF_NO_MYNAME_PREPENDING|TF_INDEXED|TF_DONT_SPLIT, "DeskLayout", 8, TT_QUOTED_TEXT, LOOK_DeskLayout_ID, NULL},
 */
-		
+
 /* non depreciated options : */
 	AFTERSTEP_LOOK_TERMS,
 	/* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 	INCLUDE_MYFRAME,
-    AFTERSTEP_MYBACK_TERMS,
+	AFTERSTEP_MYBACK_TERMS,
 	AFTERSTEP_BALLOON_TERMS,
 	AFTERSTEP_TITLEBUTTON_TERMS,
-    
+
 	{0, NULL, 0, 0, 0}
 };
 
@@ -424,169 +438,202 @@ TermDef       ModuleMyStyleTerms[] = {
 	INCLUDE_MYSTYLE,
 	{0, NULL, 0, 0, 0}
 };
+
 TermDef       AfterStepMyFrameTerms[] = {
 	INCLUDE_MYFRAME,
 	{0, NULL, 0, 0, 0}
 };
+
 TermDef       AfterStepMyBackgroundTerms[] = {
-    AFTERSTEP_MYBACK_TERMS,
+	AFTERSTEP_MYBACK_TERMS,
 	{0, NULL, 0, 0, 0}
 };
+
 TermDef       AfterStepTitleButtonTerms[] = {
 	AFTERSTEP_TITLEBUTTON_TERMS,
 	{0, NULL, 0, 0, 0}
 };
 
-TermDef FeelTerms[] =
-{
+TermDef       FeelTerms[] = {
 	POPUP_TERM,
 	FUNCTION_TERM,
 	AFTERSTEP_FEEL_TERMS,
-	AFTERSTEP_CURSOR_TERMS, 
-	AFTERSTEP_MOUSE_TERMS, 
-	AFTERSTEP_KEYBOARD_TERMS, 
+	AFTERSTEP_CURSOR_TERMS,
+	AFTERSTEP_MOUSE_TERMS,
+	AFTERSTEP_KEYBOARD_TERMS,
 	AFTERSTEP_WINDOWBOX_TERMS,
 	OBSOLETE_AFTERSTEP_FEEL_TERMS,
-  	{0, NULL, 0, 0, 0}
+	{0, NULL, 0, 0, 0}
 };
 
-TermDef AfterStepFeelTerms[] =
-{
+TermDef       AfterStepFeelTerms[] = {
 	AFTERSTEP_FEEL_TERMS,
-  	{0, NULL, 0, 0, 0}
+	{0, NULL, 0, 0, 0}
 };
-TermDef AfterStepCursorTerms[] =
-{
-	AFTERSTEP_CURSOR_TERMS, 
-  	{0, NULL, 0, 0, 0}
+
+TermDef       AfterStepCursorTerms[] = {
+	AFTERSTEP_CURSOR_TERMS,
+	{0, NULL, 0, 0, 0}
 };
-TermDef MouseBindingTerms[] =
-{
-	AFTERSTEP_MOUSE_TERMS, 
-  	{0, NULL, 0, 0, 0}
+
+TermDef       MouseBindingTerms[] = {
+	AFTERSTEP_MOUSE_TERMS,
+	{0, NULL, 0, 0, 0}
 };
-TermDef KeyboardBindingTerms[] =
-{
-	AFTERSTEP_KEYBOARD_TERMS, 
-  	{0, NULL, 0, 0, 0}
+
+TermDef       KeyboardBindingTerms[] = {
+	AFTERSTEP_KEYBOARD_TERMS,
+	{0, NULL, 0, 0, 0}
 };
-TermDef AfterStepWindowBoxTerms[] =
-{
+
+TermDef       AfterStepWindowBoxTerms[] = {
 	AFTERSTEP_WINDOWBOX_TERMS,
-  	{0, NULL, 0, 0, 0}
+	{0, NULL, 0, 0, 0}
 };
 
-TermDef PopupTerms[] =
-{
-  POPUP_TERM,
-  {0, NULL, 0, 0, 0}
+TermDef       PopupTerms[] = {
+	POPUP_TERM,
+	{0, NULL, 0, 0, 0}
 };
 
-TermDef FunctionTerms[] =
-{
-  FUNCTION_TERM,
-  {0, NULL, 0, 0, 0}
+TermDef       FunctionTerms[] = {
+	FUNCTION_TERM,
+	{0, NULL, 0, 0, 0}
 };
 
-extern TermDef       WharfTerms[];
-extern TermDef       WharfFolderTerms[];
+extern TermDef WharfTerms[];
+extern TermDef WharfFolderTerms[];
 
-TermDef AfterStepTerms[] = 
-{
+TermDef       AfterStepTerms[] = {
 	POPUP_TERM,
 	FUNCTION_TERM,
 	AFTERSTEP_FEEL_TERMS,
-	AFTERSTEP_CURSOR_TERMS, 
-	AFTERSTEP_MOUSE_TERMS, 
-	AFTERSTEP_KEYBOARD_TERMS, 
+	AFTERSTEP_CURSOR_TERMS,
+	AFTERSTEP_MOUSE_TERMS,
+	AFTERSTEP_KEYBOARD_TERMS,
 	AFTERSTEP_WINDOWBOX_TERMS,
 	AFTERSTEP_LOOK_TERMS,
 	/* including MyStyles definitions processing */
 	INCLUDE_MYSTYLE,
 	INCLUDE_MYFRAME,
-    AFTERSTEP_MYBACK_TERMS,
+	AFTERSTEP_MYBACK_TERMS,
 	AFTERSTEP_BALLOON_TERMS,
 	AFTERSTEP_TITLEBUTTON_TERMS,
-  	{0, NULL, 0, 0, 0}
+	{0, NULL, 0, 0, 0}
 };
+
 /**************************************************************************
  * Syntaxes : 
  *************************************************************************/
-SyntaxDef LookSyntax 		={ '\n', '\0', LookTerms, 		0, '\t', "", "\t", "Look", "Look", "AfterStep look", NULL, 0};
-SyntaxDef FeelSyntax 		={ '\n', '\0', FeelTerms, 		0, '\t', "", "\t", "Feel", "Feel", "AfterStep feel configuration", NULL, 0};
-SyntaxDef FunctionSyntax 	={ '\n', '\0', FunctionTerms,	0, 	' ', "", "\t", "AfterStep Complex/Builtin Function", "Function", "functions that can be executed by AfterStep", NULL, 0};
-SyntaxDef PopupSyntax 		={ '\n', '\0', PopupTerms,		0,	' ', "", "\t", "AfterStep Popups", "Popups", "Definitions for AfterStep Popups", NULL, 0 };
-SyntaxDef AutoExecSyntax 	={ '\n', '\0', FunctionTerms,	0, 	' ', "", "\t", "AfterStep Autoexec (startup/restart sequences)", "AutoExec", "functions to be executed by AfterStep on startup/shutdown", NULL, 0};
-SyntaxDef ThemeSyntax 		={ '\n', '\0', FunctionTerms,	0,	' ', "", "\t", "theme installation script", "Theme", "AfterStep theme file", NULL, 0};
+SyntaxDef     LookSyntax = { '\n', '\0', LookTerms, 0, '\t', "", "\t", "Look", "Look", "AfterStep look", NULL, 0 };
+SyntaxDef     FeelSyntax =
+	{ '\n', '\0', FeelTerms, 0, '\t', "", "\t", "Feel", "Feel", "AfterStep feel configuration", NULL, 0 };
+SyntaxDef     FunctionSyntax =
+	{ '\n', '\0', FunctionTerms, 0, ' ', "", "\t", "AfterStep Complex/Builtin Function", "Function",
+"functions that can be executed by AfterStep", NULL, 0 };
+SyntaxDef     PopupSyntax =
+	{ '\n', '\0', PopupTerms, 0, ' ', "", "\t", "AfterStep Popups", "Popups", "Definitions for AfterStep Popups", NULL,
+0 };
+SyntaxDef     AutoExecSyntax =
+	{ '\n', '\0', FunctionTerms, 0, ' ', "", "\t", "AfterStep Autoexec (startup/restart sequences)", "AutoExec",
+"functions to be executed by AfterStep on startup/shutdown", NULL, 0 };
+SyntaxDef     ThemeSyntax =
+	{ '\n', '\0', FunctionTerms, 0, ' ', "", "\t", "theme installation script", "Theme", "AfterStep theme file", NULL,
+0 };
 
-SyntaxDef AfterStepSyntax 		={ '\n', '\0', AfterStepTerms, 			0, '\t', "", "\t", "AfterStep proper", "Look/Feel", "AfterStep proper", NULL, 0};
+SyntaxDef     AfterStepSyntax =
+	{ '\n', '\0', AfterStepTerms, 0, '\t', "", "\t", "AfterStep proper", "Look/Feel", "AfterStep proper", NULL, 0 };
 
-SyntaxDef AfterStepLookSyntax 		={ '\n', '\0', AfterStepLookTerms, 			0, '\t', "", "\t", "Look", "Look", "AfterStep look", NULL, 0};
-SyntaxDef ModuleMyStyleSyntax 		={ '\n', '\0', ModuleMyStyleTerms, 			0, '\t', "", "\t", "MyStyles", "MyStyles", "AfterStep MyStyle definitions", NULL, 0};
-SyntaxDef AfterStepMyFrameSyntax   	={ '\n', '\0', AfterStepMyFrameTerms, 		0, '\t', "", "\t", "MyFrames", "MyFrames", "AfterStep MyFrame definitions", NULL, 0};
-SyntaxDef AfterStepMyBackSyntax    	={ '\n', '\0', AfterStepMyBackgroundTerms,	0, '\t', "", "\t", "MyBackgrounds", "MyBackgrounds", "AfterStep MyBackground definitions", NULL, 0};
-SyntaxDef AfterStepTitleButtonSyntax={ '\n', '\0', AfterStepTitleButtonTerms,	0, '\t', "", "\t", "TitleButtons", "TitleButtons", "AfterStep TitleButton definitions", NULL, 0};
+SyntaxDef     AfterStepLookSyntax =
+	{ '\n', '\0', AfterStepLookTerms, 0, '\t', "", "\t", "Look", "Look", "AfterStep look", NULL, 0 };
+SyntaxDef     ModuleMyStyleSyntax =
+	{ '\n', '\0', ModuleMyStyleTerms, 0, '\t', "", "\t", "MyStyles", "MyStyles", "AfterStep MyStyle definitions", NULL,
+0 };
+SyntaxDef     AfterStepMyFrameSyntax =
+	{ '\n', '\0', AfterStepMyFrameTerms, 0, '\t', "", "\t", "MyFrames", "MyFrames", "AfterStep MyFrame definitions",
+NULL, 0 };
+SyntaxDef     AfterStepMyBackSyntax =
+	{ '\n', '\0', AfterStepMyBackgroundTerms, 0, '\t', "", "\t", "MyBackgrounds", "MyBackgrounds",
+"AfterStep MyBackground definitions", NULL, 0 };
+SyntaxDef     AfterStepTitleButtonSyntax =
+	{ '\n', '\0', AfterStepTitleButtonTerms, 0, '\t', "", "\t", "TitleButtons", "TitleButtons",
+"AfterStep TitleButton definitions", NULL, 0 };
 
-SyntaxDef AfterStepFeelSyntax 		={ '\n', '\0', AfterStepFeelTerms, 			0, '\t', "", "\t", "Feel", "Feel", "AfterStep feel configuration", NULL, 0};
-SyntaxDef AfterStepCursorSyntax 	={ '\n', '\0', AfterStepCursorTerms,   		0, '\t', "", "\t", "Cursors", "Cursors", "AfterStep Cursor configuration", NULL, 0};
-SyntaxDef AfterStepMouseSyntax 		={ '\n', '\0', MouseBindingTerms, 			0, '\t', "", "\t", "MouseBindings", "MouseBindings", "AfterStep MouseBinding configuration", NULL, 0};
-SyntaxDef AfterStepKeySyntax 		={ '\n', '\0', KeyboardBindingTerms,   		0, '\t', "", "\t", "KeyboardBindings", "KeyboardBindings", "AfterStep KeyboardBinding configuration", NULL, 0};
-SyntaxDef AfterStepWindowBoxSyntax 	={ '\n', '\0', AfterStepWindowBoxTerms,		0, '\t', "", "\t", "WindowBoxes", "WindowBoxes", "AfterStep WindowBox configuration", NULL, 0};
+SyntaxDef     AfterStepFeelSyntax =
+	{ '\n', '\0', AfterStepFeelTerms, 0, '\t', "", "\t", "Feel", "Feel", "AfterStep feel configuration", NULL, 0 };
+SyntaxDef     AfterStepCursorSyntax =
+	{ '\n', '\0', AfterStepCursorTerms, 0, '\t', "", "\t", "Cursors", "Cursors", "AfterStep Cursor configuration", NULL,
+0 };
+SyntaxDef     AfterStepMouseSyntax =
+	{ '\n', '\0', MouseBindingTerms, 0, '\t', "", "\t", "MouseBindings", "MouseBindings",
+"AfterStep MouseBinding configuration", NULL, 0 };
+SyntaxDef     AfterStepKeySyntax =
+	{ '\n', '\0', KeyboardBindingTerms, 0, '\t', "", "\t", "KeyboardBindings", "KeyboardBindings",
+"AfterStep KeyboardBinding configuration", NULL, 0 };
+SyntaxDef     AfterStepWindowBoxSyntax =
+	{ '\n', '\0', AfterStepWindowBoxTerms, 0, '\t', "", "\t", "WindowBoxes", "WindowBoxes",
+"AfterStep WindowBox configuration", NULL, 0 };
 
 
-void LinkAfterStepConfig()
+void
+LinkAfterStepConfig ()
 {
-	int i = 0;
-	TermDef *termsets[] = {includeTerms,	
-						FeelTerms,	
-						MouseBindingTerms,	
-						KeyboardBindingTerms,	
-						PopupTerms,	
-						FunctionTerms,
-						WharfTerms,
-						WharfFolderTerms,
-						NULL } ;
-	while( termsets[i] ) 
+	int           i = 0;
+
+	TermDef      *termsets[] = { includeTerms,
+		FeelTerms,
+		MouseBindingTerms,
+		KeyboardBindingTerms,
+		PopupTerms,
+		FunctionTerms,
+		WharfTerms,
+		WharfFolderTerms,
+		NULL
+	};
+	while (termsets[i])
 	{
-		TermDef *terms = termsets[i] ; 
-		int k = 0 ; 
-		while( terms[k].keyword != NULL ) 
+		TermDef      *terms = termsets[i];
+		int           k = 0;
+
+		while (terms[k].keyword != NULL)
 		{
-			if( terms[k].sub_syntax == &DummyFuncSyntax ) 
-				terms[k].sub_syntax = pFuncSyntax ; 
-			else if( terms[k].sub_syntax == &DummyPopupFuncSyntax ) 
-				terms[k].sub_syntax = pPopupFuncSyntax ; 
-			++k ;	
-		}	 
-		++i ;	
-	}	 
+			if (terms[k].sub_syntax == &DummyFuncSyntax)
+				terms[k].sub_syntax = pFuncSyntax;
+			else if (terms[k].sub_syntax == &DummyPopupFuncSyntax)
+				terms[k].sub_syntax = pPopupFuncSyntax;
+			++k;
+		}
+		++i;
+	}
 
-	pFuncSyntax->terms[F_Folder].sub_syntax = &WharfFolderSyntax ;
-}	 
+	pFuncSyntax->terms[F_Folder].sub_syntax = &WharfFolderSyntax;
+}
 
-void init_asmodule_config( ASModuleConfig *config, Bool free_resources )
+void
+init_asmodule_config (ASModuleConfig * config, Bool free_resources)
 {
-	if( config ) 
+	if (config)
 	{
-		if( free_resources ) 
+		if (free_resources)
 		{
-			if( config->style_defs )
+			if (config->style_defs)
 				DestroyMyStyleDefinitions (&(config->style_defs));
-    		if( config->balloon_configs )
+			if (config->balloon_configs)
 			{
-				int i ;
-				for( i = 0 ; config->balloon_configs[i] != NULL ; ++i )
-				    Destroy_balloonConfig (config->balloon_configs[i]);
-			   free( config->balloon_configs );
+				int           i;
+
+				for (i = 0; config->balloon_configs[i] != NULL; ++i)
+					Destroy_balloonConfig (config->balloon_configs[i]);
+				free (config->balloon_configs);
 			}
-	    	if( config->more_stuff )
+			if (config->more_stuff)
 				DestroyFreeStorage (&config->more_stuff);
 		}
-		config->type = 0 ; /* make it invalid type */
-		config->class = NULL ; /* make it invalid type */
+		config->type = 0;					   /* make it invalid type */
+		config->class = NULL;				   /* make it invalid type */
 		config->style_defs = NULL;
-    	config->balloon_configs = NULL;
-    	config->more_stuff = NULL;
+		config->balloon_configs = NULL;
+		config->more_stuff = NULL;
 	}
 }
 
@@ -613,85 +660,88 @@ void init_asmodule_config( ASModuleConfig *config, Bool free_resources )
 										 ASModuleConfig_HandleFlags| \
 										 ASModuleConfig_HandleScalars )
 
-ASModuleConfig* 
-create_ASModule_config( ASModuleConfigClass *class ) 
+ASModuleConfig *
+create_ASModule_config (ASModuleConfigClass * class)
 {
-	ASModuleConfig* config = NULL ; 
-	
-	if( class && class->config_struct_size > 0 && class->type != 0 ) 
+	ASModuleConfig *config = NULL;
+
+	if (class && class->config_struct_size > 0 && class->type != 0)
 	{
-		config = safecalloc( 1, class->config_struct_size );
-		init_asmodule_config( config, False );
-		config->type = class->type ;
-		config->class = class ; 
-		if( class->balloon_types != NULL ) 
+		config = safecalloc (1, class->config_struct_size);
+		init_asmodule_config (config, False);
+		config->type = class->type;
+		config->class = class;
+		if (class->balloon_types != NULL)
 		{
-			int count = 0; 
-			while( class->balloon_types[count] > 0 ) ++count;
-			if( count > 0 ) 
-				config->balloon_configs = safecalloc( count+1, sizeof(struct balloonConfig*) ); 
+			int           count = 0;
+
+			while (class->balloon_types[count] > 0)
+				++count;
+			if (count > 0)
+				config->balloon_configs = safecalloc (count + 1, sizeof (struct balloonConfig *));
 		}
-		if( class->init_config_func )
-			class->init_config_func(config, False);
+		if (class->init_config_func)
+			class->init_config_func (config, False);
 	}
-	return config ;
+	return config;
 }
 
-void 
-destroy_ASModule_config( ASModuleConfig *config )
+void
+destroy_ASModule_config (ASModuleConfig * config)
 {
-	if( config ) 
+	if (config)
 	{
-		ASModuleConfigClass *class = config->class ;
-		if( class && class->init_config_func )
-			class->init_config_func( config, True );
-		init_asmodule_config( config, True );
+		ASModuleConfigClass *class = config->class;
+
+		if (class && class->init_config_func)
+			class->init_config_func (config, True);
+		init_asmodule_config (config, True);
 		free (config);
 	}
 }
 
-MyStyleDefinition*
-free_storage_elem2MyStyleDefinition (FreeStorageElem *fs, const char *default_name)
+MyStyleDefinition *
+free_storage_elem2MyStyleDefinition (FreeStorageElem * fs, const char *default_name)
 {
 	MyStyleDefinition *msd = NULL;
-	
+
 	if (fs == NULL)
 		return NULL;
 
 	msd = safecalloc (1, sizeof (MyStyleDefinition));
 	msd->type = CONFIG_MyStyles_ID;
-	
+
 	if (fs->sub)
 		fs = fs->sub;
-	for ( ;fs ; fs = fs->next)
+	for (; fs; fs = fs->next)
 	{
-		TermDef *T = fs->term ;
-		
-		if (T->id < MYSTYLE_ID_START || T->id > MYSTYLE_ID_END) /* just in case */
+		TermDef      *T = fs->term;
+
+		if (T->id < MYSTYLE_ID_START || T->id > MYSTYLE_ID_END)	/* just in case */
 			continue;
 
-		if (T->struct_field_offset != 0) 
+		if (T->struct_field_offset != 0)
 		{
-			ReadConfigItemToStruct( msd, offsetof(MyStyleDefinition,set_flags), fs  );
+			ReadConfigItemToStruct (msd, offsetof (MyStyleDefinition, set_flags), fs);
 /* fprintf (stderr, "$$$$ name = %s, offset=%d,keyword =%s,flags_on=0x%X, set_flags = 0x%X\n",msd->Name, offsetof(MyStyleDefinition,set_flags), T->keyword, T->flags_on, msd->set_flags); */
-		}else if( T->type == TT_FLAG)
+		} else if (T->type == TT_FLAG)
 		{
-			ReadFlagItemAuto (msd, offsetof(MyStyleDefinition,set_flags), fs, MyStyleFlags);	
-		}else
+			ReadFlagItemAuto (msd, offsetof (MyStyleDefinition, set_flags), fs, MyStyleFlags);
+		} else
 			HandleMyStyleSpecialTerm (msd, fs);
-	}	
-	
+	}
+
 	if (msd->Name == NULL && default_name)
 		msd->Name = mystrdup (default_name);
-	
+
 	if (!CheckMyStyleDefinitionSanity (msd))
 		DestroyMyStyleDefinitions (&msd);
-		
+
 	return msd;
 }
 
 FreeStorageElem *
-MyStyleDefinition2free_storage_elem (MyStyleDefinition *msd, SyntaxDef *syntax)
+MyStyleDefinition2free_storage_elem (MyStyleDefinition * msd, SyntaxDef * syntax)
 {
 	FreeStorageElem *fs = NULL;
 
@@ -705,139 +755,146 @@ MyStyleDefinition2free_storage_elem (MyStyleDefinition *msd, SyntaxDef *syntax)
 	if (fs)
 	{
 		FreeStorageElem **tail = &(fs->sub);
-		ASFlagType auto_handled = 0, auto_handled_flags = 0;
-		TermDef *T = fs->term;
-		
+		ASFlagType    auto_handled = 0, auto_handled_flags = 0;
+		TermDef      *T = fs->term;
+
 		fs->sub = StructToFreeStorage (msd, offsetof (MyStyleDefinition, set_flags), T->sub_syntax, &auto_handled);
-		ADVANCE_LINKED_LIST_TAIL(tail);
+		ADVANCE_LINKED_LIST_TAIL (tail);
 
 		/* now we need to handle some flags : */
-		*tail = StructFlags2FreeStorage (msd, offsetof(MyStyleDefinition,set_flags), T->sub_syntax, MyStyleFlags, &auto_handled_flags);
-		ADVANCE_LINKED_LIST_TAIL(tail);
+		*tail =
+			StructFlags2FreeStorage (msd, offsetof (MyStyleDefinition, set_flags), T->sub_syntax, MyStyleFlags,
+									 &auto_handled_flags);
+		ADVANCE_LINKED_LIST_TAIL (tail);
 
 		/* now we need to handle some special items : */
 		*tail = MyStyleSpecialTerms2FreeStorage (msd, T->sub_syntax);
-	}		
+	}
 	return fs;
 }
 
 
-MyStyleDefinition*
-free_storage2MyStyleDefinitionsList (FreeStorageElem *fs)
+MyStyleDefinition *
+free_storage2MyStyleDefinitionsList (FreeStorageElem * fs)
 {
 	MyStyleDefinition *head = NULL;
 	MyStyleDefinition **tail = &head;
-	
-    for (; fs; fs = fs->next)
+
+	for (; fs; fs = fs->next)
 	{
 		if (fs->term->id == MYSTYLE_MyStyle_ID)
 		{
 			*tail = free_storage_elem2MyStyleDefinition (fs->sub, NULL);
-			ADVANCE_LINKED_LIST_TAIL(tail);
-		}	
+			ADVANCE_LINKED_LIST_TAIL (tail);
+		}
 	}
-	return head;	
+	return head;
 }
 
 FreeStorageElem *
-MyStyleDefinitionsList2free_storage (MyStyleDefinition *msd, SyntaxDef *syntax)
+MyStyleDefinitionsList2free_storage (MyStyleDefinition * msd, SyntaxDef * syntax)
 {
 	FreeStorageElem *head = NULL;
 	FreeStorageElem **tail = &head;
-	
-    for (; msd; msd = msd->next)
+
+	for (; msd; msd = msd->next)
 	{
 		*tail = MyStyleDefinition2free_storage_elem (msd, syntax);
-		ADVANCE_LINKED_LIST_TAIL(tail);
+		ADVANCE_LINKED_LIST_TAIL (tail);
 	}
-	return head;	
+	return head;
 }
 
 
-ASModuleConfig* 
-free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config, FreeStorageElem *Storage, ASFlagType flags )
+ASModuleConfig *
+free_storage2ASModule_config (ASModuleConfigClass * class, ASModuleConfig * config, FreeStorageElem * Storage,
+							  ASFlagType flags)
 {
-	if( Storage != NULL ) 
+	if (Storage != NULL)
 	{
 		MyStyleDefinition **styles_tail = NULL;
-		FreeStorageElem **more_stuff_tail, *pCurr ;
-		
-		if( config == NULL ) 
-			config = create_ASModule_config(class);
-		
-		if( get_flags( flags, ASModuleConfig_HandleDisabled ) )
+		FreeStorageElem **more_stuff_tail, *pCurr;
+
+		if (config == NULL)
+			config = create_ASModule_config (class);
+
+		if (get_flags (flags, ASModuleConfig_HandleDisabled))
 		{
 			more_stuff_tail = &(config->more_stuff);
-			while( *more_stuff_tail ) more_stuff_tail = &(*more_stuff_tail)->next ;
+			while (*more_stuff_tail)
+				more_stuff_tail = &(*more_stuff_tail)->next;
 			StorageCleanUp (&Storage, more_stuff_tail, CF_DISABLED_OPTION);
-		}else if( get_flags( flags, ASModuleConfig_DiscardDisabled ) )
+		} else if (get_flags (flags, ASModuleConfig_DiscardDisabled))
 		{
-			FreeStorageElem *tmp = NULL ; 
+			FreeStorageElem *tmp = NULL;
+
 			StorageCleanUp (&Storage, &tmp, CF_DISABLED_OPTION);
-			if( tmp )
+			if (tmp)
 				DestroyFreeStorage (&tmp);
 		}
-		
-		if( get_flags( flags, ASModuleConfig_HandleMyStyles ) )
+
+		if (get_flags (flags, ASModuleConfig_HandleMyStyles))
 		{
 			styles_tail = &(config->style_defs);
-			while( *styles_tail ) styles_tail = &(*styles_tail)->next ;
+			while (*styles_tail)
+				styles_tail = &(*styles_tail)->next;
 		}
-	
-		if( get_flags( flags, ASModuleConfig_HandleBalloons ) && class != NULL )
+
+		if (get_flags (flags, ASModuleConfig_HandleBalloons) && class != NULL)
 		{
-			int i = 0; 
-			while( class->balloon_types[i] > 0 )
-			{			
-				LOCAL_DEBUG_OUT( "handling balloons type %d, base_ID = %d", i, class->balloon_types[i] );
-	    		config->balloon_configs[i] = Process_balloonOptions(Storage, config->balloon_configs[i], class->balloon_types[i]);
-				++i ;
+			int           i = 0;
+
+			while (class->balloon_types[i] > 0)
+			{
+				LOCAL_DEBUG_OUT ("handling balloons type %d, base_ID = %d", i, class->balloon_types[i]);
+				config->balloon_configs[i] =
+					Process_balloonOptions (Storage, config->balloon_configs[i], class->balloon_types[i]);
+				++i;
 			}
 		}
 
-	    for (pCurr = Storage; pCurr; pCurr = pCurr->next)
+		for (pCurr = Storage; pCurr; pCurr = pCurr->next)
 		{
-			TermDef *T = pCurr->term ;
-			if ( T != NULL)
+			TermDef      *T = pCurr->term;
+
+			if (T != NULL)
 			{
-				if( T->id == MODULE_Defaults_ID && class != NULL ) 
+				if (T->id == MODULE_Defaults_ID && class != NULL)
 				{
-					if( pCurr->sub && get_flags( flags, ASModuleConfig_HandleDefaults )) 
+					if (pCurr->sub && get_flags (flags, ASModuleConfig_HandleDefaults))
 					{
-						ASModuleConfig *defaults = free_storage2ASModule_config( class, NULL, pCurr->sub, 
-																					ASModuleConfig_DiscardDisabled|
-																					ASModuleConfig_HandleFlags|
-																					ASModuleConfig_HandleScalars| 
-																					ASModuleConfig_HandleBalloons );
-						if( defaults )
-						{								
-							class->free_storage2config_func( defaults, pCurr->sub );
-							class->merge_config_func( defaults, config );				
+						ASModuleConfig *defaults = free_storage2ASModule_config (class, NULL, pCurr->sub,
+																				 ASModuleConfig_DiscardDisabled |
+																				 ASModuleConfig_HandleFlags |
+																				 ASModuleConfig_HandleScalars |
+																				 ASModuleConfig_HandleBalloons);
+						if (defaults)
+						{
+							class->free_storage2config_func (defaults, pCurr->sub);
+							class->merge_config_func (defaults, config);
 							/* our stuff does not get merged - handle manually : */
-							if( defaults->style_defs ) 
-								DestroyMyStyleDefinitions ( &(defaults->style_defs) );
-							defaults->style_defs = config->style_defs ; 
-						
-							MergeBalloonOptions ( defaults, config);
-					
-							destroy_ASModule_config( config );
-							config = defaults ;
+							if (defaults->style_defs)
+								DestroyMyStyleDefinitions (&(defaults->style_defs));
+							defaults->style_defs = config->style_defs;
+
+							MergeBalloonOptions (defaults, config);
+
+							destroy_ASModule_config (config);
+							config = defaults;
 						}
-					}				
-				}else if( T->id == MYSTYLE_MyStyle_ID && 
-				          get_flags( flags, ASModuleConfig_HandleMyStyles ) )
+					}
+				} else if (T->id == MYSTYLE_MyStyle_ID && get_flags (flags, ASModuleConfig_HandleMyStyles))
 				{
-             		*styles_tail = free_storage_elem2MyStyleDefinition (pCurr->sub, NULL);
+					*styles_tail = free_storage_elem2MyStyleDefinition (pCurr->sub, NULL);
 					if (*styles_tail)
-						styles_tail = &((*styles_tail)->next); 
-				}else if( T->struct_field_offset != 0  && 
-				         get_flags( flags, ASModuleConfig_HandleScalars )) 
+						styles_tail = &((*styles_tail)->next);
+				} else if (T->struct_field_offset != 0 && get_flags (flags, ASModuleConfig_HandleScalars))
 				{
-					ReadConfigItemToStruct( config, class->set_flags_field_offset, pCurr  );
-				}else if( T->type == TT_FLAG && class && class->flags_xref != NULL && 
-				         get_flags( flags, ASModuleConfig_HandleFlags ))
+					ReadConfigItemToStruct (config, class->set_flags_field_offset, pCurr);
+				} else if (T->type == TT_FLAG && class && class->flags_xref != NULL &&
+						   get_flags (flags, ASModuleConfig_HandleFlags))
 				{
-					ReadFlagItemAuto (config, class->set_flags_field_offset, pCurr, class->flags_xref);	
+					ReadFlagItemAuto (config, class->set_flags_field_offset, pCurr, class->flags_xref);
 				}
 			}
 		}
@@ -846,42 +903,44 @@ free_storage2ASModule_config( ASModuleConfigClass *class, ASModuleConfig *config
 }
 
 void
-merge_ASModule_config( ASModuleConfigClass *class, ASModuleConfig *to, ASModuleConfig *from )
+merge_ASModule_config (ASModuleConfigClass * class, ASModuleConfig * to, ASModuleConfig * from)
 {
-	MergeBalloonOptions ( to, from);
+	MergeBalloonOptions (to, from);
 	/* TODO: also need to merge MyStyle defs */
 
-	if( class->merge_config_func ) 
-		class->merge_config_func( to, from );
+	if (class->merge_config_func)
+		class->merge_config_func (to, from);
 
-	if( class->set_flags_field_offset > 0 ) 
+	if (class->set_flags_field_offset > 0)
 	{
-		ASFlagType *set_flags_ptr_to = (void*)to + class->set_flags_field_offset ;
-		ASFlagType *set_flags_ptr_from = (void*)from + class->set_flags_field_offset ;
-		
-		set_flags( *set_flags_ptr_to, *set_flags_ptr_from );
+		ASFlagType   *set_flags_ptr_to = (void *)to + class->set_flags_field_offset;
+		ASFlagType   *set_flags_ptr_from = (void *)from + class->set_flags_field_offset;
+
+		set_flags (*set_flags_ptr_to, *set_flags_ptr_from);
 	}
 }
 
 
 static ASModuleConfig *
-parse_asmodule_config_file( ASModuleConfigClass *class, ASModuleConfig *config, const char *filename, SyntaxDef *syntax, ASFlagType parser_flags, ASFlagType handling_flags )
+parse_asmodule_config_file (ASModuleConfigClass * class, ASModuleConfig * config, const char *filename,
+							SyntaxDef * syntax, ASFlagType parser_flags, ASFlagType handling_flags)
 {
-	ConfigData    cd ;
+	ConfigData    cd;
 	ConfigDef    *ConfigReader;
 
-	cd.filename = filename ;
+	cd.filename = filename;
 	ConfigReader = InitConfigReader (MyName, syntax, CDT_Filename, cd, NULL);
-	if ( ConfigReader != NULL )
+	if (ConfigReader != NULL)
 	{
 		FreeStorageElem *Storage = NULL;
-		set_flags( ConfigReader->flags, parser_flags );
+
+		set_flags (ConfigReader->flags, parser_flags);
 		ParseConfig (ConfigReader, &Storage);
-		config = free_storage2ASModule_config( class, config, Storage, handling_flags );
-		class->free_storage2config_func( config, Storage );
- 		DestroyFreeStorage (&Storage);
+		config = free_storage2ASModule_config (class, config, Storage, handling_flags);
+		class->free_storage2config_func (config, Storage);
+		DestroyFreeStorage (&Storage);
 		DestroyConfig (ConfigReader);
-        show_progress("configuration loaded from \"%s\" ...", filename);
+		show_progress ("configuration loaded from \"%s\" ...", filename);
 	}
 
 /*    PrintMyStyleDefinitions( config->style_defs ); */
@@ -889,76 +948,75 @@ parse_asmodule_config_file( ASModuleConfigClass *class, ASModuleConfig *config, 
 }
 
 ASModuleConfig *
-parse_asmodule_look(ASModuleConfigClass *class, ASModuleConfig *module_config )
+parse_asmodule_look (ASModuleConfigClass * class, ASModuleConfig * module_config)
 {
-	const char *const_configfile =  get_session_file (Session, 0, F_CHANGE_LOOK, False);
-    if( const_configfile != NULL && class->look_syntax != NULL )
+	const char   *const_configfile = get_session_file (Session, 0, F_CHANGE_LOOK, False);
+
+	if (const_configfile != NULL && class->look_syntax != NULL)
 	{
-		ASFlagType parser_flags 	= 	CP_IgnoreForeign ; 
-		ASFlagType handling_flags 	= 	ASModuleConfig_DiscardDisabled|	
-										ASModuleConfig_HandleBalloons| 
-										ASModuleConfig_HandleFlags|
-										ASModuleConfig_HandleScalars ;
-		if( !get_flags(class->flags, ASMC_HandlePublicLookOptions) )
-			set_flags( parser_flags, CP_IgnorePublic);
-		if( get_flags(class->flags,ASMC_HandleLookMyStyles) ) 
-			set_flags(handling_flags, ASModuleConfig_HandleMyStyles);	
-		return parse_asmodule_config_file(  class, module_config, const_configfile, class->look_syntax, 
-											parser_flags, handling_flags );
+		ASFlagType    parser_flags = CP_IgnoreForeign;
+		ASFlagType    handling_flags = ASModuleConfig_DiscardDisabled |
+			ASModuleConfig_HandleBalloons | ASModuleConfig_HandleFlags | ASModuleConfig_HandleScalars;
+		if (!get_flags (class->flags, ASMC_HandlePublicLookOptions))
+			set_flags (parser_flags, CP_IgnorePublic);
+		if (get_flags (class->flags, ASMC_HandleLookMyStyles))
+			set_flags (handling_flags, ASModuleConfig_HandleMyStyles);
+		return parse_asmodule_config_file (class, module_config, const_configfile, class->look_syntax,
+										   parser_flags, handling_flags);
 	}
 	return module_config;
 }
 
 ASModuleConfig *
-parse_asmodule_feel(ASModuleConfigClass *class, ASModuleConfig *module_config )
+parse_asmodule_feel (ASModuleConfigClass * class, ASModuleConfig * module_config)
 {
-	const char *const_configfile =  get_session_file (Session, 0, F_CHANGE_FEEL, False);
-    if( const_configfile != NULL && class->feel_syntax != NULL )
+	const char   *const_configfile = get_session_file (Session, 0, F_CHANGE_FEEL, False);
+
+	if (const_configfile != NULL && class->feel_syntax != NULL)
 	{
-		ASFlagType parser_flags 	= 	CP_IgnoreForeign ; 
-		ASFlagType handling_flags 	= 	ASModuleConfig_DiscardDisabled|	
-										ASModuleConfig_HandleBalloons| 
-										ASModuleConfig_HandleFlags|
-										ASModuleConfig_HandleScalars ;
-		if( !get_flags(class->flags, ASMC_HandlePublicFeelOptions) )
-			set_flags( parser_flags, CP_IgnorePublic);
-		return parse_asmodule_config_file( class, module_config, const_configfile, class->feel_syntax, 
-											parser_flags, handling_flags );
+		ASFlagType    parser_flags = CP_IgnoreForeign;
+		ASFlagType    handling_flags = ASModuleConfig_DiscardDisabled |
+			ASModuleConfig_HandleBalloons | ASModuleConfig_HandleFlags | ASModuleConfig_HandleScalars;
+		if (!get_flags (class->flags, ASMC_HandlePublicFeelOptions))
+			set_flags (parser_flags, CP_IgnorePublic);
+		return parse_asmodule_config_file (class, module_config, const_configfile, class->feel_syntax,
+										   parser_flags, handling_flags);
 	}
 	return module_config;
 }
 
 ASModuleConfig *
-parse_asmodule_private_config(ASModuleConfigClass *class, ASModuleConfig *module_config )
+parse_asmodule_private_config (ASModuleConfigClass * class, ASModuleConfig * module_config)
 {
-	if( class->private_config_file && class->module_syntax )
+	if (class->private_config_file && class->module_syntax)
 	{
-    	char *configfile = make_session_file(Session, class->private_config_file, False );
-        if( configfile != NULL )
-			return parse_asmodule_config_file( class, module_config, configfile, class->module_syntax, 
-											   CP_IgnoreForeign, 
-											    ASModuleConfig_DiscardDisabled|
-												ASModuleConfig_HandleMyStyles| 
-										 		ASModuleConfig_HandleBalloons| 
-										 		ASModuleConfig_HandleDefaults| 
-										 		ASModuleConfig_HandleFlags|
-										 		ASModuleConfig_HandleScalars);
+		char         *configfile = make_session_file (Session, class->private_config_file, False);
+
+		if (configfile != NULL)
+			return parse_asmodule_config_file (class, module_config, configfile, class->module_syntax,
+											   CP_IgnoreForeign,
+											   ASModuleConfig_DiscardDisabled |
+											   ASModuleConfig_HandleMyStyles |
+											   ASModuleConfig_HandleBalloons |
+											   ASModuleConfig_HandleDefaults |
+											   ASModuleConfig_HandleFlags | ASModuleConfig_HandleScalars);
 	}
 	return module_config;
 }
 
 
 ASModuleConfig *
-parse_asmodule_config_all(ASModuleConfigClass *class )
+parse_asmodule_config_all (ASModuleConfigClass * class)
 {
 	ASModuleConfig *config = NULL;
-	LOCAL_DEBUG_CALLER_OUT( "class = %p, private_file = \"%s\"",class, class?class->private_config_file:"(none)" ); 
-	config = parse_asmodule_look(class, config );
-	config = parse_asmodule_feel(class, config );
-	config = parse_asmodule_private_config(class, config );
-	
+
+	LOCAL_DEBUG_CALLER_OUT ("class = %p, private_file = \"%s\"", class, class ? class->private_config_file : "(none)");
+	config = parse_asmodule_look (class, config);
+	config = parse_asmodule_feel (class, config);
+	config = parse_asmodule_private_config (class, config);
+
 	if (config == NULL)
-		config = create_ASModule_config(class);
+		config = create_ASModule_config (class);
 
 	return config;
 }
@@ -966,4 +1024,3 @@ parse_asmodule_config_all(ASModuleConfigClass *class )
 /******************************************************************************
  * Test cases and utilities
  ******************************************************************************/
-

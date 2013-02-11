@@ -31,58 +31,65 @@
 #include "canvas.h"
 
 
-inline Bool
-get_current_canvas_geometry( ASCanvas * pc, int *px, int *py, unsigned int *pwidth, unsigned int *pheight, unsigned int *pbw )
+inline        Bool
+get_current_canvas_geometry (ASCanvas * pc, int *px, int *py, unsigned int *pwidth, unsigned int *pheight,
+							 unsigned int *pbw)
 {
-	Window wdumm ;
-	unsigned int udumm ;
-	int dumm;
-	if( pc == NULL )
+	Window        wdumm;
+	unsigned int  udumm;
+	int           dumm;
+
+	if (pc == NULL)
 		return False;
 
-	if( px == NULL ) px = &dumm ;
-	if( py == NULL ) py = &dumm ;
-	if( pwidth == NULL ) pwidth = &udumm ;
-	if( pheight == NULL ) pheight = &udumm ;
-	if( pbw == NULL ) pbw = &udumm ;
+	if (px == NULL)
+		px = &dumm;
+	if (py == NULL)
+		py = &dumm;
+	if (pwidth == NULL)
+		pwidth = &udumm;
+	if (pheight == NULL)
+		pheight = &udumm;
+	if (pbw == NULL)
+		pbw = &udumm;
 
-	return (XGetGeometry(dpy, pc->w, &wdumm, px, py, pwidth, pheight, pbw, &udumm )!= 0);
+	return (XGetGeometry (dpy, pc->w, &wdumm, px, py, pwidth, pheight, pbw, &udumm) != 0);
 }
 
 static void
-set_canvas_shape_to_rectangle( ASCanvas * pc )
+set_canvas_shape_to_rectangle (ASCanvas * pc)
 {
 #ifdef SHAPE
-	unsigned int width, height, bw ;
+	unsigned int  width, height, bw;
 	XRectangle    rect;
+
 	rect.x = 0;
 	rect.y = 0;
 #ifdef STRICT_GEOMETRY
-	get_current_canvas_geometry( pc, NULL, NULL, &width, &height, &bw );
+	get_current_canvas_geometry (pc, NULL, NULL, &width, &height, &bw);
 #else
-	width = pc->width ;
-	height = pc->height ;
-	bw = pc->bw ;
+	width = pc->width;
+	height = pc->height;
+	bw = pc->bw;
 #endif
-	rect.width  = width+bw*2;
-	rect.height = height+bw*2;
-	LOCAL_DEBUG_OUT( "XShapeCombineRectangles(%lX) (%dx%d%+d%+d)", pc->w, rect.width, rect.height, -bw, -bw );
-	XShapeCombineRectangles ( dpy, pc->w, ShapeBounding,
-								-bw, -bw, &rect, 1, ShapeSet, Unsorted);
-	set_flags( pc->state, CANVAS_SHAPE_SET );
+	rect.width = width + bw * 2;
+	rect.height = height + bw * 2;
+	LOCAL_DEBUG_OUT ("XShapeCombineRectangles(%lX) (%dx%d%+d%+d)", pc->w, rect.width, rect.height, -bw, -bw);
+	XShapeCombineRectangles (dpy, pc->w, ShapeBounding, -bw, -bw, &rect, 1, ShapeSet, Unsorted);
+	set_flags (pc->state, CANVAS_SHAPE_SET);
 #endif
 }
 
 static void
-set_canvas_shape_to_nothing( ASCanvas * pc )
+set_canvas_shape_to_nothing (ASCanvas * pc)
 {
 #ifdef SHAPE
-	LOCAL_DEBUG_OUT( "XShapeCombineMask(%lX) (clearing mask)",  pc->w );
-	XShapeCombineMask( dpy, pc->w, ShapeBounding, 0, 0, None, ShapeSet );
-	clear_flags( pc->state, CANVAS_SHAPE_SET );
+	LOCAL_DEBUG_OUT ("XShapeCombineMask(%lX) (clearing mask)", pc->w);
+	XShapeCombineMask (dpy, pc->w, ShapeBounding, 0, 0, None, ShapeSet);
+	clear_flags (pc->state, CANVAS_SHAPE_SET);
 #endif
-	if( pc->shape )
-		destroy_shape( &pc->shape );
+	if (pc->shape)
+		destroy_shape (&pc->shape);
 }
 
 
@@ -91,50 +98,50 @@ set_canvas_shape_to_nothing( ASCanvas * pc )
 /********************************************************************/
 /* ASCanvas :                                                       */
 /********************************************************************/
-static ASFlagType
+static        ASFlagType
 refresh_canvas_config (ASCanvas * pc)
 {
-	ASFlagType          changed = 0;
+	ASFlagType    changed = 0;
 
 	if (pc && pc->w != None)
 	{
 		int           root_x = pc->root_x, root_y = pc->root_y, dumm;
 		unsigned int  width = pc->width, height = pc->height, udumm;
 		Window        wdumm;
-		unsigned int  bw ;
+		unsigned int  bw;
 
 		XTranslateCoordinates (dpy, pc->w, ASDefaultRoot, 0, 0, &root_x, &root_y, &wdumm);
-		XGetGeometry( dpy, pc->w, &wdumm, &dumm, &dumm, &udumm, &udumm, &bw, &udumm );
-		root_x -= bw ;
-		root_y -= bw ;
-		if(root_x != pc->root_x)
-			set_flags(changed, CANVAS_X_CHANGED);
-		if( root_y != pc->root_y)
-			set_flags(changed, CANVAS_Y_CHANGED);
+		XGetGeometry (dpy, pc->w, &wdumm, &dumm, &dumm, &udumm, &udumm, &bw, &udumm);
+		root_x -= bw;
+		root_y -= bw;
+		if (root_x != pc->root_x)
+			set_flags (changed, CANVAS_X_CHANGED);
+		if (root_y != pc->root_y)
+			set_flags (changed, CANVAS_Y_CHANGED);
 		pc->root_x = root_x;
 		pc->root_y = root_y;
-		pc->bw = bw ;
+		pc->bw = bw;
 
-		if( !get_drawable_size(pc->w, &width, &height) )
-			return 0;/* drawable is bad */
-		if( width != pc->width )
-			set_flags(changed, CANVAS_WIDTH_CHANGED);
-		if( height != pc->height )
-			set_flags(changed, CANVAS_HEIGHT_CHANGED);
+		if (!get_drawable_size (pc->w, &width, &height))
+			return 0;						   /* drawable is bad */
+		if (width != pc->width)
+			set_flags (changed, CANVAS_WIDTH_CHANGED);
+		if (height != pc->height)
+			set_flags (changed, CANVAS_HEIGHT_CHANGED);
 
-	clear_flags (pc->state, CANVAS_CONFIG_INVALID);
+		clear_flags (pc->state, CANVAS_CONFIG_INVALID);
 
 		if (width != pc->width || height != pc->height)
 		{
-			destroy_visual_pixmap(ASDefaultVisual, &(pc->saved_canvas));
-			destroy_visual_pixmap(ASDefaultVisual, &(pc->canvas));
+			destroy_visual_pixmap (ASDefaultVisual, &(pc->saved_canvas));
+			destroy_visual_pixmap (ASDefaultVisual, &(pc->canvas));
 
-			if (pc->saved_shape )
-				destroy_shape( &(pc->saved_shape) );
+			if (pc->saved_shape)
+				destroy_shape (&(pc->saved_shape));
 
-			if (pc->shape )
+			if (pc->shape)
 			{
-				destroy_shape( &(pc->shape) );
+				destroy_shape (&(pc->shape));
 			}
 			set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
 			pc->width = width;
@@ -149,9 +156,9 @@ get_canvas_canvas (ASCanvas * pc)
 {
 	if (pc == NULL)
 		return None;
-	if( get_flags( pc->state, CANVAS_CONTAINER ) )
+	if (get_flags (pc->state, CANVAS_CONTAINER))
 		return None;
-LOCAL_DEBUG_CALLER_OUT( "ASCanvas(%p)->canvas(%lX)", pc,pc->canvas );
+	LOCAL_DEBUG_CALLER_OUT ("ASCanvas(%p)->canvas(%lX)", pc, pc->canvas);
 	if (pc->canvas == None)
 	{
 		pc->canvas = create_visual_pixmap (ASDefaultVisual, ASDefaultRoot, pc->width, pc->height, 0);
@@ -171,7 +178,8 @@ create_ascanvas (Window w)
 		pc = safecalloc (1, sizeof (ASCanvas));
 		pc->w = w;
 		refresh_canvas_config (pc);
-		LOCAL_DEBUG_CALLER_OUT( "<<#########>>canvas %p created for w: %lX; geom = %dx%d%+d%+d, bw = %d", pc, pc->w, pc->width, pc->height, pc->root_x, pc->root_y, pc->bw );
+		LOCAL_DEBUG_CALLER_OUT ("<<#########>>canvas %p created for w: %lX; geom = %dx%d%+d%+d, bw = %d", pc, pc->w,
+								pc->width, pc->height, pc->root_x, pc->root_y, pc->bw);
 	}
 	return pc;
 }
@@ -185,9 +193,10 @@ create_ascanvas_container (Window w)
 	{
 		pc = safecalloc (1, sizeof (ASCanvas));
 		pc->w = w;
-		pc->state = CANVAS_CONTAINER ;
+		pc->state = CANVAS_CONTAINER;
 		refresh_canvas_config (pc);
-		LOCAL_DEBUG_CALLER_OUT( "<<#########>>container canvas %p created for w: %lX; geom = %dx%d%+d%+d, bw = %d", pc, pc->w, pc->width, pc->height, pc->root_x, pc->root_y , pc->bw);
+		LOCAL_DEBUG_CALLER_OUT ("<<#########>>container canvas %p created for w: %lX; geom = %dx%d%+d%+d, bw = %d", pc,
+								pc->w, pc->width, pc->height, pc->root_x, pc->root_y, pc->bw);
 	}
 	return pc;
 }
@@ -199,16 +208,16 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 	{
 		ASCanvas     *pc = *pcanvas;
 
-		LOCAL_DEBUG_CALLER_OUT( "<<#########>>destroying canvas %p for window %lX", pc, pc?pc->w:None );
+		LOCAL_DEBUG_CALLER_OUT ("<<#########>>destroying canvas %p for window %lX", pc, pc ? pc->w : None);
 		if (pc)
 		{
-			destroy_visual_pixmap(ASDefaultVisual, &(pc->saved_canvas));
-			destroy_visual_pixmap(ASDefaultVisual, &(pc->canvas));
-			LOCAL_DEBUG_OUT( "saved_shape = %p, shape = %p", pc->saved_shape, pc->shape ); 
+			destroy_visual_pixmap (ASDefaultVisual, &(pc->saved_canvas));
+			destroy_visual_pixmap (ASDefaultVisual, &(pc->canvas));
+			LOCAL_DEBUG_OUT ("saved_shape = %p, shape = %p", pc->saved_shape, pc->shape);
 			if (pc->saved_shape && pc->saved_shape != pc->shape)
-				destroy_shape( &(pc->saved_shape));
+				destroy_shape (&(pc->saved_shape));
 			if (pc->shape)
-				destroy_shape( &(pc->shape));
+				destroy_shape (&(pc->shape));
 			memset (pc, 0x00, sizeof (ASCanvas));
 			free (pc);
 		}
@@ -219,59 +228,61 @@ destroy_ascanvas (ASCanvas ** pcanvas)
 ASFlagType
 handle_canvas_config (ASCanvas * canvas)
 {
-	ASFlagType res ;
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->orig_geom(%ux%u%+d%+d)", canvas, canvas->w, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
+	ASFlagType    res;
+
+	LOCAL_DEBUG_CALLER_OUT ("canvas(%p)->window(%lx)->orig_geom(%ux%u%+d%+d)", canvas, canvas->w, canvas->width,
+							canvas->height, canvas->root_x, canvas->root_y);
 	res = refresh_canvas_config (canvas);
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->new__geom(%ux%u%+d%+d)->change(0x%lX)", canvas, canvas->w, canvas->width, canvas->height, canvas->root_x, canvas->root_y, res );
+	LOCAL_DEBUG_CALLER_OUT ("canvas(%p)->window(%lx)->new__geom(%ux%u%+d%+d)->change(0x%lX)", canvas, canvas->w,
+							canvas->width, canvas->height, canvas->root_x, canvas->root_y, res);
 	return res;
 }
 
 void
-invalidate_canvas_config( ASCanvas *pc )
+invalidate_canvas_config (ASCanvas * pc)
 {
-	if( pc )
+	if (pc)
 	{
-		if( get_flags( pc->state, CANVAS_CONFIG_INVALID) )
-		return;
+		if (get_flags (pc->state, CANVAS_CONFIG_INVALID))
+			return;
 
-		LOCAL_DEBUG_OUT( "resizing to %dx%d", pc->width+1, pc->height+1 );
-		XResizeWindow( dpy, pc->w, pc->width+1, pc->height + 1 );
+		LOCAL_DEBUG_OUT ("resizing to %dx%d", pc->width + 1, pc->height + 1);
+		XResizeWindow (dpy, pc->w, pc->width + 1, pc->height + 1);
 #ifdef SHAPE
-		if ( !get_flags( pc->state, CANVAS_CONTAINER )  &&
-			  get_flags( pc->state, CANVAS_SHAPE_SET ) )
-			set_canvas_shape_to_nothing( pc );
+		if (!get_flags (pc->state, CANVAS_CONTAINER) && get_flags (pc->state, CANVAS_SHAPE_SET))
+			set_canvas_shape_to_nothing (pc);
 #endif
 
 		pc->width = 0;
 		pc->height = 0;
-		destroy_visual_pixmap(ASDefaultVisual, &(pc->canvas));
-		destroy_visual_pixmap(ASDefaultVisual, &(pc->saved_canvas));
+		destroy_visual_pixmap (ASDefaultVisual, &(pc->canvas));
+		destroy_visual_pixmap (ASDefaultVisual, &(pc->saved_canvas));
 		if (pc->shape)
-			destroy_shape( &(pc->shape) );
+			destroy_shape (&(pc->shape));
 		if (pc->saved_shape)
-			destroy_shape( &(pc->saved_shape) );
+			destroy_shape (&(pc->saved_shape));
 		set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC | CANVAS_MASK_OUT_OF_SYNC);
-		set_flags( pc->state, CANVAS_CONFIG_INVALID);
+		set_flags (pc->state, CANVAS_CONFIG_INVALID);
 	}
 }
 
 Bool
-get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py, unsigned int *pbw )
+get_canvas_position (ASCanvas * pc, Window * pparent, int *px, int *py, unsigned int *pbw)
 {
-	Window wdumm;
-	int dumm;
-	unsigned int udumm;
+	Window        wdumm;
+	int           dumm;
+	unsigned int  udumm;
 
-	if( pparent == NULL )
+	if (pparent == NULL)
 		pparent = &wdumm;
-	if( px == NULL )
+	if (px == NULL)
 		px = &dumm;
-	if( py == NULL )
+	if (py == NULL)
 		py = &dumm;
-	if( pbw == NULL )
+	if (pbw == NULL)
 		pbw = &udumm;
-	if( pc )
-		if( XGetGeometry( dpy, pc->w, pparent, px, py, &udumm, &udumm, pbw, &udumm ) )
+	if (pc)
+		if (XGetGeometry (dpy, pc->w, pparent, px, py, &udumm, &udumm, pbw, &udumm))
 			return True;
 	return False;
 }
@@ -279,7 +290,7 @@ get_canvas_position( ASCanvas *pc, Window *pparent, int *px, int *py, unsigned i
 Bool
 make_canvas_rectangle (ASCanvas * pc, ASImage * im, int x, int y, int *cx, int *cy, int *cwidth, int *cheight)
 {
-	if( pc == NULL || im == NULL || cx == NULL || cy == NULL ||cwidth == NULL || cheight == NULL ) 
+	if (pc == NULL || im == NULL || cx == NULL || cy == NULL || cwidth == NULL || cheight == NULL)
 		return False;
 	*cwidth = im->width;
 	*cheight = im->height;
@@ -314,7 +325,7 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
 	Pixmap        p;
 	int           real_x, real_y;
 	int           width, height;
-	Bool 		  done = False;
+	Bool          done = False;
 
 	LOCAL_DEBUG_CALLER_OUT ("pc(%p)->im(%p)->x(%d)->y(%d)", pc, im, x, y);
 	if (im == NULL || pc == NULL)
@@ -326,19 +337,19 @@ draw_canvas_image (ASCanvas * pc, ASImage * im, int x, int y)
 		return False;
 
 	LOCAL_DEBUG_OUT ("drawing image %dx%d at %dx%d%+d%+d", im->width, im->height, width, height, real_x, real_y);
-	if( get_flags( ASDefaultVisual->glx_support, ASGLX_UseForImageTx ) )
-		done = asimage2drawable_gl( ASDefaultVisual, p, im, 
+	if (get_flags (ASDefaultVisual->glx_support, ASGLX_UseForImageTx))
+		done = asimage2drawable_gl (ASDefaultVisual, p, im,
 									real_x - x, real_y - y, real_x, real_y,
-									width, height, 
-									pc->width, pc->height, 
-									False );
-	if( !done ) 		
-		done = asimage2drawable (ASDefaultVisual, p, im, ASDefaultDrawGC, real_x - x, real_y - y, real_x, real_y, width, height, True);
+									width, height, pc->width, pc->height, False);
+	if (!done)
+		done =
+			asimage2drawable (ASDefaultVisual, p, im, ASDefaultDrawGC, real_x - x, real_y - y, real_x, real_y, width,
+							  height, True);
 
-	if ( done )
+	if (done)
 	{
 		set_flags (pc->state, CANVAS_OUT_OF_SYNC);
-		XClearArea( dpy, pc->w, real_x, real_y, width, height, True );
+		XClearArea (dpy, pc->w, real_x, real_y, width, height, True);
 		XSync (dpy, False);
 	}
 	return done;
@@ -350,10 +361,10 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height)
 	int           real_x, real_y;
 	int           real_width, real_height;
 
-	if( pc == NULL ) 
+	if (pc == NULL)
 		return;
 
-	if (pc->shape != None && !get_flags( pc->state, CANVAS_CONTAINER ) )
+	if (pc->shape != None && !get_flags (pc->state, CANVAS_CONTAINER))
 	{
 		real_x = MAX (win_x, 0);
 		real_y = MAX (win_y, 0);
@@ -361,15 +372,16 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height)
 		real_height = height - (real_y - win_y);
 		if (real_width > 0 && real_height > 0 && real_x < pc->width && real_y < pc->height)
 		{
-			int res ;
-			XRectangle rect ;
-			rect.x = real_x ;
-			rect.y = real_y ;
-			rect.width  = real_width ;
-			rect.height = real_height ;
-			LOCAL_DEBUG_OUT( "filling mask at %dx%d%+d%+d", rect.width, rect.height, rect.x, rect.y );
-			res = add_shape_rectangles( pc->shape, &rect, 1, 0, 0, pc->width, pc->height );
-			if( res )
+			int           res;
+			XRectangle    rect;
+
+			rect.x = real_x;
+			rect.y = real_y;
+			rect.width = real_width;
+			rect.height = real_height;
+			LOCAL_DEBUG_OUT ("filling mask at %dx%d%+d%+d", rect.width, rect.height, rect.x, rect.y);
+			res = add_shape_rectangles (pc->shape, &rect, 1, 0, 0, pc->width, pc->height);
+			if (res)
 				set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
 		}
 	}
@@ -379,9 +391,9 @@ fill_canvas_mask (ASCanvas * pc, int win_x, int win_y, int width, int height)
 Bool
 draw_canvas_mask (ASCanvas * pc, ASImage * im, int x, int y)
 {
-	XRectangle *rects ;
-	unsigned int rects_count = 0;
-	Bool res = True;
+	XRectangle   *rects;
+	unsigned int  rects_count = 0;
+	Bool          res = True;
 	int           real_x, real_y;
 	int           width, height;
 
@@ -391,33 +403,35 @@ draw_canvas_mask (ASCanvas * pc, ASImage * im, int x, int y)
 	if (!make_canvas_rectangle (pc, im, x, y, &real_x, &real_y, &width, &height))
 		return False;
 
-	rects = get_asimage_channel_rects( im, IC_ALPHA, 10, &rects_count );
-	LOCAL_DEBUG_OUT("%d rectangles generated", rects_count );
+	rects = get_asimage_channel_rects (im, IC_ALPHA, 10, &rects_count);
+	LOCAL_DEBUG_OUT ("%d rectangles generated", rects_count);
 
-	if( pc->shape == NULL )
-		pc->shape = create_shape();
+	if (pc->shape == NULL)
+		pc->shape = create_shape ();
 
-	if( rects != NULL && rects_count > 0 )
-	{	
-		res = add_shape_rectangles( pc->shape, rects, rects_count, real_x, real_y, pc->width+pc->bw, pc->height+pc->bw );
-		free( rects );
+	if (rects != NULL && rects_count > 0)
+	{
+		res =
+			add_shape_rectangles (pc->shape, rects, rects_count, real_x, real_y, pc->width + pc->bw,
+								  pc->height + pc->bw);
+		free (rects);
 	}
 
-	if( res )
+	if (res)
 		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
 	return res;
 }
 
-inline Bool
-get_current_canvas_size( ASCanvas * pc, unsigned int *pwidth, unsigned int *pheight )
+inline        Bool
+get_current_canvas_size (ASCanvas * pc, unsigned int *pwidth, unsigned int *pheight)
 {
-	if( pc == NULL )
+	if (pc == NULL)
 		return False;
 
 	*pwidth = pc->width;
 	*pheight = pc->height;
-	if( get_flags( pc->state, CANVAS_CONFIG_INVALID) )
-		return get_drawable_size( pc->w, pwidth, pheight );
+	if (get_flags (pc->state, CANVAS_CONFIG_INVALID))
+		return get_drawable_size (pc->w, pwidth, pheight);
 	return True;
 }
 
@@ -427,53 +441,57 @@ void
 update_canvas_display_mask (ASCanvas * pc, Bool force)
 {
 #ifdef SHAPE
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)", pc );
-	if( pc == NULL )
-		return ;
-	LOCAL_DEBUG_OUT( "window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc->w, pc->canvas, pc->width, pc->height );
-	if ( pc->w != None )
+	LOCAL_DEBUG_CALLER_OUT ("canvas(%p)", pc);
+	if (pc == NULL)
+		return;
+	LOCAL_DEBUG_OUT ("window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc->w, pc->canvas, pc->width, pc->height);
+	if (pc->w != None)
 	{
-		if( force || !get_flags( pc->state, CANVAS_CONTAINER ))
+		if (force || !get_flags (pc->state, CANVAS_CONTAINER))
 		{
-			if (pc->shape  )
+			if (pc->shape)
 			{
-				LOCAL_DEBUG_OUT( "XShapeCombineREctangles(%lX)set canvas mask to %d rectangles", pc->w, PVECTOR_USED(pc->shape) );
-				if( PVECTOR_USED(pc->shape) > 0 )
-					XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD(XRectangle, pc->shape), PVECTOR_USED(pc->shape), ShapeSet, Unsorted);
-				else           /* we are still shaped - but completely opaque */
+				LOCAL_DEBUG_OUT ("XShapeCombineREctangles(%lX)set canvas mask to %d rectangles", pc->w,
+								 PVECTOR_USED (pc->shape));
+				if (PVECTOR_USED (pc->shape) > 0)
+					XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, PVECTOR_HEAD (XRectangle, pc->shape),
+											 PVECTOR_USED (pc->shape), ShapeSet, Unsorted);
+				else						   /* we are still shaped - but completely opaque */
 				{
-					XRectangle nothing ;
-					nothing.x = pc->width/2 ;
-					nothing.y = pc->height/2 ;
-					nothing.width = nothing.height = 1 ;
+					XRectangle    nothing;
+
+					nothing.x = pc->width / 2;
+					nothing.y = pc->height / 2;
+					nothing.width = nothing.height = 1;
 					XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, &nothing, 1, ShapeSet, Unsorted);
-				}	 
-				if( pc->bw > 0 ) 
+				}
+				if (pc->bw > 0)
 				{
-					XRectangle border[4] ; 
-					border[0].x = -pc->bw ; 	
-					border[0].y = -pc->bw ; 
-					border[0].width = pc->width+pc->bw*2 ; 
-					border[0].height = pc->bw ; 
-					border[1].x = -pc->bw ; 	   
-					border[1].y = -pc->bw ; 
-					border[1].width = pc->bw ; 
-					border[1].height = pc->height+pc->bw*2 ; 
-					border[2].x = -pc->bw ; 	   
-					border[2].y = pc->height ; 
-					border[2].width = pc->width+pc->bw*2 ; 
-					border[2].height = pc->bw ; 
-					border[3].x = pc->width ; 	   
-					border[3].y = -pc->bw ; 
-					border[3].width = pc->bw ; 
-					border[3].height = pc->height+pc->bw*2 ; 
-					XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, &(border[0]), 4, ShapeUnion, Unsorted);					
-				}	 
-				set_flags( pc->state, CANVAS_SHAPE_SET );
-			}else if( get_flags( pc->state, CANVAS_SHAPE_SET ) )
-				set_canvas_shape_to_nothing( pc );
+					XRectangle    border[4];
+
+					border[0].x = -pc->bw;
+					border[0].y = -pc->bw;
+					border[0].width = pc->width + pc->bw * 2;
+					border[0].height = pc->bw;
+					border[1].x = -pc->bw;
+					border[1].y = -pc->bw;
+					border[1].width = pc->bw;
+					border[1].height = pc->height + pc->bw * 2;
+					border[2].x = -pc->bw;
+					border[2].y = pc->height;
+					border[2].width = pc->width + pc->bw * 2;
+					border[2].height = pc->bw;
+					border[3].x = pc->width;
+					border[3].y = -pc->bw;
+					border[3].width = pc->bw;
+					border[3].height = pc->height + pc->bw * 2;
+					XShapeCombineRectangles (dpy, pc->w, ShapeBounding, 0, 0, &(border[0]), 4, ShapeUnion, Unsorted);
+				}
+				set_flags (pc->state, CANVAS_SHAPE_SET);
+			} else if (get_flags (pc->state, CANVAS_SHAPE_SET))
+				set_canvas_shape_to_nothing (pc);
 			XSync (dpy, False);
-			clear_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC );
+			clear_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
 		}
 	}
 #endif
@@ -482,11 +500,12 @@ LOCAL_DEBUG_CALLER_OUT( "canvas(%p)", pc );
 
 #ifdef TRACE_update_canvas_display
 #undef update_canvas_display
-void update_canvas_display (ASCanvas * pc);
-void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
+void          update_canvas_display (ASCanvas * pc);
+void
+trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
 {
 	fprintf (stderr, "D>%s(%d):update_canvas_display(%p)\n", file, line, pc);
-	update_canvas_display(pc);
+	update_canvas_display (pc);
 }
 #endif
 
@@ -494,14 +513,14 @@ void  trace_update_canvas_display (ASCanvas * pc, const char *file, int line)
 void
 update_canvas_display (ASCanvas * pc)
 {
-	LOCAL_DEBUG_CALLER_OUT( "canvas(%p)", pc );
-	if( pc == NULL )
-		return ;
+	LOCAL_DEBUG_CALLER_OUT ("canvas(%p)", pc);
+	if (pc == NULL)
+		return;
 
-	LOCAL_DEBUG_OUT( "window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc->w, pc->canvas, pc->width, pc->height );
-	if (pc && pc->w != None )
+	LOCAL_DEBUG_OUT ("window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc->w, pc->canvas, pc->width, pc->height);
+	if (pc && pc->w != None)
 	{
-		if( !get_flags( pc->state, CANVAS_CONTAINER ) )
+		if (!get_flags (pc->state, CANVAS_CONTAINER))
 		{
 			if (pc->canvas)
 			{
@@ -512,158 +531,164 @@ update_canvas_display (ASCanvas * pc)
 				XClearWindow (dpy, pc->w);
 
 				XSync (dpy, False);
-				clear_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC | CANVAS_MASK_OUT_OF_SYNC );
+				clear_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC | CANVAS_MASK_OUT_OF_SYNC);
 			}
 		}
 	}
 }
 
 void
-invalidate_canvas_save( ASCanvas *pc )
+invalidate_canvas_save (ASCanvas * pc)
 {
-	if( pc )
+	if (pc)
 	{
-		destroy_visual_pixmap( ASDefaultVisual, &(pc->saved_canvas) );
-		destroy_shape( &(pc->saved_shape) );
+		destroy_visual_pixmap (ASDefaultVisual, &(pc->saved_canvas));
+		destroy_shape (&(pc->saved_shape));
 	}
 }
 
 
 Bool
-restore_canvas( ASCanvas *pc )
+restore_canvas (ASCanvas * pc)
 {
-	if( pc )
+	if (pc)
 	{
-		if( pc->saved_canvas == None )
-			return False ;
+		if (pc->saved_canvas == None)
+			return False;
 
-		destroy_visual_pixmap( ASDefaultVisual, &(pc->canvas) );
-		pc->canvas = pc->saved_canvas ;
-		pc->saved_canvas = None ;
+		destroy_visual_pixmap (ASDefaultVisual, &(pc->canvas));
+		pc->canvas = pc->saved_canvas;
+		pc->saved_canvas = None;
 
 
-		destroy_shape( &(pc->shape) );
-		pc->shape = pc->saved_shape ;
-		pc->saved_shape = NULL ;
+		destroy_shape (&(pc->shape));
+		pc->shape = pc->saved_shape;
+		pc->saved_shape = NULL;
 
-		update_canvas_display( pc );
+		update_canvas_display (pc);
 		return True;
 	}
-	return False ;
+	return False;
 }
 
 Bool
-save_canvas( ASCanvas *pc )
+save_canvas (ASCanvas * pc)
 {
-	if( pc )
+	if (pc)
 	{
-		destroy_visual_pixmap( ASDefaultVisual, &(pc->saved_canvas) );
-		pc->saved_canvas = pc->canvas ;
-		pc->canvas = None ;
+		destroy_visual_pixmap (ASDefaultVisual, &(pc->saved_canvas));
+		pc->saved_canvas = pc->canvas;
+		pc->canvas = None;
 
-		destroy_shape( &(pc->saved_shape) );
-		pc->saved_shape = pc->shape ;
-		pc->shape = NULL ;
+		destroy_shape (&(pc->saved_shape));
+		pc->saved_shape = pc->shape;
+		pc->shape = NULL;
 
-		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC|CANVAS_OUT_OF_SYNC);
-		return (pc->saved_canvas != None) ;
+		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC | CANVAS_OUT_OF_SYNC);
+		return (pc->saved_canvas != None);
 	}
 	return False;
 }
 
 Bool
-swap_save_canvas( ASCanvas *pc )
+swap_save_canvas (ASCanvas * pc)
 {
-	Pixmap 		tmp_canvas ;
-	struct ASVector 	*tmp_shape ;
-	
-	if( pc )
+	Pixmap        tmp_canvas;
+	struct ASVector *tmp_shape;
+
+	if (pc)
 	{
-		tmp_canvas = pc->saved_canvas ;
-		pc->saved_canvas = pc->canvas ;
-		pc->canvas = tmp_canvas ;
+		tmp_canvas = pc->saved_canvas;
+		pc->saved_canvas = pc->canvas;
+		pc->canvas = tmp_canvas;
 
-		tmp_shape = pc->saved_shape ;
-		pc->saved_shape = pc->shape ;
-		pc->shape = tmp_shape ;
+		tmp_shape = pc->saved_shape;
+		pc->saved_shape = pc->shape;
+		pc->shape = tmp_shape;
 
-		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC|CANVAS_OUT_OF_SYNC);
-		return (pc->canvas != None) ;
+		set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC | CANVAS_OUT_OF_SYNC);
+		return (pc->canvas != None);
 	}
 	return False;
-	
+
 }
 
 
 void
 clear_canvas_shape (ASCanvas * pc, Bool force_for_container)
 {
-	LOCAL_DEBUG_CALLER_OUT( "canvas(%p)", pc );
-	if( pc == NULL )
-		return ;
+	LOCAL_DEBUG_CALLER_OUT ("canvas(%p)", pc);
+	if (pc == NULL)
+		return;
 
-	LOCAL_DEBUG_OUT( "window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc->w, pc->canvas, pc->width, pc->height );
-	if ( pc->w != None )
+	LOCAL_DEBUG_OUT ("window(%lx)->canvas_pixmap(%lx)->size(%dx%d)", pc->w, pc->canvas, pc->width, pc->height);
+	if (pc->w != None)
 	{
-		if( !get_flags( pc->state, CANVAS_CONTAINER ) || force_for_container )
+		if (!get_flags (pc->state, CANVAS_CONTAINER) || force_for_container)
 		{
 #ifdef SHAPE
-			if (pc->canvas && get_flags( pc->state, CANVAS_SHAPE_SET ) )
-				set_canvas_shape_to_rectangle( pc );  /* just in case  */
-			set_canvas_shape_to_nothing( pc );
+			if (pc->canvas && get_flags (pc->state, CANVAS_SHAPE_SET))
+				set_canvas_shape_to_rectangle (pc);	/* just in case  */
+			set_canvas_shape_to_nothing (pc);
 #endif
-			if( pc->shape )
-				destroy_shape( &pc->shape );
+			if (pc->shape)
+				destroy_shape (&pc->shape);
 			set_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC);
 		}
 	}
 }
 
 Bool
-check_canvas_shaped( ASCanvas *pc)
+check_canvas_shaped (ASCanvas * pc)
 {
-	Bool           boundingShaped= False;
+	Bool          boundingShaped = False;
+
 #ifdef SHAPE
-	if( pc ) 
-	{	
+	if (pc)
+	{
 		int           dumm;
 		unsigned      udumm;
+
 		XShapeQueryExtents (dpy, pc->w,
 							&boundingShaped, &dumm, &dumm, &udumm, &udumm, &dumm, &dumm, &dumm, &udumm, &udumm);
 	}
 #endif
-	return boundingShaped ;
+	return boundingShaped;
 }
 
 Bool
-refresh_container_shape( ASCanvas *pc )
+refresh_container_shape (ASCanvas * pc)
 {
-	int res = False;
-	if( pc && get_flags( pc->state, CANVAS_CONTAINER ) )
-	{
-		int count, order ;
-		XRectangle *rects;
-#ifdef SHAPE
-		rects = XShapeGetRectangles( dpy, pc->w, ShapeBounding, &count, &order );
-#endif
-		if( rects )
-		{
-			unsigned int curr_width = 1, curr_height = 1 ;
-			if( pc->shape == NULL )
-				pc->shape = create_shape();
-			else
-				flush_vector( pc->shape );
-			get_drawable_size( pc->w, &curr_width, &curr_height );
-			res = add_shape_rectangles( pc->shape, rects, count, 0, 0, curr_width+pc->bw*2, curr_height+pc->bw*2 );
-			XFree( rects );
+	int           res = False;
 
-			if( res )
-				set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
-		}else if( pc->shape )
+	if (pc && get_flags (pc->state, CANVAS_CONTAINER))
+	{
+		int           count, order;
+		XRectangle   *rects;
+
+#ifdef SHAPE
+		rects = XShapeGetRectangles (dpy, pc->w, ShapeBounding, &count, &order);
+#endif
+		if (rects)
 		{
-			destroy_shape( &(pc->shape) );
+			unsigned int  curr_width = 1, curr_height = 1;
+
+			if (pc->shape == NULL)
+				pc->shape = create_shape ();
+			else
+				flush_vector (pc->shape);
+			get_drawable_size (pc->w, &curr_width, &curr_height);
+			res =
+				add_shape_rectangles (pc->shape, rects, count, 0, 0, curr_width + pc->bw * 2, curr_height + pc->bw * 2);
+			XFree (rects);
+
+			if (res)
+				set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
+		} else if (pc->shape)
+		{
+			destroy_shape (&(pc->shape));
 			set_flags (pc->state, CANVAS_MASK_OUT_OF_SYNC);
-			res = True ;
+			res = True;
 		}
 	}
 	return res;
@@ -671,90 +696,103 @@ refresh_container_shape( ASCanvas *pc )
 
 
 Bool
-combine_canvas_shape_at_geom (ASCanvas *parent, ASCanvas *child, int child_x, int child_y, int child_width, int child_height, int child_bw )
+combine_canvas_shape_at_geom (ASCanvas * parent, ASCanvas * child, int child_x, int child_y, int child_width,
+							  int child_height, int child_bw)
 {
-	int res = False ;
+	int           res = False;
+
 #ifdef SHAPE
-LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
-	if (parent && child )
+	LOCAL_DEBUG_OUT ("parent(%p),child(%p)", parent, child);
+	if (parent && child)
 	{
-		unsigned int parent_width, parent_height ;
-		LOCAL_DEBUG_OUT( "parent->shape(%p)", parent->shape );
-		if( parent->shape == NULL )
+		unsigned int  parent_width, parent_height;
+
+		LOCAL_DEBUG_OUT ("parent->shape(%p)", parent->shape);
+		if (parent->shape == NULL)
 			return False;
 
-		LOCAL_DEBUG_OUT( "child->shape(%p)", child->shape );
-		if( child->shape!= NULL && PVECTOR_USED(child->shape) == 0 )
+		LOCAL_DEBUG_OUT ("child->shape(%p)", child->shape);
+		if (child->shape != NULL && PVECTOR_USED (child->shape) == 0)
 		{
-			LOCAL_DEBUG_OUT( "child->shape has no rectangles%s", "" );	  
-			return False ;     /* child has an empty shape */
+			LOCAL_DEBUG_OUT ("child->shape has no rectangles%s", "");
+			return False;					   /* child has an empty shape */
 		}
-
 #ifdef STRICT_GEOMETRY
-		get_current_canvas_size( parent, &parent_width, &parent_height );
+		get_current_canvas_size (parent, &parent_width, &parent_height);
 #else
-		parent_width = parent->width ;
-		parent_height = parent->height ;
+		parent_width = parent->width;
+		parent_height = parent->height;
 #endif
 
-		if( child_x > parent_width || child_y > parent_height ||
-			child_x + child_width <= 0 || child_y + child_height <= 0 )
+		if (child_x > parent_width || child_y > parent_height ||
+			child_x + child_width <= 0 || child_y + child_height <= 0)
 		{
 #ifdef LOCAL_DEBUG
-			if( get_flags( child->state, CANVAS_CONTAINER ) )
-				LOCAL_DEBUG_OUT( "container shape ignored - out of bounds: %dx%d%+d%+d parents: %dx%d%+d%+d",
+			if (get_flags (child->state, CANVAS_CONTAINER))
+				LOCAL_DEBUG_OUT ("container shape ignored - out of bounds: %dx%d%+d%+d parents: %dx%d%+d%+d",
 								 child_width, child_height, child_x, child_y,
-								 parent_width, parent_height, parent->root_x, parent->root_y );
+								 parent_width, parent_height, parent->root_x, parent->root_y);
 #endif
 			return False;
 		}
-
 #if 1
-		if( child->shape && PVECTOR_USED(child->shape) > 0 )
+		if (child->shape && PVECTOR_USED (child->shape) > 0)
 		{
-			LOCAL_DEBUG_OUT( "adding %d child's shape rectangles", PVECTOR_USED(child->shape) );
+			LOCAL_DEBUG_OUT ("adding %d child's shape rectangles", PVECTOR_USED (child->shape));
 #if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
 			{
-				int i, max_i = PVECTOR_USED(child->shape) ;
-				XRectangle *r = PVECTOR_HEAD(XRectangle, child->shape);
-				for ( i = 0 ; i < max_i ; ++i  )
-					fprintf( stderr, "\t\t r[%d] = %dx%d%+d%+d\n", i, r[i].width, r[i].height, r[i].x, r[i].y );
-			}
-			LOCAL_DEBUG_OUT( "child geom = %dx%d%+d%+d, bw = %d", child_width, child_height, child_x, child_y, child_bw );			   
-#endif
-			res = add_shape_rectangles( parent->shape, PVECTOR_HEAD(XRectangle, child->shape), PVECTOR_USED(child->shape), child_x+child_bw, child_y+child_bw, parent_width, parent_height );
-			if( res && child_bw > 0 ) 
-			{
-				XRectangle border[4] ;		
-				border[0].x = 0 ; 
-				border[0].y = 0 ; 
-				border[0].width = child_width+child_bw ; 
-				border[0].height = child_bw ; 
-				border[1].x = 0 ; 
-				border[1].y = child_bw ; 
-				border[1].width = child_bw ; 
-				border[1].height = child_height ; 
-				border[2].x = child_width+child_bw ; 
-				border[2].y = 0 ; 
-				border[2].width = child_bw ; 
-				border[2].height = child_height+child_bw*2 ; 
-				border[3].x = 0 ; 
-				border[3].y = child_height+child_bw ; 
-				border[3].width = child_width+child_bw*2 ; 
-				border[3].height = child_bw ; 
-				res = add_shape_rectangles( parent->shape, &(border[0]), 4, child_x, child_y, parent_width, parent_height );
-			}				   
-		}else
-#endif			
-		{
-			XRectangle rect ;
-			rect.x = child_x ;
-			rect.y = child_y ;
-			rect.width = child_width + child_bw*2 ;
-			rect.height = child_height + child_bw*2 ;
-			LOCAL_DEBUG_OUT( "adding child's shape as whole rectangle: %dx%d%+d%+d", rect.width, rect.height, rect.x, rect.y );
+				int           i, max_i = PVECTOR_USED (child->shape);
+				XRectangle   *r = PVECTOR_HEAD (XRectangle, child->shape);
 
-			res = add_shape_rectangles( parent->shape, &rect, 1, 0, 0, parent_width+parent->bw*2, parent_height+parent->bw*2 );
+				for (i = 0; i < max_i; ++i)
+					fprintf (stderr, "\t\t r[%d] = %dx%d%+d%+d\n", i, r[i].width, r[i].height, r[i].x, r[i].y);
+			}
+			LOCAL_DEBUG_OUT ("child geom = %dx%d%+d%+d, bw = %d", child_width, child_height, child_x, child_y,
+							 child_bw);
+#endif
+			res =
+				add_shape_rectangles (parent->shape, PVECTOR_HEAD (XRectangle, child->shape),
+									  PVECTOR_USED (child->shape), child_x + child_bw, child_y + child_bw, parent_width,
+									  parent_height);
+			if (res && child_bw > 0)
+			{
+				XRectangle    border[4];
+
+				border[0].x = 0;
+				border[0].y = 0;
+				border[0].width = child_width + child_bw;
+				border[0].height = child_bw;
+				border[1].x = 0;
+				border[1].y = child_bw;
+				border[1].width = child_bw;
+				border[1].height = child_height;
+				border[2].x = child_width + child_bw;
+				border[2].y = 0;
+				border[2].width = child_bw;
+				border[2].height = child_height + child_bw * 2;
+				border[3].x = 0;
+				border[3].y = child_height + child_bw;
+				border[3].width = child_width + child_bw * 2;
+				border[3].height = child_bw;
+				res =
+					add_shape_rectangles (parent->shape, &(border[0]), 4, child_x, child_y, parent_width,
+										  parent_height);
+			}
+		} else
+#endif
+		{
+			XRectangle    rect;
+
+			rect.x = child_x;
+			rect.y = child_y;
+			rect.width = child_width + child_bw * 2;
+			rect.height = child_height + child_bw * 2;
+			LOCAL_DEBUG_OUT ("adding child's shape as whole rectangle: %dx%d%+d%+d", rect.width, rect.height, rect.x,
+							 rect.y);
+
+			res =
+				add_shape_rectangles (parent->shape, &rect, 1, 0, 0, parent_width + parent->bw * 2,
+									  parent_height + parent->bw * 2);
 		}
 	}
 #endif
@@ -762,28 +800,29 @@ LOCAL_DEBUG_OUT( "parent(%p),child(%p)", parent, child );
 }
 
 Bool
-combine_canvas_shape (ASCanvas *parent, ASCanvas *child )
+combine_canvas_shape (ASCanvas * parent, ASCanvas * child)
 {
-	int res = False ;
-#ifdef SHAPE
-	if (parent && child )
-	{
-		int child_x = 0 ;
-		int child_y = 0 ;
-		unsigned int width, height, bw;
+	int           res = False;
 
-		if( parent->shape == NULL )
+#ifdef SHAPE
+	if (parent && child)
+	{
+		int           child_x = 0;
+		int           child_y = 0;
+		unsigned int  width, height, bw;
+
+		if (parent->shape == NULL)
 			return False;
 #ifndef STRICT_GEOMETRY
-		get_current_canvas_geometry( child, &child_x, &child_y, &width, &height, &bw );
+		get_current_canvas_geometry (child, &child_x, &child_y, &width, &height, &bw);
 #else
-		child_x = child->root_x - parent->root_x ;
-		child_y = child->root_y - parent->root_y ;
-		width = child->width ;
-		height = child->height ;
-		bw = child->bw ;
+		child_x = child->root_x - parent->root_x;
+		child_y = child->root_y - parent->root_y;
+		width = child->width;
+		height = child->height;
+		bw = child->bw;
 #endif
-		res = combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw );
+		res = combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw);
 	}
 #endif
 	return res;
@@ -791,107 +830,110 @@ combine_canvas_shape (ASCanvas *parent, ASCanvas *child )
 
 
 Bool
-combine_canvas_shape_at (ASCanvas *parent, ASCanvas *child, int child_x, int child_y )
+combine_canvas_shape_at (ASCanvas * parent, ASCanvas * child, int child_x, int child_y)
 {
 #ifdef SHAPE
-	if( child )
+	if (child)
 	{
-		unsigned int width, height, bw;
+		unsigned int  width, height, bw;
+
 #ifndef STRICT_GEOMETRY
-		get_current_canvas_geometry( child, NULL, NULL, &width, &height, &bw );
+		get_current_canvas_geometry (child, NULL, NULL, &width, &height, &bw);
 #else
-		width = child->width ;
-		height = child->height ;
-		bw = child->bw ;
+		width = child->width;
+		height = child->height;
+		bw = child->bw;
 #endif
 
-		return combine_canvas_shape_at_geom ( parent, child, child_x, child_y, width, height, bw );
+		return combine_canvas_shape_at_geom (parent, child, child_x, child_y, width, height, bw);
 	}
 #endif
 	return False;
 }
 
 Bool
-is_canvas_needs_redraw( ASCanvas *pc )
+is_canvas_needs_redraw (ASCanvas * pc)
 {
-	return pc?get_flags (pc->state, CANVAS_DIRTY):False;
+	return pc ? get_flags (pc->state, CANVAS_DIRTY) : False;
 }
 
 Bool
-is_canvas_dirty( ASCanvas *pc )
+is_canvas_dirty (ASCanvas * pc)
 {
-	return pc?get_flags (pc->state, CANVAS_DIRTY|CANVAS_OUT_OF_SYNC|CANVAS_MASK_OUT_OF_SYNC):False;
+	return pc ? get_flags (pc->state, CANVAS_DIRTY | CANVAS_OUT_OF_SYNC | CANVAS_MASK_OUT_OF_SYNC) : False;
 }
 
 
 ASFlagType
-configure_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height, ASFlagType mask )
+configure_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height, ASFlagType mask)
 {
-	ASFlagType changes = 0 ;
-	XWindowChanges xwc ; 
-	int curr_x, curr_y;
-	unsigned int curr_width, curr_height, curr_bw ;
-	
-	if( pc == NULL ) 
+	ASFlagType    changes = 0;
+	XWindowChanges xwc;
+	int           curr_x, curr_y;
+	unsigned int  curr_width, curr_height, curr_bw;
+
+	if (pc == NULL)
 		return 0;
 
-	get_current_canvas_geometry( pc, &curr_x, &curr_y, &curr_width, &curr_height, &curr_bw );
-	
-	LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y );
+	get_current_canvas_geometry (pc, &curr_x, &curr_y, &curr_width, &curr_height, &curr_bw);
+
+	LOCAL_DEBUG_CALLER_OUT ("canvas(%p)->window(%lx)->geom(%ux%u%+d%+d)", pc, pc->w, width, height, x, y);
 	/* Setting background to None to avoid background pixmap tiling
 	 * while resizing */
-	if( !get_flags( mask, CWWidth ) )
-		width = pc->width ; 
-	else if( width>MAX_POSITION )
+	if (!get_flags (mask, CWWidth))
+		width = pc->width;
+	else if (width > MAX_POSITION)
 	{
 #ifdef DEBUG_ALLOCS
-		AS_ASSERT(0);
+		AS_ASSERT (0);
 #endif
-		width = pc->width ;
-	}else if( AS_ASSERT(width))
-		width = 1 ;
+		width = pc->width;
+	} else if (AS_ASSERT (width))
+		width = 1;
 
-	if( !get_flags( mask, CWHeight ) )
-		height = pc->height ; 
-	else if( height>MAX_POSITION )
+	if (!get_flags (mask, CWHeight))
+		height = pc->height;
+	else if (height > MAX_POSITION)
 	{
 #ifdef DEBUG_ALLOCS
-		AS_ASSERT(0);
+		AS_ASSERT (0);
 #endif
-		height = pc->height ;
-	}else if( AS_ASSERT(height))
+		height = pc->height;
+	} else if (AS_ASSERT (height))
 		height = 1;
 
-	if( get_flags( mask, CWX ) && curr_x != x )
-		set_flags( changes, CANVAS_X_CHANGED );
-	if( get_flags( mask, CWY ) && curr_y != y )
-		set_flags( changes, CANVAS_Y_CHANGED );
-	if( width != curr_width ) set_flags( changes, CANVAS_WIDTH_CHANGED );
-	if( height != curr_height ) set_flags( changes, CANVAS_HEIGHT_CHANGED );
+	if (get_flags (mask, CWX) && curr_x != x)
+		set_flags (changes, CANVAS_X_CHANGED);
+	if (get_flags (mask, CWY) && curr_y != y)
+		set_flags (changes, CANVAS_Y_CHANGED);
+	if (width != curr_width)
+		set_flags (changes, CANVAS_WIDTH_CHANGED);
+	if (height != curr_height)
+		set_flags (changes, CANVAS_HEIGHT_CHANGED);
 
-	if( changes == 0 ) 
+	if (changes == 0)
 		return 0;
-	xwc.x = x ; 
-	xwc.y = y ; 
-	xwc.width = width ; 
-	xwc.height = height ; 
-	
-	if ((pc->width < width || pc->height < height) && !get_flags( pc->state, CANVAS_CONTAINER ))
+	xwc.x = x;
+	xwc.y = y;
+	xwc.width = width;
+	xwc.height = height;
+
+	if ((pc->width < width || pc->height < height) && !get_flags (pc->state, CANVAS_CONTAINER))
 		XSetWindowBackgroundPixmap (dpy, pc->w, None);
-	
-	LOCAL_DEBUG_OUT( "XConfigureWindow( %lX, %lX, %dx%d%+d%+d );", pc->w, mask, width, height, x, y );
+
+	LOCAL_DEBUG_OUT ("XConfigureWindow( %lX, %lX, %dx%d%+d%+d );", pc->w, mask, width, height, x, y);
 	XConfigureWindow (dpy, pc->w, mask, &xwc);
 /*fprintf( stderr, "client_changes: ( %lX, %lX, %dx%d%+d%+d ); was %dx%d%+d%+d\n", pc->w, mask, width, height, x, y, curr_width, curr_height, curr_x, curr_y );*/
 	return changes;
 }
 
-ASFlagType 
+ASFlagType
 resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 {
-	if( pc == NULL ) 
+	if (pc == NULL)
 		return 0;
 
-	return configure_canvas (pc, 0, 0, width, height, CWWidth|CWHeight );
+	return configure_canvas (pc, 0, 0, width, height, CWWidth | CWHeight);
 }
 
 
@@ -899,137 +941,144 @@ resize_canvas (ASCanvas * pc, unsigned int width, unsigned int height)
 ASFlagType
 moveresize_canvas (ASCanvas * pc, int x, int y, unsigned int width, unsigned int height)
 {
-	if( pc == NULL ) 
+	if (pc == NULL)
 		return 0;
-	return configure_canvas (pc, x, y, width, height, CWX|CWY|CWWidth|CWHeight );
+	return configure_canvas (pc, x, y, width, height, CWX | CWY | CWWidth | CWHeight);
 }
 
 
 void
 move_canvas (ASCanvas * pc, int x, int y)
 {
-	if( pc == NULL ) 
+	if (pc == NULL)
 		return;
 
-LOCAL_DEBUG_CALLER_OUT( "canvas(%p)->window(%lx)->geom(%+d%+d)", pc, pc->w, x, y );
+	LOCAL_DEBUG_CALLER_OUT ("canvas(%p)->window(%lx)->geom(%+d%+d)", pc, pc->w, x, y);
 	XMoveWindow (dpy, pc->w, x, y);
 }
 
 
 void
-unmap_canvas_window( ASCanvas *pc )
+unmap_canvas_window (ASCanvas * pc)
 {
-	if( pc && pc->w != None )
-	{	
-		XUnmapWindow( dpy, pc->w );
-		clear_flags( pc->state, CANVAS_MAPPED );
+	if (pc && pc->w != None)
+	{
+		XUnmapWindow (dpy, pc->w);
+		clear_flags (pc->state, CANVAS_MAPPED);
 	}
 }
 
 void
-map_canvas_window( ASCanvas *pc, Bool raised )
+map_canvas_window (ASCanvas * pc, Bool raised)
 {
-	LOCAL_DEBUG_CALLER_OUT( "pc=%p", pc );
-	if( pc == NULL ) 
+	LOCAL_DEBUG_CALLER_OUT ("pc=%p", pc);
+	if (pc == NULL)
 		return;
 
-	LOCAL_DEBUG_OUT( "raised = %s", raised ? "True":"False" );
-	if( pc->w != None )
+	LOCAL_DEBUG_OUT ("raised = %s", raised ? "True" : "False");
+	if (pc->w != None)
 	{
-		if( raised )
-			XMapRaised( dpy, pc->w );
+		if (raised)
+			XMapRaised (dpy, pc->w);
 		else
-			XMapWindow( dpy, pc->w );
-		set_flags( pc->state, CANVAS_MAPPED );
+			XMapWindow (dpy, pc->w);
+		set_flags (pc->state, CANVAS_MAPPED);
 	}
 }
 
 void
-quietly_reparent_canvas( ASCanvas *pc, Window dst, long event_mask, Bool use_root_pos, Window below )
+quietly_reparent_canvas (ASCanvas * pc, Window dst, long event_mask, Bool use_root_pos, Window below)
 {
-	if( pc )
+	if (pc)
 	{
-		int x = 0, y = 0 ;
-		unsigned int bw = pc->bw;
-		Window parent = None ;
-		
-		if( dst == None ) 
-			dst = ASDefaultRoot ;            
+		int           x = 0, y = 0;
+		unsigned int  bw = pc->bw;
+		Window        parent = None;
 
-		if( use_root_pos )
+		if (dst == None)
+			dst = ASDefaultRoot;
+
+		if (use_root_pos)
 		{
-			x = pc->root_x ;
-			y = pc->root_y ;
-		}else
-			get_canvas_position( pc, &parent, &x, &y, &bw );
+			x = pc->root_x;
+			y = pc->root_y;
+		} else
+			get_canvas_position (pc, &parent, &x, &y, &bw);
 
-		if( parent != dst )
+		if (parent != dst)
 		{
 			/* blocking UnmapNotify events since that may bring us into Withdrawn state */
 			XSelectInput (dpy, pc->w, event_mask & ~StructureNotifyMask);
-			LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, %+d%+d ), bw = %d", pc->w, dst, x, y, bw );
-			if( below != None && get_flags( pc->state, CANVAS_MAPPED )) 
+			LOCAL_DEBUG_OUT ("XReparentWindow( %lX, %lX, %+d%+d ), bw = %d", pc->w, dst, x, y, bw);
+			if (below != None && get_flags (pc->state, CANVAS_MAPPED))
 			{
-				Window w[2] ;
-				XUnmapWindow( dpy, pc->w );
-				XReparentWindow( dpy, pc->w, (dst!=None)?dst:ASDefaultRoot, x, y );
-				w[0] = below ; 
-				w[1] = pc->w ; 
-				XRestackWindows( dpy, w, 2 );
-				XMapWindow( dpy, pc->w );
-			}else		  
-				XReparentWindow( dpy, pc->w, (dst!=None)?dst:ASDefaultRoot, x, y );
-			XSelectInput (dpy, pc->w, event_mask );
+				Window        w[2];
+
+				XUnmapWindow (dpy, pc->w);
+				XReparentWindow (dpy, pc->w, (dst != None) ? dst : ASDefaultRoot, x, y);
+				w[0] = below;
+				w[1] = pc->w;
+				XRestackWindows (dpy, w, 2);
+				XMapWindow (dpy, pc->w);
+			} else
+				XReparentWindow (dpy, pc->w, (dst != None) ? dst : ASDefaultRoot, x, y);
+			XSelectInput (dpy, pc->w, event_mask);
 		}
 	}
 }
 
 void
-reparent_canvas_window( ASCanvas *pc, Window dst, int x, int y )
+reparent_canvas_window (ASCanvas * pc, Window dst, int x, int y)
 {
-	if( pc )
+	if (pc)
 	{
-		if( dst == None ) 
-			dst = ASDefaultRoot ;            
-		LOCAL_DEBUG_OUT( "XReparentWindow( %lX, %lX, +0+0 )", pc->w, dst );
-		XReparentWindow( dpy, pc->w, dst, 0, 0 );
+		if (dst == None)
+			dst = ASDefaultRoot;
+		LOCAL_DEBUG_OUT ("XReparentWindow( %lX, %lX, +0+0 )", pc->w, dst);
+		XReparentWindow (dpy, pc->w, dst, 0, 0);
 	}
 }
 
 void
-add_canvas_grid( ASGrid *grid, ASCanvas *canvas, int outer_gravity, int inner_gravity, Bool absolute)
+add_canvas_grid (ASGrid * grid, ASCanvas * canvas, int outer_gravity, int inner_gravity, Bool absolute)
 {
-	if( canvas && grid )	{
+	if (canvas && grid)
+	{
 		unsigned long flags = absolute ? ASGL_Absolute : 0;
-		int x = canvas->root_x;
-		int y = canvas->root_y;
-		if (!absolute) {
+		int           x = canvas->root_x;
+		int           y = canvas->root_y;
+
+		if (!absolute)
+		{
 			x += grid->curr_vx;
 			y += grid->curr_vy;
 		}
-		
-LOCAL_DEBUG_CALLER_OUT( "(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->height, canvas->root_x, canvas->root_y );
-		add_gridline (grid, y,                x, x+canvas->width+canvas->bw*2,  outer_gravity, inner_gravity, flags );
-		add_gridline (grid, y+canvas->height+canvas->bw*2, x, x+canvas->width+canvas->bw*2,  inner_gravity, outer_gravity, flags );
+
+		LOCAL_DEBUG_CALLER_OUT ("(%p,%ux%u%+d%+d)", canvas, canvas->width, canvas->height, canvas->root_x,
+								canvas->root_y);
+		add_gridline (grid, y, x, x + canvas->width + canvas->bw * 2, outer_gravity, inner_gravity, flags);
+		add_gridline (grid, y + canvas->height + canvas->bw * 2, x, x + canvas->width + canvas->bw * 2, inner_gravity,
+					  outer_gravity, flags);
 		set_flags (flags, ASGL_Vertical);
-		add_gridline (grid, x,                y, y+canvas->height+canvas->bw*2, outer_gravity, inner_gravity, flags );
-		add_gridline (grid, x+canvas->width+canvas->bw*2,  y, y+canvas->height+canvas->bw*2, inner_gravity, outer_gravity, flags );
+		add_gridline (grid, x, y, y + canvas->height + canvas->bw * 2, outer_gravity, inner_gravity, flags);
+		add_gridline (grid, x + canvas->width + canvas->bw * 2, y, y + canvas->height + canvas->bw * 2, inner_gravity,
+					  outer_gravity, flags);
 	}
 }
 
 void
-set_root_clip_area( ASCanvas *canvas )
+set_root_clip_area (ASCanvas * canvas)
 {
-	if( canvas )
-	{	
-		ASDefaultScr->RootClipArea.x = canvas->root_x+(int)canvas->bw;
-		ASDefaultScr->RootClipArea.y = canvas->root_y+(int)canvas->bw;
-		ASDefaultScr->RootClipArea.width  = canvas->width;
+	if (canvas)
+	{
+		ASDefaultScr->RootClipArea.x = canvas->root_x + (int)canvas->bw;
+		ASDefaultScr->RootClipArea.y = canvas->root_y + (int)canvas->bw;
+		ASDefaultScr->RootClipArea.width = canvas->width;
 		ASDefaultScr->RootClipArea.height = canvas->height;
-		if( ASDefaultScr->RootImage )
+		if (ASDefaultScr->RootImage)
 		{
-			safe_asimage_destroy( ASDefaultScr->RootImage );
-			ASDefaultScr->RootImage = NULL ;
+			safe_asimage_destroy (ASDefaultScr->RootImage);
+			ASDefaultScr->RootImage = NULL;
 		}
 	}
 }
@@ -1037,44 +1086,44 @@ set_root_clip_area( ASCanvas *canvas )
 /*************************************************************************/
 
 void
-send_canvas_configure_notify(ASCanvas *parent, ASCanvas *canvas)
+send_canvas_configure_notify (ASCanvas * parent, ASCanvas * canvas)
 {
-LOCAL_DEBUG_CALLER_OUT( "%p,%p", parent, canvas );
-	if( canvas )
+	LOCAL_DEBUG_CALLER_OUT ("%p,%p", parent, canvas);
+	if (canvas)
 	{
-		XEvent client_event ;
-		unsigned int uwidth, uheight, ubw ;
+		XEvent        client_event;
+		unsigned int  uwidth, uheight, ubw;
 
 		client_event.type = ConfigureNotify;
 		client_event.xconfigure.display = dpy;
 		client_event.xconfigure.event = canvas->w;
 		client_event.xconfigure.window = canvas->w;
 
-		get_current_canvas_geometry( canvas, &(client_event.xconfigure.x),
-										 &(client_event.xconfigure.y),
-										 &uwidth, &uheight, &ubw );
-		client_event.xconfigure.width = uwidth ;
+		get_current_canvas_geometry (canvas, &(client_event.xconfigure.x),
+									 &(client_event.xconfigure.y), &uwidth, &uheight, &ubw);
+		client_event.xconfigure.width = uwidth;
 		client_event.xconfigure.height = uheight;
 		client_event.xconfigure.border_width = ubw;
 
-		if( parent )
+		if (parent)
 		{
 #if 1
-			Window wdumm;
+			Window        wdumm;
+
 			XTranslateCoordinates (dpy, canvas->w, ASDefaultRoot, 0, 0, &(client_event.xconfigure.x),
-										 &(client_event.xconfigure.y), &wdumm);
+								   &(client_event.xconfigure.y), &wdumm);
 #else /* we maybe called before parent's geometry is updated - so don't trust it! */
-			client_event.xconfigure.x += parent->root_x+(int)parent->bw;
-			client_event.xconfigure.y += parent->root_y+(int)parent->bw;
-#endif			
+			client_event.xconfigure.x += parent->root_x + (int)parent->bw;
+			client_event.xconfigure.y += parent->root_y + (int)parent->bw;
+#endif
 			/* Real ConfigureNotify events say we're above title window, so ... */
 			/* what if we don't have a title ????? */
 			client_event.xconfigure.above = parent->w;
-		}else
+		} else
 			client_event.xconfigure.above = ASDefaultRoot;
 		client_event.xconfigure.override_redirect = False;
-		LOCAL_DEBUG_OUT( "geom= %dx%d%+d%+d", client_event.xconfigure.width, client_event.xconfigure.height, client_event.xconfigure.x, client_event.xconfigure.y );
+		LOCAL_DEBUG_OUT ("geom= %dx%d%+d%+d", client_event.xconfigure.width, client_event.xconfigure.height,
+						 client_event.xconfigure.x, client_event.xconfigure.y);
 		XSendEvent (dpy, canvas->w, False, StructureNotifyMask, &client_event);
 	}
 }
-

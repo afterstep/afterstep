@@ -18,7 +18,7 @@
  */
 
 #include "../configure.h"
- 
+
 #define LOCAL_DEBUG
 #include "asapp.h"
 #include "afterstep.h"
@@ -42,7 +42,7 @@ init_ashints (ASHints * hints)
 	{										   /* some defaults to start with : */
 		hints->flags = AS_HitPager | AS_Gravity | AS_AcceptsFocus | AS_Titlebar | AS_IconTitle | AS_Handles | AS_Border;
 		/* can't gracefully close the window if it does not support WM_DELETE_WINDOW */
-		hints->function_mask = ~(AS_FuncClose|AS_FuncPinMenu);
+		hints->function_mask = ~(AS_FuncClose | AS_FuncPinMenu);
 		hints->gravity = NorthWestGravity;
 		hints->border_width = 1;
 	}
@@ -105,7 +105,7 @@ merge_command_line (ASHints * clean, ASStatusHints * status, ASRawHints * raw)
 		{"-xrm", NULL, XrmoptionResArg, (caddr_t) NULL},
 	};
 
-	if ( raw == NULL)
+	if (raw == NULL)
 		return;
 	if (raw->wm_cmd_argc > 0 && raw->wm_cmd_argv != NULL)
 	{
@@ -115,12 +115,12 @@ merge_command_line (ASHints * clean, ASStatusHints * status, ASRawHints * raw)
 		init_xrm ();
 
 		XrmParseCommand (&cmd_db, xrm_cmd_opts, 2, "afterstep", &(raw->wm_cmd_argc), raw->wm_cmd_argv);
-		if (status != NULL )
+		if (status != NULL)
 		{
 			found = get_afterstep_resources (cmd_db, status);
 
 			if (!get_flags (found, AS_StartDesktop))
-			{									   /* checking for CDE workspace specification */
+			{								   /* checking for CDE workspace specification */
 				if (read_int_resource (cmd_db, "*workspaceList", "*WorkspaceList", &(status->desktop)))
 					set_flags (status->flags, AS_StartDesktop);
 			}
@@ -161,40 +161,36 @@ merge_command_line (ASHints * clean, ASStatusHints * status, ASRawHints * raw)
 
 				if (clean->client_cmd)
 					free (clean->client_cmd);
-				trg = clean->client_cmd = safecalloc (1, len+raw->wm_cmd_argc*2+1);
+				trg = clean->client_cmd = safecalloc (1, len + raw->wm_cmd_argc * 2 + 1);
 				for (i = 0; i < raw->wm_cmd_argc; i++)
 					if ((src = raw->wm_cmd_argv[i]) != NULL)
 					{
-						register int k ;
-						Bool add_quotes = False ;
+						register int  k;
+						Bool          add_quotes = False;
+
 						for (k = 0; src[k]; k++)
-							if( isspace(src[k]) || 
+							if (isspace (src[k]) ||
 								src[k] == '#' ||
 								src[k] == '*' ||
 								src[k] == '$' ||
 								src[k] == ';' ||
-								src[k] == '&' ||
-								src[k] == '<' ||
-								src[k] == '>' ||
-								src[k] == '|' ||
-								iscntrl(src[k])
-								) 
+								src[k] == '&' || src[k] == '<' || src[k] == '>' || src[k] == '|' || iscntrl (src[k]))
 							{
-								add_quotes = True ;
-								break ;
+								add_quotes = True;
+								break;
 							}
-						
-						if( add_quotes ) 
+
+						if (add_quotes)
 						{
-							trg[0] = '"' ;
-							++trg ;
+							trg[0] = '"';
+							++trg;
 						}
 						for (k = 0; src[k]; k++)
 							trg[k] = src[k];
-						if( add_quotes ) 
+						if (add_quotes)
 						{
-							trg[k] = '"' ;
-							++k ;
+							trg[k] = '"';
+							++k;
 						}
 						trg[k] = ' ';
 						trg += k + 1;
@@ -235,18 +231,18 @@ check_hints_sanity (ScreenInfo * scr, ASHints * clean, ASStatusHints * status, W
 			if (clean->icon_file == NULL && clean->icon.pixmap == None)
 				clear_flags (clean->flags, AS_Icon);
 
-		if( status && status->width <= 2 && status->height <= 2 ) 
+		if (status && status->width <= 2 && status->height <= 2)
 		{
-			if( clean->res_class && strcasecmp( clean->res_class, "DockApp" ) == 0 )
-				set_flags( clean->flags, AS_WMDockApp ); 	   
-		}	 
-			
-		if( clean->icon.window == client ) 
+			if (clean->res_class && strcasecmp (clean->res_class, "DockApp") == 0)
+				set_flags (clean->flags, AS_WMDockApp);
+		}
+
+		if (clean->icon.window == client)
 		{
-			clean->icon.window = None ; 
-			clear_flags( clean->function_mask, AS_FuncMinimize );
-			clear_flags( clean->client_icon_flags, AS_ClientIcon );
-		}	 
+			clean->icon.window = None;
+			clear_flags (clean->function_mask, AS_FuncMinimize);
+			clear_flags (clean->client_icon_flags, AS_ClientIcon);
+		}
 
 
 		if (clean->frame_name == NULL)
@@ -274,9 +270,9 @@ check_status_sanity (ScreenInfo * scr, ASStatusHints * status)
 
 		if (status->desktop == INVALID_DESK)
 			clear_flags (status->flags, AS_StartDesktop);
-		LOCAL_DEBUG_OUT( "viewport_x = %d", status->viewport_x );
+		LOCAL_DEBUG_OUT ("viewport_x = %d", status->viewport_x);
 		status->viewport_x = FIT_IN_RANGE (0, status->viewport_x, scr->VxMax);
-		LOCAL_DEBUG_OUT( "viewport_x = %d", status->viewport_x );
+		LOCAL_DEBUG_OUT ("viewport_x = %d", status->viewport_x);
 		status->viewport_y = FIT_IN_RANGE (0, status->viewport_y, scr->VyMax);
 		if (status->width < 2)
 			status->width = 2;
@@ -288,12 +284,12 @@ check_status_sanity (ScreenInfo * scr, ASStatusHints * status)
 }
 
 unsigned char
-get_hint_name_encoding( ASHints *hints, int name_idx )
+get_hint_name_encoding (ASHints * hints, int name_idx)
 {
-	if( hints && name_idx >= 0 && name_idx <= MAX_WINDOW_NAMES )
+	if (hints && name_idx >= 0 && name_idx <= MAX_WINDOW_NAMES)
 		return hints->names_encoding[name_idx];
 	return AS_Text_ASCII;
-}	 
+}
 
 /* Hints merging functions : */
 ASHints      *
@@ -321,17 +317,17 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 	{
 		for (i = 0; i < list->hints_num; i++)
 			(list->merge_funcs[i]) (clean, raw, NULL, status, HINT_NAME);
-		
+
 		what &= ~HINT_NAME;
 	}
-	if( clean->names[0] == NULL ) 
-	{	
-		clean->names[0] = mystrdup("");        /* must have at least one valid name string - even if empty */
-		clean->names_encoding[0] = AS_Text_ASCII ;
+	if (clean->names[0] == NULL)
+	{
+		clean->names[0] = mystrdup ("");	   /* must have at least one valid name string - even if empty */
+		clean->names_encoding[0] = AS_Text_ASCII;
 	}
 	/* we want to make sure that we have Icon Name at all times, if at all possible */
 	if (clean->icon_name == NULL)
-	{	
+	{
 		clean->icon_name = clean->names[0];
 		clean->icon_name_idx = 0;
 	}
@@ -341,18 +337,18 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 
 	pdb_rec = fill_asdb_record (db, clean->names, &db_rec, False);
 
-	if( clean->matched_name0 ) 
-		free(clean->matched_name0);
-	clean->matched_name0 = mystrdup(clean->names[0]);
-	clean->matched_name0_encoding = clean->names_encoding[0];  
+	if (clean->matched_name0)
+		free (clean->matched_name0);
+	clean->matched_name0 = mystrdup (clean->names[0]);
+	clean->matched_name0_encoding = clean->names_encoding[0];
 
 
-	LOCAL_DEBUG_OUT( "printing db record %p for names %p and db %p", pdb_rec, clean->names, db );
+	LOCAL_DEBUG_OUT ("printing db record %p for names %p and db %p", pdb_rec, clean->names, db);
 	if (is_output_level_under_threshold (OUTPUT_LEVEL_DATABASE))
 		print_asdb_matched_rec (NULL, NULL, db, pdb_rec);
 
 	hints_types = get_asdb_hint_mask (pdb_rec);
-	hints_types &= raw->hints_types | (0x01 << HINTS_ASDatabase)| (0x01 << HINTS_XResources) ;
+	hints_types &= raw->hints_types | (0x01 << HINTS_ASDatabase) | (0x01 << HINTS_XResources);
 
 	/* now do the rest : */
 	if (what != 0)
@@ -364,7 +360,7 @@ merge_hints (ASRawHints * raw, ASDatabase * db, ASStatusHints * status,
 				LOCAL_DEBUG_OUT ("merging hints %d (of %d ) - flags == 0x%lX", i, list->hints_num, clean->flags);
 			}
 		}
-	if (get_flags (what, HINT_STARTUP) )
+	if (get_flags (what, HINT_STARTUP))
 		merge_command_line (clean, status, raw);
 
 	check_hints_sanity (raw->scr, clean, status, client);
@@ -457,10 +453,10 @@ update_colormaps (ScreenInfo * scr, Window w, ASSupportedHints * list, CARD32 **
  * The following functions actually implement hints merging :
  ****************************************************************************/
 static int
-add_name_to_list (ASHints *hints, char *name, unsigned char encoding, Bool to_front )
+add_name_to_list (ASHints * hints, char *name, unsigned char encoding, Bool to_front)
 {
 	register int  i;
-	char **list = hints->names ; 
+	char        **list = hints->names;
 	unsigned char *encoding_list = hints->names_encoding;
 
 	if (name == NULL)
@@ -482,19 +478,22 @@ add_name_to_list (ASHints *hints, char *name, unsigned char encoding, Bool to_fr
 		return -1;
 	}
 
-	if( to_front )
-	{	
+	if (to_front)
+	{
 		for (; i > 0; i--)
 		{
 			list[i] = list[i - 1];
-			encoding_list[i] = encoding_list[i-1] ;
+			encoding_list[i] = encoding_list[i - 1];
 		}
-		if(hints->res_name_idx >= 0 )	++(hints->res_name_idx);
-		if(hints->res_class_idx >= 0 )	++(hints->res_class_idx);
-		if(hints->icon_name_idx >= 0 )	++(hints->icon_name_idx);
+		if (hints->res_name_idx >= 0)
+			++(hints->res_name_idx);
+		if (hints->res_class_idx >= 0)
+			++(hints->res_class_idx);
+		if (hints->icon_name_idx >= 0)
+			++(hints->icon_name_idx);
 	}
 	list[i] = name;
-	encoding_list[i] = encoding ;
+	encoding_list[i] = encoding;
 	return i;
 }
 
@@ -527,20 +526,23 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 			add_name_to_list (clean, text_property2string (raw->wm_name), AS_Text_ASCII, True);
 		if (raw->wm_icon_name)
 		{
-			clean->icon_name_idx = add_name_to_list (clean, text_property2string (raw->wm_icon_name), AS_Text_ASCII, False);
-			clean->icon_name     = (clean->icon_name_idx < 0 )?NULL:clean->names[clean->icon_name_idx];
+			clean->icon_name_idx =
+				add_name_to_list (clean, text_property2string (raw->wm_icon_name), AS_Text_ASCII, False);
+			clean->icon_name = (clean->icon_name_idx < 0) ? NULL : clean->names[clean->icon_name_idx];
 		}
 		if (raw->wm_class)
 		{
 			if (raw->wm_class->res_class)
 			{
-				clean->res_class_idx = add_name_to_list (clean, stripcpy (raw->wm_class->res_class), AS_Text_ASCII, False );
-				clean->res_class = (clean->res_class_idx < 0 )?NULL:clean->names[clean->res_class_idx];
+				clean->res_class_idx =
+					add_name_to_list (clean, stripcpy (raw->wm_class->res_class), AS_Text_ASCII, False);
+				clean->res_class = (clean->res_class_idx < 0) ? NULL : clean->names[clean->res_class_idx];
 			}
 			if (raw->wm_class->res_name)
 			{
-				clean->res_name_idx = add_name_to_list (clean, stripcpy (raw->wm_class->res_name), AS_Text_ASCII, False);
-				clean->res_name = (clean->res_name_idx < 0 )?NULL:clean->names[clean->res_name_idx];
+				clean->res_name_idx =
+					add_name_to_list (clean, stripcpy (raw->wm_class->res_name), AS_Text_ASCII, False);
+				clean->res_name = (clean->res_name_idx < 0) ? NULL : clean->names[clean->res_name_idx];
 			}
 		}
 	}
@@ -613,7 +615,7 @@ merge_icccm_hints (ASHints * clean, ASRawHints * raw,
 				clean->icon.window = wmh->icon_window;
 				set_flags (clean->client_icon_flags, AS_ClientIcon);
 				clear_flags (clean->client_icon_flags, AS_ClientIconPixmap);
-				if( get_flags (wmh->flags, IconWindowIsChildHint) )
+				if (get_flags (wmh->flags, IconWindowIsChildHint))
 					set_flags (clean->flags, AS_WMDockApp);
 			} else if (get_flags (wmh->flags, IconPixmapHint) && wmh->icon_pixmap != None)
 			{
@@ -753,7 +755,7 @@ decode_flags (ASFlagType * dst_flags, ASFlagsXref * xref, ASFlagType set_flags, 
 {
 	if (dst_flags == NULL || set_flags == 0)
 		return;
-	LOCAL_DEBUG_CALLER_OUT( "dst_flags = %lX, set_flags = %lX, flags = 0x%lX", *dst_flags, set_flags, flags );
+	LOCAL_DEBUG_CALLER_OUT ("dst_flags = %lX, set_flags = %lX, flags = 0x%lX", *dst_flags, set_flags, flags);
 	while ((*xref)[0] != 0)
 	{
 		ASFlagType    to_set;
@@ -804,9 +806,9 @@ check_motif_hints_sanity (MwmHints * motif_hints)
 		motif_hints->decorations = MWM_DECOR_EVERYTHING & ~(motif_hints->decorations);
 
 	/* Now I have the un-altered decor and functions, but with the
-	   * ALL attribute cleared and interpreted. I need to modify the
-	   * decorations that are affected by the functions */
-	if( get_flags( motif_hints->flags, MWM_HINTS_FUNCTIONS )  )
+	 * ALL attribute cleared and interpreted. I need to modify the
+	 * decorations that are affected by the functions */
+	if (get_flags (motif_hints->flags, MWM_HINTS_FUNCTIONS))
 	{
 		if (get_flags (motif_hints->functions, MWM_FUNC_ALL))
 			motif_hints->functions = MWM_FUNC_EVERYTHING & ~(motif_hints->functions);
@@ -820,7 +822,7 @@ check_motif_hints_sanity (MwmHints * motif_hints)
 		/* MWM_FUNC_CLOSE has no impact on decorations. */
 	}
 	/* This rule is implicit, but its easier to deal with if
-	   * I take care of it now */
+	 * I take care of it now */
 	if (motif_hints->decorations & (MWM_DECOR_MENU | MWM_DECOR_MINIMIZE | MWM_DECOR_MAXIMIZE))
 		motif_hints->decorations |= MWM_DECOR_TITLE;
 }
@@ -831,6 +833,7 @@ static ASFlagsXref mwm_decor_xref[] = {		   /*Flag              Set if Set    ,C
 	{MWM_DECOR_TITLE, AS_Titlebar, 0, 0, AS_Titlebar},
 	{0, 0, 0, 0, 0}
 };
+
 static ASFlagsXref mwm_decor_func_xref[] = {   /*Flag              Set if Set,  Clear if Set, Set if Clear, Clear if Clear  */
 	{MWM_DECOR_RESIZEH, AS_FuncResize, 0, 0, AS_Handles},
 	{MWM_DECOR_MENU, AS_FuncPopup, 0, 0, AS_FuncPopup},
@@ -838,6 +841,7 @@ static ASFlagsXref mwm_decor_func_xref[] = {   /*Flag              Set if Set,  
 	{MWM_DECOR_MAXIMIZE, AS_FuncMaximize, 0, 0, AS_FuncMaximize},
 	{0, 0, 0, 0, 0}
 };
+
 static ASFlagsXref mwm_func_xref[] = {		   /*Flag              Set if Set,  Clear if Set, Set if Clear, Clear if Clear  */
 	{MWM_FUNC_RESIZE, AS_FuncResize, 0, 0, AS_FuncResize},
 	{MWM_FUNC_MOVE, AS_FuncMove, 0, 0, AS_FuncMove},
@@ -889,7 +893,7 @@ merge_motif_hints (ASHints * clean, ASRawHints * raw,
 		if (get_flags (what, HINT_GENERAL))
 		{
 			decode_simple_flags (&(clean->flags), mwm_decor_xref, decor);
-			LOCAL_DEBUG_OUT( "motif decor = 0x%lX, clean_flags = 0x%lX", decor, clean->flags );
+			LOCAL_DEBUG_OUT ("motif decor = 0x%lX, clean_flags = 0x%lX", decor, clean->flags);
 		}
 		if (get_flags (what, HINT_PROTOCOL))
 		{
@@ -979,7 +983,7 @@ merge_gnome_hints (ASHints * clean, ASRawHints * raw,
 	{
 		if (get_flags (gh->flags, GNOME_LAYER))
 		{
-			status->layer = gh->layer ; /*No clue why we used to do that  :  (gh->layer - WIN_LAYER_NORMAL) >> 1; */
+			status->layer = gh->layer;		   /*No clue why we used to do that  :  (gh->layer - WIN_LAYER_NORMAL) >> 1; */
 			set_flags (status->flags, AS_StartLayer);
 		}
 		if (get_flags (gh->flags, GNOME_WORKSPACE))
@@ -998,15 +1002,14 @@ merge_gnome_hints (ASHints * clean, ASRawHints * raw,
 		if (get_flags (gh->flags, GNOME_HINTS) && gh->hints != 0)
 		{
 			decode_simple_flags (&(clean->flags), gnome_hints_xref, gh->hints);
-			if( get_flags( gh->hints, WIN_HINTS_SKIP_FOCUS ) )
-				clear_flags( clean->protocols, AS_DoesWmTakeFocus );				
+			if (get_flags (gh->hints, WIN_HINTS_SKIP_FOCUS))
+				clear_flags (clean->protocols, AS_DoesWmTakeFocus);
 		}
 	}
 }
 
 static void
-merge_kde_hints (ASHints * clean, ASRawHints * raw,
-				   ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what)
+merge_kde_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, ASStatusHints * status, ASFlagType what)
 {
 	register KDEHints *kh;
 
@@ -1018,19 +1021,19 @@ merge_kde_hints (ASHints * clean, ASRawHints * raw,
 
 	if (get_flags (what, HINT_STARTUP) && status != NULL)
 	{
-		if (get_flags (kh->flags, KDE_SysTrayWindowFor ))
+		if (get_flags (kh->flags, KDE_SysTrayWindowFor))
 			set_flags (status->flags, AS_StartsSticky);
 	}
 
 	if (get_flags (what, HINT_GENERAL))
 	{
-		if (get_flags (kh->flags, KDE_DesktopWindow ))
-			set_flags( clean->protocols, AS_DoesKIPC ); 
-		if (get_flags (kh->flags, KDE_SysTrayWindowFor ))
+		if (get_flags (kh->flags, KDE_DesktopWindow))
+			set_flags (clean->protocols, AS_DoesKIPC);
+		if (get_flags (kh->flags, KDE_SysTrayWindowFor))
 		{
-			set_flags( clean->flags, AS_SkipWinList|AS_DontCirculate );
-			clear_flags( clean->flags, AS_Handles|AS_Frame );
-		}		   
+			set_flags (clean->flags, AS_SkipWinList | AS_DontCirculate);
+			clear_flags (clean->flags, AS_Handles | AS_Frame);
+		}
 	}
 }
 
@@ -1053,29 +1056,31 @@ static ASFlagType extwm_types_start_properties[][3] = {
 	{EXTWM_TypeToolbar, AS_LayerNormal, 0},
 	{EXTWM_TypeMenu, AS_LayerUrgent, AS_StartsSticky},
 	{EXTWM_TypeDialog, AS_LayerTop, 0},
-	{EXTWM_TypeNormal, AS_LayerNormal, 0},  
-	{EXTWM_TypeUtility, AS_LayerTop, 0}, 	
-	{EXTWM_TypeSplash, AS_LayerTop, AS_ShortLived },
-	{EXTWM_TypeASModule, AS_LayerNormal, AS_StartsSticky },
+	{EXTWM_TypeNormal, AS_LayerNormal, 0},
+	{EXTWM_TypeUtility, AS_LayerTop, 0},
+	{EXTWM_TypeSplash, AS_LayerTop, AS_ShortLived},
+	{EXTWM_TypeASModule, AS_LayerNormal, AS_StartsSticky},
 	{0, 0, 0}
 };
 
 static ASFlagType extwm_states_start_properties[][3] = {
-	{EXTWM_StateFullscreen, AS_LayerUrgent, AS_Fullscreen },
-	{EXTWM_StateAbove, AS_LayerTop, 0 },
-	{EXTWM_StateBelow, AS_LayerBack, 0 },
-	{EXTWM_StateDemandsAttention, AS_LayerUrgent, 0 },
+	{EXTWM_StateFullscreen, AS_LayerUrgent, AS_Fullscreen},
+	{EXTWM_StateAbove, AS_LayerTop, 0},
+	{EXTWM_StateBelow, AS_LayerBack, 0},
+	{EXTWM_StateDemandsAttention, AS_LayerUrgent, 0},
 	{0, 0, 0}
 };
+
 static ASFlagsXref extwm_type_xref[] = {	   /*Flag              Set if Set,      Clear if Set,     Set if Clear,    Clear if Clear  */
 	{EXTWM_TypeDesktop, AS_SkipWinList | AS_DontCirculate, AS_Titlebar | AS_Handles | AS_Frame, 0, 0},
 	{EXTWM_TypeDock, AS_AvoidCover, AS_Handles | AS_Frame | AS_Titlebar, 0, 0},
-	{EXTWM_TypeToolbar, 0, AS_Handles | AS_Frame , 0, 0},
+	{EXTWM_TypeToolbar, 0, AS_Handles | AS_Frame, 0, 0},
 	{EXTWM_TypeMenu, AS_SkipWinList | AS_DontCirculate, AS_Handles | AS_Frame, 0, 0},
 	{EXTWM_TypeDialog, AS_ShortLived, 0 /*may need to remove handles */ , 0, 0},
-	{EXTWM_TypeASModule, AS_Module, 0, 0, AS_Module },
+	{EXTWM_TypeASModule, AS_Module, 0, 0, AS_Module},
 	{0, 0, 0, 0, 0}
 };
+
 static ASFlagsXref extwm_type_func_mask[] = {  /*Flag             Set if Set,  Clear if Set,     Set if Clear  , Clear if Clear  */
 	{EXTWM_TypeDesktop, 0, AS_FuncResize | AS_FuncMinimize | AS_FuncMaximize | AS_FuncMove, 0, 0},
 	{EXTWM_TypeDock, 0, AS_FuncResize | AS_FuncMinimize | AS_FuncMaximize, 0, 0},
@@ -1084,78 +1089,83 @@ static ASFlagsXref extwm_type_func_mask[] = {  /*Flag             Set if Set,  C
 	{0, 0, 0, 0, 0}
 };
 
-ASFlagType 
-extwm_state2as_state_flags( ASFlagType extwm_flags )
+ASFlagType
+extwm_state2as_state_flags (ASFlagType extwm_flags)
 {
-	ASFlagType as_flags	= 0 ;
+	ASFlagType    as_flags = 0;
+
 	decode_simple_flags (&as_flags, extwm_state_xref, extwm_flags);
 	return as_flags;
-}	   
+}
 
 static CARD32 *
-select_client_icon_argb( CARD32 *icon,  int icon_length )
+select_client_icon_argb (CARD32 * icon, int icon_length)
 {
-	int offset = 0 ; 
-	CARD32 *res = NULL ; 
-	if( icon == NULL || icon_length <= 2 ) 
+	int           offset = 0;
+	CARD32       *res = NULL;
+
+	if (icon == NULL || icon_length <= 2)
 		return NULL;
-	while( res == NULL && offset+2 < icon_length  ) 
+	while (res == NULL && offset + 2 < icon_length)
 	{
-		int width = icon[offset] ; 
-		int height = icon[offset+1] ; 
-		int len = width*height ; 
-		if( len < 0 )
+		int           width = icon[offset];
+		int           height = icon[offset + 1];
+		int           len = width * height;
+
+		if (len < 0)
 			break;
-		if( len  <= (icon_length - offset - 2 ) ) 
-			if( width == 48 && height == 48 ) 
+		if (len <= (icon_length - offset - 2))
+			if (width == 48 && height == 48)
 			{
-				res = safemalloc( (2+len)*sizeof(CARD32));
-				memcpy( res, &(icon[offset]), (2+len)*sizeof(CARD32));
-			}			 
-		offset += 2 + len ;
-	}	 
-	offset = 0 ; 
-	while( res == NULL && offset+2 < icon_length  ) 
+				res = safemalloc ((2 + len) * sizeof (CARD32));
+				memcpy (res, &(icon[offset]), (2 + len) * sizeof (CARD32));
+			}
+		offset += 2 + len;
+	}
+	offset = 0;
+	while (res == NULL && offset + 2 < icon_length)
 	{
-		int width = icon[offset] ; 
-		int height = icon[offset+1] ; 
-		int len = width*height ; 
-		if( len < 0 )
+		int           width = icon[offset];
+		int           height = icon[offset + 1];
+		int           len = width * height;
+
+		if (len < 0)
 			break;
-		if( len  <= (icon_length - offset - 2 ) ) 
-			if( width >= 32 && height >= 32 ) 
+		if (len <= (icon_length - offset - 2))
+			if (width >= 32 && height >= 32)
 			{
-				res = safemalloc( (2+len)*sizeof(CARD32));
-				memcpy( res, &(icon[offset]), (2+len)*sizeof(CARD32));
-			}			 
-		offset += 2 + len ;
-	}	 
-	if( res == NULL ) 
+				res = safemalloc ((2 + len) * sizeof (CARD32));
+				memcpy (res, &(icon[offset]), (2 + len) * sizeof (CARD32));
+			}
+		offset += 2 + len;
+	}
+	if (res == NULL)
 	{
-		int width = icon[0] ; 
-		int height = icon[1] ; 
-		int size = width*height ;
-		icon_length -= 2 ;
-		if( size > 0 )
+		int           width = icon[0];
+		int           height = icon[1];
+		int           size = width * height;
+
+		icon_length -= 2;
+		if (size > 0)
 		{
-			if( size+2 > icon_length ) 
+			if (size + 2 > icon_length)
 			{
-				for( width = 128 ; width > 0 ; width -= 8 ) 
-					if( icon_length  > width*width ) 
-					{	  
-						height = width  ; 
-						size = width*width;
-						break ;
+				for (width = 128; width > 0; width -= 8)
+					if (icon_length > width * width)
+					{
+						height = width;
+						size = width * width;
+						break;
 					}
-			}	 
-			res = safecalloc( size+2, sizeof(CARD32));
-			memcpy( res+2, &(icon[2]), size*sizeof(CARD32));
-			res[0] = width ; 
-			res[1] = height ;
+			}
+			res = safecalloc (size + 2, sizeof (CARD32));
+			memcpy (res + 2, &(icon[2]), size * sizeof (CARD32));
+			res[0] = width;
+			res[1] = height;
 		}
-	}	 
+	}
 	return res;
-}	 
+}
 
 static void
 merge_extwm_hints (ASHints * clean, ASRawHints * raw,
@@ -1171,14 +1181,16 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 	if (get_flags (what, HINT_NAME))
 	{
 		if (eh->name)
-			add_name_to_list (clean, stripcpy((const char*)(eh->name->value)), AS_Text_UTF8, True);
+			add_name_to_list (clean, stripcpy ((const char *)(eh->name->value)), AS_Text_UTF8, True);
 		if (eh->visible_name)
-			add_name_to_list (clean, stripcpy((const char*)(eh->visible_name->value)), AS_Text_UTF8, True);
+			add_name_to_list (clean, stripcpy ((const char *)(eh->visible_name->value)), AS_Text_UTF8, True);
 		if (eh->icon_name)
-			clean->icon_name_idx = add_name_to_list (clean, stripcpy((const char*)(eh->icon_name->value)), AS_Text_UTF8, False);
+			clean->icon_name_idx =
+				add_name_to_list (clean, stripcpy ((const char *)(eh->icon_name->value)), AS_Text_UTF8, False);
 		if (eh->visible_icon_name)
-			clean->icon_name_idx = add_name_to_list (clean, stripcpy((const char*)(eh->visible_icon_name->value)), AS_Text_UTF8, False);
-		clean->icon_name = (clean->icon_name_idx <0 )?NULL: clean->names[clean->icon_name_idx] ;
+			clean->icon_name_idx =
+				add_name_to_list (clean, stripcpy ((const char *)(eh->visible_icon_name->value)), AS_Text_UTF8, False);
+		clean->icon_name = (clean->icon_name_idx < 0) ? NULL : clean->names[clean->icon_name_idx];
 	}
 
 	if (get_flags (what, HINT_STARTUP) && status != NULL)
@@ -1211,22 +1223,21 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 			for (i = 0; extwm_types_start_properties[i][0] != 0; i++)
 				if (get_flags (eh->type_flags, extwm_types_start_properties[i][0]))
 				{
-					if( !get_flags (status->flags, AS_StartLayer) ||
-						status->layer < extwm_types_start_properties[i][1] ) 
+					if (!get_flags (status->flags, AS_StartLayer) || status->layer < extwm_types_start_properties[i][1])
 						status->layer = extwm_types_start_properties[i][1];
 					set_flags (status->flags, AS_StartLayer);
 					set_flags (status->flags, extwm_types_start_properties[i][2]);
 				}
 		}
-		if (get_flags (eh->state_flags, EXTWM_StateFullscreen|EXTWM_StateAbove|EXTWM_StateBelow ))
+		if (get_flags (eh->state_flags, EXTWM_StateFullscreen | EXTWM_StateAbove | EXTWM_StateBelow))
 		{
 			register int  i;
 
 			for (i = 0; extwm_states_start_properties[i][0] != 0; i++)
 				if (get_flags (eh->state_flags, extwm_states_start_properties[i][0]))
 				{
-					if( !get_flags (status->flags, AS_StartLayer) ||
-						status->layer < extwm_states_start_properties[i][1] ) 
+					if (!get_flags (status->flags, AS_StartLayer) ||
+						status->layer < extwm_states_start_properties[i][1])
 						status->layer = extwm_states_start_properties[i][1];
 					set_flags (status->flags, AS_StartLayer);
 					set_flags (status->flags, extwm_states_start_properties[i][2]);
@@ -1247,11 +1258,11 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 		}
 		if (get_flags (eh->flags, EXTWM_ICON))
 		{
-			if( clean->icon_argb ) 
-				free( clean->icon_argb );
-			clean->icon_argb = select_client_icon_argb( eh->icon, eh->icon_length );
+			if (clean->icon_argb)
+				free (clean->icon_argb);
+			clean->icon_argb = select_client_icon_argb (eh->icon, eh->icon_length);
 			set_flags (clean->flags, AS_Icon);
-			set_flags (clean->client_icon_flags, AS_ClientIcon|AS_ClientIconARGB);
+			set_flags (clean->client_icon_flags, AS_ClientIcon | AS_ClientIconARGB);
 		}
 		if (get_flags (eh->state_flags, EXTWM_StateSkipTaskbar))
 			set_flags (clean->flags, AS_SkipWinList);
@@ -1302,16 +1313,17 @@ merge_xresources_hints (ASHints * clean, ASRawHints * raw,
 }
 
 CARD32
-set_hints_window_opacity_percent( ASHints *clean, int opaque_percent ) 
-{		   
-	CARD32 res = NET_WM_WINDOW_OPACITY_OPAQUE ;
-	if( opaque_percent <= 0 ) 
-		res = 0 ; 
-	else if( opaque_percent < 100 ) 
-		res = (NET_WM_WINDOW_OPACITY_OPAQUE/100)*opaque_percent;
-	if( clean ) 
-	{	
-		clean->window_opacity = res ;
+set_hints_window_opacity_percent (ASHints * clean, int opaque_percent)
+{
+	CARD32        res = NET_WM_WINDOW_OPACITY_OPAQUE;
+
+	if (opaque_percent <= 0)
+		res = 0;
+	else if (opaque_percent < 100)
+		res = (NET_WM_WINDOW_OPACITY_OPAQUE / 100) * opaque_percent;
+	if (clean)
+	{
+		clean->window_opacity = res;
 		set_flags (clean->flags, AS_WindowOpacity);
 	}
 	return res;
@@ -1348,9 +1360,9 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 
 	LOCAL_DEBUG_CALLER_OUT ("0x%lX", what);
 
-	if ( db_rec == NULL)
+	if (db_rec == NULL)
 		return;
-	if (get_flags (what, HINT_STARTUP) && status != NULL  )
+	if (get_flags (what, HINT_STARTUP) && status != NULL)
 	{
 		if (get_flags (db_rec->set_data_flags, STYLE_STARTUP_DESK))
 		{
@@ -1360,7 +1372,7 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTX))
 		{
 			status->viewport_x = db_rec->viewport_x;
-			LOCAL_DEBUG_OUT( "viewport_x = %d", status->viewport_x );
+			LOCAL_DEBUG_OUT ("viewport_x = %d", status->viewport_x);
 			set_flags (status->flags, AS_StartViewportX);
 		}
 		if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
@@ -1375,7 +1387,8 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		}
 
 		/*not exactly clean solution for the default geometry, but I don't see any other way : */
-		if ( raw != NULL && get_flags (db_rec->set_data_flags, STYLE_DEFAULT_GEOMETRY) && !get_flags (status->flags, AS_StartPositionUser))
+		if (raw != NULL && get_flags (db_rec->set_data_flags, STYLE_DEFAULT_GEOMETRY) &&
+			!get_flags (status->flags, AS_StartPositionUser))
 		{
 			register ASGeometry *g = &(db_rec->default_geometry);
 
@@ -1417,9 +1430,9 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		if (get_flags (db_rec->set_flags, STYLE_ICON))
 		{
 			if (get_flags (db_rec->flags, STYLE_ICON))
-				set_flags( clean->flags, AS_Icon );
+				set_flags (clean->flags, AS_Icon);
 			else
-				clear_flags( clean->flags, AS_Icon );
+				clear_flags (clean->flags, AS_Icon);
 		}
 		if (get_flags (db_rec->set_data_flags, STYLE_BORDER_WIDTH))
 		{
@@ -1437,12 +1450,13 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 			set_flags (clean->flags, AS_Gravity);
 		}
 		if (get_flags (db_rec->set_data_flags, STYLE_WINDOW_OPACITY))
-			set_hints_window_opacity_percent( clean, db_rec->window_opacity ); 
+			set_hints_window_opacity_percent (clean, db_rec->window_opacity);
 
 		if (get_flags (db_rec->set_data_flags, STYLE_FRAME))
 			set_string_value (&(clean->frame_name), mystrdup (db_rec->frame_name), &(clean->flags), AS_Frame);
 		if (get_flags (db_rec->set_data_flags, STYLE_WINDOWBOX))
-			set_string_value (&(clean->windowbox_name), mystrdup (db_rec->windowbox_name), &(clean->flags), AS_Windowbox);
+			set_string_value (&(clean->windowbox_name), mystrdup (db_rec->windowbox_name), &(clean->flags),
+							  AS_Windowbox);
 		if (get_flags (db_rec->set_data_flags, STYLE_MYSTYLES))
 		{
 			register int  i;
@@ -1453,8 +1467,8 @@ merge_asdb_hints (ASHints * clean, ASRawHints * raw, ASDatabaseRecord * db_rec, 
 		}
 		/* taking care of flags : */
 		decode_flags (&(clean->flags), asdb_hints_xref, db_rec->set_flags, db_rec->flags);
-		if( get_flags( db_rec->set_flags, STYLE_FOCUS ) && !get_flags( db_rec->flags, STYLE_FOCUS ))
-			clear_flags( clean->protocols, AS_DoesWmTakeFocus );				
+		if (get_flags (db_rec->set_flags, STYLE_FOCUS) && !get_flags (db_rec->flags, STYLE_FOCUS))
+			clear_flags (clean->protocols, AS_DoesWmTakeFocus);
 
 		clean->disabled_buttons = (~(db_rec->buttons)) & (db_rec->set_buttons);
 	}
@@ -1473,16 +1487,16 @@ destroy_hints (ASHints * clean, Bool reusable)
 				break;
 			else
 				free (clean->names[i]);
-		
-		if( clean->matched_name0 )
-			free( clean->matched_name0 );
+
+		if (clean->matched_name0)
+			free (clean->matched_name0);
 
 		if (clean->cmap_windows)
 			free (clean->cmap_windows);
 		if (clean->icon_file)
 			free (clean->icon_file);
-		if( clean->icon_argb )
-			free( clean->icon_argb );
+		if (clean->icon_argb)
+			free (clean->icon_argb);
 		if (clean->frame_name)
 			free (clean->frame_name);
 		if (clean->windowbox_name)
@@ -1519,7 +1533,7 @@ update_property_hints (Window w, Atom property, ASHints * hints, ASStatusHints *
 		/* Here we are only interested in properties updtaed by the Window Manager : */
 		if (property == _XA_WM_STATE)
 		{
-			unsigned long  new_state = (raw.wm_state == IconicState) ? AS_Iconic : 0;
+			unsigned long new_state = (raw.wm_state == IconicState) ? AS_Iconic : 0;
 
 			if ((changed = ((new_state ^ (status->flags & AS_Iconic)) != 0 ||
 							raw.wm_state_icon_win != status->icon_window)))
@@ -1558,8 +1572,7 @@ update_property_hints (Window w, Atom property, ASHints * hints, ASStatusHints *
 
 /* same as above only for window manager : */
 void
-update_cmd_line_hints (Window w, Atom property, 
-					   ASHints * hints, ASStatusHints * status)
+update_cmd_line_hints (Window w, Atom property, ASHints * hints, ASStatusHints * status)
 {
 	ASRawHints    raw;
 
@@ -1569,7 +1582,7 @@ update_cmd_line_hints (Window w, Atom property,
 	if (handle_manager_property_update (w, property, &raw))
 	{
 		merge_command_line (hints, status, &raw);
-		destroy_raw_hints (&raw, True);		
+		destroy_raw_hints (&raw, True);
 	}
 }
 
@@ -1589,15 +1602,16 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 	if (handle_manager_property_update (w, property, &raw))
 	{
 		ASHints       clean;
-		memset( &clean, 0x00, sizeof(ASHints));
+
+		memset (&clean, 0x00, sizeof (ASHints));
 		clean.res_name_idx = clean.res_class_idx = clean.icon_name_idx = -1;
-		
+
 		show_debug (__FILE__, __FUNCTION__, __LINE__, "property update handled");
 		if (property == _XA_WM_STATE)
 		{
 			if (status)
 			{
-				unsigned long  new_state = (raw.wm_state == IconicState) ? AS_Iconic : 0;
+				unsigned long new_state = (raw.wm_state == IconicState) ? AS_Iconic : 0;
 
 				if ((changed = ((new_state ^ (status->flags & AS_Iconic)) != 0 ||
 								raw.wm_state_icon_win != status->icon_window)))
@@ -1611,29 +1625,31 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 		if (hints && merge_hints (&raw, db, NULL, list, HINT_ANY, &clean, w) != NULL)
 		{
 			show_debug (__FILE__, __FUNCTION__, __LINE__, "hints merged");
-			if (IsNameProp(property))
+			if (IsNameProp (property))
 			{
 				int           i;
-				if( hints->names_encoding[0] == clean.names_encoding[0] && mystrcmp(hints->names[0], clean.names[0]) != 0 )
-					changed = True ;
-				else if(  mystrcmp(hints->res_name, clean.res_name) != 0 )
-					changed = True ;
-				else if( mystrcmp(hints->res_class, clean.res_class) != 0 )
-					changed = True ;
-				else if( mystrcmp(hints->icon_name, clean.icon_name) != 0 )
-					changed = True ;
+
+				if (hints->names_encoding[0] == clean.names_encoding[0] &&
+					mystrcmp (hints->names[0], clean.names[0]) != 0)
+					changed = True;
+				else if (mystrcmp (hints->res_name, clean.res_name) != 0)
+					changed = True;
+				else if (mystrcmp (hints->res_class, clean.res_class) != 0)
+					changed = True;
+				else if (mystrcmp (hints->icon_name, clean.icon_name) != 0)
+					changed = True;
 
 				for (i = 0; i <= MAX_WINDOW_NAMES; ++i)
 					if (hints->names[i] != NULL)
 					{
 						free (hints->names[i]);
-						hints->names[i] = NULL ;
-					}else
+						hints->names[i] = NULL;
+					} else
 						break;
-						
+
 				for (i = 0; i <= MAX_WINDOW_NAMES; ++i)
 				{
-					hints->names_encoding[i] = clean.names_encoding[i] ;
+					hints->names_encoding[i] = clean.names_encoding[i];
 					hints->names[i] = clean.names[i];
 					clean.names[i] = NULL;
 				}
@@ -1664,7 +1680,7 @@ update_property_hints_manager (Window w, Atom property, ASSupportedHints * list,
 			}
 		}
 		destroy_hints (&clean, True);
-		destroy_raw_hints (&raw, True);		
+		destroy_raw_hints (&raw, True);
 	} else
 		show_debug (__FILE__, __FUNCTION__, __LINE__, "failed to handle property update");
 
@@ -1720,7 +1736,7 @@ compare_hints (ASHints * old, ASHints * hints)
 ASFlagType
 function2mask (int function)
 {
-	static ASFlagType as_function_masks[F_PIN_MENU+1 - F_WINDOW_FUNC_START] = {
+	static ASFlagType as_function_masks[F_PIN_MENU + 1 - F_WINDOW_FUNC_START] = {
 		AS_FuncMove,						   /* F_MOVE,               30 */
 		AS_FuncResize,						   /* F_RESIZE,             */
 		0,									   /* F_RAISE,              */
@@ -1739,14 +1755,14 @@ function2mask (int function)
 		AS_FuncMaximize,					   /* F_FULLSCREEN,         */
 		0,									   /* F_STICK,              */
 		0,									   /* F_FOCUS,              */
-		0,                                     /* F_CHANGEWINDOW_UP     */
-		0,                                     /* F_CHANGEWINDOW_DOWN   */
-		0,                                     /* F_GOTO_BOOKMARK     */
-		0,                                     /* F_GETHELP,            */
+		0,									   /* F_CHANGEWINDOW_UP     */
+		0,									   /* F_CHANGEWINDOW_DOWN   */
+		0,									   /* F_GOTO_BOOKMARK     */
+		0,									   /* F_GETHELP,            */
 		0,									   /* F_PASTE_SELECTION,    */
 		0,									   /* F_CHANGE_WINDOWS_DESK, */
-		0,                                     /* F_BOOKMARK_WINDOW,  */
-		AS_FuncPinMenu                         /* F_PIN_MENU           */
+		0,									   /* F_BOOKMARK_WINDOW,  */
+		AS_FuncPinMenu						   /* F_PIN_MENU           */
 	};
 
 	if (function == F_POPUP)
@@ -1763,19 +1779,19 @@ function2mask (int function)
 void
 constrain_size (ASHints * hints, ASStatusHints * status, int max_width, int max_height)
 {
-	int minWidth = 1, minHeight = 1;
-	int xinc = 1, yinc = 1, delta;
-	int baseWidth = 0, baseHeight = 0;
-	int clean_width  = status->width -(status->frame_size[FR_W]+status->frame_size[FR_E]);
-	int clean_height = status->height -(status->frame_size[FR_N]+status->frame_size[FR_S]);
-	
+	int           minWidth = 1, minHeight = 1;
+	int           xinc = 1, yinc = 1, delta;
+	int           baseWidth = 0, baseHeight = 0;
+	int           clean_width = status->width - (status->frame_size[FR_W] + status->frame_size[FR_E]);
+	int           clean_height = status->height - (status->frame_size[FR_N] + status->frame_size[FR_S]);
+
 	if (get_flags (hints->flags, AS_MinSize))
 	{
 		if (minWidth < hints->min_width)
 			minWidth = hints->min_width;
 		if (minHeight < hints->min_height)
 			minHeight = hints->min_height;
-	}else if( get_flags (hints->flags, AS_BaseSize))
+	} else if (get_flags (hints->flags, AS_BaseSize))
 	{
 		if (minWidth < hints->base_width)
 			minWidth = hints->base_width;
@@ -1787,13 +1803,13 @@ constrain_size (ASHints * hints, ASStatusHints * status, int max_width, int max_
 	{
 		baseWidth = hints->base_width;
 		baseHeight = hints->base_height;
-	}else if (get_flags (hints->flags, AS_MinSize))
+	} else if (get_flags (hints->flags, AS_MinSize))
 	{
-		baseWidth = minWidth ;
-		baseHeight = minHeight ;
+		baseWidth = minWidth;
+		baseHeight = minHeight;
 	}
 
-	if (get_flags (hints->flags, AS_MaxSize) && !get_flags( status->flags, AS_Fullscreen))
+	if (get_flags (hints->flags, AS_MaxSize) && !get_flags (status->flags, AS_Fullscreen))
 	{
 		if (max_width == 0 || max_width > hints->max_width)
 			max_width = hints->max_width;
@@ -1806,11 +1822,12 @@ constrain_size (ASHints * hints, ASStatusHints * status, int max_width, int max_
 		if (max_height == 0)
 			max_height = MAX ((unsigned int)minHeight, clean_height);
 	}
-	LOCAL_DEBUG_OUT( "base_size = %dx%d, min_size = %dx%d, curr_size = %dx%d, max_size = %dx%d", baseWidth, baseHeight, minWidth, minHeight, clean_width, clean_height, max_width, max_height );
+	LOCAL_DEBUG_OUT ("base_size = %dx%d, min_size = %dx%d, curr_size = %dx%d, max_size = %dx%d", baseWidth, baseHeight,
+					 minWidth, minHeight, clean_width, clean_height, max_width, max_height);
 	/* First, clamp to min and max values  */
 	clean_width = FIT_IN_RANGE (minWidth, clean_width, max_width);
 	clean_height = FIT_IN_RANGE (minHeight, clean_height, max_height);
-	LOCAL_DEBUG_OUT( "clumped_size = %dx%d", clean_width, clean_height );
+	LOCAL_DEBUG_OUT ("clumped_size = %dx%d", clean_width, clean_height);
 
 	/* Second, fit to base + N * inc */
 	if (get_flags (hints->flags, AS_SizeInc))
@@ -1819,7 +1836,7 @@ constrain_size (ASHints * hints, ASStatusHints * status, int max_width, int max_
 		yinc = hints->height_inc;
 		clean_width = (((clean_width - baseWidth) / xinc) * xinc) + baseWidth;
 		clean_height = (((clean_height - baseHeight) / yinc) * yinc) + baseHeight;
-		LOCAL_DEBUG_OUT( "inced_size = %dx%d", clean_width, clean_height );
+		LOCAL_DEBUG_OUT ("inced_size = %dx%d", clean_width, clean_height);
 	}
 
 	/* Third, adjust for aspect ratio */
@@ -1869,10 +1886,10 @@ constrain_size (ASHints * hints, ASStatusHints * status, int max_width, int max_
 					clean_width -= delta;
 			}
 		}
-		LOCAL_DEBUG_OUT( "aspected_size = %dx%d", clean_width, clean_height );
+		LOCAL_DEBUG_OUT ("aspected_size = %dx%d", clean_width, clean_height);
 	}
-	status->width = clean_width + status->frame_size[FR_W]+status->frame_size[FR_E] ;
-	status->height = clean_height + status->frame_size[FR_N]+status->frame_size[FR_S] ;
+	status->width = clean_width + status->frame_size[FR_W] + status->frame_size[FR_E];
+	status->height = clean_height + status->frame_size[FR_N] + status->frame_size[FR_S];
 }
 
 static int    _as_gravity_offsets[11][2] = {
@@ -1926,7 +1943,7 @@ translate_asgeometry (ScreenInfo * scr, ASGeometry * asg, int *px, int *py, unsi
 		} else if (get_flags (asg->flags, YNegative))
 			grav = SouthWestGravity;
 	}
-	if ( asg && get_flags (asg->flags, WidthValue))
+	if (asg && get_flags (asg->flags, WidthValue))
 	{
 		width = asg->width;
 		if (pwidth)
@@ -1941,8 +1958,8 @@ translate_asgeometry (ScreenInfo * scr, ASGeometry * asg, int *px, int *py, unsi
 			*pheight = height;
 	} else if (pheight)
 		height = *pheight;
-	if( asg )
-	{	
+	if (asg)
+	{
 		if (get_flags (asg->flags, XValue) && px)
 		{
 			if (get_flags (asg->flags, XNegative))
@@ -1967,11 +1984,13 @@ translate_asgeometry (ScreenInfo * scr, ASGeometry * asg, int *px, int *py, unsi
 			} else
 				*py = asg->y;
 		}
-	}else
+	} else
 	{
-		if( px ) *px = 0 ;	
-		if( py ) *py = 0 ;
-	}	 
+		if (px)
+			*px = 0;
+		if (py)
+			*py = 0;
+	}
 
 	return grav;
 }
@@ -1979,7 +1998,7 @@ translate_asgeometry (ScreenInfo * scr, ASGeometry * asg, int *px, int *py, unsi
 int
 make_anchor_pos (ASStatusHints * status, int pos, int size, int vpos, int grav, int max_pos)
 {											   /* anchor position is always in virtual coordinates */
-	int  bw = 0;
+	int           bw = 0;
 
 	if (get_flags (status->flags, AS_StartBorderWidth))
 		bw = status->border_width;
@@ -2045,14 +2064,14 @@ make_status_pos (ASStatusHints * status, int pos, unsigned int size, int vpos, i
 }
 
 void
-make_detach_pos (ASHints * hints, ASStatusHints * status, XRectangle *anchor, int *detach_x, int *detach_y)
+make_detach_pos (ASHints * hints, ASStatusHints * status, XRectangle * anchor, int *detach_x, int *detach_y)
 {
 	unsigned int  bw = 0;
-	int x = 0, y = 0 ;
-	int grav_x, grav_y ;
+	int           x = 0, y = 0;
+	int           grav_x, grav_y;
 
-	if (hints == NULL || status == NULL || anchor == NULL )
-		return ;
+	if (hints == NULL || status == NULL || anchor == NULL)
+		return;
 
 	if (get_flags (status->flags, AS_StartBorderWidth))
 		bw = status->border_width;
@@ -2060,23 +2079,23 @@ make_detach_pos (ASHints * hints, ASStatusHints * status, XRectangle *anchor, in
 	get_gravity_offsets (hints, &grav_x, &grav_y);
 
 	/* position of the sticky window is stored in real coordinates */
-	x = anchor->x ;
-	y = anchor->y ;
+	x = anchor->x;
+	y = anchor->y;
 	if (!get_flags (status->flags, AS_Sticky))
 	{
 		x -= status->viewport_x;
 		y -= status->viewport_y;
 	}
 
-	if( detach_x )
+	if (detach_x)
 	{
 		APPLY_GRAVITY (grav_x, x, anchor->width, bw, bw);
-		*detach_x = x ;
+		*detach_x = x;
 	}
-	if( detach_y )
+	if (detach_y)
 	{
 		APPLY_GRAVITY (grav_y, y, anchor->height, bw, bw);
-		*detach_y = y ;
+		*detach_y = y;
 	}
 }
 
@@ -2101,14 +2120,15 @@ status2anchor (XRectangle * anchor, ASHints * hints, ASStatusHints * status, int
 {
 	if (get_flags (status->flags, AS_Size))
 	{
-		int w, h ;
+		int           w, h;
+
 		constrain_size (hints, status, vwidth, vheight);
-		w = (int)status->width - ((int)status->frame_size[FR_W]+(int)status->frame_size[FR_E]);
-		if( w > 0 )
-			anchor->width = w ;
-		h = (int)status->height - ((int)status->frame_size[FR_N]+(int)status->frame_size[FR_S]);
-		if( h > 0 ) 
-			anchor->height = h ;
+		w = (int)status->width - ((int)status->frame_size[FR_W] + (int)status->frame_size[FR_E]);
+		if (w > 0)
+			anchor->width = w;
+		h = (int)status->height - ((int)status->frame_size[FR_N] + (int)status->frame_size[FR_S]);
+		if (h > 0)
+			anchor->height = h;
 	}
 
 	if (get_flags (status->flags, AS_Position))
@@ -2118,26 +2138,28 @@ status2anchor (XRectangle * anchor, ASHints * hints, ASStatusHints * status, int
 
 		get_gravity_offsets (hints, &grav_x, &grav_y);
 
-		LOCAL_DEBUG_OUT( "grav_x = %d, width = %d, bw1 = %d, bw2 = %d, status_x = %d", 
-						 grav_x, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E], status->x );
-		offset = 0 ;
-		APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W]+status->frame_border_width, status->frame_size[FR_E]+status->frame_border_width);
+		LOCAL_DEBUG_OUT ("grav_x = %d, width = %d, bw1 = %d, bw2 = %d, status_x = %d",
+						 grav_x, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E], status->x);
+		offset = 0;
+		APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W] + status->frame_border_width,
+					   status->frame_size[FR_E] + status->frame_border_width);
 		anchor->x = status->x - offset;
 
-		LOCAL_DEBUG_OUT( "grav_y = %d, height = %d, bw1 = %d, bw2 = %d, status_y = %d", 
-						 grav_y, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S], status->y );
+		LOCAL_DEBUG_OUT ("grav_y = %d, height = %d, bw1 = %d, bw2 = %d, status_y = %d",
+						 grav_y, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S], status->y);
 
 		offset = 0;
-		APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N]+status->frame_border_width, status->frame_size[FR_S]+status->frame_border_width);
+		APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N] + status->frame_border_width,
+					   status->frame_size[FR_S] + status->frame_border_width);
 		anchor->y = status->y - offset;
 
-		LOCAL_DEBUG_OUT( "anchor = %+d%+d", anchor->x, anchor->y );
+		LOCAL_DEBUG_OUT ("anchor = %+d%+d", anchor->x, anchor->y);
 		if (!get_flags (status->flags, AS_Sticky))
 		{
 			anchor->x += (int)status->viewport_x;
 			anchor->y += (int)status->viewport_y;
 		}
-		LOCAL_DEBUG_OUT( "anchor = %+d%+d", anchor->x, anchor->y );
+		LOCAL_DEBUG_OUT ("anchor = %+d%+d", anchor->x, anchor->y);
 	}
 }
 
@@ -2147,32 +2169,34 @@ anchor2status (ASStatusHints * status, ASHints * hints, XRectangle * anchor)
 	int           grav_x = -1, grav_y = -1;
 	int           offset;
 
-	status->width = anchor->width+status->frame_size[FR_W]+status->frame_size[FR_E];
-	status->height = anchor->height+status->frame_size[FR_N]+status->frame_size[FR_S];
+	status->width = anchor->width + status->frame_size[FR_W] + status->frame_size[FR_E];
+	status->height = anchor->height + status->frame_size[FR_N] + status->frame_size[FR_S];
 	set_flags (status->flags, AS_Size);
 
 	get_gravity_offsets (hints, &grav_x, &grav_y);
 
-	LOCAL_DEBUG_OUT( "grav_x = %d, width = %d, bw1 = %d, bw2 = %d, anchor_x = %d", 
-						 grav_x, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E], anchor->x );
-	offset = 0 ;
-	APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W]+status->frame_border_width, status->frame_size[FR_E]+status->frame_border_width);
+	LOCAL_DEBUG_OUT ("grav_x = %d, width = %d, bw1 = %d, bw2 = %d, anchor_x = %d",
+					 grav_x, anchor->width, status->frame_size[FR_W], status->frame_size[FR_E], anchor->x);
+	offset = 0;
+	APPLY_GRAVITY (grav_x, offset, anchor->width, status->frame_size[FR_W] + status->frame_border_width,
+				   status->frame_size[FR_E] + status->frame_border_width);
 	status->x = anchor->x + offset;
 
-	LOCAL_DEBUG_OUT( "grav_y = %d, height = %d, bw1 = %d, bw2 = %d, anchor_y = %d", 
-						 grav_y, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S], anchor->y );
+	LOCAL_DEBUG_OUT ("grav_y = %d, height = %d, bw1 = %d, bw2 = %d, anchor_y = %d",
+					 grav_y, anchor->height, status->frame_size[FR_N], status->frame_size[FR_S], anchor->y);
 
 	offset = 0;
-	APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N]+status->frame_border_width, status->frame_size[FR_S]+status->frame_border_width);
+	APPLY_GRAVITY (grav_y, offset, anchor->height, status->frame_size[FR_N] + status->frame_border_width,
+				   status->frame_size[FR_S] + status->frame_border_width);
 	status->y = anchor->y + offset;
 
-	LOCAL_DEBUG_OUT( "status = %+d%+d", status->x, status->y );
+	LOCAL_DEBUG_OUT ("status = %+d%+d", status->x, status->y);
 	if (!get_flags (status->flags, AS_Sticky))
 	{
 		status->x -= (int)status->viewport_x;
 		status->y -= (int)status->viewport_y;
 	}
-	LOCAL_DEBUG_OUT( "status = %+d%+d", status->x, status->y );
+	LOCAL_DEBUG_OUT ("status = %+d%+d", status->x, status->y);
 	set_flags (status->flags, AS_Position);
 }
 
@@ -2268,7 +2292,7 @@ int
 calculate_viewport (int *ppos, int size, int scr_vpos, int scr_size, int max_viewport)
 {
 	int           viewport = -1;
-	int pos = ppos?*ppos:0 ;
+	int           pos = ppos ? *ppos : 0;
 
 	if (pos >= scr_size)
 		viewport = pos / scr_size;
@@ -2283,7 +2307,7 @@ calculate_viewport (int *ppos, int size, int scr_vpos, int scr_size, int max_vie
 
 	viewport *= scr_size;
 	viewport = MIN (viewport, max_viewport);
-	if( ppos ) 
+	if (ppos)
 		*ppos = pos + (scr_vpos - viewport);
 	return viewport;
 }
@@ -2303,47 +2327,50 @@ gravitate_position (int pos, unsigned int size, unsigned int scr_size, int grav,
  * we build a command line here, so we can restart an app with exactly the same
  * parameters:
  ***********************************************************************************/
-static char *format_geometry_string( int x, int y, int width, int height, int unit_width, int unit_height, int screen_size_x, int screen_size_y, int gravity )
+static char  *
+format_geometry_string (int x, int y, int width, int height, int unit_width, int unit_height, int screen_size_x,
+						int screen_size_y, int gravity)
 {
-	char *g = safemalloc (15+1+15+1+15+1+15+1 /* large enough */ );
-	char x_sign = '+' ;
-	char y_sign = '+' ;
-	int x2 = x+width, y2 = y + height ; 
+	char         *g = safemalloc (15 + 1 + 15 + 1 + 15 + 1 + 15 + 1 /* large enough */ );
+	char          x_sign = '+';
+	char          y_sign = '+';
+	int           x2 = x + width, y2 = y + height;
 
 #define FGS_CHECK_SIGN(d)  do{if(d<0){d = 0;/* d##_sign = '-';*/} }while(0)
 #define FGS_APPLY_NEGATIVE_GRAV(d)  do{ d = screen_size_##d - d##2; if(d<0) d=0; d##_sign = '-' ;}while(0)
-	if( gravity == SouthWestGravity ) 
+	if (gravity == SouthWestGravity)
 	{
-		FGS_APPLY_NEGATIVE_GRAV(y);
-		FGS_CHECK_SIGN(x);
-	}else if( gravity == SouthEastGravity ) 
+		FGS_APPLY_NEGATIVE_GRAV (y);
+		FGS_CHECK_SIGN (x);
+	} else if (gravity == SouthEastGravity)
 	{
-		FGS_APPLY_NEGATIVE_GRAV(x);
-		FGS_APPLY_NEGATIVE_GRAV(y);
-	}else if( gravity == NorthEastGravity ) 
+		FGS_APPLY_NEGATIVE_GRAV (x);
+		FGS_APPLY_NEGATIVE_GRAV (y);
+	} else if (gravity == NorthEastGravity)
 	{
-		FGS_APPLY_NEGATIVE_GRAV(x);
-		FGS_CHECK_SIGN(y);
-	}else 
+		FGS_APPLY_NEGATIVE_GRAV (x);
+		FGS_CHECK_SIGN (y);
+	} else
 	{
-		FGS_CHECK_SIGN(x);
-		FGS_CHECK_SIGN(y);
+		FGS_CHECK_SIGN (x);
+		FGS_CHECK_SIGN (y);
 	}
 #undef FGS_CHECK_SIGN
-#undef FGS_APPLY_NEGATIVE_GRAV	
-	
-	sprintf ( g, "%dx%d%c%d%c%d ", unit_width, unit_height, x_sign, x, y_sign, y);
+#undef FGS_APPLY_NEGATIVE_GRAV
+
+	sprintf (g, "%dx%d%c%d%c%d ", unit_width, unit_height, x_sign, x, y_sign, y);
 	return g;
 }
 
 char         *
-make_client_geometry_string (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XRectangle * anchor, int vx, int vy, char **pure_geometry)
+make_client_geometry_string (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XRectangle * anchor, int vx,
+							 int vy, char **pure_geometry)
 {
 	char         *geom = NULL;
 	int           detach_x, detach_y;
 	int           grav_x, grav_y;
 	int           bw = 0;
-	int width, height, unit_width, unit_height ;
+	int           width, height, unit_width, unit_height;
 
 	if (hints == NULL || status == NULL || anchor == NULL)
 		return NULL;
@@ -2361,17 +2388,21 @@ make_client_geometry_string (ScreenInfo * scr, ASHints * hints, ASStatusHints * 
 	detach_x = gravitate_position (detach_x, anchor->width, bw, scr->MyDisplayWidth, grav_x);
 	detach_y = gravitate_position (detach_y, anchor->height, bw, scr->MyDisplayHeight, grav_y);
 
-	width = anchor->width ;
-	height = anchor->height ;
+	width = anchor->width;
+	height = anchor->height;
 
-	unit_width  = ( hints->width_inc  > 0 )?(width - hints->base_width  ) / hints->width_inc  : width  ;
-	unit_height = ( hints->height_inc > 0 )?(height - hints->base_height) / hints->height_inc : height ;
+	unit_width = (hints->width_inc > 0) ? (width - hints->base_width) / hints->width_inc : width;
+	unit_height = (hints->height_inc > 0) ? (height - hints->base_height) / hints->height_inc : height;
 
-	if( pure_geometry )
+	if (pure_geometry)
 	{
-		*pure_geometry = format_geometry_string( detach_x, detach_y, width, height, width, height, scr->MyDisplayWidth, scr->MyDisplayHeight, hints->gravity ); 
+		*pure_geometry =
+			format_geometry_string (detach_x, detach_y, width, height, width, height, scr->MyDisplayWidth,
+									scr->MyDisplayHeight, hints->gravity);
 	}
-	geom = format_geometry_string( detach_x, detach_y, width, height, unit_width, unit_height, scr->MyDisplayWidth, scr->MyDisplayHeight, hints->gravity ); ;
+	geom =
+		format_geometry_string (detach_x, detach_y, width, height, unit_width, unit_height, scr->MyDisplayWidth,
+								scr->MyDisplayHeight, hints->gravity);;
 	return geom;
 }
 
@@ -2379,15 +2410,15 @@ char         *
 make_client_command (ScreenInfo * scr, ASHints * hints, ASStatusHints * status, XRectangle * anchor, int vx, int vy)
 {
 	char         *client_cmd = NULL;
-	char 		 *geom = make_client_geometry_string ( scr, hints, status, anchor, vx, vy, NULL );
+	char         *geom = make_client_geometry_string (scr, hints, status, anchor, vx, vy, NULL);
 
-	if (hints->client_cmd == NULL || geom == NULL )
+	if (hints->client_cmd == NULL || geom == NULL)
 		return NULL;
 
 	/* supplying everything as : -xrm "afterstep*desk:N" */
-	client_cmd = safemalloc (strlen (hints->client_cmd) + 11 + strlen(geom) + 1 + 1 );
-	sprintf (client_cmd, "%s -geometry %s ", hints->client_cmd, geom );
-	/*, status->desktop, status->layer, status->viewport_x, status->viewport_y*/
+	client_cmd = safemalloc (strlen (hints->client_cmd) + 11 + strlen (geom) + 1 + 1);
+	sprintf (client_cmd, "%s -geometry %s ", hints->client_cmd, geom);
+	/*, status->desktop, status->layer, status->viewport_x, status->viewport_y */
 	return client_cmd;
 }
 
@@ -2529,7 +2560,8 @@ client_hints2wm_protocols (ASFlagType * protocols, ASHints * hints)
 static        Bool
 client_hints2motif_hints (MwmHints * motif_hints, ASHints * hints, ASStatusHints * status)
 {
-	ASFlagType tmp ;
+	ASFlagType    tmp;
+
 	memset (motif_hints, 0x00, sizeof (MwmHints));
 
 	if (status)
@@ -2548,13 +2580,13 @@ client_hints2motif_hints (MwmHints * motif_hints, ASHints * hints, ASStatusHints
 		}
 	}
 	/* finally we can apply conglomerated hints to our flags : */
-	tmp = motif_hints->decorations ;
+	tmp = motif_hints->decorations;
 	encode_simple_flags (&tmp, mwm_decor_xref, hints->flags);
 	encode_simple_flags (&tmp, mwm_decor_func_xref, hints->function_mask);
-	motif_hints->decorations = tmp ;
-	tmp = motif_hints->functions ;
+	motif_hints->decorations = tmp;
+	tmp = motif_hints->functions;
 	encode_simple_flags (&tmp, mwm_func_xref, hints->function_mask);
-	motif_hints->functions = tmp ;
+	motif_hints->functions = tmp;
 
 	check_motif_hints_sanity (motif_hints);
 
@@ -2569,7 +2601,8 @@ client_hints2motif_hints (MwmHints * motif_hints, ASHints * hints, ASStatusHints
 static        Bool
 client_hints2gnome_hints (GnomeHints * gnome_hints, ASHints * hints, ASStatusHints * status)
 {
-	ASFlagType tmp = 0 ;
+	ASFlagType    tmp = 0;
+
 	memset (gnome_hints, 0x00, sizeof (GnomeHints));
 
 	if (status)
@@ -2590,9 +2623,9 @@ client_hints2gnome_hints (GnomeHints * gnome_hints, ASHints * hints, ASStatusHin
 	if (gnome_hints->state != 0)
 		set_flags (gnome_hints->flags, GNOME_STATE);
 
-	tmp = gnome_hints->hints ;
+	tmp = gnome_hints->hints;
 	encode_simple_flags (&tmp, gnome_hints_xref, hints->flags);
-	gnome_hints->hints = tmp ;
+	gnome_hints->hints = tmp;
 	if (gnome_hints->hints != 0)
 		set_flags (gnome_hints->flags, GNOME_HINTS);
 
@@ -2623,11 +2656,11 @@ client_hints2extwm_hints (ExtendedWMHints * extwm_hints, ASHints * hints, ASStat
 			encode_simple_flags (&(extwm_hints->state_flags), extwm_state_xref, status->flags);
 		}
 		if (get_flags (status->flags, AS_SkipWinList))
-		{	
+		{
 			set_flags (extwm_hints->state_flags, EXTWM_StateSkipTaskbar);
 			set_flags (extwm_hints->flags, EXTWM_StateSet);
 		}
-		
+
 		/* window type hints : */
 		if (get_flags (status->flags, AS_StartLayer) && status->layer != AS_LayerNormal)
 		{
@@ -2645,7 +2678,7 @@ client_hints2extwm_hints (ExtendedWMHints * extwm_hints, ASHints * hints, ASStat
 
 	encode_simple_flags (&(extwm_hints->type_flags), extwm_type_xref, hints->flags);
 	encode_simple_flags (&(extwm_hints->type_flags), extwm_type_func_mask, hints->function_mask);
-	if( extwm_hints->type_flags != 0 )
+	if (extwm_hints->type_flags != 0)
 		set_flags (extwm_hints->flags, EXTWM_TypeSet);
 
 	if (hints->pid >= 0 && get_flags (hints->flags, AS_PID))
@@ -2656,9 +2689,9 @@ client_hints2extwm_hints (ExtendedWMHints * extwm_hints, ASHints * hints, ASStat
 	if (hints->icon_argb != NULL && get_flags (hints->client_icon_flags, AS_ClientIcon))
 	{
 		set_flags (extwm_hints->flags, EXTWM_ICON);
-		extwm_hints->icon_length = hints->icon_argb[0]*hints->icon_argb[1] + 2 ;
-		extwm_hints->icon = safemalloc( extwm_hints->icon_length * sizeof(CARD32));
-		memcpy( extwm_hints->icon, hints->icon_argb, extwm_hints->icon_length * sizeof(CARD32) );
+		extwm_hints->icon_length = hints->icon_argb[0] * hints->icon_argb[1] + 2;
+		extwm_hints->icon = safemalloc (extwm_hints->icon_length * sizeof (CARD32));
+		memcpy (extwm_hints->icon, hints->icon_argb, extwm_hints->icon_length * sizeof (CARD32));
 	}
 	if (get_flags (hints->protocols, AS_DoesWmPing))
 		set_flags (extwm_hints->flags, EXTWM_DoesWMPing);
@@ -2690,12 +2723,11 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status, Bool se
 
 	if (client_hints2size_hints (&size_hints, hints, status))
 		XSetWMNormalHints (dpy, w, &size_hints);
-	
+
 	if (client_hints2extwm_hints (&extwm_hints, hints, status))
 		set_extwm_hints (w, &extwm_hints);
 
-	if ( client_hints2wm_protocols (&protocols, hints) || 
-		 get_flags( extwm_hints.flags, EXTWM_DoesWMPing) )
+	if (client_hints2wm_protocols (&protocols, hints) || get_flags (extwm_hints.flags, EXTWM_DoesWMPing))
 		set_client_protocols (w, protocols, extwm_hints.flags);
 
 #if 0
@@ -2722,120 +2754,127 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status, Bool se
 }
 
 
-ASImage*
-get_client_icon_image( ScreenInfo * scr, ASHints *hints )
+ASImage      *
+get_client_icon_image (ScreenInfo * scr, ASHints * hints)
 {
-	ASImage *im = NULL ;
-	if( hints )
-	{
-		char *icon_file = hints->icon_file ; 
-		ASImage *icon_file_im = NULL ;
-		Bool icon_file_isDefault = False ;
-		if( icon_file && Database ) 
-		{	
-			if( Database->style_default.icon_file != NULL && 
-				strcmp( icon_file, Database->style_default.icon_file ) == 0 )
-				icon_file_isDefault = True ;
-		}
-		if( get_flags(hints->client_icon_flags, AS_ClientIcon ) ) 
-		{	
-			Bool use_client_icon = ( hints->icon_file == NULL || Database == NULL );
+	ASImage      *im = NULL;
 
-			if( !use_client_icon ) 
+	if (hints)
+	{
+		char         *icon_file = hints->icon_file;
+		ASImage      *icon_file_im = NULL;
+		Bool          icon_file_isDefault = False;
+
+		if (icon_file && Database)
+		{
+			if (Database->style_default.icon_file != NULL && strcmp (icon_file, Database->style_default.icon_file) == 0)
+				icon_file_isDefault = True;
+		}
+		if (get_flags (hints->client_icon_flags, AS_ClientIcon))
+		{
+			Bool          use_client_icon = (hints->icon_file == NULL || Database == NULL);
+
+			if (!use_client_icon)
 			{
-				if( icon_file_isDefault )
-					use_client_icon = True ;
-				else 
+				if (icon_file_isDefault)
+					use_client_icon = True;
+				else
 				{
-					icon_file_im = get_asimage( scr->image_manager, icon_file, 0xFFFFFFFF, 100 );
-					if( icon_file_im == NULL ) 
-						use_client_icon = True ;
-					LOCAL_DEBUG_OUT( "loaded icon from file \"%s\" into %p", icon_file?icon_file:"(null)", im );
+					icon_file_im = get_asimage (scr->image_manager, icon_file, 0xFFFFFFFF, 100);
+					if (icon_file_im == NULL)
+						use_client_icon = True;
+					LOCAL_DEBUG_OUT ("loaded icon from file \"%s\" into %p", icon_file ? icon_file : "(null)", im);
 				}
-				 
+
 			}
-			if( use_client_icon ) 
-			{	
+			if (use_client_icon)
+			{
 				/* first try ARGB icon If provided by the application : */
-				if( get_flags( hints->client_icon_flags, AS_ClientIconARGB ) && hints->icon_argb != NULL )
+				if (get_flags (hints->client_icon_flags, AS_ClientIconARGB) && hints->icon_argb != NULL)
 				{
 					/* TODO: we also need to check for newfashioned ARGB icon from
 					 * extended WM specs here
 					 */
-					int width = hints->icon_argb[0] ; 						
-					int height = hints->icon_argb[1] ; 
-					im = convert_argb2ASImage( scr->asv, width, height, hints->icon_argb+2, NULL );
-					LOCAL_DEBUG_OUT( "converted client's ARGB into an icon %dx%d %p", width, height, im );
-				
-				}	 
-				if( im == NULL && get_flags( hints->client_icon_flags, AS_ClientIconPixmap ) &&	hints->icon.pixmap != None )
-				{/* convert client's icon into ASImage */
-					unsigned int width, height ;
-					get_drawable_size( hints->icon.pixmap, &width, &height );
-					im = picture2asimage( scr->asv, hints->icon.pixmap, hints->icon_mask,
-										0, 0, width, height, 0xFFFFFFFF, False, 100 );
+					int           width = hints->icon_argb[0];
+					int           height = hints->icon_argb[1];
 
-					LOCAL_DEBUG_OUT( "converted client's pixmap into an icon %dx%d %p", width, height, im );
+					im = convert_argb2ASImage (scr->asv, width, height, hints->icon_argb + 2, NULL);
+					LOCAL_DEBUG_OUT ("converted client's ARGB into an icon %dx%d %p", width, height, im);
+
+				}
+				if (im == NULL && get_flags (hints->client_icon_flags, AS_ClientIconPixmap) &&
+					hints->icon.pixmap != None)
+				{							   /* convert client's icon into ASImage */
+					unsigned int  width, height;
+
+					get_drawable_size (hints->icon.pixmap, &width, &height);
+					im = picture2asimage (scr->asv, hints->icon.pixmap, hints->icon_mask,
+										  0, 0, width, height, 0xFFFFFFFF, False, 100);
+
+					LOCAL_DEBUG_OUT ("converted client's pixmap into an icon %dx%d %p", width, height, im);
 				}
 			}
 		}
-		LOCAL_DEBUG_OUT( "im =  %p", im );
-		if( im == NULL )
+		LOCAL_DEBUG_OUT ("im =  %p", im);
+		if (im == NULL)
 		{
-			if( CombinedCategories != NULL )
+			if (CombinedCategories != NULL)
 			{
 				ASDesktopEntry *de = NULL;
-				if( hints->names[0]) 
-				{
-					char *name = hints->names[0] ; 
-					int i = 0;
-					char old ; 
 
-					while( name[i] && !isspace(name[i]) ) ++i ; 
-					if( i > 0 ) 
+				if (hints->names[0])
+				{
+					char         *name = hints->names[0];
+					int           i = 0;
+					char          old;
+
+					while (name[i] && !isspace (name[i]))
+						++i;
+					if (i > 0)
 					{
 						old = name[i];
-						name[i] = '\0' ;
-						de = fetch_desktop_entry( CombinedCategories, name );
-						LOCAL_DEBUG_OUT( "found desktop entry %p, for name[0] = \"%s\"", de, name );
-						name[i] = old ;
+						name[i] = '\0';
+						de = fetch_desktop_entry (CombinedCategories, name);
+						LOCAL_DEBUG_OUT ("found desktop entry %p, for name[0] = \"%s\"", de, name);
+						name[i] = old;
 					}
 				}
-				LOCAL_DEBUG_OUT( "icon file = %p, default = %d", icon_file, icon_file_isDefault );
-				if( de == NULL && (icon_file == NULL || icon_file_isDefault) )
+				LOCAL_DEBUG_OUT ("icon file = %p, default = %d", icon_file, icon_file_isDefault);
+				if (de == NULL && (icon_file == NULL || icon_file_isDefault))
 				{
-					LOCAL_DEBUG_OUT( "CombinedCategories = %p", CombinedCategories );
-	
-					de = fetch_desktop_entry( CombinedCategories, hints->res_name );
-					LOCAL_DEBUG_OUT( "found desktop entry %p, for res_name = \"%s\"", de, hints->res_name );
-					if( de == NULL ) 
-						de = fetch_desktop_entry( CombinedCategories, hints->res_class );
-					LOCAL_DEBUG_OUT( "found desktop entry %p, for res_class = \"%s\"", de, hints->res_class );
-				}	 
-				if( de )
+					LOCAL_DEBUG_OUT ("CombinedCategories = %p", CombinedCategories);
+
+					de = fetch_desktop_entry (CombinedCategories, hints->res_name);
+					LOCAL_DEBUG_OUT ("found desktop entry %p, for res_name = \"%s\"", de, hints->res_name);
+					if (de == NULL)
+						de = fetch_desktop_entry (CombinedCategories, hints->res_class);
+					LOCAL_DEBUG_OUT ("found desktop entry %p, for res_class = \"%s\"", de, hints->res_class);
+				}
+				if (de)
 				{
-					if( de && de->ref_count > 0 && de->fulliconname ) 
+					if (de && de->ref_count > 0 && de->fulliconname)
 					{
-						if( icon_file_im ) 
+						if (icon_file_im)
 						{
-							safe_asimage_destroy( icon_file_im );
-							icon_file_im = NULL ;
+							safe_asimage_destroy (icon_file_im);
+							icon_file_im = NULL;
 						}
-						icon_file = de->fulliconname ;
+						icon_file = de->fulliconname;
 					}
-				}							   
-				
+				}
+
 			}
-			if( icon_file )
+			if (icon_file)
 			{
-				if( icon_file_im ) 
+				if (icon_file_im)
 					im = icon_file_im;
 				else
-					im = get_asimage( scr->image_manager, icon_file, 0xFFFFFFFF, 100 );
-				LOCAL_DEBUG_OUT( "loaded icon from \"%s\" into %dx%d %p", hints->icon_file, im?im->width:0, im?im->height:0, im );
-			}else
+					im = get_asimage (scr->image_manager, icon_file, 0xFFFFFFFF, 100);
+				LOCAL_DEBUG_OUT ("loaded icon from \"%s\" into %dx%d %p", hints->icon_file, im ? im->width : 0,
+								 im ? im->height : 0, im);
+			} else
 			{
-				LOCAL_DEBUG_OUT( "no icon to use %s", "" );
+				LOCAL_DEBUG_OUT ("no icon to use %s", "");
 			}
 		}
 	}
@@ -2882,11 +2921,11 @@ print_clean_hints (stream_func func, void *stream, ASHints * clean)
 	{
 		if (get_flags (clean->client_icon_flags, AS_ClientIcon))
 		{
-			if (get_flags (clean->client_icon_flags, AS_ClientIconARGB) && clean->icon_argb )
-			{	  
+			if (get_flags (clean->client_icon_flags, AS_ClientIconARGB) && clean->icon_argb)
+			{
 				func (stream, "CLEAN.icon.argb.width = 0x%lX;\n", clean->icon_argb[0]);
 				func (stream, "CLEAN.icon.argb.height = 0x%lX;\n", clean->icon_argb[1]);
-			}else if (get_flags (clean->client_icon_flags, AS_ClientIconPixmap))
+			} else if (get_flags (clean->client_icon_flags, AS_ClientIconPixmap))
 				func (stream, "CLEAN.icon.pixmap = 0x%lX;\n", clean->icon.pixmap);
 			else
 				func (stream, "CLEAN.icon.window = 0x%lX;\n", clean->icon.window);
@@ -3005,22 +3044,23 @@ serialize_string (char *string, ASVector * buf)
 		}
 		src = &(string[i << 2]);
 		/* unrolling loop here : */
-		ptr[i] = src[0]&0x0FF;
-		if( src[0] )
+		ptr[i] = src[0] & 0x0FF;
+		if (src[0])
 		{
 			if (src[1])
-			{   /* we don't really want to use bitwise operations */
+			{								   /* we don't really want to use bitwise operations */
 				/* so we get "true" number and later can do ENDIANNES transformations */
-				ptr[i] |=  (((CARD32)src[1]) <<8)&0x0FF00 ;
+				ptr[i] |= (((CARD32) src[1]) << 8) & 0x0FF00;
 				if (src[2])
-					ptr[i] |= (((CARD32) src[2])<<16)&0x0FF0000;
+					ptr[i] |= (((CARD32) src[2]) << 16) & 0x0FF0000;
 			}
 		}
 		while (--i >= 0)
 		{
 			src -= 4;
 			ptr[i] =
-				(((CARD32) src[0])&0x0FF) | (((CARD32) src[1]<<8)&0x0FF00) |(((CARD32) src[2]<<16)&0x0FF0000)|(((CARD32) src[3]<<24)&0xFF000000);
+				(((CARD32) src[0]) & 0x0FF) | (((CARD32) src[1] << 8) & 0x0FF00) | (((CARD32) src[2] << 16) & 0x0FF0000)
+				| (((CARD32) src[3] << 24) & 0xFF000000);
 		}
 	}
 }
@@ -3178,25 +3218,25 @@ deserialize_string (CARD32 ** pbuf, size_t * buf_size)
 	register int  i;
 	register char *str;
 
-	if (*pbuf == NULL )
+	if (*pbuf == NULL)
 		return NULL;
-	if( buf_size && *buf_size < 2)
+	if (buf_size && *buf_size < 2)
 		return NULL;
 	len = buf[0];
-	if( buf_size && len > *buf_size + 1)
+	if (buf_size && len > *buf_size + 1)
 		return NULL;
 	buf++;
 	str = string = safemalloc (len << 2);
 	for (i = 0; i < len; i++)
 	{
 		str[0] = (buf[i] & 0x0FF);
-		str[1] = (buf[i] >> 8)&0x0FF;
-		str[2] = (buf[i] >> 16)&0x0FF;
-		str[3] = (buf[i] >> 24)&0x0FF;
+		str[1] = (buf[i] >> 8) & 0x0FF;
+		str[2] = (buf[i] >> 16) & 0x0FF;
+		str[3] = (buf[i] >> 24) & 0x0FF;
 		str += 4;
 	}
 
-	if( buf_size )
+	if (buf_size)
 		*buf_size -= len;
 	*pbuf += len;
 
@@ -3332,11 +3372,11 @@ deserialize_names (ASHints * clean, CARD32 ** pbuf, size_t * buf_size)
 		clean->names[i] = deserialize_string (pbuf, buf_size);
 	}
 	clean->res_name = (header[0] < MAX_WINDOW_NAMES) ? clean->names[header[0]] : NULL;
-	clean->res_name_idx = 0 ;
+	clean->res_name_idx = 0;
 	clean->res_class = (header[1] < MAX_WINDOW_NAMES) ? clean->names[header[1]] : NULL;
-	clean->res_class_idx = 0 ;
+	clean->res_class_idx = 0;
 	clean->icon_name = (header[2] < MAX_WINDOW_NAMES) ? clean->names[header[2]] : NULL;
-	clean->icon_name_idx = 0 ;
+	clean->icon_name_idx = 0;
 
 	return True;
 }
@@ -3451,7 +3491,7 @@ enable_hints_support (ASSupportedHints * list, HintsTypes type)
 	if (list)
 	{
 		if (list->hints_num >= HINTS_Supported)
-			list->hints_num = HINTS_Supported-1; /* we are being paranoid */
+			list->hints_num = HINTS_Supported - 1;	/* we are being paranoid */
 
 		if (get_flags (list->hints_flags, (0x01 << type)))	/* checking for duplicates */
 			return False;

@@ -35,92 +35,104 @@
 #include "../libAfterImage/afterimage.h"
 #include <X11/XKBlib.h>
 #ifdef XSHMIMAGE
-# include <sys/ipc.h>
-# include <sys/shm.h>
-# include <X11/extensions/XShm.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <X11/extensions/XShm.h>
 #endif
 
 static Bool   as_X_synchronous_mode = False;
 
 /*************************************************************************/
 /* Scr data members access functions to be used in linking DLLs          */
-int get_screen_width(ScreenInfo *scr)
+int
+get_screen_width (ScreenInfo * scr)
 {
-	if( scr == NULL ) 
+	if (scr == NULL)
 		scr = ASDefaultScr;
-	return scr->MyDisplayWidth;	
-}	 
+	return scr->MyDisplayWidth;
+}
 
-int get_screen_height(ScreenInfo *scr)
+int
+get_screen_height (ScreenInfo * scr)
 {
-	if( scr == NULL ) 
+	if (scr == NULL)
 		scr = ASDefaultScr;
-	return scr->MyDisplayHeight;	
-}	 
+	return scr->MyDisplayHeight;
+}
 
-int get_screen_current_desk(ScreenInfo *scr)
+int
+get_screen_current_desk (ScreenInfo * scr)
 {
-	if( scr == NULL ) 
+	if (scr == NULL)
 		scr = ASDefaultScr;
-	return scr->CurrentDesk;	
-}	 
+	return scr->CurrentDesk;
+}
 
-struct MyLook *get_screen_look(ScreenInfo *scr)
+struct MyLook *
+get_screen_look (ScreenInfo * scr)
 {
-	if( scr == NULL ) 
+	if (scr == NULL)
 		scr = ASDefaultScr;
-	return &(scr->Look);	
-}	 
+	return &(scr->Look);
+}
 
-struct ASImageManager *get_screen_image_manager(ScreenInfo *scr)
+struct ASImageManager *
+get_screen_image_manager (ScreenInfo * scr)
 {
-	if( scr == NULL ) 
+	if (scr == NULL)
 		scr = ASDefaultScr;
-	return scr->image_manager;	
-}	 
+	return scr->image_manager;
+}
 
-struct ASFontManager *get_screen_font_manager(ScreenInfo *scr)
+struct ASFontManager *
+get_screen_font_manager (ScreenInfo * scr)
 {
-	if( scr == NULL ) 
+	if (scr == NULL)
 		scr = ASDefaultScr;
-	return scr->font_manager;	
-}	 
+	return scr->font_manager;
+}
 
-struct ASVisual *get_screen_visual(ScreenInfo *scr)
+struct ASVisual *
+get_screen_visual (ScreenInfo * scr)
 {
-	if( scr == NULL ) 
+	if (scr == NULL)
 		scr = ASDefaultScr;
-	return scr->asv;	
-}	 
+	return scr->asv;
+}
 
 
-ScreenInfo *get_current_screen()
+ScreenInfo   *
+get_current_screen ()
 {
-	return ASDefaultScr ;
-}	 
+	return ASDefaultScr;
+}
 
 void
-reload_screen_image_manager( ScreenInfo *scr, ASImageManager **old_imageman )
+reload_screen_image_manager (ScreenInfo * scr, ASImageManager ** old_imageman)
 {
-	char *env_path1 = NULL, *env_path2 = NULL ;
-	if( scr == NULL ) 
-		scr = ASDefaultScr ;
-	if( old_imageman )
-	{
-		*old_imageman = scr->image_manager ;
-	}else if( scr->image_manager )
-		destroy_image_manager( scr->image_manager, False );
+	char         *env_path1 = NULL, *env_path2 = NULL;
 
-	env_path1 = getenv( "IMAGE_PATH" ) ;
-	env_path2 = getenv( "PATH" );
-	if( env_path1 == NULL ) 
+	if (scr == NULL)
+		scr = ASDefaultScr;
+	if (old_imageman)
+	{
+		*old_imageman = scr->image_manager;
+	} else if (scr->image_manager)
+		destroy_image_manager (scr->image_manager, False);
+
+	env_path1 = getenv ("IMAGE_PATH");
+	env_path2 = getenv ("PATH");
+	if (env_path1 == NULL)
 	{
 		env_path1 = env_path2;
-		env_path2 = NULL ;
+		env_path2 = NULL;
 	}
-	scr->image_manager = create_image_manager( NULL, 2.2, Environment->pixmap_path?Environment->pixmap_path:"", env_path1, env_path2, NULL );
-	set_xml_image_manager( scr->image_manager );
-	show_progress("Pixmap Path changed to \"%s:%s:%s\" ...", Environment->pixmap_path?Environment->pixmap_path:"", env_path1?env_path1:"", env_path2?env_path2:"");
+	scr->image_manager =
+		create_image_manager (NULL, 2.2, Environment->pixmap_path ? Environment->pixmap_path : "", env_path1, env_path2,
+							  NULL);
+	set_xml_image_manager (scr->image_manager);
+	show_progress ("Pixmap Path changed to \"%s:%s:%s\" ...", Environment->pixmap_path ? Environment->pixmap_path : "",
+				   env_path1 ? env_path1 : "", env_path2 ? env_path2 : "");
 }
 
 /*************************************************************************/
@@ -136,40 +148,44 @@ get_Xinerama_rectangles (ScreenInfo * scr)
 
 		if ((s = XineramaQueryScreens (dpy, &(scr->xinerama_screens_num))) != NULL)
 		{
-			static char buf[256] ; 
+			static char   buf[256];
+
 			scr->xinerama_screens = safemalloc (sizeof (XRectangle) * scr->xinerama_screens_num);
-			asxml_var_insert("xroot.xinerama_screens_num", scr->xinerama_screens_num);
+			asxml_var_insert ("xroot.xinerama_screens_num", scr->xinerama_screens_num);
 			for (i = 0; i < scr->xinerama_screens_num; ++i)
 			{
-				char *append_point = &buf[0]; 
-				sprintf( append_point, "xroot.xinerama_screens[%d].", i );
-				append_point += 23 ; 
-				while( *append_point ) ++append_point ; 
+				char         *append_point = &buf[0];
 
-				append_point[0] = 'x' ;append_point[1] = '\0' ;
-				asxml_var_insert(&buf[0], s[i].x_org);
+				sprintf (append_point, "xroot.xinerama_screens[%d].", i);
+				append_point += 23;
+				while (*append_point)
+					++append_point;
+
+				append_point[0] = 'x';
+				append_point[1] = '\0';
+				asxml_var_insert (&buf[0], s[i].x_org);
 				scr->xinerama_screens[i].x = s[i].x_org;
 
-				append_point[0] = 'y' ;
-				asxml_var_insert(&buf[0], s[i].y_org);
+				append_point[0] = 'y';
+				asxml_var_insert (&buf[0], s[i].y_org);
 				scr->xinerama_screens[i].y = s[i].y_org;
 
-				strcpy( append_point, "width" );
-				asxml_var_insert(&buf[0], s[i].width);
+				strcpy (append_point, "width");
+				asxml_var_insert (&buf[0], s[i].width);
 				scr->xinerama_screens[i].width = s[i].width;
 
-				strcpy( append_point, "height" );
-				asxml_var_insert(&buf[0], s[i].height);
+				strcpy (append_point, "height");
+				asxml_var_insert (&buf[0], s[i].height);
 				scr->xinerama_screens[i].height = s[i].height;
 			}
 			XFree (s);
 		}
-	}else
+	} else
 #endif
 	{
 		scr->xinerama_screens = NULL;
 		scr->xinerama_screens_num = 0;
-		asxml_var_insert("xroot.xinerama_screens_num", 0);
+		asxml_var_insert ("xroot.xinerama_screens_num", 0);
 	}
 }
 
@@ -251,9 +267,9 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 	fprintf (stderr, "%s has encountered a problem interacting with X Windows :\n", MyName);
 	if (event && dpy)
 	{
-		if( event->error_code == BadWindow && ASDefaultScr->Windows != NULL )
-			if( ASDefaultScr->on_dead_window )
-				if( ASDefaultScr->on_dead_window( event->resourceid ) )
+		if (event->error_code == BadWindow && ASDefaultScr->Windows != NULL)
+			if (ASDefaultScr->on_dead_window)
+				if (ASDefaultScr->on_dead_window (event->resourceid))
 					return 0;
 
 		err_text = safemalloc (128);
@@ -271,51 +287,51 @@ ASErrorHandler (Display * dpy, XErrorEvent * event)
 }
 
 
-void 
-init_ScreenInfo(ScreenInfo *scr) 
+void
+init_ScreenInfo (ScreenInfo * scr)
 {
-	if( scr )
+	if (scr)
 	{
 		memset (scr, 0x00, sizeof (ScreenInfo));
-		scr->Look.magic = MAGIC_MYLOOK ;
+		scr->Look.magic = MAGIC_MYLOOK;
 	}
 }
 
 int
-ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
+ConnectXDisplay (Display * display, ScreenInfo * scr, Bool as_manager)
 {
-	int width_mm, height_mm ;
-	int display_dpcmx = 0, display_dpcmy = 0;
-	int button_w, button_h, mini_w, mini_h ;
-	
-	if( display == NULL ) 
+	int           width_mm, height_mm;
+	int           display_dpcmx = 0, display_dpcmy = 0;
+	int           button_w, button_h, mini_w, mini_h;
+
+	if (display == NULL)
 		return -1;
 
-	dpy = display ;
-	set_current_X_display (display); /* for libAfterBase X Wrappers */
-	
-	if( scr == NULL ) 
+	dpy = display;
+	set_current_X_display (display);		   /* for libAfterBase X Wrappers */
+
+	if (scr == NULL)
 	{
-		if( ASDefaultScr == NULL ) 
-			ASDefaultScr = safecalloc( 1, sizeof(ScreenInfo));
-		scr = ASDefaultScr ;
+		if (ASDefaultScr == NULL)
+			ASDefaultScr = safecalloc (1, sizeof (ScreenInfo));
+		scr = ASDefaultScr;
 	}
 
-	init_ScreenInfo(scr);	
+	init_ScreenInfo (scr);
 
 	x_fd = XConnectionNumber (dpy);
 
-	if( x_fd < 0 )
+	if (x_fd < 0)
 	{
-		show_error("failed to initialize X Windows session. Aborting!");
-		exit(1);
+		show_error ("failed to initialize X Windows session. Aborting!");
+		exit (1);
 	}
 	if (fcntl (x_fd, F_SETFD, 1) == -1)
 		show_warning ("close-on-exec for X Windows connection failed");
 
 	XSetErrorHandler (ASErrorHandler);
 
-	if( get_flags(MyArgs.flags, ASS_Debugging) )
+	if (get_flags (MyArgs.flags, ASS_Debugging))
 		set_synchronous_mode (True);
 
 	intern_hint_atoms ();
@@ -325,7 +341,7 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 	scr->Root = RootWindow (dpy, scr->screen);
 	if (scr->Root == None)
 	{
-		show_error("Screen %d is not valid. Exiting.", (int)scr->screen);
+		show_error ("Screen %d is not valid. Exiting.", (int)scr->screen);
 		exit (1);
 	}
 
@@ -333,50 +349,50 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 	scr->MyDisplayWidth = DisplayWidth (dpy, scr->screen);
 	scr->MyDisplayHeight = DisplayHeight (dpy, scr->screen);
 
-	asxml_var_insert("xroot.width", scr->MyDisplayWidth);
-	asxml_var_insert("xroot.height", scr->MyDisplayHeight);
+	asxml_var_insert ("xroot.width", scr->MyDisplayWidth);
+	asxml_var_insert ("xroot.height", scr->MyDisplayHeight);
 
-	width_mm = DisplayWidthMM(dpy, scr->screen);
-	height_mm = DisplayHeightMM(dpy, scr->screen);
-	asxml_var_insert("xroot.widthmm", width_mm);
-	asxml_var_insert("xroot.heightmm", height_mm);
-	
-	display_dpcmx = (scr->MyDisplayWidth * 10 )/ width_mm;
-	display_dpcmy = (scr->MyDisplayHeight * 10 )/ height_mm;
+	width_mm = DisplayWidthMM (dpy, scr->screen);
+	height_mm = DisplayHeightMM (dpy, scr->screen);
+	asxml_var_insert ("xroot.widthmm", width_mm);
+	asxml_var_insert ("xroot.heightmm", height_mm);
 
-	button_w = (display_dpcmx < 50)?48:64;
-	button_h = (display_dpcmy < 50)?48:64;
-	mini_w = (display_dpcmx <= 44)?max(display_dpcmx/2,12):display_dpcmx-20;
-	mini_h = (display_dpcmy <= 44)?max(display_dpcmy/2,12):display_dpcmy-20;
-	asxml_var_insert(ASXMLVAR_IconButtonWidth, button_w);
-	asxml_var_insert(ASXMLVAR_IconButtonHeight, button_h);
-	asxml_var_insert(ASXMLVAR_IconWidth, (button_w*3)/4);
-	asxml_var_insert(ASXMLVAR_IconHeight, (button_h*3)/4);
-	asxml_var_insert(ASXMLVAR_MinipixmapWidth, mini_w);
-	asxml_var_insert(ASXMLVAR_MinipixmapHeight, mini_h);
-	asxml_var_insert(ASXMLVAR_TitleFontSize, (mini_h*7)/12);
-	asxml_var_insert(ASXMLVAR_MenuFontSize, (mini_h*7)/12+1);
-	asxml_var_insert("font.size", ((mini_h*7)/12));
+	display_dpcmx = (scr->MyDisplayWidth * 10) / width_mm;
+	display_dpcmy = (scr->MyDisplayHeight * 10) / height_mm;
+
+	button_w = (display_dpcmx < 50) ? 48 : 64;
+	button_h = (display_dpcmy < 50) ? 48 : 64;
+	mini_w = (display_dpcmx <= 44) ? max (display_dpcmx / 2, 12) : display_dpcmx - 20;
+	mini_h = (display_dpcmy <= 44) ? max (display_dpcmy / 2, 12) : display_dpcmy - 20;
+	asxml_var_insert (ASXMLVAR_IconButtonWidth, button_w);
+	asxml_var_insert (ASXMLVAR_IconButtonHeight, button_h);
+	asxml_var_insert (ASXMLVAR_IconWidth, (button_w * 3) / 4);
+	asxml_var_insert (ASXMLVAR_IconHeight, (button_h * 3) / 4);
+	asxml_var_insert (ASXMLVAR_MinipixmapWidth, mini_w);
+	asxml_var_insert (ASXMLVAR_MinipixmapHeight, mini_h);
+	asxml_var_insert (ASXMLVAR_TitleFontSize, (mini_h * 7) / 12);
+	asxml_var_insert (ASXMLVAR_MenuFontSize, (mini_h * 7) / 12 + 1);
+	asxml_var_insert ("font.size", ((mini_h * 7) / 12));
 
 	scr->CurrentDesk = -1;
 
 	scr->RootClipArea.width = scr->MyDisplayWidth;
 	scr->RootClipArea.height = scr->MyDisplayHeight;
 
-	if( (scr->wmprops = setup_wmprops( scr, as_manager, 0xFFFFFFFF, NULL )) == NULL )
+	if ((scr->wmprops = setup_wmprops (scr, as_manager, 0xFFFFFFFF, NULL)) == NULL)
 		return -1;
 
-	scr->asv = create_asvisual (dpy, scr->screen, DefaultDepth(dpy,scr->screen), NULL);
+	scr->asv = create_asvisual (dpy, scr->screen, DefaultDepth (dpy, scr->screen), NULL);
 	if (scr->asv == NULL)
 	{
-		show_error("Failed to find suitable visual for screen %d. Exiting.", (int)scr->screen);
+		show_error ("Failed to find suitable visual for screen %d. Exiting.", (int)scr->screen);
 		exit (1);
 	}
 
 	scr->d_depth = scr->asv->visual_info.depth;
 
-	scr->last_Timestamp = CurrentTime ;
-	scr->menu_grab_Timestamp = CurrentTime ;
+	scr->last_Timestamp = CurrentTime;
+	scr->menu_grab_Timestamp = CurrentTime;
 
 	setup_modifiers ();
 
@@ -386,10 +402,10 @@ ConnectXDisplay (Display *display, ScreenInfo * scr, Bool as_manager)
 	XShapeQueryExtension (dpy, &(scr->ShapeEventBase), &(scr->ShapeErrorBase));
 #endif /* SHAPE */
 #ifdef XSHMIMAGE
-	scr->ShmCompletionEventType = XShmGetEventBase(dpy) + ShmCompletion;
+	scr->ShmCompletionEventType = XShmGetEventBase (dpy) + ShmCompletion;
 #endif /* SHAPE */
 
-	init_screen_gcs(scr);
+	init_screen_gcs (scr);
 
 	return x_fd;
 }
@@ -399,11 +415,11 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
 {
 	if (!(dpy = XOpenDisplay (MyArgs.display_name)))
 	{
-		show_error("Can't open display \"%s\". Exiting!", XDisplayName (MyArgs.display_name));
+		show_error ("Can't open display \"%s\". Exiting!", XDisplayName (MyArgs.display_name));
 		exit (1);
 	}
-	
-	ConnectXDisplay (dpy, scr, (event_mask&SubstructureRedirectMask));
+
+	ConnectXDisplay (dpy, scr, (event_mask & SubstructureRedirectMask));
 	XSelectInput (dpy, scr->Root, event_mask);
 	return x_fd;
 }
@@ -415,21 +431,22 @@ ConnectX (ScreenInfo * scr, unsigned long event_mask)
  *  for our children to use.
  ************************************************************************/
 void
-make_screen_envvars( ScreenInfo *scr )
+make_screen_envvars (ScreenInfo * scr)
 {
-	int           len ;
+	int           len;
 	char         *display = ":0.0";
 	char          client[MAXHOSTNAME];
+
 /* We set environmanet vars and we keep memory used for those allocated
  * as some OS's don't copy the environment variables properly
  */
-	if( scr == NULL )
+	if (scr == NULL)
 		scr = ASDefaultScr;
 
-	if( scr->display_string )
-		free( scr->display_string );
-	if( scr->rdisplay_string )
-		free( scr->rdisplay_string );
+	if (scr->display_string)
+		free (scr->display_string);
+	if (scr->rdisplay_string)
+		free (scr->rdisplay_string);
 
 	/*  Add a DISPLAY entry to the environment, incase we were started
 	 * with afterstep -display term:0.0
@@ -442,55 +459,56 @@ make_screen_envvars( ScreenInfo *scr )
 	/* Add a HOSTDISPLAY environment variable, which is the same as
 	 * DISPLAY, unless display = :0.0 or unix:0.0, in which case the full
 	 * host name will be used for ease in networking . */
-	if ( scr->display_string[8] == ':' ||
-		strncmp (&(scr->display_string[8]), "unix:", 5) == 0)
+	if (scr->display_string[8] == ':' || strncmp (&(scr->display_string[8]), "unix:", 5) == 0)
 	{
-		register char * ptr = &(scr->display_string[8]);
-		if( *ptr != ':' ) ptr += 5 ;
+		register char *ptr = &(scr->display_string[8]);
+
+		if (*ptr != ':')
+			ptr += 5;
 		mygethostname (client, MAXHOSTNAME);
-		scr->localhost = True ;
+		scr->localhost = True;
 		scr->rdisplay_string = safemalloc (len + 14 + strlen (client));
 		sprintf (scr->rdisplay_string, "HOSTDISPLAY=%s:%s", client, ptr);
-	}else
-	{   /* X Server is likely to be runnig on other computer: */
-		scr->localhost = False ;
+	} else
+	{										   /* X Server is likely to be runnig on other computer: */
+		scr->localhost = False;
 		scr->rdisplay_string = safemalloc (len + 14);
 		sprintf (scr->rdisplay_string, "HOSTDISPLAY=%s", display);
 	}
 }
 
 void
-init_screen_gcs(ScreenInfo *scr)
+init_screen_gcs (ScreenInfo * scr)
 {
 	XGCValues     gcv;
 	unsigned long gcm = GCGraphicsExposures;
-	
-	if( scr == NULL )
+
+	if (scr == NULL)
 		scr = ASDefaultScr;
-	
+
 	gcv.graphics_exposures = False;
 
-	scr->RootGC = XCreateGC( dpy, scr->Root, gcm, &gcv );
-	scr->DrawGC = create_visual_gc( scr->asv, scr->Root, gcm, &gcv );
+	scr->RootGC = XCreateGC (dpy, scr->Root, gcm, &gcv);
+	scr->DrawGC = create_visual_gc (scr->asv, scr->Root, gcm, &gcv);
 }
 
 void
-destroy_screen_gcs(ScreenInfo *scr)
+destroy_screen_gcs (ScreenInfo * scr)
 {
-	if( scr == NULL )
+	if (scr == NULL)
 		scr = ASDefaultScr;
-	
-	if( scr->DrawGC )
-	{	
-		XFreeGC(dpy, scr->DrawGC);
-		scr->DrawGC = NULL ;
+
+	if (scr->DrawGC)
+	{
+		XFreeGC (dpy, scr->DrawGC);
+		scr->DrawGC = NULL;
 	}
-	if( scr->RootGC )
-	{	
-		XFreeGC(dpy, scr->RootGC);
-		scr->RootGC = NULL ;
+	if (scr->RootGC)
+	{
+		XFreeGC (dpy, scr->RootGC);
+		scr->RootGC = NULL;
 	}
-}		
+}
 
 /* Setting up global variables  nonlock_mods, and lock_mods, defined in asapp.c : */
 void
@@ -511,7 +529,7 @@ setup_modifiers ()
 		{
 			for (i = 0; i < mm->max_keypermod; i++)
 			{
-				if ((kc = *kp++) && ((ks = XkbKeycodeToKeysym (dpy, kc, 0,0)) != NoSymbol))
+				if ((kc = *kp++) && ((ks = XkbKeycodeToKeysym (dpy, kc, 0, 0)) != NoSymbol))
 				{
 					kn = XKeysymToString (ks);
 					knl = strlen (kn);
@@ -524,10 +542,9 @@ setup_modifiers ()
 	}
 /* forget shift & control locks */
 	lockmask &= ~(ShiftMask | ControlMask);
-	nonlock_mods = ((ShiftMask | ControlMask | Mod1Mask | Mod2Mask
-					 | Mod3Mask | Mod4Mask | Mod5Mask) & ~lockmask);
-	
-	LOCAL_DEBUG_OUT( "lockmask = %X, nonlock_mods = %X", lockmask, nonlock_mods );
+	nonlock_mods = ((ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask) & ~lockmask);
+
+	LOCAL_DEBUG_OUT ("lockmask = %X, nonlock_mods = %X", lockmask, nonlock_mods);
 
 	mp = lock_mods;
 	for (m = 0, i = 1; i < MAX_LOCK_MODS; i++)
@@ -551,16 +568,16 @@ setup_modifiers ()
  * Hermann Dunkel, HEDU, dunkel@cul-ipn.uni-kiel.de 1/94
  ****************************************************************************/
 void
-init_screen_panframes(ScreenInfo *scr)
+init_screen_panframes (ScreenInfo * scr)
 {
 #ifndef NO_VIRTUAL
-	XRectangle  frame_rects[PAN_FRAME_SIDES];
+	XRectangle    frame_rects[PAN_FRAME_SIDES];
 
-	XSetWindowAttributes attributes;           /* attributes for create */
-	register int i ;
+	XSetWindowAttributes attributes;		   /* attributes for create */
+	register int  i;
 
-	if( scr == NULL ) 
-		scr =  ASDefaultScr ;
+	if (scr == NULL)
+		scr = ASDefaultScr;
 
 	frame_rects[0].x = frame_rects[0].y = 0;
 	frame_rects[0].width = scr->MyDisplayWidth;
@@ -583,20 +600,16 @@ init_screen_panframes(ScreenInfo *scr)
 
 	frame_rects[2].width = frame_rects[0].width = scr->MyDisplayWidth;
 	frame_rects[1].x = scr->MyDisplayWidth - SCROLL_REGION;
-	frame_rects[3].height = frame_rects[1].height =
-	  scr->MyDisplayHeight - (SCROLL_REGION*2) ;
+	frame_rects[3].height = frame_rects[1].height = scr->MyDisplayHeight - (SCROLL_REGION * 2);
 
 	attributes.event_mask = AS_PANFRAME_EVENT_MASK;
-	for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
+	for (i = 0; i < PAN_FRAME_SIDES; i++)
 	{
-		scr->PanFrame[i].win =
-			create_screen_window( scr, None,
-								  frame_rects[i].x, frame_rects[i].y,
-								  frame_rects[i].width, frame_rects[i].height, 0, /* no border */
-								  InputOnly, (CWEventMask), &attributes);
-		LOCAL_DEBUG_OUT( "creating PanFrame %d(%lX) at %dx%d%+d%+d", i, scr->PanFrame[i].win,
-						 frame_rects[i].width, frame_rects[i].height, frame_rects[i].x, frame_rects[i].y );
-		scr->PanFrame[i].isMapped = False ;
+		scr->PanFrame[i].win = create_screen_window (scr, None, frame_rects[i].x, frame_rects[i].y, frame_rects[i].width, frame_rects[i].height, 0,	/* no border */
+													 InputOnly, (CWEventMask), &attributes);
+		LOCAL_DEBUG_OUT ("creating PanFrame %d(%lX) at %dx%d%+d%+d", i, scr->PanFrame[i].win,
+						 frame_rects[i].width, frame_rects[i].height, frame_rects[i].x, frame_rects[i].y);
+		scr->PanFrame[i].isMapped = False;
 	}
 #endif /* NO_VIRTUAL */
 }
@@ -607,60 +620,60 @@ init_screen_panframes(ScreenInfo *scr)
  * (A special cursor for the EdgeWrap border could be nice) HEDU
  ****************************************************************************/
 void
-check_screen_panframes(ScreenInfo *scr)
+check_screen_panframes (ScreenInfo * scr)
 {
 #ifndef NO_VIRTUAL
-	int           wrapX ;
-	int           wrapY ;
-	Bool          map_frame[PAN_FRAME_SIDES] = {False, False, False, False};
+	int           wrapX;
+	int           wrapY;
+	Bool          map_frame[PAN_FRAME_SIDES] = { False, False, False, False };
 	register int  i;
 
-	if( scr == NULL )
+	if (scr == NULL)
 		scr = ASDefaultScr;
 
-	wrapX = get_flags(scr->Feel.flags, EdgeWrapX);
-	wrapY = get_flags(scr->Feel.flags, EdgeWrapY);
+	wrapX = get_flags (scr->Feel.flags, EdgeWrapX);
+	wrapY = get_flags (scr->Feel.flags, EdgeWrapY);
 
-	if( get_flags(scr->Feel.flags, DoHandlePageing) )
+	if (get_flags (scr->Feel.flags, DoHandlePageing))
 	{
 		if (scr->Feel.EdgeScrollY > 0)
 		{
-			if (scr->Vy > 0 || wrapY )
-				map_frame[FR_N] = True ;
-			if (scr->Vy < scr->VyMax || wrapY )
-				map_frame[FR_S] = True ;
+			if (scr->Vy > 0 || wrapY)
+				map_frame[FR_N] = True;
+			if (scr->Vy < scr->VyMax || wrapY)
+				map_frame[FR_S] = True;
 		}
-		if (scr->Feel.EdgeScrollX > 0 )
+		if (scr->Feel.EdgeScrollX > 0)
 		{
-			if (scr->Vx < scr->VxMax || wrapX )
-				map_frame[FR_E] = True ;
-			if (scr->Vx > 0 || wrapX )
-				map_frame[FR_W] = True ;
+			if (scr->Vx < scr->VxMax || wrapX)
+				map_frame[FR_E] = True;
+			if (scr->Vx > 0 || wrapX)
+				map_frame[FR_W] = True;
 		}
 	}
 	/* Remove Pan frames if paging by edge-scroll is permanently or
 	 * temporarily disabled */
-	for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
+	for (i = 0; i < PAN_FRAME_SIDES; i++)
 	{
-		if( scr->PanFrame[i].win )
+		if (scr->PanFrame[i].win)
 		{
-			if( map_frame[i] != scr->PanFrame[i].isMapped )
+			if (map_frame[i] != scr->PanFrame[i].isMapped)
 			{
-				if( map_frame[i] )
+				if (map_frame[i])
 				{
-					LOCAL_DEBUG_OUT( "mapping PanFrame %d(%lX)", i, scr->PanFrame[i].win );
+					LOCAL_DEBUG_OUT ("mapping PanFrame %d(%lX)", i, scr->PanFrame[i].win);
 					XMapRaised (dpy, scr->PanFrame[i].win);
-				}else
+				} else
 					XUnmapWindow (dpy, scr->PanFrame[i].win);
 				scr->PanFrame[i].isMapped = map_frame[i];
 			}
 
-			if( map_frame[i] )
+			if (map_frame[i])
 			{
-				/* to maintain stacking order where first mapped pan frame is the lowest window :*/
-				LOCAL_DEBUG_OUT( "rasing PanFrame %d(%lX)", i, scr->PanFrame[i].win );
-				XRaiseWindow( dpy, scr->PanFrame[i].win );
-				XDefineCursor (dpy, scr->PanFrame[i].win, scr->Feel.cursors[ASCUR_Top+i]);
+				/* to maintain stacking order where first mapped pan frame is the lowest window : */
+				LOCAL_DEBUG_OUT ("rasing PanFrame %d(%lX)", i, scr->PanFrame[i].win);
+				XRaiseWindow (dpy, scr->PanFrame[i].win);
+				XDefineCursor (dpy, scr->PanFrame[i].win, scr->Feel.cursors[ASCUR_Top + i]);
 			}
 		}
 	}
@@ -672,69 +685,71 @@ check_screen_panframes(ScreenInfo *scr)
  * don't work!
  ***************************************************************************/
 void
-raise_scren_panframes (ScreenInfo *scr)
+raise_scren_panframes (ScreenInfo * scr)
 {
 #ifndef NO_VIRTUAL
-	register int i ;
-	if( scr == NULL )
-		scr = ASDefaultScr ;
-	for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
-		if( scr->PanFrame[i].isMapped )
+	register int  i;
+
+	if (scr == NULL)
+		scr = ASDefaultScr;
+	for (i = 0; i < PAN_FRAME_SIDES; i++)
+		if (scr->PanFrame[i].isMapped)
 		{
-			LOCAL_DEBUG_OUT( "rasing PanFrame %d(%lX)", i, scr->PanFrame[i].win );
+			LOCAL_DEBUG_OUT ("rasing PanFrame %d(%lX)", i, scr->PanFrame[i].win);
 			XRaiseWindow (dpy, scr->PanFrame[i].win);
 		}
 #endif
 }
 
 Window
-get_lowest_panframe(ScreenInfo *scr)
+get_lowest_panframe (ScreenInfo * scr)
 {
-	register int i;
-	if( scr == NULL )
-		scr = ASDefaultScr ;
-	for( i = 0 ; i < PAN_FRAME_SIDES ; i++ )
-		if( scr->PanFrame[i].isMapped )
+	register int  i;
+
+	if (scr == NULL)
+		scr = ASDefaultScr;
+	for (i = 0; i < PAN_FRAME_SIDES; i++)
+		if (scr->PanFrame[i].isMapped)
 			return scr->PanFrame[i].win;
 	return None;
 }
 
 /* utility function for geometry merging : */
-void merge_geometry( ASGeometry *from, ASGeometry *to )
+void
+merge_geometry (ASGeometry * from, ASGeometry * to)
 {
-	if ( get_flags(from->flags, WidthValue) )
-		to->width = from->width ;
-	if ( get_flags(from->flags, HeightValue) )
-		to->height = from->height ;
-	if ( get_flags(from->flags, XValue) )
+	if (get_flags (from->flags, WidthValue))
+		to->width = from->width;
+	if (get_flags (from->flags, HeightValue))
+		to->height = from->height;
+	if (get_flags (from->flags, XValue))
 	{
-		to->x = from->x ;
-		if( !get_flags(from->flags, XNegative) )
-			clear_flags(to->flags, XNegative);
+		to->x = from->x;
+		if (!get_flags (from->flags, XNegative))
+			clear_flags (to->flags, XNegative);
 	}
-	if ( get_flags(from->flags, YValue) )
+	if (get_flags (from->flags, YValue))
 	{
-		to->y = from->y ;
-		if( !get_flags(from->flags, YNegative) )
-			clear_flags(to->flags, YNegative);
+		to->y = from->y;
+		if (!get_flags (from->flags, YNegative))
+			clear_flags (to->flags, YNegative);
 	}
-	to->flags |= from->flags ;
+	to->flags |= from->flags;
 }
 
 void
-check_desksize_sanity( ScreenInfo *scr )
+check_desksize_sanity (ScreenInfo * scr)
 {
-	if( scr == NULL )
-		scr = ASDefaultScr ;
+	if (scr == NULL)
+		scr = ASDefaultScr;
 
-	if( scr->VxMax <= 0 )
-		scr->VxMax = 0 ;
-	else if( scr->VxMax < 32000/scr->MyDisplayWidth )
-		scr->VxMax = (scr->VxMax * scr->MyDisplayWidth) - scr->MyDisplayWidth ;
+	if (scr->VxMax <= 0)
+		scr->VxMax = 0;
+	else if (scr->VxMax < 32000 / scr->MyDisplayWidth)
+		scr->VxMax = (scr->VxMax * scr->MyDisplayWidth) - scr->MyDisplayWidth;
 
-	if( scr->VyMax <= 0 )
-		scr->VyMax = 0 ;
-	else if( scr->VyMax < 32000/scr->MyDisplayHeight )
-		scr->VyMax = (scr->VyMax * scr->MyDisplayHeight) - scr->MyDisplayHeight ;
+	if (scr->VyMax <= 0)
+		scr->VyMax = 0;
+	else if (scr->VyMax < 32000 / scr->MyDisplayHeight)
+		scr->VyMax = (scr->VyMax * scr->MyDisplayHeight) - scr->MyDisplayHeight;
 }
-

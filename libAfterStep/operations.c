@@ -55,152 +55,167 @@
 
 extern ASASCommandState ASCommandState;
 
-void move_handler(ASWindowData *wd, void *data)
+void
+move_handler (ASWindowData * wd, void *data)
 {
-	move_params *params = (move_params *) data;
+	move_params  *params = (move_params *) data;
+
 	/* used by SendNumCommand */
-	send_signed_data_type vals[2] ;	
-	send_signed_data_type units[2] ;
-	
-	LOCAL_DEBUG_OUT("Move handler called");
+	send_signed_data_type vals[2];
+	send_signed_data_type units[2];
+
+	LOCAL_DEBUG_OUT ("Move handler called");
 
 	/* Indicate that we're talking pixels. */
 	units[0] = units[1] = 1;
-	vals[0] = params->x; vals[1] = params->y;
+	vals[0] = params->x;
+	vals[1] = params->y;
 	/* Move window */
-	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
-	
+	SendNumCommand (F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client);
+
 }
 
-void resize_handler(ASWindowData *wd, void *data)
+void
+resize_handler (ASWindowData * wd, void *data)
 {
 	resize_params *params = (resize_params *) data;
-		/* used by SendNumCommand */
-	send_signed_data_type vals[2] ;	
-	send_signed_data_type units[2] ;
-	
-	LOCAL_DEBUG_OUT("Resize handler called");
+
+	/* used by SendNumCommand */
+	send_signed_data_type vals[2];
+	send_signed_data_type units[2];
+
+	LOCAL_DEBUG_OUT ("Resize handler called");
 
 	/* Indicate that we're talking pixels. */
 	units[0] = units[1] = 1;
-	vals[0] = params->width; vals[1] = params->height;
+	vals[0] = params->width;
+	vals[1] = params->height;
 	/* Move window */
-	SendNumCommand ( F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client );
+	SendNumCommand (F_RESIZE, NULL, &(vals[0]), &(units[0]), wd->client);
 
 }
 
-void kill_handler(ASWindowData *wd, void *data)
+void
+kill_handler (ASWindowData * wd, void *data)
 {
-	LOCAL_DEBUG_OUT("Kill handler called");
-	SendNumCommand(F_DESTROY, NULL, NULL, NULL, wd->client);
+	LOCAL_DEBUG_OUT ("Kill handler called");
+	SendNumCommand (F_DESTROY, NULL, NULL, NULL, wd->client);
 }
 
-void jump_handler(ASWindowData *wd, void *data)
+void
+jump_handler (ASWindowData * wd, void *data)
 {
 	/* used by SendNumCommand */
-	send_signed_data_type vals[1] ;	
-	send_signed_data_type units[1] ;
-	
-	LOCAL_DEBUG_OUT("Jump handler called");
+	send_signed_data_type vals[1];
+	send_signed_data_type units[1];
+
+	LOCAL_DEBUG_OUT ("Jump handler called");
 
 	/* Indicate that we're talking pixels. */
 	units[0] = 1;
 	vals[0] = -1;
-	
+
 	/* Deiconify window if necessary */
-	if(get_flags( wd->state_flags, AS_Iconic))
-		SendNumCommand(F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
+	if (get_flags (wd->state_flags, AS_Iconic))
+		SendNumCommand (F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
 	/* Give window focus */
-	SendNumCommand(F_FOCUS, NULL, NULL, NULL, wd->client);
+	SendNumCommand (F_FOCUS, NULL, NULL, NULL, wd->client);
 }
 
-void ls_handler(ASWindowData *wd, void *data)
+void
+ls_handler (ASWindowData * wd, void *data)
 {
-	fprintf( stdout, "Name: %s\n", wd->window_name );
-	fprintf( stdout, "X: %ld\n", wd->frame_rect.x );
-	fprintf( stdout, "Y: %ld\n", wd->frame_rect.y );
-	fprintf( stdout, "Width: %ld\n", wd->frame_rect.width );
-	fprintf( stdout, "Height: %ld\n", wd->frame_rect.height );
-	fprintf( stdout, "\n" );
+	fprintf (stdout, "Name: %s\n", wd->window_name);
+	fprintf (stdout, "X: %ld\n", wd->frame_rect.x);
+	fprintf (stdout, "Y: %ld\n", wd->frame_rect.y);
+	fprintf (stdout, "Width: %ld\n", wd->frame_rect.width);
+	fprintf (stdout, "Height: %ld\n", wd->frame_rect.height);
+	fprintf (stdout, "\n");
 }
 
-void iconify_handler(ASWindowData *wd, void *data)
+void
+iconify_handler (ASWindowData * wd, void *data)
 {
 	/* used by SendNumCommand */
-	send_signed_data_type vals[1] ;	
-	send_signed_data_type units[1] ;
-	
-	LOCAL_DEBUG_OUT("Iconify handler called");
+	send_signed_data_type vals[1];
+	send_signed_data_type units[1];
+
+	LOCAL_DEBUG_OUT ("Iconify handler called");
 
 	/* Indicate that we're talking pixels. */
 	units[0] = 1;
 	vals[0] = 1;
-	
+
 	/* Iconify window if not iconified */
-	if(! get_flags( wd->state_flags, AS_Iconic))
-		SendNumCommand(F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
-	
+	if (!get_flags (wd->state_flags, AS_Iconic))
+		SendNumCommand (F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
+
 }
 
-void deiconify_handler(ASWindowData *wd, void *data)
+void
+deiconify_handler (ASWindowData * wd, void *data)
 {
 	/* used by SendNumCommand */
-	send_signed_data_type vals[1] ;	
-	send_signed_data_type units[1] ;
-	
-	LOCAL_DEBUG_OUT("Deiconify handler called");
+	send_signed_data_type vals[1];
+	send_signed_data_type units[1];
+
+	LOCAL_DEBUG_OUT ("Deiconify handler called");
 
 	/* Indicate that we're talking pixels. */
 	units[0] = 1;
 	vals[0] = -1;
-	
+
 	/* Deiconify window if iconified */
-	if( get_flags( wd->state_flags, AS_Iconic))
-		SendNumCommand(F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
-	
+	if (get_flags (wd->state_flags, AS_Iconic))
+		SendNumCommand (F_ICONIFY, NULL, &(vals[0]), &(units[0]), wd->client);
+
 }
 
 
 
-void send_to_desk_handler(ASWindowData *wd, void *data)
+void
+send_to_desk_handler (ASWindowData * wd, void *data)
 {
-	int dest = (int) ((send_to_desk_params *) data)->desk;
-	   /* used by SendNumCommand */
-	send_signed_data_type vals[1] ;	
-	send_signed_data_type units[1] ;
-	
-	LOCAL_DEBUG_OUT("send_to_desk handler called");
+	int           dest = (int)((send_to_desk_params *) data)->desk;
+
+	/* used by SendNumCommand */
+	send_signed_data_type vals[1];
+	send_signed_data_type units[1];
+
+	LOCAL_DEBUG_OUT ("send_to_desk handler called");
 
 	/* Indicate that we're talking pixels. */
 	units[0] = 1;
 	vals[0] = dest;
-	
+
 	/* send to desk if it's not already on this desk */
-	if( wd->desk != dest)
-		SendNumCommand(F_CHANGE_WINDOWS_DESK, NULL, &(vals[0]), &(units[0]), wd->client);
-	
+	if (wd->desk != dest)
+		SendNumCommand (F_CHANGE_WINDOWS_DESK, NULL, &(vals[0]), &(units[0]), wd->client);
+
 }
 
-void center_handler(ASWindowData *wd, void *data)
+void
+center_handler (ASWindowData * wd, void *data)
 {
 	/* used by SendNumCommand */
-	send_signed_data_type vals[2] ;	
-	send_signed_data_type units[2] ;
+	send_signed_data_type vals[2];
+	send_signed_data_type units[2];
 
-	LOCAL_DEBUG_OUT("center handler called");
-	
+	LOCAL_DEBUG_OUT ("center handler called");
+
 	/* Indicate that we're talking pixels. */
 	units[0] = units[1] = 1;
-	
-	/* calculate dest-coords. */
-	vals[0] = (Scr.MyDisplayWidth - wd->frame_rect.width)/2;
-	vals[1] = (Scr.MyDisplayHeight - wd->frame_rect.height)/2;
 
-		/* Move window */
-	SendNumCommand ( F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client );
+	/* calculate dest-coords. */
+	vals[0] = (Scr.MyDisplayWidth - wd->frame_rect.width) / 2;
+	vals[1] = (Scr.MyDisplayHeight - wd->frame_rect.height) / 2;
+
+	/* Move window */
+	SendNumCommand (F_MOVE, NULL, &(vals[0]), &(units[0]), wd->client);
 }
 
-void raise_handler(ASWindowData *wd, void *data)
+void
+raise_handler (ASWindowData * wd, void *data)
 {
-	SendNumCommand(F_RAISE, NULL, NULL, NULL, wd->client);
+	SendNumCommand (F_RAISE, NULL, NULL, NULL, wd->client);
 }

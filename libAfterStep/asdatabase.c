@@ -62,7 +62,7 @@ make_asdb_record (name_list * nl, struct wild_reg_exp *regexp, ASDatabaseRecord 
 		db_rec->desk = nl->Desk;
 		db_rec->layer = nl->layer;
 		db_rec->viewport_x = nl->ViewportX;
-		LOCAL_DEBUG_OUT( "nl->name = \"%s\", nl->ViewportX = %d", nl->name, nl->ViewportX );
+		LOCAL_DEBUG_OUT ("nl->name = \"%s\", nl->ViewportX = %d", nl->name, nl->ViewportX);
 		db_rec->viewport_y = nl->ViewportY;
 		db_rec->border_width = nl->border_width;
 		db_rec->resize_width = nl->resize_width;
@@ -101,23 +101,25 @@ build_matching_list (ASDatabase * db, char **names)
 {
 	int           last = 0;
 
-	if (db && names && db->match_list ) 
+	if (db && names && db->match_list)
 	{
 		register int  i = 0;
+
 		for (; i < db->styles_num; ++i)
 		{
 			register int  k = 0;
-			if( i == db->default_styles_idx )
-				db->match_list[last++] = db->styles_num ; /* for the default style */
-			for(; names[k] ; ++k )
+
+			if (i == db->default_styles_idx)
+				db->match_list[last++] = db->styles_num;	/* for the default style */
+			for (; names[k]; ++k)
 				if (match_wild_reg_exp (names[k], db->styles_table[i].regexp) == 0)
 				{
 					db->match_list[last++] = i;
 					break;
 				}
 		}
-		if( i <= db->default_styles_idx )
-			db->match_list[last++] = db->styles_num ; /* for the default style */
+		if (i <= db->default_styles_idx)
+			db->match_list[last++] = db->styles_num;	/* for the default style */
 		db->match_list[last] = -1;
 	}
 	return (last > 0);
@@ -148,9 +150,9 @@ DBMatchType;
 ASDatabaseRecord *
 get_asdb_record (ASDatabase * db, int index)
 {
-	if( db ) 
+	if (db)
 	{
-		if( index < 0 || index >= db->styles_num)
+		if (index < 0 || index >= db->styles_num)
 			return &(db->style_default);
 		return &(db->styles_table[index]);
 	}
@@ -158,9 +160,9 @@ get_asdb_record (ASDatabase * db, int index)
 }
 
 Bool
-is_default_asdb_record( ASDatabase * db, ASDatabaseRecord *db_rec )
+is_default_asdb_record (ASDatabase * db, ASDatabaseRecord * db_rec)
 {
-	return ( db && &(db->style_default) == db_rec ); 
+	return (db && &(db->style_default) == db_rec);
 }
 
 static void
@@ -172,12 +174,12 @@ match_flags (unsigned long *pset_flags, unsigned long *pflags, ASDatabase * db, 
 		register ASDatabaseRecord *db_rec;
 		register int  i = 0;
 
-		for( i = 0 ; db->match_list[i] >= 0 ; ++i ) 
+		for (i = 0; db->match_list[i] >= 0; ++i)
 		{
 			db_rec = get_asdb_record (db, db->match_list[i]);
 			curr_set_flags = (type == MATCH_Buttons) ? db_rec->set_buttons : db_rec->set_flags;
 			on_flags = (type == MATCH_Buttons) ? db_rec->buttons : db_rec->flags;
-			/* we should not touch flags that are already set - sure we do !*/
+			/* we should not touch flags that are already set - sure we do ! */
 /* 			clear_flags (*pflags, get_flags (off_flags, ~(*pset_flags)));
 			set_flags (*pflags, get_flags (on_flags, ~(*pset_flags)));
 */
@@ -191,12 +193,12 @@ match_flags (unsigned long *pset_flags, unsigned long *pflags, ASDatabase * db, 
 static void
 match_data_flags (unsigned long *pset_flags, ASDatabase * db)
 {
-	if ( pset_flags)
+	if (pset_flags)
 	{
 		register ASDatabaseRecord *db_rec;
 		register int  i = 0;
 
-		for( i = 0 ; db->match_list[i] >= 0 ; ++i ) 
+		for (i = 0; db->match_list[i] >= 0; ++i)
 		{
 			db_rec = get_asdb_record (db, db->match_list[i]);
 			set_flags (*pset_flags, db_rec->set_data_flags);
@@ -210,26 +212,40 @@ match_int (ASDatabase * db, DBMatchType type)
 {
 	register ASDatabaseRecord *db_rec;
 	register int  i = 0;
-	int value = 0 ;
+	int           value = 0;
 
-	for( i = 0 ; db->match_list[i] >= 0 ; ++i ) 
+	for (i = 0; db->match_list[i] >= 0; ++i)
 	{
 		db_rec = get_asdb_record (db, db->match_list[i]);
 		if (get_flags (db_rec->set_data_flags, type))
 		{
 			switch (type)
 			{
-			 case MATCH_Desk:		 	value = db_rec->desk; break;
-			 case MATCH_layer:		 	value = db_rec->layer; break;
+			 case MATCH_Desk:
+				 value = db_rec->desk;
+				 break;
+			 case MATCH_layer:
+				 value = db_rec->layer;
+				 break;
 			 case MATCH_ViewportX:
-				 LOCAL_DEBUG_OUT( "viewport_x = %d", db_rec->viewport_x );
+				 LOCAL_DEBUG_OUT ("viewport_x = %d", db_rec->viewport_x);
 				 value = db_rec->viewport_x;
-				  break;
-			 case MATCH_ViewportY:   	value = db_rec->viewport_y; break;
-			 case MATCH_border_width: 	value = db_rec->border_width; break;
-			 case MATCH_resize_width: 	value = db_rec->resize_width; break;
-			 case MATCH_gravity:	 	value = db_rec->gravity; break;
-			 case MATCH_window_opacity:	value = db_rec->window_opacity; break;
+				 break;
+			 case MATCH_ViewportY:
+				 value = db_rec->viewport_y;
+				 break;
+			 case MATCH_border_width:
+				 value = db_rec->border_width;
+				 break;
+			 case MATCH_resize_width:
+				 value = db_rec->resize_width;
+				 break;
+			 case MATCH_gravity:
+				 value = db_rec->gravity;
+				 break;
+			 case MATCH_window_opacity:
+				 value = db_rec->window_opacity;
+				 break;
 			 default:
 				 break;
 			}
@@ -243,16 +259,18 @@ match_struct (ASDatabase * db, DBMatchType type)
 {
 	register ASDatabaseRecord *db_rec;
 	register int  i = 0;
-	void  *value = NULL ; 
+	void         *value = NULL;
 
-	for( i = 0 ; db->match_list[i] >= 0 ; ++i ) 
+	for (i = 0; db->match_list[i] >= 0; ++i)
 	{
 		db_rec = get_asdb_record (db, db->match_list[i]);
 		if (get_flags (db_rec->set_data_flags, type))
 		{
 			switch (type)
 			{
-			 case MATCH_DefaultGeometry: value = &(db_rec->default_geometry); break;
+			 case MATCH_DefaultGeometry:
+				 value = &(db_rec->default_geometry);
+				 break;
 			 default:
 				 break;
 			}
@@ -269,18 +287,25 @@ match_string (ASDatabase * db, DBMatchType type, unsigned int index, Bool dup_st
 	register ASDatabaseRecord *db_rec;
 	register int  i = 0;
 
-	for( i = 0 ; db->match_list[i] >= 0 ; ++i ) 
+	for (i = 0; db->match_list[i] >= 0; ++i)
 	{
 		db_rec = get_asdb_record (db, db->match_list[i]);
 		if (get_flags (db_rec->set_data_flags, type))
 		{
 			switch (type)
 			{
-			 case MATCH_Icon:	 res = db_rec->icon_file;	 break;
-			 case MATCH_Frame:	 res = db_rec->frame_name;	 break;
-			 case MATCH_Windowbox: res = db_rec->windowbox_name; break;
-			 case MATCH_MyStyle: res = db_rec->window_styles[(index < BACK_STYLES) ? index : 0];
-				  break;
+			 case MATCH_Icon:
+				 res = db_rec->icon_file;
+				 break;
+			 case MATCH_Frame:
+				 res = db_rec->frame_name;
+				 break;
+			 case MATCH_Windowbox:
+				 res = db_rec->windowbox_name;
+				 break;
+			 case MATCH_MyStyle:
+				 res = db_rec->window_styles[(index < BACK_STYLES) ? index : 0];
+				 break;
 			 default:
 				 break;
 			}
@@ -319,14 +344,14 @@ fill_asdb_record (ASDatabase * db, char **names, ASDatabaseRecord * reusable_mem
 				match_flags (&(db_rec->set_buttons), &(db_rec->buttons), db, MATCH_Buttons);
 
 			match_data_flags (&(db_rec->set_data_flags), db);
-			
+
 			if (get_flags (db_rec->set_data_flags, STYLE_STARTUP_DESK))
 				db_rec->desk = match_int (db, MATCH_Desk);
 			if (get_flags (db_rec->set_data_flags, STYLE_LAYER))
 				db_rec->layer = match_int (db, MATCH_layer);
 			if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTX))
 			{
-				LOCAL_DEBUG_OUT( "Matching viewport_x%s","");	  
+				LOCAL_DEBUG_OUT ("Matching viewport_x%s", "");
 				db_rec->viewport_x = match_int (db, MATCH_ViewportX);
 			}
 			if (get_flags (db_rec->set_data_flags, STYLE_VIEWPORTY))
@@ -418,17 +443,17 @@ place_new_record (ASDatabase * db, wild_reg_exp * regexp)
 		 * If we find exactly the same regexp - then we replace record.
 		 * Otherwise we reallocate space as needed.
 		 */
-		 /* No we fucking don't! DB entries should be stored in the same order 
-			as they are in the file ! I can't belive I was so fucking stupid ! 
-			All we should check for is if the regexp is already in the list. */
-			
+		/* No we fucking don't! DB entries should be stored in the same order 
+		   as they are in the file ! I can't belive I was so fucking stupid ! 
+		   All we should check for is if the regexp is already in the list. */
+
 		for (i = 0; i < db->styles_num; i++)
 		{
 			res = compare_wild_reg_exp (db->styles_table[i].regexp, regexp);
 			if (res == 0)
 				return i;
 			/* see above comment else if (res < 0)
-				break;
+			   break;
 			 */
 		}
 
@@ -481,11 +506,11 @@ build_asdb (name_list * nl)
 		if ((regexp = compile_wild_reg_exp (nl->name)) != NULL)
 		{
 			/* First check if that is the default style */
-			if (strcmp ((char*)regexp->raw, "*") == 0)
+			if (strcmp ((char *)regexp->raw, "*") == 0)
 			{
 				destroy_wild_reg_exp (regexp);
 				replace_record (&(db->style_default), nl, NULL);
-				db->default_styles_idx = db->styles_num ;
+				db->default_styles_idx = db->styles_num;
 			} else
 			{
 				int           where;
@@ -568,7 +593,7 @@ print_asdb_record (stream_func func, void *stream, ASDatabaseRecord * db_rec, co
 		return;
 	if (db_rec->regexp)
 		func (stream, "%s.regexp = \"%s\";\n", prompt, db_rec->regexp->raw);
-	else 
+	else
 		func (stream, "%s.regexp = \"*\";\n", prompt);
 
 	func (stream, "%s.set_flags = 0x%lX;\n", prompt, db_rec->set_flags);
@@ -627,7 +652,7 @@ print_asdb_match_list (stream_func func, void *stream, ASDatabase * db)
 		db_rec = get_asdb_record (db, db->match_list[i]);
 		if (db_rec->regexp)
 			func (stream, "ASDB.match_list[%d].regexp = \"%s\";\n", i, db_rec->regexp->raw);
-		else if( is_default_asdb_record(db, db_rec) ) 
+		else if (is_default_asdb_record (db, db_rec))
 			func (stream, "ASDB.match_list[%d].regexp = \"*\";\n", i);
 	}
 }

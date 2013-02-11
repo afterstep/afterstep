@@ -36,12 +36,18 @@
  *
  ****************************************************************************/
 TermDef       AnimateResizeTerms[] = {
-	{TF_NO_MYNAME_PREPENDING, "Twist", 5, TT_FLAG, ANIMATE_ResizeTwist_ID,  NULL},
-	{TF_NO_MYNAME_PREPENDING, "Flip",  4, TT_FLAG, ANIMATE_ResizeFlip_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Turn",  4, TT_FLAG, ANIMATE_ResizeTurn_ID,   NULL},
-	{TF_NO_MYNAME_PREPENDING, "Zoom",  4, TT_FLAG, ANIMATE_ResizeZoom_ID,   NULL},
-	{TF_NO_MYNAME_PREPENDING, "Zoom3D",6, TT_FLAG, ANIMATE_ResizeZoom3D_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING, "Random",6, TT_FLAG, ANIMATE_ResizeRandom_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING, "Twist", 5, TT_FLAG, ANIMATE_ResizeTwist_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Flip", 4, TT_FLAG, ANIMATE_ResizeFlip_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Turn", 4, TT_FLAG, ANIMATE_ResizeTurn_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Zoom", 4, TT_FLAG, ANIMATE_ResizeZoom_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Zoom3D", 6, TT_FLAG, ANIMATE_ResizeZoom3D_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "Random", 6, TT_FLAG, ANIMATE_ResizeRandom_ID, NULL}
+	,
 	{0, NULL, 0, 0, 0}						   /* end of structure */
 };
 
@@ -61,12 +67,18 @@ SyntaxDef     AnimateResizeSyntax = {
 };
 
 TermDef       AnimateTerms[] = {
-	{0, "Color", 5, TT_COLOR, ANIMATE_COLOR_ID, NULL},
-	{0, "Delay", 5, TT_INTEGER, ANIMATE_DELAY_ID, NULL},
-	{0, "Iterations", 10, TT_INTEGER, ANIMATE_ITERATIONS_ID, NULL},
-	{0, "Twist", 5, TT_INTEGER, ANIMATE_TWIST_ID, NULL},
-	{0, "Width", 5, TT_INTEGER, ANIMATE_WIDTH_ID, NULL},
-	{0, "Resize", 6,TT_FLAG, ANIMATE_RESIZE_ID, &AnimateResizeSyntax},
+	{0, "Color", 5, TT_COLOR, ANIMATE_COLOR_ID, NULL}
+	,
+	{0, "Delay", 5, TT_INTEGER, ANIMATE_DELAY_ID, NULL}
+	,
+	{0, "Iterations", 10, TT_INTEGER, ANIMATE_ITERATIONS_ID, NULL}
+	,
+	{0, "Twist", 5, TT_INTEGER, ANIMATE_TWIST_ID, NULL}
+	,
+	{0, "Width", 5, TT_INTEGER, ANIMATE_WIDTH_ID, NULL}
+	,
+	{0, "Resize", 6, TT_FLAG, ANIMATE_RESIZE_ID, &AnimateResizeSyntax}
+	,
 	{0, NULL, 0, 0, 0}						   /* end of structure */
 
 };
@@ -92,8 +104,9 @@ AnimateConfig *
 CreateAnimateConfig ()
 {
 	AnimateConfig *config = (AnimateConfig *) safecalloc (1, sizeof (AnimateConfig));
-	config->iterations = ANIMATE_DEFAULT_ITERATIONS ;
-	config->delay = ANIMATE_DEFAULT_DELAY ;
+
+	config->iterations = ANIMATE_DEFAULT_ITERATIONS;
+	config->delay = ANIMATE_DEFAULT_DELAY;
 	return config;
 }
 
@@ -109,14 +122,14 @@ DestroyAnimateConfig (AnimateConfig * config)
 AnimateConfig *
 ParseAnimateOptions (const char *filename, char *myname)
 {
-	ConfigData cd ;
+	ConfigData    cd;
 	ConfigDef    *AnimateConfigReader;
 	AnimateConfig *config = CreateAnimateConfig ();
 
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 
-	cd.filename = filename ;
+	cd.filename = filename;
 	AnimateConfigReader = InitConfigReader (myname, &AnimateSyntax, CDT_Filename, cd, NULL);
 
 	if (!AnimateConfigReader)
@@ -144,28 +157,28 @@ ParseAnimateOptions (const char *filename, char *myname)
 				 config->color = item.data.string;
 				 break;
 			 case ANIMATE_DELAY_ID:
-				 set_flags( config->set_flags, ANIMATE_SET_DELAY );
+				 set_flags (config->set_flags, ANIMATE_SET_DELAY);
 				 config->delay = (int)item.data.integer;
 				 break;
 			 case ANIMATE_ITERATIONS_ID:
-			 	set_flags( config->set_flags, ANIMATE_SET_ITERATIONS );
-				config->iterations = (int)item.data.integer;
-				break;
+				 set_flags (config->set_flags, ANIMATE_SET_ITERATIONS);
+				 config->iterations = (int)item.data.integer;
+				 break;
 			 case ANIMATE_TWIST_ID:
-				config->twist = (int)item.data.integer;
-				set_flags( config->set_flags, ANIMATE_SET_TWIST ); 
-				break;
+				 config->twist = (int)item.data.integer;
+				 set_flags (config->set_flags, ANIMATE_SET_TWIST);
+				 break;
 			 case ANIMATE_WIDTH_ID:
-				config->width = (int)item.data.integer;
-				set_flags( config->set_flags, ANIMATE_SET_WIDTH );
-				break;
+				 config->width = (int)item.data.integer;
+				 set_flags (config->set_flags, ANIMATE_SET_WIDTH);
+				 break;
 			 case ANIMATE_RESIZE_ID:
-				if( pCurr->sub && pCurr->sub->term )
-				{	
-					set_flags( config->set_flags, ANIMATE_SET_RESIZE );
-					config->resize = pCurr->sub->term->id - ANIMATE_RESIZE_ID_START;
-				}
-				break;
+				 if (pCurr->sub && pCurr->sub->term)
+				 {
+					 set_flags (config->set_flags, ANIMATE_SET_RESIZE);
+					 config->resize = pCurr->sub->term->id - ANIMATE_RESIZE_ID_START;
+				 }
+				 break;
 			 default:
 				 item.ok_to_free = 1;
 			}
@@ -190,12 +203,12 @@ WriteAnimateOptions (const char *filename, char *myname, AnimateConfig * config,
 {
 	ConfigDef    *AnimateConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
-	ConfigData cd ;
+	ConfigData    cd;
 
 	if (config == NULL)
 		return 1;
 
-	cd.filename = filename ;
+	cd.filename = filename;
 	if ((AnimateConfigWriter = InitConfigWriter (myname, &AnimateSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 
@@ -207,24 +220,25 @@ WriteAnimateOptions (const char *filename, char *myname, AnimateConfig * config,
 	tail = String2FreeStorage (&AnimateSyntax, tail, config->color, ANIMATE_COLOR_ID);
 
 	/* delay */
-    tail = Integer2FreeStorage (&AnimateSyntax, tail, NULL, config->delay, ANIMATE_DELAY_ID);
+	tail = Integer2FreeStorage (&AnimateSyntax, tail, NULL, config->delay, ANIMATE_DELAY_ID);
 
 	/* iterations */
-    tail = Integer2FreeStorage (&AnimateSyntax, tail, NULL, config->iterations, ANIMATE_ITERATIONS_ID);
+	tail = Integer2FreeStorage (&AnimateSyntax, tail, NULL, config->iterations, ANIMATE_ITERATIONS_ID);
 
 	/* twist */
-    tail = Integer2FreeStorage (&AnimateSyntax, tail, NULL, config->twist, ANIMATE_TWIST_ID);
+	tail = Integer2FreeStorage (&AnimateSyntax, tail, NULL, config->twist, ANIMATE_TWIST_ID);
 
 	/* width */
-    tail = Integer2FreeStorage (&AnimateSyntax, tail, NULL, config->width, ANIMATE_WIDTH_ID);
+	tail = Integer2FreeStorage (&AnimateSyntax, tail, NULL, config->width, ANIMATE_WIDTH_ID);
 
 	/* resize */
-	if( config->resize < ANIMATE_RESIZE_ID_END-ANIMATE_RESIZE_ID_START )
+	if (config->resize < ANIMATE_RESIZE_ID_END - ANIMATE_RESIZE_ID_START)
 	{
-	  FreeStorageElem **d_tail = tail ;
-	  tail = Flag2FreeStorage (&AnimateSyntax, tail, ANIMATE_RESIZE_ID);
-	  if( *d_tail )
-		  Flag2FreeStorage( &AnimateResizeSyntax, &((*d_tail)->sub), config->resize+ANIMATE_RESIZE_ID_START );
+		FreeStorageElem **d_tail = tail;
+
+		tail = Flag2FreeStorage (&AnimateSyntax, tail, ANIMATE_RESIZE_ID);
+		if (*d_tail)
+			Flag2FreeStorage (&AnimateResizeSyntax, &((*d_tail)->sub), config->resize + ANIMATE_RESIZE_ID_START);
 	}
 
 	/* writing config into the file */

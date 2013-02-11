@@ -29,14 +29,14 @@
 
 #ifdef DO_CLOCKING
 #if TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
+#include <sys/time.h>
+#include <time.h>
 #else
-# if HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
 #endif
 #endif
 #include "asapp.h"
@@ -49,28 +49,29 @@
 void
 statement2free_storage (ConfigDef * config)
 {
-	FreeStorageElem  *pNext;
+	FreeStorageElem *pNext;
 	TermDef      *pterm = config->current_term;
-LOCAL_DEBUG_OUT( "checking for foreign option ...%s", "" );
+
+	LOCAL_DEBUG_OUT ("checking for foreign option ...%s", "");
 	if (IsForeignOption (config))
 		return;
-	
-	if (pterm->type == TT_COMMENT || pterm->type == TT_INLINE_COMMENT )
+
+	if (pterm->type == TT_COMMENT || pterm->type == TT_INLINE_COMMENT)
 		return;
-	if (pterm->type == TT_ANY )
-	{	
+	if (pterm->type == TT_ANY)
+	{
 #ifdef UNKNOWN_KEYWORD_WARNING
-		if( !get_flags( config->flags, CP_IgnoreUnknown ) )
+		if (!get_flags (config->flags, CP_IgnoreUnknown))
 			config_error (config, " unknown keyword encountered");
 #endif
 		return;
 	}
 
-LOCAL_DEBUG_OUT( "adding storage ...%s", "" );
+	LOCAL_DEBUG_OUT ("adding storage ...%s", "");
 	if ((pNext = AddFreeStorageElem (config->syntax, config->current_tail->storage, pterm, ID_ANY, NULL)) == NULL)
 		return;
 
-LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );
+	LOCAL_DEBUG_OUT ("parsing stuff ...%s", "");
 	pNext->flags = config->current_flags;
 
 	if (config->current_data_len > 0 && !(pterm->flags & TF_DONT_REMOVE_COMMENTS))
@@ -78,8 +79,8 @@ LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );
 		stripcomments (config->current_data);
 		config->current_data_len = strlen (config->current_data);
 	}
-	print_trimmed_str( "config->current_data", config->current_data );
-	LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
+	print_trimmed_str ("config->current_data", config->current_data);
+	LOCAL_DEBUG_OUT ("curr_data_len = %d", config->current_data_len);
 
 	args2FreeStorage (pNext, config->current_data, config->current_data_len);
 
@@ -90,37 +91,40 @@ LOCAL_DEBUG_OUT( "parsing stuff ...%s", "" );
 }
 
 
-int ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
+int
+ParseConfig (ConfigDef * config, FreeStorageElem ** tail)
 {
 	config->statement_handler = statement2free_storage;
-	set_flags( config->flags, CP_IgnoreForeign );
-	return config2tree_storage(config, (ASTreeStorageModel **)tail);	   
-}	 
+	set_flags (config->flags, CP_IgnoreForeign);
+	return config2tree_storage (config, (ASTreeStorageModel **) tail);
+}
 
 FreeStorageElem *
-tline_subsyntax_parse(const char *keyword, char *tline, FILE * fd, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options)
+tline_subsyntax_parse (const char *keyword, char *tline, FILE * fd, char *myname, SyntaxDef * syntax,
+					   SpecialFunc special, FreeStorageElem ** foreign_options)
 {
-	FilePtrAndData fpd ;
-	ConfigDef    *ConfigReader ;
+	FilePtrAndData fpd;
+	ConfigDef    *ConfigReader;
 	FreeStorageElem *storage = NULL, *more_stuff = NULL;
-	ConfigData cd ;
-	if( syntax == NULL )
+	ConfigData    cd;
+
+	if (syntax == NULL)
 		return NULL;
 
-	fpd.fp = fd ;
-	if( keyword ) 
+	fpd.fp = fd;
+	if (keyword)
 	{
-		fpd.data = safemalloc( strlen(keyword) + 1 + strlen(tline)+1+1 ) ;
-		sprintf( fpd.data, "%s %s\n", keyword, tline );
-	}else
+		fpd.data = safemalloc (strlen (keyword) + 1 + strlen (tline) + 1 + 1);
+		sprintf (fpd.data, "%s %s\n", keyword, tline);
+	} else
 	{
-		fpd.data = safemalloc( strlen(tline)+1+1 ) ;
-		sprintf( fpd.data, "%s\n", tline );
+		fpd.data = safemalloc (strlen (tline) + 1 + 1);
+		sprintf (fpd.data, "%s\n", tline);
 	}
-	LOCAL_DEBUG_OUT( "fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data );
-	cd.fileptranddata = &fpd ;
+	LOCAL_DEBUG_OUT ("fd(%p)->tline(\"%s\")->fpd.data(\"%s\")", fd, tline, fpd.data);
+	cd.fileptranddata = &fpd;
 	ConfigReader = InitConfigReader (myname, syntax, CDT_FilePtrAndData, cd, special);
-	free( fpd.data );
+	free (fpd.data);
 
 	if (!ConfigReader)
 		return NULL;
@@ -132,8 +136,8 @@ tline_subsyntax_parse(const char *keyword, char *tline, FILE * fd, char *myname,
 	StorageCleanUp (&storage, &more_stuff, CF_DISABLED_OPTION);
 	DestroyFreeStorage (&more_stuff);
 
-	if( foreign_options )
-		StorageCleanUp (&storage, foreign_options, CF_PHONY_OPTION|CF_FOREIGN_OPTION);
+	if (foreign_options)
+		StorageCleanUp (&storage, foreign_options, CF_PHONY_OPTION | CF_FOREIGN_OPTION);
 
 
 	DestroyConfig (ConfigReader);
@@ -142,69 +146,73 @@ tline_subsyntax_parse(const char *keyword, char *tline, FILE * fd, char *myname,
 }
 
 FreeStorageElem *
-file2free_storage(const char *filename, char *myname, SyntaxDef *syntax, SpecialFunc special, FreeStorageElem **foreign_options )
+file2free_storage (const char *filename, char *myname, SyntaxDef * syntax, SpecialFunc special,
+				   FreeStorageElem ** foreign_options)
 {
-	ConfigData cd ;
-	ConfigDef    *config_reader ;
-	FreeStorageElem *storage = NULL ;
-	
-	cd.filename = filename ;
+	ConfigData    cd;
+	ConfigDef    *config_reader;
+	FreeStorageElem *storage = NULL;
+
+	cd.filename = filename;
 	config_reader = InitConfigReader (myname, syntax, CDT_Filename, cd, special);
 	if (!config_reader)
 		return NULL;
 
 	PrintConfigReader (config_reader);
-	ParseConfig(config_reader, &storage);
+	ParseConfig (config_reader, &storage);
 
 	/* getting rid of all the crap first */
-	if( foreign_options )
-		StorageCleanUp (&storage, foreign_options, CF_DISABLED_OPTION|CF_PHONY_OPTION|CF_FOREIGN_OPTION);
+	if (foreign_options)
+		StorageCleanUp (&storage, foreign_options, CF_DISABLED_OPTION | CF_PHONY_OPTION | CF_FOREIGN_OPTION);
 
-	DestroyConfig (config_reader);   
+	DestroyConfig (config_reader);
 	return storage;
-}	 
+}
 
 
 #ifdef TEST_PARSER_FS
 
 #include "../libAfterConf/afterconf.h"
 
-# define CONFIG_FILE	"~/triangular_wharf"
-# define CONFIG_SYNTAX	&WharfSyntax
-# define CONFIG_SPECIAL	NULL   /*WharfSpecialFunc*/
-# define CONFIG_MYNAME  "MyWharf"
+#define CONFIG_FILE	"~/triangular_wharf"
+#define CONFIG_SYNTAX	&WharfSyntax
+#define CONFIG_SPECIAL	NULL				   /*WharfSpecialFunc */
+#define CONFIG_MYNAME  "MyWharf"
 
-extern SyntaxDef StyleSyntax ;
-int 
-main( int argc, char ** argv ) 
+extern SyntaxDef StyleSyntax;
+int
+main (int argc, char **argv)
 {
-	
-	char *fullfilename;
-	FreeStorageElem * tree ;
-	InitMyApp ("TestParserFS", argc, argv, NULL, NULL, 0 );
-	LinkAfterStepConfig();
-	InitSession();
-#if 0	
-	fullfilename = PutHome( CONFIG_FILE );
 
-	
-	tree = file2free_storage(fullfilename, CONFIG_MYNAME, CONFIG_SYNTAX, CONFIG_SPECIAL, NULL );
+	char         *fullfilename;
+	FreeStorageElem *tree;
+
+	InitMyApp ("TestParserFS", argc, argv, NULL, NULL, 0);
+	LinkAfterStepConfig ();
+	InitSession ();
+#if 0
+	fullfilename = PutHome (CONFIG_FILE);
+
+
+	tree = file2free_storage (fullfilename, CONFIG_MYNAME, CONFIG_SYNTAX, CONFIG_SPECIAL, NULL);
 #else
 	{
-		ConfigData    cd ;
+		ConfigData    cd;
 		ConfigDef    *ConfigReader;
 
-		cd.data = mystrdup("DefaultGeometry 581x340+607+96 , Layer 0, Slippery, StartsOnDesk 0, ViewportX 0, ViewportY 0, StartNormal") ;
+		cd.data =
+			mystrdup
+			("DefaultGeometry 581x340+607+96 , Layer 0, Slippery, StartsOnDesk 0, ViewportX 0, ViewportY 0, StartNormal");
 		ConfigReader = InitConfigReader ("afterstep", &StyleSyntax, CDT_Data, cd, NULL);
 		ParseConfig (ConfigReader, &tree);
 	}
 #endif
-	freestorage_print(CONFIG_MYNAME, CONFIG_SYNTAX,tree, 0);	   
+	freestorage_print (CONFIG_MYNAME, CONFIG_SYNTAX, tree, 0);
 	DestroyFreeStorage (&tree);
-	FreeMyAppResources();
-#   ifdef DEBUG_ALLOCS
+	FreeMyAppResources ();
+#ifdef DEBUG_ALLOCS
 	print_unfreed_mem ();
-#   endif /* DEBUG_ALLOCS */
+#endif /* DEBUG_ALLOCS */
 	return 1;
 }
 #endif
@@ -339,7 +347,7 @@ WriteFreeStorageElem (ConfigDef * config, struct WriteBuffer *t_buffer, FreeStor
 			while (*src)
 				*(ptr++) = *(src++);
 			*(ptr++) = csyntax->token_separator;	/*C2: csyntax->token_separator */
-		}else if (pElem->flags & CF_COMMENTED_OPTION) /*C1: DISABLED_KEYWORD_SIZE */
+		} else if (pElem->flags & CF_COMMENTED_OPTION)	/*C1: DISABLED_KEYWORD_SIZE */
 		{
 			*(ptr++) = COMMENTS_CHAR;
 			*(ptr++) = csyntax->token_separator;	/*C2: csyntax->token_separator */
@@ -509,8 +517,8 @@ ScanAndWriteExistant (ConfigDef * config, FreeStorageElem ** storage, struct Wri
 /* main writing procedure ( returns size of the data written )             */
 
 long
-WriteConfig (ConfigDef * config, FreeStorageElem *storage,
-			 ConfigDataType target_type, ConfigData *target, unsigned long flags)
+WriteConfig (ConfigDef * config, FreeStorageElem * storage,
+			 ConfigDataType target_type, ConfigData * target, unsigned long flags)
 {
 #ifdef WITH_CONFIG_WRITER
 	FreeStorageElem *copy = NULL;
@@ -537,7 +545,7 @@ WriteConfig (ConfigDef * config, FreeStorageElem *storage,
 		ScanAndWriteExistant (config, &copy, &t_buffer, flags);
 	/* now writing remaining elements */
 	WriteRemnants (config, &t_buffer, copy);
-	
+
 	DestroyFreeStorage (&copy);
 
 	t_buffer.buffer[t_buffer.used] = config->syntax->file_terminator;
@@ -565,9 +573,11 @@ WriteConfig (ConfigDef * config, FreeStorageElem *storage,
 	}
 	if (t_fd != -1)
 	{
-		int pos = 0;
-		while (pos < t_buffer.used)	pos += write (t_fd, t_buffer.buffer+pos, t_buffer.used-pos);
-		
+		int           pos = 0;
+
+		while (pos < t_buffer.used)
+			pos += write (t_fd, t_buffer.buffer + pos, t_buffer.used - pos);
+
 		if (target_type == CDT_Filename)
 			close (t_fd);
 	}

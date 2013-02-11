@@ -39,12 +39,18 @@
 
 
 TermDef       WhevTerms[] = {
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "push", 4, TT_FILENAME, WHEV_PUSH_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "close_folder", 12, TT_FILENAME, WHEV_CLOSE_FOLDER_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "open_folder", 11, TT_FILENAME, WHEV_OPEN_FOLDER_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "close_main", 10, TT_FILENAME, WHEV_CLOSE_MAIN_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "open_main", 9, TT_FILENAME, WHEV_OPEN_MAIN_ID, NULL},
-	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "drop", 4, TT_FILENAME, WHEV_DROP_ID, NULL},
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "push", 4, TT_FILENAME, WHEV_PUSH_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "close_folder", 12, TT_FILENAME, WHEV_CLOSE_FOLDER_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "open_folder", 11, TT_FILENAME, WHEV_OPEN_FOLDER_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "close_main", 10, TT_FILENAME, WHEV_CLOSE_MAIN_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "open_main", 9, TT_FILENAME, WHEV_OPEN_MAIN_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "drop", 4, TT_FILENAME, WHEV_DROP_ID, NULL}
+	,
 	{0, NULL, 0, 0, 0, NULL}
 };
 
@@ -53,14 +59,14 @@ SyntaxDef     WhevSyntax = {
 	'\n',
 	WhevTerms,
 	0,										   /* use default hash size */
-    ' ',
+	' ',
 	"",
 	"\t",
 	"Module:Wharf sound definition",
 	"WharfSounds",
 	"types of events for which sound could be played by Wharf",
 	NULL,
-    0
+	0
 };
 
 #define WHARF_FEEL_TERMS \
@@ -99,17 +105,25 @@ SyntaxDef     WhevSyntax = {
 
 
 TermDef       WharfTerms[] = {
-    /* the NoWithdraw option is undocumented, deprecated, and
-     ** may be removed at Wharf's maintainer's discretion */
-    {TF_OBSOLETE, "NoWithdraw", 10,       TT_FLAG, WHARF_NoWithdraw_ID, NULL},
+	/* the NoWithdraw option is undocumented, deprecated, and
+	 ** may be removed at Wharf's maintainer's discretion */
+	{TF_OBSOLETE, "NoWithdraw", 10, TT_FLAG, WHARF_NoWithdraw_ID, NULL}
+	,
 /* TextureType, MaxColors, BgColor, TextureColor, and Pixmap are obsolete */
-	{TF_OBSOLETE, "TextureType", 11, TT_UINTEGER, WHARF_TextureType_ID, NULL},
-    {TF_OBSOLETE, "BgColor", 7,      TT_COLOR, WHARF_BgColor_ID, NULL},
-    {TF_OBSOLETE, "TextureColor", 12,TT_COLOR, WHARF_TextureColor_ID, NULL},
-    {TF_OBSOLETE, "Pixmap", 6,       TT_FILENAME, WHARF_Pixmap_ID, NULL},
-    {TF_OBSOLETE, "NoBorder", 8,     TT_FLAG, WHARF_NoBorder_ID, NULL},
-    {TF_OBSOLETE, "NoPush", 6,       TT_FLAG, WHARF_NoPush_ID, NULL},
-    {TF_OBSOLETE, "FullPush", 8,     TT_FLAG, WHARF_FullPush_ID, NULL},
+	{TF_OBSOLETE, "TextureType", 11, TT_UINTEGER, WHARF_TextureType_ID, NULL}
+	,
+	{TF_OBSOLETE, "BgColor", 7, TT_COLOR, WHARF_BgColor_ID, NULL}
+	,
+	{TF_OBSOLETE, "TextureColor", 12, TT_COLOR, WHARF_TextureColor_ID, NULL}
+	,
+	{TF_OBSOLETE, "Pixmap", 6, TT_FILENAME, WHARF_Pixmap_ID, NULL}
+	,
+	{TF_OBSOLETE, "NoBorder", 8, TT_FLAG, WHARF_NoBorder_ID, NULL}
+	,
+	{TF_OBSOLETE, "NoPush", 6, TT_FLAG, WHARF_NoPush_ID, NULL}
+	,
+	{TF_OBSOLETE, "FullPush", 8, TT_FLAG, WHARF_FullPush_ID, NULL}
+	,
 	/* Private */
 	WHARF_PRIVATE_TERMS,
 	/* Folders */
@@ -135,10 +149,10 @@ TermDef       WharfFeelTerms[] = {
 };
 
 TermDef       WharfLookTerms[] = {
-    /* Look */
+	/* Look */
 	WHARF_LOOK_TERMS,
 /* now special cases that should be processed by it's own handlers */
-    BALLOON_LOOK_TERMS,
+	BALLOON_LOOK_TERMS,
 	{0, NULL, 0, 0, 0}
 };
 
@@ -153,26 +167,44 @@ TermDef       WharfFolderTerms[] = {
 	{0, NULL, 0, 0, 0}
 };
 
-SyntaxDef WharfFeelSyntax 		= {'\n', '\0', WharfFeelTerms, 		0, '\t', "", "\t", 	"WharfFeel", 	"WharfFeel", 	"AfterStep wharf module feel", NULL, 0};
-SyntaxDef WharfLookSyntax 		= {'\n', '\0', WharfLookTerms, 		0, '\t', "", "\t", 	"WharfLook", 	"WharfLook", 	"AfterStep wharf module look", NULL, 0};
-SyntaxDef WharfPrivateSyntax 	= {'\n', '\0', WharfPrivateTerms,	0, '\t', "", "\t", 	"Wharf",     	"Wharf",     	"AfterStep wharf module", NULL,0};
-SyntaxDef WharfFolderSyntax 	= {'\n', '\0', WharfFolderTerms,	0, '\t', "", "\t", 	"Wharf Folders","WharfFolders", "AfterStep wharf module", NULL,0};
-SyntaxDef WharfSyntax 			= {'\n', '\0', WharfTerms,			0, ' ',  "", "",	"Module:Wharf",	"Wharf",	 	"AfterStep module for launching or docking applications aka button bar",NULL,0};
+SyntaxDef     WharfFeelSyntax =
+	{ '\n', '\0', WharfFeelTerms, 0, '\t', "", "\t", "WharfFeel", "WharfFeel", "AfterStep wharf module feel", NULL, 0 };
+SyntaxDef     WharfLookSyntax =
+	{ '\n', '\0', WharfLookTerms, 0, '\t', "", "\t", "WharfLook", "WharfLook", "AfterStep wharf module look", NULL, 0 };
+SyntaxDef     WharfPrivateSyntax =
+	{ '\n', '\0', WharfPrivateTerms, 0, '\t', "", "\t", "Wharf", "Wharf", "AfterStep wharf module", NULL, 0 };
+SyntaxDef     WharfFolderSyntax =
+	{ '\n', '\0', WharfFolderTerms, 0, '\t', "", "\t", "Wharf Folders", "WharfFolders", "AfterStep wharf module", NULL,
+0 };
+SyntaxDef     WharfSyntax =
+	{ '\n', '\0', WharfTerms, 0, ' ', "", "", "Module:Wharf", "Wharf",
+"AfterStep module for launching or docking applications aka button bar", NULL, 0 };
 
 
 flag_options_xref WharfFlags[] = {
-	{WHARF_NO_PUSH, WHARF_NoPush_ID, 0},
-    {WHARF_FULL_PUSH, 0, WHARF_FullPush_ID },
-	{WHARF_NO_BORDER, WHARF_NoBorder_ID, WHARF_Bevel_ID},
-	{WHARF_NO_WITHDRAW, WHARF_NoWithdraw_ID, 0},
-	{WHARF_ANIMATE_MAIN, WHARF_AnimateMain_ID, 0},
-	{WHARF_ANIMATE, WHARF_Animate_ID, 0},
-    {WHARF_SHOW_LABEL, WHARF_ShowLabel_ID, 0},
-    {WHARF_FlipLabel, WHARF_FlipLabel_ID, 0},
-    {WHARF_FitContents, WHARF_FitContents_ID, 0},
-    {WHARF_ShapeToContents, WHARF_ShapeToContents_ID, 0 },
-    {WHARF_StretchBackground, WHARF_StretchBackground_ID, 0 },
-    {0, 0, 0}
+	{WHARF_NO_PUSH, WHARF_NoPush_ID, 0}
+	,
+	{WHARF_FULL_PUSH, 0, WHARF_FullPush_ID}
+	,
+	{WHARF_NO_BORDER, WHARF_NoBorder_ID, WHARF_Bevel_ID}
+	,
+	{WHARF_NO_WITHDRAW, WHARF_NoWithdraw_ID, 0}
+	,
+	{WHARF_ANIMATE_MAIN, WHARF_AnimateMain_ID, 0}
+	,
+	{WHARF_ANIMATE, WHARF_Animate_ID, 0}
+	,
+	{WHARF_SHOW_LABEL, WHARF_ShowLabel_ID, 0}
+	,
+	{WHARF_FlipLabel, WHARF_FlipLabel_ID, 0}
+	,
+	{WHARF_FitContents, WHARF_FitContents_ID, 0}
+	,
+	{WHARF_ShapeToContents, WHARF_ShapeToContents_ID, 0}
+	,
+	{WHARF_StretchBackground, WHARF_StretchBackground_ID, 0}
+	,
+	{0, 0, 0}
 };
 
 WharfButton  *
@@ -184,29 +216,31 @@ CreateWharfButton ()
 }
 
 void
-DestroyWharfButton (WharfButton **pbtn)
+DestroyWharfButton (WharfButton ** pbtn)
 {
-    WharfButton *btn = *pbtn ;
+	WharfButton  *btn = *pbtn;
 
 	if (btn == NULL)
 		return;
-    *pbtn = btn->next ;
+	*pbtn = btn->next;
 
-    /* delete members */
+	/* delete members */
 	if (btn->title != NULL)
 		free (btn->title);
 	if (btn->comment != NULL)
 		free (btn->comment);
 
-	if( btn->contents )
+	if (btn->contents)
 	{
-		int k ;
-		for( k = 0 ; k < btn->contents_num ; ++k )
+		int           k;
+
+		for (k = 0; k < btn->contents_num; ++k)
 		{
-			char **icon = btn->contents[k].icon ;
-			FunctionData *function = btn->contents[k].function ;
+			char        **icon = btn->contents[k].icon;
+			FunctionData *function = btn->contents[k].function;
+
 			if (icon != NULL)
-				destroy_string_list( icon, 0 );
+				destroy_string_list (icon, 0);
 
 			if (function)
 			{
@@ -214,12 +248,12 @@ DestroyWharfButton (WharfButton **pbtn)
 				free (function);
 			}
 		}
-		free( btn->contents ) ;
+		free (btn->contents);
 	}
 
 
 	while (btn->folder)
-        DestroyWharfButton (&(btn->folder));
+		DestroyWharfButton (&(btn->folder));
 
 	free (btn);
 }
@@ -233,16 +267,16 @@ CreateWharfConfig ()
 	/* let's initialize Base config with some nice values: */
 	config->geometry.flags = WidthValue | HeightValue;
 	config->geometry.width = config->geometry.height = 64;
-    config->withdraw_style = WITHDRAW_ON_EDGE_BUTTON_AND_SHOW ;
-    
-	config->AlignContents = WHARF_DEFAULT_AlignContents ;
-	config->ShowHints = WHARF_DEFAULT_ShowHints ;
+	config->withdraw_style = WITHDRAW_ON_EDGE_BUTTON_AND_SHOW;
+
+	config->AlignContents = WHARF_DEFAULT_AlignContents;
+	config->ShowHints = WHARF_DEFAULT_ShowHints;
 
 	config->more_stuff = NULL;
 
-    config->CompositionMethod = WHARF_DEFAULT_CompositionMethod ;
-	config->FolderOffset = WHARF_DEFAULT_FolderOffset ;
-	config->OrthogonalFolderOffset = WHARF_DEFAULT_OrthogonalFolderOffset ;
+	config->CompositionMethod = WHARF_DEFAULT_CompositionMethod;
+	config->FolderOffset = WHARF_DEFAULT_FolderOffset;
+	config->OrthogonalFolderOffset = WHARF_DEFAULT_OrthogonalFolderOffset;
 
 	return config;
 }
@@ -250,7 +284,7 @@ CreateWharfConfig ()
 void
 DestroyWharfConfig (WharfConfig * config)
 {
-    register int i ;
+	register int  i;
 
 	if (config->bg_color)
 		free (config->bg_color);
@@ -258,12 +292,12 @@ DestroyWharfConfig (WharfConfig * config)
 		free (config->texture_color);
 	if (config->pixmap)
 		free (config->pixmap);
-	for( i = 0 ; i< WHEV_MAX_EVENTS ; i++ )
+	for (i = 0; i < WHEV_MAX_EVENTS; i++)
 		if (config->sounds[i])
 			free (config->sounds[i]);
 
 	while (config->root_folder)
-        DestroyWharfButton (&(config->root_folder));
+		DestroyWharfButton (&(config->root_folder));
 
 	Destroy_balloonConfig (config->balloon_conf);
 	DestroyFreeStorage (&(config->more_stuff));
@@ -271,98 +305,106 @@ DestroyWharfConfig (WharfConfig * config)
 }
 
 int
-print_wharf_folder( WharfButton *folder, int level )
+print_wharf_folder (WharfButton * folder, int level)
 {
-    int count = 1 ;
-    int my_level = level ;
-    while( folder )
-    {
-        int i = 0;
-        show_progress("WHARF.FOLDER[%d].BUTTON[%d].set_flags=0x%lX;", my_level, count, folder->set_flags );
-        show_progress("WHARF.FOLDER[%d].BUTTON[%d].title=\"%s\";", my_level, count, folder->title );
-        show_progress("WHARF.FOLDER[%d].BUTTON[%d].width=%d;", my_level, count, folder->width );
-        show_progress("WHARF.FOLDER[%d].BUTTON[%d].height=%d;", my_level, count, folder->height );
-		if( folder->contents )
-		{
-			int k ;
-			for( k = 0 ; k < folder->contents_num ; ++k )
-			{
-				char **icon = folder->contents[k].icon ;
-				FunctionData *function = folder->contents[k].function ;
-				i = 0 ;
-        		if( icon )
-            		while( icon[i] != NULL )
-            		{
-                		show_progress("WHARF.FOLDER[%d].BUTTON[%d].CONTNTS[%d].icon[%d]=\"%s\";", my_level, count, k, i, icon[i] );
-                		++i;
-            		}
-        		if( function )
-            		print_func_data(__FILE__, __FUNCTION__, __LINE__, function);
-        		else
-            		show_progress( "no function attached" );
-			}
-		}else
-           	show_progress( "no contents attached" );
+	int           count = 1;
+	int           my_level = level;
 
-        if( folder->folder )
-            level = print_wharf_folder( folder->folder, level+1 );
-        ++count ;
-        folder = folder->next ;
-    }
-    return level;
+	while (folder)
+	{
+		int           i = 0;
+
+		show_progress ("WHARF.FOLDER[%d].BUTTON[%d].set_flags=0x%lX;", my_level, count, folder->set_flags);
+		show_progress ("WHARF.FOLDER[%d].BUTTON[%d].title=\"%s\";", my_level, count, folder->title);
+		show_progress ("WHARF.FOLDER[%d].BUTTON[%d].width=%d;", my_level, count, folder->width);
+		show_progress ("WHARF.FOLDER[%d].BUTTON[%d].height=%d;", my_level, count, folder->height);
+		if (folder->contents)
+		{
+			int           k;
+
+			for (k = 0; k < folder->contents_num; ++k)
+			{
+				char        **icon = folder->contents[k].icon;
+				FunctionData *function = folder->contents[k].function;
+
+				i = 0;
+				if (icon)
+					while (icon[i] != NULL)
+					{
+						show_progress ("WHARF.FOLDER[%d].BUTTON[%d].CONTNTS[%d].icon[%d]=\"%s\";", my_level, count, k,
+									   i, icon[i]);
+						++i;
+					}
+				if (function)
+					print_func_data (__FILE__, __FUNCTION__, __LINE__, function);
+				else
+					show_progress ("no function attached");
+			}
+		} else
+			show_progress ("no contents attached");
+
+		if (folder->folder)
+			level = print_wharf_folder (folder->folder, level + 1);
+		++count;
+		folder = folder->next;
+	}
+	return level;
 }
 
 void
-PrintWharfConfig(WharfConfig *config )
+PrintWharfConfig (WharfConfig * config)
 {
-    show_progress( "WHARF.flags=0x%lX;", config->flags );
-    show_progress( "WHARF.set_flags=0x%lX;", config->set_flags );
-    if( get_flags(config->set_flags, WHARF_ROWS) )
-        show_progress( "WHARF.rows=%d;", config->rows );
+	show_progress ("WHARF.flags=0x%lX;", config->flags);
+	show_progress ("WHARF.set_flags=0x%lX;", config->set_flags);
+	if (get_flags (config->set_flags, WHARF_ROWS))
+		show_progress ("WHARF.rows=%d;", config->rows);
 
-    if( get_flags(config->set_flags, WHARF_COLUMNS) )
-        show_progress( "WHARF.columns=%d;", config->columns );
+	if (get_flags (config->set_flags, WHARF_COLUMNS))
+		show_progress ("WHARF.columns=%d;", config->columns);
 
-    if( get_flags( config->set_flags, WHARF_GEOMETRY ) )
-        show_progress( "WHARF.geometry=(0x%lx,%dx%d%+d%+d);", config->geometry.flags, config->geometry.width, config->geometry.height, config->geometry.x, config->geometry.y);
+	if (get_flags (config->set_flags, WHARF_GEOMETRY))
+		show_progress ("WHARF.geometry=(0x%lx,%dx%d%+d%+d);", config->geometry.flags, config->geometry.width,
+					   config->geometry.height, config->geometry.x, config->geometry.y);
 
-    if( get_flags( config->set_flags, WHARF_WITHDRAW_STYLE ) )
-        show_progress( "WHARF.withdraw_style=%d;", config->withdraw_style );
+	if (get_flags (config->set_flags, WHARF_WITHDRAW_STYLE))
+		show_progress ("WHARF.withdraw_style=%d;", config->withdraw_style);
 
-    if( get_flags( config->set_flags, WHARF_FORCE_SIZE ) )
-        show_progress( "WHARF.force_size=(0x%lx,%dx%d%+d%+d);", config->force_size.flags, config->force_size.width, config->force_size.height, config->force_size.x, config->force_size.y);
+	if (get_flags (config->set_flags, WHARF_FORCE_SIZE))
+		show_progress ("WHARF.force_size=(0x%lx,%dx%d%+d%+d);", config->force_size.flags, config->force_size.width,
+					   config->force_size.height, config->force_size.x, config->force_size.y);
 
-    if( get_flags( config->set_flags, WHARF_ANIMATE_STEPS ) )
-        show_progress( "WHARF.animate_steps=%d;", config->animate_steps );
-    if( get_flags( config->set_flags, WHARF_ANIMATE_STEPS_MAIN ) )
-        show_progress( "WHARF.animate_steps_main=%d;", config->animate_steps_main );
-    if( get_flags( config->set_flags, WHARF_ANIMATE_DELAY ) )
-        show_progress( "WHARF.animate_delay=%d;", config->animate_delay );
+	if (get_flags (config->set_flags, WHARF_ANIMATE_STEPS))
+		show_progress ("WHARF.animate_steps=%d;", config->animate_steps);
+	if (get_flags (config->set_flags, WHARF_ANIMATE_STEPS_MAIN))
+		show_progress ("WHARF.animate_steps_main=%d;", config->animate_steps_main);
+	if (get_flags (config->set_flags, WHARF_ANIMATE_DELAY))
+		show_progress ("WHARF.animate_delay=%d;", config->animate_delay);
 
-    if( get_flags( config->set_flags, WHARF_SOUND ) )
-    {
-        int i ;
-        for( i = 0 ; i < WHEV_MAX_EVENTS ; ++i )
-            show_progress( "WHARF.sounds[%d]=\"%s\";", i, config->sounds[i] );
-    }
-	
-	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,LabelLocation);
-	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,FlipLabel);
-	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,FitContents);
-	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,ShapeToContents );
-	ASCF_PRINT_FLAG_KEYWORD(stderr,WHARF,config,StretchBackground );
-	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,AlignContents );
-	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,Bevel );
-	ASCF_PRINT_FLAGS_KEYWORD(stderr,WHARF,config,ShowHints );
-	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,CompositionMethod);
-	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,FolderOffset);
-	ASCF_PRINT_INT_KEYWORD(stderr,WHARF,config,OrthogonalFolderOffset);
-    
-	print_wharf_folder( config->root_folder, 1 );
+	if (get_flags (config->set_flags, WHARF_SOUND))
+	{
+		int           i;
+
+		for (i = 0; i < WHEV_MAX_EVENTS; ++i)
+			show_progress ("WHARF.sounds[%d]=\"%s\";", i, config->sounds[i]);
+	}
+
+	ASCF_PRINT_INT_KEYWORD (stderr, WHARF, config, LabelLocation);
+	ASCF_PRINT_FLAG_KEYWORD (stderr, WHARF, config, FlipLabel);
+	ASCF_PRINT_FLAG_KEYWORD (stderr, WHARF, config, FitContents);
+	ASCF_PRINT_FLAG_KEYWORD (stderr, WHARF, config, ShapeToContents);
+	ASCF_PRINT_FLAG_KEYWORD (stderr, WHARF, config, StretchBackground);
+	ASCF_PRINT_FLAGS_KEYWORD (stderr, WHARF, config, AlignContents);
+	ASCF_PRINT_FLAGS_KEYWORD (stderr, WHARF, config, Bevel);
+	ASCF_PRINT_FLAGS_KEYWORD (stderr, WHARF, config, ShowHints);
+	ASCF_PRINT_INT_KEYWORD (stderr, WHARF, config, CompositionMethod);
+	ASCF_PRINT_INT_KEYWORD (stderr, WHARF, config, FolderOffset);
+	ASCF_PRINT_INT_KEYWORD (stderr, WHARF, config, OrthogonalFolderOffset);
+
+	print_wharf_folder (config->root_folder, 1);
 
 }
 
-void print_trimmed_str( char *prompt, char * str );
+void          print_trimmed_str (char *prompt, char *str);
 
 unsigned long
 WharfSpecialFunc (ConfigDef * config)
@@ -370,173 +412,179 @@ WharfSpecialFunc (ConfigDef * config)
 	TermDef      *pterm;
 	register char *cur;
 
-    LOCAL_DEBUG_CALLER_OUT("%p", config);
-	if (config == NULL )
+	LOCAL_DEBUG_CALLER_OUT ("%p", config);
+	if (config == NULL)
 		return SPECIAL_BREAK;
 
 	/* checking if we have ~Folders in here */
-    LOCAL_DEBUG_OUT("checking for ~folders at :%s", "" );
-    print_trimmed_str( "config->tdata", config->tdata );
-    print_trimmed_str( "config->tline", config->tline );
-    print_trimmed_str( "config->cursor", config->cursor );
-    if ((pterm = FindStatementTerm (config->tdata, &WharfSyntax)) == NULL)
-        if (mystrncasecmp (config->tdata, "~Folders", 7) == 0)
-        {
-            show_error( " config line %d: ~Folders keyword is no longer supported. \nPlease Update your configuration to use ~Folder instead!\n Please Accept our apologies for any inconvinience.", config->line_count);
-            pterm = FindStatementTerm (WHARF_FOLDER_END, &WharfSyntax);
-        }
+	LOCAL_DEBUG_OUT ("checking for ~folders at :%s", "");
+	print_trimmed_str ("config->tdata", config->tdata);
+	print_trimmed_str ("config->tline", config->tline);
+	print_trimmed_str ("config->cursor", config->cursor);
+	if ((pterm = FindStatementTerm (config->tdata, &WharfSyntax)) == NULL)
+		if (mystrncasecmp (config->tdata, "~Folders", 7) == 0)
+		{
+			show_error
+				(" config line %d: ~Folders keyword is no longer supported. \nPlease Update your configuration to use ~Folder instead!\n Please Accept our apologies for any inconvinience.",
+				 config->line_count);
+			pterm = FindStatementTerm (WHARF_FOLDER_END, &WharfSyntax);
+		}
 
-    if( pterm != NULL )
+	if (pterm != NULL)
 	{
-        LOCAL_DEBUG_OUT("term %p found keyword :[%s]", pterm, pterm->keyword );
-        if (pterm->id == WHARF_FolderEnd_ID)
+		LOCAL_DEBUG_OUT ("term %p found keyword :[%s]", pterm, pterm->keyword);
+		if (pterm->id == WHARF_FolderEnd_ID)
 		{
 			config->current_term = pterm;
 			/* we are 2 levels deep, and FolderEnd will get us only 1 level up
-               so we need to climb another level ourselves : */
-            LOCAL_DEBUG_OUT( "folder end - Poping out%s", "");
+			   so we need to climb another level ourselves : */
+			LOCAL_DEBUG_OUT ("folder end - Poping out%s", "");
 			PopSyntax (config);
 			PopStorage (config);
 			return SPECIAL_SKIP;			   /* don't care what will happen */
 		}
 	}
-    /* processing wharf item name and icons : */
+	/* processing wharf item name and icons : */
 	ProcessStatement (config);
-    /* since we have have subconfig of Functions that has \n as line terminator
-     * we are going to get entire line again at config->cursor
-     * so lets skip 3 tokens of <name> <icon>, since those are not parts
-     * of following function */
-    print_trimmed_str("skiping 2 tokens at", config->tdata );
-    cur = tokenskip( config->tdata, 2 );
-    print_trimmed_str("skipped to", cur );
+	/* since we have have subconfig of Functions that has \n as line terminator
+	 * we are going to get entire line again at config->cursor
+	 * so lets skip 3 tokens of <name> <icon>, since those are not parts
+	 * of following function */
+	print_trimmed_str ("skiping 2 tokens at", config->tdata);
+	cur = tokenskip (config->tdata, 2);
+	print_trimmed_str ("skipped to", cur);
 	if (*cur != '\0')
 	{
 		char         *good_cursor;
 		TermDef      *pterm;
 
-        good_cursor = config->cursor ;
+		good_cursor = config->cursor;
 		config->cursor = cur;
-        /* we are at the beginning of the function definition right now - lets process it :*/
-        /* read in entire function definition */
+		/* we are at the beginning of the function definition right now - lets process it : */
+		/* read in entire function definition */
 		GetNextStatement (config);
-        /* lets find us the term for this definition */
-        print_trimmed_str( "config->current_data", config->current_data );
-        LOCAL_DEBUG_OUT( "curr_data_len = %d", config->current_data_len);
-        print_trimmed_str("checking keyword at", config->tline );
+		/* lets find us the term for this definition */
+		print_trimmed_str ("config->current_data", config->current_data);
+		LOCAL_DEBUG_OUT ("curr_data_len = %d", config->current_data_len);
+		print_trimmed_str ("checking keyword at", config->tline);
 		if ((pterm = FindStatementTerm (config->tline, config->syntax)) == NULL)
-        {   /* courtesy check for mistyped Folder keyword : */
+		{									   /* courtesy check for mistyped Folder keyword : */
 			if (mystrncasecmp (config->tline, "Folders", 7) == 0)
-            {
-                show_error( " config line %d: Folders keyword is no longer supported. \nPlease Update your configuration to use Folder instead!\n Please Accept our apologies for any inconvinience.", config->line_count);
-                pterm = FindStatementTerm ("Folder", config->syntax);
-            }
-        }
-
-        if( pterm == NULL )
-        {
-            /* we are 2 levels deep, and FolderEnd will get us only 1 level up
-               so we need to climb another level ourselves : */
-			PopSyntax (config);
-			PopStorage (config);
-        }else
-        {   /* we have a valid function definition : */
-			config->current_term = pterm;
-            /* we do not want to continue processing the rest of the config as
-             * a functions : */
-			config->current_flags |= CF_LAST_OPTION;
-            /* some wierd code to handle the fact that Folder is not really a function,
-             * but instead a start for new nested set of Wharf items : */
-            LOCAL_DEBUG_OUT("processing function definition statement...%s","");
-			ProcessStatement (config);
-			if (config->current_term->id == F_Folder)
-            {   /* in which case we let parser to carry on the parsing of the Folder item,
-                 * which will get us into nested WharfSyntax subsyntax */
-                config->current_flags &= ~CF_LAST_OPTION;
+			{
+				show_error
+					(" config line %d: Folders keyword is no longer supported. \nPlease Update your configuration to use Folder instead!\n Please Accept our apologies for any inconvinience.",
+					 config->line_count);
+				pterm = FindStatementTerm ("Folder", config->syntax);
 			}
 		}
-        /* restarting parsing from the same location : */
-        if( config->cursor < good_cursor )
-            config->cursor = good_cursor;
-        LOCAL_DEBUG_OUT("done processing function definition statement...%s","");
-	}else
+
+		if (pterm == NULL)
+		{
+			/* we are 2 levels deep, and FolderEnd will get us only 1 level up
+			   so we need to climb another level ourselves : */
+			PopSyntax (config);
+			PopStorage (config);
+		} else
+		{									   /* we have a valid function definition : */
+			config->current_term = pterm;
+			/* we do not want to continue processing the rest of the config as
+			 * a functions : */
+			config->current_flags |= CF_LAST_OPTION;
+			/* some wierd code to handle the fact that Folder is not really a function,
+			 * but instead a start for new nested set of Wharf items : */
+			LOCAL_DEBUG_OUT ("processing function definition statement...%s", "");
+			ProcessStatement (config);
+			if (config->current_term->id == F_Folder)
+			{								   /* in which case we let parser to carry on the parsing of the Folder item,
+											    * which will get us into nested WharfSyntax subsyntax */
+				config->current_flags &= ~CF_LAST_OPTION;
+			}
+		}
+		/* restarting parsing from the same location : */
+		if (config->cursor < good_cursor)
+			config->cursor = good_cursor;
+		LOCAL_DEBUG_OUT ("done processing function definition statement...%s", "");
+	} else
 	{
-        show_error( " config line %d: Function is not defined for the button. Use Nop if no action is desired..", config->line_count);
+		show_error (" config line %d: Function is not defined for the button. Use Nop if no action is desired..",
+					config->line_count);
 		/* function is ommited ! */
 		PopSyntax (config);
 		PopStorage (config);
-	}	 
-    print_trimmed_str( "config->tdata", config->tdata );
-    print_trimmed_str( "config->tline", config->tline );
-    print_trimmed_str( "config->cursor", config->cursor );
-    /* already done processing current statement - let parser know about it : */
-    return SPECIAL_SKIP;
+	}
+	print_trimmed_str ("config->tdata", config->tdata);
+	print_trimmed_str ("config->tline", config->tline);
+	print_trimmed_str ("config->cursor", config->cursor);
+	/* already done processing current statement - let parser know about it : */
+	return SPECIAL_SKIP;
 }
 
-void ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** tail);
+void          ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** tail);
 
 void
-ParseWharfItem (FreeStorageElem * storage, WharfButton **folder)
+ParseWharfItem (FreeStorageElem * storage, WharfButton ** folder)
 {
-    WharfButton *wb = *folder, **insert = folder ;
-    Bool no_title ;
-	WharfButtonContent wbc = {	NULL, NULL	};
+	WharfButton  *wb = *folder, **insert = folder;
+	Bool          no_title;
+	WharfButtonContent wbc = { NULL, NULL };
 
-    if (storage == NULL || folder == NULL)
-        return;
-    if (storage->argc < 2)
-        return;
-    no_title = (storage->argv[0][0] == '-' && storage->argv[0][1] == '\0') ||
-               (mystrcasecmp( storage->argv[0], "nil") == 0) ;
-    insert = folder ;
-    if( !no_title )
-    {
-        while( wb != NULL && ( wb->title == NULL || strcmp( wb->title, storage->argv[0]) != 0 ))
-        {
-            insert = &(wb->next) ;
-            wb = wb->next ;
-        }
-    }else
-        while( wb != NULL )
-        {
-            insert = &(wb->next) ;
-            wb = wb->next ;
-        }
+	if (storage == NULL || folder == NULL)
+		return;
+	if (storage->argc < 2)
+		return;
+	no_title = (storage->argv[0][0] == '-' && storage->argv[0][1] == '\0') ||
+		(mystrcasecmp (storage->argv[0], "nil") == 0);
+	insert = folder;
+	if (!no_title)
+	{
+		while (wb != NULL && (wb->title == NULL || strcmp (wb->title, storage->argv[0]) != 0))
+		{
+			insert = &(wb->next);
+			wb = wb->next;
+		}
+	} else
+		while (wb != NULL)
+		{
+			insert = &(wb->next);
+			wb = wb->next;
+		}
 
-    if (wb == NULL)
-    {
-        if ((wb = CreateWharfButton ()) == NULL)
-            return;
-        *insert = wb ;
-    }
-    if (wb->title)
-        free (wb->title);
-    wb->title = mystrdup (storage->argv[0]);
+	if (wb == NULL)
+	{
+		if ((wb = CreateWharfButton ()) == NULL)
+			return;
+		*insert = wb;
+	}
+	if (wb->title)
+		free (wb->title);
+	wb->title = mystrdup (storage->argv[0]);
 
-    {
-        char **new_icon_list = comma_string2list (storage->argv[1]);
-        if (new_icon_list)
-        {
-            register char *ptr;
-            register int  null_icon = 0;
+	{
+		char        **new_icon_list = comma_string2list (storage->argv[1]);
 
-            if ((ptr = new_icon_list[0]) == NULL)
-                null_icon++;
-            else if (*(ptr) == '-' && *(ptr + 1) == '\0')
-                null_icon++;
-            else if (mystrcasecmp (ptr, "nil") == 0)
-                null_icon++;
+		if (new_icon_list)
+		{
+			register char *ptr;
+			register int  null_icon = 0;
 
-            if (null_icon > 0)
-            {
-				destroy_string_list( new_icon_list, 0);		
-                new_icon_list = NULL;
-            }
-        }
+			if ((ptr = new_icon_list[0]) == NULL)
+				null_icon++;
+			else if (*(ptr) == '-' && *(ptr + 1) == '\0')
+				null_icon++;
+			else if (mystrcasecmp (ptr, "nil") == 0)
+				null_icon++;
 
-		wbc.icon = new_icon_list ;
-    }
+			if (null_icon > 0)
+			{
+				destroy_string_list (new_icon_list, 0);
+				new_icon_list = NULL;
+			}
+		}
 
-LOCAL_DEBUG_OUT( "wharf button \"%s\" has substorage set to %p", wb->title, storage->sub );
+		wbc.icon = new_icon_list;
+	}
+
+	LOCAL_DEBUG_OUT ("wharf button \"%s\" has substorage set to %p", wb->title, storage->sub);
 	if (storage->sub)
 	{
 		FreeStorageElem *pstorage = storage->sub;
@@ -544,67 +592,70 @@ LOCAL_DEBUG_OUT( "wharf button \"%s\" has substorage set to %p", wb->title, stor
 
 		if (pterm != NULL)
 		{
-LOCAL_DEBUG_OUT( "term for keyword \"%s\" found in substorage", pterm->keyword );
-            if( pterm->id == F_Folder )
-            {
-				 if (pstorage->sub)
-				 {
-					 pstorage = pstorage->sub;
-                     ParseWharfFolder (&pstorage, &(wb->folder));
-				 }
-            }else if( pterm->id == F_Transient )
+			LOCAL_DEBUG_OUT ("term for keyword \"%s\" found in substorage", pterm->keyword);
+			if (pterm->id == F_Folder)
 			{
-				set_flags(  wb->set_flags, WHARF_BUTTON_TRANSIENT );
-			}else if (pterm->type == TT_FUNCTION)
+				if (pstorage->sub)
+				{
+					pstorage = pstorage->sub;
+					ParseWharfFolder (&pstorage, &(wb->folder));
+				}
+			} else if (pterm->id == F_Transient)
+			{
+				set_flags (wb->set_flags, WHARF_BUTTON_TRANSIENT);
+			} else if (pterm->type == TT_FUNCTION)
 			{
 				ConfigItem    item;
+
 				item.memory = NULL;
 				if (ReadConfigItem (&item, pstorage))
 				{
-					if( pterm->id == F_Size )
+					if (pterm->id == F_Size)
 					{
-						set_flags( wb->set_flags, WHARF_BUTTON_SIZE );
-						wb->width  = item.data.function->func_val[0] ;
-						wb->height = item.data.function->func_val[1] ;
-						item.ok_to_free=1 ;
-					}else
+						set_flags (wb->set_flags, WHARF_BUTTON_SIZE);
+						wb->width = item.data.function->func_val[0];
+						wb->height = item.data.function->func_val[1];
+						item.ok_to_free = 1;
+					} else
 					{
-                    	wbc.function = item.data.function;
-						item.ok_to_free = 0 ;
+						wbc.function = item.data.function;
+						item.ok_to_free = 0;
 					}
-					ReadConfigItem( &item, NULL );
+					ReadConfigItem (&item, NULL);
 				}
 			}
 		}
 	}
-	if( wbc.function != NULL || wbc.icon != NULL )
+	if (wbc.function != NULL || wbc.icon != NULL)
 	{
-		int c = wb->contents_num ;
+		int           c = wb->contents_num;
+
 		++(wb->contents_num);
-		wb->contents = realloc( wb->contents, wb->contents_num * sizeof(WharfButtonContent));
-		wb->contents[c] = wbc ;
+		wb->contents = realloc (wb->contents, wb->contents_num * sizeof (WharfButtonContent));
+		wb->contents[c] = wbc;
 	}
 }
 
 void
 ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** folder)
 {
-    if (storage_tail != NULL && folder != NULL)
-    {
-        register FreeStorageElem *folder_storage = (*storage_tail);
-        while (folder_storage != NULL)
-        {
-            if (folder_storage->term->id != WHARF_Wharf_ID)
-                break;
-            ParseWharfItem (folder_storage, folder);
-            /* keep parameter pointing to the last processed item */
-            *storage_tail = folder_storage;
-            /* while advancing internal pointer ahead.
-            we have to do that as our caller will
-            expect storage_tail to be pointing to last  processed item */
-            folder_storage = folder_storage->next;
-        }
-    }
+	if (storage_tail != NULL && folder != NULL)
+	{
+		register FreeStorageElem *folder_storage = (*storage_tail);
+
+		while (folder_storage != NULL)
+		{
+			if (folder_storage->term->id != WHARF_Wharf_ID)
+				break;
+			ParseWharfItem (folder_storage, folder);
+			/* keep parameter pointing to the last processed item */
+			*storage_tail = folder_storage;
+			/* while advancing internal pointer ahead.
+			   we have to do that as our caller will
+			   expect storage_tail to be pointing to last  processed item */
+			folder_storage = folder_storage->next;
+		}
+	}
 }
 
 
@@ -612,21 +663,21 @@ ParseWharfFolder (FreeStorageElem ** storage_tail, WharfButton ** folder)
 WharfConfig  *
 ParseWharfOptions (const char *filename, char *myname)
 {
-	ConfigData    cd ;
+	ConfigData    cd;
 	ConfigDef    *ConfigReader;
 	WharfConfig  *config = CreateWharfConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 	TermDef      *folder_term = func2fterm (F_Folder, False);
 
-	cd.filename = filename ;
-	ConfigReader = InitConfigReader (myname, &WharfSyntax, CDT_Filename, cd, NULL /*WharfSpecialFunc*/);
+	cd.filename = filename;
+	ConfigReader = InitConfigReader (myname, &WharfSyntax, CDT_Filename, cd, NULL /*WharfSpecialFunc */ );
 	if (!ConfigReader)
 		return config;
 
-    folder_term->sub_syntax = &WharfSyntax ;
+	folder_term->sub_syntax = &WharfSyntax;
 
-    item.memory = NULL;
+	item.memory = NULL;
 	PrintConfigReader (ConfigReader);
 	ParseConfig (ConfigReader, &Storage);
 
@@ -639,9 +690,9 @@ ParseWharfOptions (const char *filename, char *myname)
 	{
 		if (pCurr->term == NULL)
 			continue;
-        if (ReadFlagItem (&(config->set_flags), &(config->flags), pCurr, WharfFlags))
+		if (ReadFlagItem (&(config->set_flags), &(config->flags), pCurr, WharfFlags))
 		{
-            continue;
+			continue;
 		}
 		if (!ReadConfigItem (&item, pCurr))
 			continue;
@@ -649,7 +700,7 @@ ParseWharfOptions (const char *filename, char *myname)
 		{
 		 case WHARF_Wharf_ID:
 			 item.ok_to_free = 1;
-             ParseWharfFolder (&pCurr, &(config->root_folder));
+			 ParseWharfFolder (&pCurr, &(config->root_folder));
 			 break;
 		 case WHARF_Geometry_ID:
 			 set_flags (config->set_flags, WHARF_GEOMETRY);
@@ -721,29 +772,29 @@ ParseWharfOptions (const char *filename, char *myname)
 			 }
 			 item.ok_to_free = 1;
 			 break;
-		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,LabelLocation ); 
-		ASCF_HANDLE_ALIGN_KEYWORD_CASE(WHARF,config,pCurr,AlignContents ); 
-		ASCF_HANDLE_BEVEL_KEYWORD_CASE(WHARF,config,pCurr,Bevel); 
-		ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE(WHARF,config,pCurr,ShowHints,BalloonContents);
-		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,CompositionMethod ); 
-		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,FolderOffset ); 
-		ASCF_HANDLE_INTEGER_KEYWORD_CASE(WHARF,config,item,OrthogonalFolderOffset ); 
+			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (WHARF, config, item, LabelLocation);
+			 ASCF_HANDLE_ALIGN_KEYWORD_CASE (WHARF, config, pCurr, AlignContents);
+			 ASCF_HANDLE_BEVEL_KEYWORD_CASE (WHARF, config, pCurr, Bevel);
+			 ASCF_HANDLE_SUBSYNTAX_KEYWORD_CASE (WHARF, config, pCurr, ShowHints, BalloonContents);
+			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (WHARF, config, item, CompositionMethod);
+			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (WHARF, config, item, FolderOffset);
+			 ASCF_HANDLE_INTEGER_KEYWORD_CASE (WHARF, config, item, OrthogonalFolderOffset);
 		 default:
 			 if (pCurr->term->type != TT_FLAG)
 				 item.ok_to_free = 1;
 		}
 	}
-	if( get_flags( config->set_flags, WHARF_Bevel ) )
-		clear_flags( config->flags, WHARF_NO_BORDER );
-		
+	if (get_flags (config->set_flags, WHARF_Bevel))
+		clear_flags (config->flags, WHARF_NO_BORDER);
+
 
 	ReadConfigItem (&item, NULL);
-SHOW_CHECKPOINT;
-    DestroyConfig (ConfigReader);
-SHOW_CHECKPOINT;
-    DestroyFreeStorage (&Storage);
-SHOW_CHECKPOINT;
-    return config;
+	SHOW_CHECKPOINT;
+	DestroyConfig (ConfigReader);
+	SHOW_CHECKPOINT;
+	DestroyFreeStorage (&Storage);
+	SHOW_CHECKPOINT;
+	return config;
 }
 
 
@@ -839,20 +890,20 @@ WriteWharfOptions (const char *filename, char *myname, WharfConfig * config, uns
 {
 	ConfigDef    *WharfConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
-	TermDef *folder_term = func2fterm( F_Folder, True);
-	int i ;
+	TermDef      *folder_term = func2fterm (F_Folder, True);
+	int           i;
 
 	if (config == NULL)
 		return 1;
 
-    folder_term->sub_syntax = &WharfSyntax ;
+	folder_term->sub_syntax = &WharfSyntax;
 
-    if ((WharfConfigWriter = InitConfigWriter (myname, &WharfSyntax, CDT_Filename, (void *)filename)) == NULL)
+	if ((WharfConfigWriter = InitConfigWriter (myname, &WharfSyntax, CDT_Filename, (void *)filename)) == NULL)
 		return 2;
 
-    CopyFreeStorage (&Storage, config->more_stuff);
+	CopyFreeStorage (&Storage, config->more_stuff);
 
-    if (config->style_defs)
+	if (config->style_defs)
 		*tail = MyStyleDefinitionsList2free_storage (config->style_defs, &WharfSyntax);
 
 	if (config->balloon_conf)
@@ -867,25 +918,25 @@ WriteWharfOptions (const char *filename, char *myname, WharfConfig * config, uns
 	/* Integer values : */
 	/* rows */
 	if (get_flags (config->set_flags, WHARF_ROWS))
-        tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->rows, WHARF_Rows_ID);
+		tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->rows, WHARF_Rows_ID);
 	/* columns */
 	if (get_flags (config->set_flags, WHARF_COLUMNS))
-        tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->columns, WHARF_Columns_ID);
+		tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->columns, WHARF_Columns_ID);
 	/* withdraw_style */
 	if (get_flags (config->set_flags, WHARF_WITHDRAW_STYLE))
-        tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->withdraw_style, WHARF_WithdrawStyle_ID);
+		tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->withdraw_style, WHARF_WithdrawStyle_ID);
 	/* texture_type  */
 	if (get_flags (config->set_flags, WHARF_TEXTURE_TYPE))
-        tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->texture_type, WHARF_TextureType_ID);
+		tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->texture_type, WHARF_TextureType_ID);
 	/* animate_steps */
 	if (get_flags (config->set_flags, WHARF_ANIMATE_STEPS))
-        tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->animate_steps, WHARF_AnimateSteps_ID);
+		tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->animate_steps, WHARF_AnimateSteps_ID);
 	/* animate_steps_main */
 	if (get_flags (config->set_flags, WHARF_ANIMATE_STEPS_MAIN))
-        tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->animate_steps_main, WHARF_AnimateStepsMain_ID);
+		tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->animate_steps_main, WHARF_AnimateStepsMain_ID);
 	/* animate_delay */
 	if (get_flags (config->set_flags, WHARF_ANIMATE_DELAY))
-        tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->animate_delay, WHARF_AnimateDelay_ID);
+		tail = Integer2FreeStorage (&WharfSyntax, tail, NULL, config->animate_delay, WHARF_AnimateDelay_ID);
 
 
 	/* Flags : */
@@ -906,7 +957,7 @@ WriteWharfOptions (const char *filename, char *myname, WharfConfig * config, uns
 
 	/* sound */
 	if (get_flags (config->set_flags, WHARF_SOUND))
-		for( i = 0 ; i < WHEV_MAX_EVENTS ; i++ )
+		for (i = 0; i < WHEV_MAX_EVENTS; i++)
 			tail = String2FreeStorage (&WharfSyntax, tail, config->sounds[i], WHARF_Sound_ID);
 
 	/* Writing Wharf Entries : */

@@ -64,8 +64,8 @@ CreateIdentConfig ()
 
 	/* let's initialize Ident's config with some nice values: */
 
-    config->style_defs = NULL;
-    config->more_stuff = NULL;
+	config->style_defs = NULL;
+	config->more_stuff = NULL;
 
 	return config;
 }
@@ -73,7 +73,7 @@ CreateIdentConfig ()
 void
 DestroyIdentConfig (IdentConfig * config)
 {
-    DestroyMyStyleDefinitions (&(config->style_defs));
+	DestroyMyStyleDefinitions (&(config->style_defs));
 	DestroyFreeStorage (&(config->more_stuff));
 	free (config);
 }
@@ -81,12 +81,12 @@ DestroyIdentConfig (IdentConfig * config)
 IdentConfig  *
 ParseIdentOptions (const char *filename, char *myname)
 {
-	ConfigData    cd ;
-	ConfigDef    *IdentConfigReader ; 
+	ConfigData    cd;
+	ConfigDef    *IdentConfigReader;
 	IdentConfig  *config = CreateIdentConfig ();
 	FreeStorageElem *Storage = NULL;
 
-	cd.filename = filename ;
+	cd.filename = filename;
 	IdentConfigReader = InitConfigReader (myname, &IdentSyntax, CDT_Filename, cd, NULL);
 	if (!IdentConfigReader)
 		return config;
@@ -116,22 +116,22 @@ WriteIdentOptions (const char *filename, char *myname, IdentConfig * config, uns
 {
 	ConfigDef    *IdentConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
-	ConfigData cd ;
+	ConfigData    cd;
 
 	if (config == NULL)
 		return 1;
-	cd.filename = filename ;
+	cd.filename = filename;
 	if ((IdentConfigWriter = InitConfigWriter (myname, &IdentSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 
 	CopyFreeStorage (&Storage, config->more_stuff);
-    if (config->style_defs)
-        *tail = MyStyleDefinitionsList2free_storage (config->style_defs, &IdentSyntax);
-	ADVANCE_LINKED_LIST_TAIL(tail);
+	if (config->style_defs)
+		*tail = MyStyleDefinitionsList2free_storage (config->style_defs, &IdentSyntax);
+	ADVANCE_LINKED_LIST_TAIL (tail);
 
 	/* building free storage here */
 	/* writing config into the file */
-	cd.filename = filename ;
+	cd.filename = filename;
 	WriteConfig (IdentConfigWriter, Storage, CDT_Filename, &cd, flags);
 	DestroyFreeStorage (&Storage);
 	DestroyConfig (IdentConfigWriter);

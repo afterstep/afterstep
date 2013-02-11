@@ -56,9 +56,9 @@ Atom          _XA_WM_TAKE_FOCUS;
 Atom          _XA_WM_DELETE_WINDOW;
 Atom          _XA_WM_COLORMAP_WINDOWS;
 Atom          _XA_WM_STATE;
-Atom  				_XA_SM_CLIENT_ID;
-Atom  				_XA_WM_WINDOW_ROLE;
-Atom  				_XA_WM_CLIENT_LEADER;
+Atom          _XA_SM_CLIENT_ID;
+Atom          _XA_WM_WINDOW_ROLE;
+Atom          _XA_WM_CLIENT_LEADER;
 
 /* Motif hints */
 Atom          _XA_MwmAtom;
@@ -105,7 +105,7 @@ Atom          _XA_NET_WM_STATE_DEMANDS_ATTENTION;
 Atom          _XA_NET_WM_PID;
 Atom          _XA_NET_WM_ICON;
 Atom          _XA_NET_WM_PING;
-Atom 		  _XA_NET_WM_WINDOW_OPACITY;
+Atom          _XA_NET_WM_WINDOW_OPACITY;
 
 /* Implements KDE System tray specs:
  * http://developer.kde.org/documentation/library/kdeqt/kde3arch/protocols-docking.html
@@ -113,8 +113,8 @@ Atom 		  _XA_NET_WM_WINDOW_OPACITY;
  * http://standards.freedesktop.org/systemtray-spec/systemtray-spec-0.2.html#ftn.id2494129
  * 
  */
-Atom          _XA_KDE_DESKTOP_WINDOW = None ;
-Atom 		  _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR = None;
+Atom          _XA_KDE_DESKTOP_WINDOW = None;
+Atom          _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR = None;
 
 
 /* Crossreferences of atoms into flag value for
@@ -163,7 +163,7 @@ AtomXref      EXTWM_WindowType[] = {
 	{"_NET_WM_WINDOW_TYPE_UTILITY", &_XA_NET_WM_WINDOW_TYPE_UTILITY, EXTWM_TypeUtility},
 	{"_NET_WM_WINDOW_TYPE_SPLASH", &_XA_NET_WM_WINDOW_TYPE_SPLASH, EXTWM_TypeSplash},
 	{"_AS_WM_WINDOW_TYPE_MODULE", &_XA_AS_WM_WINDOW_TYPE_MODULE, EXTWM_TypeASModule},
-	
+
 	{NULL, NULL, 0, None}
 };
 
@@ -175,16 +175,16 @@ AtomXref      _EXTWM_State[] = {
 	{"_NET_WM_STATE_SHADED", &_XA_NET_WM_STATE_SHADED, EXTWM_StateShaded},
 	{"_NET_WM_STATE_SKIP_TASKBAR", &_XA_NET_WM_STATE_SKIP_TASKBAR, EXTWM_StateSkipTaskbar},
 	{"_NET_WM_STATE_SKIP_PAGER", &_XA_NET_WM_STATE_SKIP_PAGER, EXTWM_StateSkipPager},
-	{"_NET_WM_STATE_HIDDEN", &_XA_NET_WM_STATE_HIDDEN,			EXTWM_StateHidden    },
-	{"_NET_WM_STATE_FULLSCREEN", &_XA_NET_WM_STATE_FULLSCREEN, 	EXTWM_StateFullscreen},
-	{"_NET_WM_STATE_ABOVE", &_XA_NET_WM_STATE_ABOVE, 			EXTWM_StateAbove	 },
-	{"_NET_WM_STATE_BELOW", &_XA_NET_WM_STATE_BELOW, 			EXTWM_StateBelow	 },
-	{"_NET_WM_STATE_DEMANDS_ATTENTION", 
-							&_XA_NET_WM_STATE_DEMANDS_ATTENTION,EXTWM_StateDemandsAttention	 },
+	{"_NET_WM_STATE_HIDDEN", &_XA_NET_WM_STATE_HIDDEN, EXTWM_StateHidden},
+	{"_NET_WM_STATE_FULLSCREEN", &_XA_NET_WM_STATE_FULLSCREEN, EXTWM_StateFullscreen},
+	{"_NET_WM_STATE_ABOVE", &_XA_NET_WM_STATE_ABOVE, EXTWM_StateAbove},
+	{"_NET_WM_STATE_BELOW", &_XA_NET_WM_STATE_BELOW, EXTWM_StateBelow},
+	{"_NET_WM_STATE_DEMANDS_ATTENTION",
+	 &_XA_NET_WM_STATE_DEMANDS_ATTENTION, EXTWM_StateDemandsAttention},
 	{NULL, NULL, 0, None}
 };
 
-AtomXref      *EXTWM_State = &(_EXTWM_State[0]);
+AtomXref     *EXTWM_State = &(_EXTWM_State[0]);
 
 AtomXref      EXTWM_Protocols[] = {
 	{"_NET_WM_PING", &_XA_NET_WM_PING, EXTWM_DoesWMPing},
@@ -324,7 +324,7 @@ read_wm_hints (ASRawHints * hints, Window w)
 			XFree (hints->wm_hints);
 
 		if ((hints->wm_hints = XGetWMHints (dpy, w)) != NULL)
-		{	
+		{
 			if (get_flags (hints->wm_hints->flags, WindowGroupHint) && hints->wm_hints->window_group != w)
 			{
 				ASParentHints parent_hints;
@@ -336,32 +336,33 @@ read_wm_hints (ASRawHints * hints, Window w)
 					*(hints->group_leader) = parent_hints;
 				}
 			}
-			if( get_flags (hints->wm_hints->flags, IconWindowHint) )
+			if (get_flags (hints->wm_hints->flags, IconWindowHint))
 			{
 				/* some apps are written by truly insane ppl, most notably those 
 				 * designed to be docked in Window Maker's dock 
 				 * So lets bite the bullet and check if it is indeed sane :*/
-				if( hints->wm_hints->icon_window != w )
+				if (hints->wm_hints->icon_window != w)
 				{
-					unsigned int width, height ;
-					if( !validate_drawable (hints->wm_hints->icon_window, &width, &height) )
-						hints->wm_hints->icon_window = None ;
-					else if( get_parent_window( hints->wm_hints->icon_window ) == w ) 
-					{	
-						if( width == 1 && height == 1 ) 
-						{      /* broken wmdock app - icon is animated, yet not properly sized */
-							XMoveResizeWindow( dpy, hints->wm_hints->icon_window, 0, 0, 64, 64 );
+					unsigned int  width, height;
+
+					if (!validate_drawable (hints->wm_hints->icon_window, &width, &height))
+						hints->wm_hints->icon_window = None;
+					else if (get_parent_window (hints->wm_hints->icon_window) == w)
+					{
+						if (width == 1 && height == 1)
+						{					   /* broken wmdock app - icon is animated, yet not properly sized */
+							XMoveResizeWindow (dpy, hints->wm_hints->icon_window, 0, 0, 64, 64);
 						}
-						set_flags( hints->wm_hints->flags, IconWindowIsChildHint );
-						hints->wm_hints->icon_window = w ;
+						set_flags (hints->wm_hints->flags, IconWindowIsChildHint);
+						hints->wm_hints->icon_window = w;
 					}
 				}
 				/* while merging hints we will disable iconification for the window that 
 				 * has icon window same as client */
 
-				if( hints->wm_hints->icon_window == None )
+				if (hints->wm_hints->icon_window == None)
 					clear_flags (hints->wm_hints->flags, IconWindowHint);
-			}	 
+			}
 		}
 	}
 }
@@ -405,24 +406,25 @@ read_wm_transient_for (ASRawHints * hints, Window w)
 void
 read_wm_protocols (ASRawHints * hints, Window w)
 {
-	LOCAL_DEBUG_CALLER_OUT( "window(%lX)", w );
+	LOCAL_DEBUG_CALLER_OUT ("window(%lX)", w);
 	if (hints && w != None)
 	{
-		CARD32        *protocols = NULL;
+		CARD32       *protocols = NULL;
 		long          nprotos = 0;
 
 		hints->wm_protocols = 0;
 		if (read_32bit_proplist (w, _XA_WM_PROTOCOLS, 3, &protocols, &nprotos))
 		{
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)		
-			char *aname = XGetAtomName(dpy, protocols[0]);
-			LOCAL_DEBUG_OUT( "nprotos=%ld, protocols[0] = 0x%lX(\"%s\")", nprotos, protocols[0], aname);
-			XFree( aname );
-#endif			
+#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)
+			char         *aname = XGetAtomName (dpy, protocols[0]);
+
+			LOCAL_DEBUG_OUT ("nprotos=%ld, protocols[0] = 0x%lX(\"%s\")", nprotos, protocols[0], aname);
+			XFree (aname);
+#endif
 			translate_atom_list (&(hints->wm_protocols), WM_Protocols, protocols, nprotos);
-			LOCAL_DEBUG_OUT( "translated protocols =0x%lX", hints->wm_protocols );
+			LOCAL_DEBUG_OUT ("translated protocols =0x%lX", hints->wm_protocols);
 			translate_atom_list (&(hints->extwm_hints.flags), EXTWM_Protocols, protocols, nprotos);
-			LOCAL_DEBUG_OUT( "translated NET_ protocols =0x%lX", hints->extwm_hints.flags );
+			LOCAL_DEBUG_OUT ("translated NET_ protocols =0x%lX", hints->extwm_hints.flags);
 			free (protocols);
 		}
 	}
@@ -455,13 +457,13 @@ read_wm_command (ASRawHints * hints, Window w)
 {
 	if (hints)
 	{										   /* there is some wierd bullshit about this propertie being depreciated and stuff
-												* so we just use standard X function to read it up : */
+											    * so we just use standard X function to read it up : */
 		if (hints->wm_cmd_argv)
 			XFreeStringList (hints->wm_cmd_argv);
-		LOCAL_DEBUG_OUT( "Reading WM_COMMAND property from window %lX", w );
+		LOCAL_DEBUG_OUT ("Reading WM_COMMAND property from window %lX", w);
 		if (XGetCommand (dpy, w, &(hints->wm_cmd_argv), &(hints->wm_cmd_argc)) == 0)
 		{
-			LOCAL_DEBUG_OUT( "XGetCommand returned 0%s", "" );
+			LOCAL_DEBUG_OUT ("XGetCommand returned 0%s", "");
 			hints->wm_cmd_argv = NULL;
 			hints->wm_cmd_argc = 0;
 		}
@@ -485,8 +487,8 @@ read_wm_state (ASRawHints * hints, Window w)
 					hints->wm_state_icon_win = data[1];
 			}
 		}
-		if( data )
-			free( data );
+		if (data)
+			free (data);
 	}
 }
 
@@ -495,8 +497,8 @@ read_motif_hints (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		CARD32 *raw_data = NULL ;
-		long          nitems = 0 ;
+		CARD32       *raw_data = NULL;
+		long          nitems = 0;
 
 		if (!read_32bit_proplist (w, _XA_MwmAtom, 4, &raw_data, &nitems))
 			nitems = 0;
@@ -509,10 +511,10 @@ read_motif_hints (ASRawHints * hints, Window w)
 		if (nitems >= 4)
 		{
 			hints->motif_hints = (MwmHints *) raw_data;
-			raw_data = NULL ;
+			raw_data = NULL;
 		}
-		if( raw_data )
-			free( raw_data );
+		if (raw_data)
+			free (raw_data);
 	}
 }
 
@@ -607,10 +609,11 @@ read_extwm_desktop (ASRawHints * hints, Window w)
 }
 
 CARD32
-read_extwm_desktop_val ( Window w)
+read_extwm_desktop_val (Window w)
 {
-	CARD32 val = 0;
-	if ( w != None)
+	CARD32        val = 0;
+
+	if (w != None)
 		read_32bit_property (w, _XA_NET_WM_DESKTOP, &val);
 	return val;
 }
@@ -621,13 +624,13 @@ read_extwm_window_type (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		CARD32         *protocols;
+		CARD32       *protocols;
 		long          nprotos = 0;
 
 		if (read_32bit_proplist (w, _XA_NET_WM_WINDOW_TYPE, 6, &protocols, &nprotos))
 		{
 			translate_atom_list (&(hints->extwm_hints.type_flags), EXTWM_WindowType, protocols, nprotos);
-			set_flags( hints->extwm_hints.flags, EXTWM_TypeSet );
+			set_flags (hints->extwm_hints.flags, EXTWM_TypeSet);
 			free (protocols);
 		}
 	}
@@ -638,13 +641,13 @@ read_extwm_state (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		CARD32         *protocols;
+		CARD32       *protocols;
 		long          nprotos = 0;
 
 		if (read_32bit_proplist (w, _XA_NET_WM_STATE, 6, &protocols, &nprotos))
 		{
 			translate_atom_list (&(hints->extwm_hints.state_flags), EXTWM_State, protocols, nprotos);
-			set_flags( hints->extwm_hints.flags, EXTWM_StateSet );
+			set_flags (hints->extwm_hints.flags, EXTWM_StateSet);
 			free (protocols);
 		}
 	}
@@ -666,7 +669,8 @@ read_extwm_icon (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		if (read_32bit_proplist (w, _XA_NET_WM_ICON, 2+48*48, &(hints->extwm_hints.icon), &(hints->extwm_hints.icon_length)) )
+		if (read_32bit_proplist
+			(w, _XA_NET_WM_ICON, 2 + 48 * 48, &(hints->extwm_hints.icon), &(hints->extwm_hints.icon_length)))
 			set_flags (hints->extwm_hints.flags, EXTWM_ICON);
 	}
 }
@@ -686,19 +690,21 @@ read_kde_desktop_window (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		CARD32 dummy ;
+		CARD32        dummy;
+
 		if (read_32bit_property (w, _XA_KDE_DESKTOP_WINDOW, &dummy))
-			set_flags( hints->kde_hints.flags, KDE_DesktopWindow);
+			set_flags (hints->kde_hints.flags, KDE_DesktopWindow);
 	}
 }
-	
+
 void
 read_kde_systray_window_for (ASRawHints * hints, Window w)
 {
 	if (hints && w != None)
 	{
-		if (read_32bit_property (w, _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, (CARD32*)&hints->kde_hints.systray_window_for))
-			set_flags( hints->kde_hints.flags, KDE_SysTrayWindowFor);
+		if (read_32bit_property
+			(w, _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, (CARD32 *) & hints->kde_hints.systray_window_for))
+			set_flags (hints->kde_hints.flags, KDE_SysTrayWindowFor);
 	}
 }
 
@@ -762,38 +768,65 @@ struct hint_description_struct
 }
 HintsDescriptions[] =
 {
-	{&_XA_WM_NAME, read_wm_name, HINT_NAME, HINTS_ICCCM},
-	{&_XA_WM_ICON_NAME, read_wm_icon_name, HINT_NAME, HINTS_ICCCM},
-	{&_XA_WM_CLASS, read_wm_class, HINT_NAME, HINTS_ICCCM},
-	{&_XA_WM_HINTS, read_wm_hints, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM},
-	{&_XA_WM_NORMAL_HINTS, read_wm_normal_hints, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM},
-	{&_XA_WM_TRANSIENT_FOR, read_wm_transient_for, HINT_STARTUP | HINT_GENERAL, HINTS_Transient},
-	{&_XA_WM_PROTOCOLS, read_wm_protocols, HINT_PROTOCOL, HINTS_ICCCM|HINTS_ExtendedWM},
-	{&_XA_WM_COLORMAP_WINDOWS, read_wm_cmap_windows, HINT_COLORMAP, HINTS_ICCCM},
-	{&_XA_WM_CLIENT_MACHINE, read_wm_client_machine, HINT_STARTUP, HINTS_ICCCM},
-	{&_XA_WM_COMMAND, read_wm_command, HINT_STARTUP, HINTS_ICCCM},
-	{&_XA_WM_STATE, read_wm_state, HINT_STARTUP, HINTS_ICCCM},
+	{
+	&_XA_WM_NAME, read_wm_name, HINT_NAME, HINTS_ICCCM},
+	{
+	&_XA_WM_ICON_NAME, read_wm_icon_name, HINT_NAME, HINTS_ICCCM},
+	{
+	&_XA_WM_CLASS, read_wm_class, HINT_NAME, HINTS_ICCCM},
+	{
+	&_XA_WM_HINTS, read_wm_hints, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM},
+	{
+	&_XA_WM_NORMAL_HINTS, read_wm_normal_hints, HINT_STARTUP | HINT_GENERAL, HINTS_ICCCM},
+	{
+	&_XA_WM_TRANSIENT_FOR, read_wm_transient_for, HINT_STARTUP | HINT_GENERAL, HINTS_Transient},
+	{
+	&_XA_WM_PROTOCOLS, read_wm_protocols, HINT_PROTOCOL, HINTS_ICCCM | HINTS_ExtendedWM},
+	{
+	&_XA_WM_COLORMAP_WINDOWS, read_wm_cmap_windows, HINT_COLORMAP, HINTS_ICCCM},
+	{
+	&_XA_WM_CLIENT_MACHINE, read_wm_client_machine, HINT_STARTUP, HINTS_ICCCM},
+	{
+	&_XA_WM_COMMAND, read_wm_command, HINT_STARTUP, HINTS_ICCCM},
+	{
+	&_XA_WM_STATE, read_wm_state, HINT_STARTUP, HINTS_ICCCM},
 		/* Motif hints */
-	{&_XA_MwmAtom, read_motif_hints, HINT_GENERAL | HINT_STARTUP | HINT_PROTOCOL, HINTS_Motif},
+	{
+	&_XA_MwmAtom, read_motif_hints, HINT_GENERAL | HINT_STARTUP | HINT_PROTOCOL, HINTS_Motif},
 		/* Gnome hints */
-	{&_XA_WIN_LAYER, read_gnome_layer, HINT_STARTUP, HINTS_Gnome},
-	{&_XA_WIN_STATE, read_gnome_state, HINT_STARTUP, HINTS_Gnome},
-	{&_XA_WIN_WORKSPACE, read_gnome_workspace, HINT_STARTUP, HINTS_Gnome},
-	{&_XA_WIN_HINTS, read_gnome_hints, HINT_GENERAL, HINTS_Gnome},
+	{
+	&_XA_WIN_LAYER, read_gnome_layer, HINT_STARTUP, HINTS_Gnome},
+	{
+	&_XA_WIN_STATE, read_gnome_state, HINT_STARTUP, HINTS_Gnome},
+	{
+	&_XA_WIN_WORKSPACE, read_gnome_workspace, HINT_STARTUP, HINTS_Gnome},
+	{
+	&_XA_WIN_HINTS, read_gnome_hints, HINT_GENERAL, HINTS_Gnome},
 		/* wm-spec _NET hints : */
-	{&_XA_NET_WM_NAME, read_extwm_name, HINT_NAME, HINTS_ExtendedWM},
-	{&_XA_NET_WM_ICON_NAME, read_extwm_icon_name, HINT_NAME, HINTS_ExtendedWM},
-	{&_XA_NET_WM_VISIBLE_NAME, read_extwm_visible_name, HINT_NAME, HINTS_ExtendedWM},
-	{&_XA_NET_WM_VISIBLE_ICON_NAME, read_extwm_visible_icon_name, HINT_NAME, HINTS_ExtendedWM},
-	{&_XA_NET_WM_DESKTOP, read_extwm_desktop, HINT_STARTUP | HINT_PROTOCOL, HINTS_ExtendedWM},
-	{&_XA_NET_WM_WINDOW_TYPE, read_extwm_window_type, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
-	{&_XA_NET_WM_STATE, read_extwm_state, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
-	{&_XA_NET_WM_PID, read_extwm_pid, HINT_GENERAL, HINTS_ExtendedWM},
-	{&_XA_NET_WM_ICON, read_extwm_icon, HINT_GENERAL, HINTS_ExtendedWM},
-	{&_XA_NET_WM_WINDOW_OPACITY, read_extwm_window_opacity, HINT_GENERAL, HINTS_ExtendedWM},
-	{&_XA_KDE_DESKTOP_WINDOW, read_kde_desktop_window, HINT_GENERAL, HINTS_KDE},
-	{&_XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, read_kde_systray_window_for, HINT_GENERAL, HINTS_KDE},
-
+	{
+	&_XA_NET_WM_NAME, read_extwm_name, HINT_NAME, HINTS_ExtendedWM},
+	{
+	&_XA_NET_WM_ICON_NAME, read_extwm_icon_name, HINT_NAME, HINTS_ExtendedWM},
+	{
+	&_XA_NET_WM_VISIBLE_NAME, read_extwm_visible_name, HINT_NAME, HINTS_ExtendedWM},
+	{
+	&_XA_NET_WM_VISIBLE_ICON_NAME, read_extwm_visible_icon_name, HINT_NAME, HINTS_ExtendedWM},
+	{
+	&_XA_NET_WM_DESKTOP, read_extwm_desktop, HINT_STARTUP | HINT_PROTOCOL, HINTS_ExtendedWM},
+	{
+	&_XA_NET_WM_WINDOW_TYPE, read_extwm_window_type, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
+	{
+	&_XA_NET_WM_STATE, read_extwm_state, HINT_STARTUP | HINT_GENERAL, HINTS_ExtendedWM},
+	{
+	&_XA_NET_WM_PID, read_extwm_pid, HINT_GENERAL, HINTS_ExtendedWM},
+	{
+	&_XA_NET_WM_ICON, read_extwm_icon, HINT_GENERAL, HINTS_ExtendedWM},
+	{
+	&_XA_NET_WM_WINDOW_OPACITY, read_extwm_window_opacity, HINT_GENERAL, HINTS_ExtendedWM},
+	{
+	&_XA_KDE_DESKTOP_WINDOW, read_kde_desktop_window, HINT_GENERAL, HINTS_KDE},
+	{
+	&_XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR, read_kde_systray_window_for, HINT_GENERAL, HINTS_KDE},
 	{
 	NULL, NULL, 0, HINTS_Supported}
 };
@@ -843,8 +876,8 @@ collect_hints (ScreenInfo * scr, Window w, ASFlagType what, ASRawHints * reusabl
 				return NULL;
 		}
 
-		if( (all_props = XListProperties (dpy, w, &props_num))== NULL )
-			return NULL ;
+		if ((all_props = XListProperties (dpy, w, &props_num)) == NULL)
+			return NULL;
 
 		if (reusable_memory == NULL)
 			hints = (ASRawHints *) safecalloc (1, sizeof (ASRawHints));
@@ -873,8 +906,8 @@ collect_hints (ScreenInfo * scr, Window w, ASFlagType what, ASRawHints * reusabl
 		{
 			while (props_num-- > 0)
 			{
-				ASHashData hdata = {0} ;
-				if (get_hash_item (hint_handlers, AS_HASHABLE(all_props[props_num]), &hdata.vptr) == ASH_Success)
+				ASHashData    hdata = { 0 };
+				if (get_hash_item (hint_handlers, AS_HASHABLE (all_props[props_num]), &hdata.vptr) == ASH_Success)
 				{
 					if ((descr = hdata.vptr) != NULL)
 						if (get_flags (descr->hint_class, what) && descr->read_func != NULL)
@@ -886,7 +919,7 @@ collect_hints (ScreenInfo * scr, Window w, ASFlagType what, ASRawHints * reusabl
 			}
 			XFree (all_props);
 		}
-		if( hints->group_leader != NULL ) 
+		if (hints->group_leader != NULL)
 			set_flags (hints->hints_types, (0x01 << HINTS_GroupLead));
 	}
 	return hints;
@@ -1079,14 +1112,14 @@ print_extwm_hints (stream_func func, void *stream, ExtendedWMHints * hints)
 	if (get_flags (hints->flags, EXTWM_PID))
 		func (stream, "EXTWM._NET_WM_PID = %ld;\n", hints->pid);
 	if (get_flags (hints->flags, EXTWM_ICON))
-	  {
+	{
 		func (stream, "EXTWM._NET_WM_ICON.length = %ld;\n", hints->icon_length);
 		if (hints->icon_length > 2 && hints->icon)
-		  {
+		{
 			func (stream, "EXTWM._NET_WM_ICON.width = %ld;\n", hints->icon[0]);
 			func (stream, "EXTWM._NET_WM_ICON.height = %ld;\n", hints->icon[1]);
-		  }
-	  }
+		}
+	}
 	if (get_flags (hints->flags, EXTWM_WINDOW_OPACITY))
 		func (stream, "EXTWM._NET_WM_WINDOW_OPACITY = %ld;\n", hints->window_opacity);
 
@@ -1183,10 +1216,10 @@ handle_client_property_update (Window w, Atom property, ASRawHints * raw)
 			read_func = read_extwm_state;
 		else
 			return False;
-		
+
 		read_func (raw, w);
-		
-		return (validate_drawable( w, NULL, NULL )==w);
+
+		return (validate_drawable (w, NULL, NULL) == w);
 	}
 	return False;
 }
@@ -1200,7 +1233,7 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 	if (w && property && raw)
 	{
 		/* Here we are only interested in properties updtaed by the Window Manager : */
-		if (IsNameProp(property))
+		if (IsNameProp (property))
 		{
 			read_wm_state (raw, w);
 			read_wm_icon_name (raw, w);
@@ -1209,7 +1242,7 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 			read_extwm_icon_name (raw, w);
 			read_extwm_visible_name (raw, w);
 			read_extwm_visible_icon_name (raw, w);
-			return (validate_drawable( w, NULL, NULL )==w);
+			return (validate_drawable (w, NULL, NULL) == w);
 		} else if (property == _XA_WM_HINTS)
 			read_func = read_wm_hints;
 		else if (property == _XA_WM_NORMAL_HINTS)
@@ -1230,19 +1263,19 @@ handle_manager_property_update (Window w, Atom property, ASRawHints * raw)
 			return False;
 		}
 		read_func (raw, w);
-		return (validate_drawable( w, NULL, NULL )==w);
+		return (validate_drawable (w, NULL, NULL) == w);
 	} else
 		show_debug (__FILE__, __FUNCTION__, __LINE__, "incomplete parameters (%X, %X, %p)", w, property, raw);
 
 	return False;
 }
 
-Bool 
-get_extwm_state_flags (Window w, ASFlagType *flags)
+Bool
+get_extwm_state_flags (Window w, ASFlagType * flags)
 {
 	if (flags && w != None)
 	{
-		CARD32         *protocols;
+		CARD32       *protocols;
 		long          nprotos = 0;
 
 		if (read_32bit_proplist (w, _XA_NET_WM_STATE, MAX_NET_WM_STATES, &protocols, &nprotos))
@@ -1271,7 +1304,7 @@ get_extwm_state_flags (Window w, ASFlagType *flags)
 void
 set_client_state (Window w, struct ASStatusHints *status)
 {
-	LOCAL_DEBUG_CALLER_OUT( "w = %lX, status->flags = 0x%lX", w, status?status->flags:0);
+	LOCAL_DEBUG_CALLER_OUT ("w = %lX, status->flags = 0x%lX", w, status ? status->flags : 0);
 	if (w != None)
 	{
 		if (status != NULL)
@@ -1310,10 +1343,10 @@ set_client_state (Window w, struct ASStatusHints *status)
 			{
 				extwm_states[used++] = _XA_NET_WM_STATE_DEMANDS_ATTENTION;
 			}
- */			
+ */
 
 /*			LOCAL_DEBUG_OUT( "window %lX used =  %ld", w, used ); */
-			if( get_extwm_state_flags (w, &old_state) )
+			if (get_extwm_state_flags (w, &old_state))
 			{
 				if (get_flags (old_state, EXTWM_StateModal))
 					extwm_states[used++] = _XA_NET_WM_STATE_MODAL;
@@ -1326,13 +1359,13 @@ set_client_state (Window w, struct ASStatusHints *status)
 				if (get_flags (old_state, EXTWM_StateHidden))
 					extwm_states[used++] = _XA_NET_WM_STATE_HIDDEN;
 			}
-			LOCAL_DEBUG_OUT( "window %lX old_extwm_state = 0x%lX, used =  %ld", w, old_state, used );
+			LOCAL_DEBUG_OUT ("window %lX old_extwm_state = 0x%lX, used =  %ld", w, old_state, used);
 
-			if( used == 0 )
+			if (used == 0)
 			{
-				XDeleteProperty( dpy, w, _XA_NET_WM_STATE );
-				XDeleteProperty( dpy, w, _XA_WIN_STATE );
-			}else
+				XDeleteProperty (dpy, w, _XA_NET_WM_STATE);
+				XDeleteProperty (dpy, w, _XA_WIN_STATE);
+			} else
 			{
 				set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, &(extwm_states[0]), used);
 				set_32bit_property (w, _XA_WIN_STATE, XA_CARDINAL, gnome_state);
@@ -1345,41 +1378,42 @@ set_client_state (Window w, struct ASStatusHints *status)
 }
 
 void
-set_extwm_urgency_state (Window w, Bool set )
+set_extwm_urgency_state (Window w, Bool set)
 {
-	LOCAL_DEBUG_CALLER_OUT( "w = %lX, set = %d", w, set);
+	LOCAL_DEBUG_CALLER_OUT ("w = %lX, set = %d", w, set);
 	if (w != None)
 	{
-		CARD32         *states = NULL;
+		CARD32       *states = NULL;
 		long          nstates = 0;
-		int i ; 
-		Bool changed = False ;
+		int           i;
+		Bool          changed = False;
 
 		read_32bit_proplist (w, _XA_NET_WM_STATE, MAX_NET_WM_STATES, &states, &nstates);
-		
-		for( i = 0 ; i < nstates ; ++i ) 
-			if( states[i] == _XA_NET_WM_STATE_DEMANDS_ATTENTION ) 
-				break ;
-		if( set && i >= nstates ) 
+
+		for (i = 0; i < nstates; ++i)
+			if (states[i] == _XA_NET_WM_STATE_DEMANDS_ATTENTION)
+				break;
+		if (set && i >= nstates)
 		{
-			++nstates ; 
-			states = realloc( states, sizeof(CARD32)*nstates );
-			states[nstates-1] = _XA_NET_WM_STATE_DEMANDS_ATTENTION ;
-			changed = True ;
-		}else if( !set && i < nstates ) 
+			++nstates;
+			states = realloc (states, sizeof (CARD32) * nstates);
+			states[nstates - 1] = _XA_NET_WM_STATE_DEMANDS_ATTENTION;
+			changed = True;
+		} else if (!set && i < nstates)
 		{
-			while( ++i < nstates )	states[i-1] = states[i];
-			--nstates ; 
-			changed = True ;
+			while (++i < nstates)
+				states[i - 1] = states[i];
+			--nstates;
+			changed = True;
 		}
-		if( changed ) 
+		if (changed)
 		{
-			if( nstates == 0 )
-				XDeleteProperty( dpy, w, _XA_NET_WM_STATE );
+			if (nstates == 0)
+				XDeleteProperty (dpy, w, _XA_NET_WM_STATE);
 			else
 				set_32bit_proplist (w, _XA_NET_WM_STATE, XA_ATOM, &states[0], nstates);
 		}
-		free( states );
+		free (states);
 	}
 }
 
@@ -1433,29 +1467,30 @@ set_client_names (Window w, char *name, char *icon_name, char *res_class, char *
 void
 set_client_protocols (Window w, ASFlagType protocols, ASFlagType extwm_protocols)
 {
-LOCAL_DEBUG_OUT( "protocols=0x%lX", protocols );
+	LOCAL_DEBUG_OUT ("protocols=0x%lX", protocols);
 	if (w && protocols)
 	{
-		CARD32         *list = NULL, *extwm_list = NULL;
+		CARD32       *list = NULL, *extwm_list = NULL;
 		long          nitems, extwm_nitems;
 
 		encode_atom_list (&(WM_Protocols[0]), &list, &nitems, protocols);
 		encode_atom_list (&(EXTWM_Protocols[0]), &extwm_list, &extwm_nitems, extwm_protocols);
 
-		LOCAL_DEBUG_OUT( "nitems=%ld, extwm_nitems = %ld", nitems, extwm_nitems );
-		if( extwm_nitems > 0 )
+		LOCAL_DEBUG_OUT ("nitems=%ld, extwm_nitems = %ld", nitems, extwm_nitems);
+		if (extwm_nitems > 0)
 		{
-			int i ;
-			list = realloc( list, sizeof(CARD32)*(nitems+extwm_nitems) );
-			for( i = 0  ; i < extwm_nitems ; ++i )
-				list[nitems+i] = extwm_list[i] ;
-			free( extwm_list );
-			nitems += extwm_nitems ;
-		}	 
+			int           i;
 
-		if (nitems > 0 && list )
+			list = realloc (list, sizeof (CARD32) * (nitems + extwm_nitems));
+			for (i = 0; i < extwm_nitems; ++i)
+				list[nitems + i] = extwm_list[i];
+			free (extwm_list);
+			nitems += extwm_nitems;
+		}
+
+		if (nitems > 0 && list)
 			set_32bit_proplist (w, _XA_WM_PROTOCOLS, XA_ATOM, list, nitems);
-		if( list )
+		if (list)
 			free (list);
 	}
 }
@@ -1465,7 +1500,7 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 {
 	if (w && extwm_hints)
 	{
-		CARD32         *list;
+		CARD32       *list;
 		long          nitems;
 
 		if (get_flags (extwm_hints->flags, EXTWM_TypeSet))
@@ -1484,15 +1519,15 @@ set_extwm_hints (Window w, ExtendedWMHints * extwm_hints)
 			{
 				set_32bit_proplist (w, _XA_NET_WM_STATE, XA_CARDINAL, list, nitems);
 				free (list);
-				list = NULL ;
+				list = NULL;
 			}
 		}
 		if (get_flags (extwm_hints->flags, EXTWM_DESKTOP))
 			set_32bit_property (w, _XA_NET_WM_DESKTOP, XA_CARDINAL, extwm_hints->desktop);
 		if (get_flags (extwm_hints->flags, EXTWM_PID))
-			set_32bit_property (w, _XA_NET_WM_PID, XA_CARDINAL, extwm_hints->pid); 
+			set_32bit_property (w, _XA_NET_WM_PID, XA_CARDINAL, extwm_hints->pid);
 		if (get_flags (extwm_hints->flags, EXTWM_WINDOW_OPACITY))
-			set_32bit_property (w, _XA_NET_WM_WINDOW_OPACITY, XA_CARDINAL, extwm_hints->window_opacity); 
+			set_32bit_property (w, _XA_NET_WM_WINDOW_OPACITY, XA_CARDINAL, extwm_hints->window_opacity);
 		if (get_flags (extwm_hints->flags, EXTWM_ICON))
 			set_32bit_proplist (w, _XA_NET_WM_ICON, XA_CARDINAL, extwm_hints->icon, extwm_hints->icon_length);
 	}
@@ -1525,9 +1560,9 @@ set_client_hints (Window w, XWMHints * hints, XSizeHints * size_hints, ASFlagTyp
 void
 set_client_cmd (Window w)
 {
-	if ( w != None && MyArgsPtr->saved_argv && MyArgsPtr->saved_argc > 0 )
+	if (w != None && MyArgsPtr->saved_argv && MyArgsPtr->saved_argc > 0)
 	{
-		XSetCommand(dpy, w, MyArgsPtr->saved_argv, MyArgsPtr->saved_argc);	
+		XSetCommand (dpy, w, MyArgsPtr->saved_argv, MyArgsPtr->saved_argc);
 	}
 }
 

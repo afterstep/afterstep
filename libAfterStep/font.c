@@ -19,14 +19,14 @@ Bool
 load_font (const char *name_in, MyFont * font)
 #endif
 {
-	char *name ; 
-	char *clean_name ;
-	int font_size = asxml_var_get("font.size");				   
+	char         *name;
+	char         *clean_name;
+	int           font_size = asxml_var_get ("font.size");
 
-	if( font == NULL ) 
-		return False ;
-			
-	if( font_size <= 0 ) 
+	if (font == NULL)
+		return False;
+
+	if (font_size <= 0)
 		font_size = 14;
 
 #if defined(LOG_FONT_CALLS) && defined(DEBUG_ALLOCS)
@@ -41,45 +41,48 @@ load_font (const char *name_in, MyFont * font)
 		ASDefaultScr->font_manager = create_font_manager (dpy, path, NULL);
 	}
 
-	name = name_in?(char*)name_in:font->name ; 
-	
-	clean_name = name ;
-	if( clean_name != NULL )
+	name = name_in ? (char *)name_in : font->name;
+
+	clean_name = name;
+	if (clean_name != NULL)
 	{
-		int i = 0 ;
-		register char *ptr = clean_name ;
-		while( ptr[i] ) ++i ;
-		while( --i >= 0 )
-			if( !isdigit(ptr[i]) )
+		int           i = 0;
+		register char *ptr = clean_name;
+
+		while (ptr[i])
+			++i;
+		while (--i >= 0)
+			if (!isdigit (ptr[i]))
 				break;
-		if( (isspace( ptr[i] ) || ptr[i] == '-') && ptr[i+1] )
+		if ((isspace (ptr[i]) || ptr[i] == '-') && ptr[i + 1])
 		{
-			font_size = atoi( &(ptr[i+1]) );
-			while( i > 0 && isspace(ptr[i-1]) )	--i ;
-			clean_name = mystrndup( name, i );
+			font_size = atoi (&(ptr[i + 1]));
+			while (i > 0 && isspace (ptr[i - 1]))
+				--i;
+			clean_name = mystrndup (name, i);
 		}
 	}
-	if( clean_name != NULL )
+	if (clean_name != NULL)
 	{
-		if( (font->as_font = get_asfont (ASDefaultScr->font_manager, clean_name, 0, font_size, ASF_Freetype)) != NULL )
-			show_progress( "Successfully loaded freetype font \"%s\"", clean_name );
+		if ((font->as_font = get_asfont (ASDefaultScr->font_manager, clean_name, 0, font_size, ASF_Freetype)) != NULL)
+			show_progress ("Successfully loaded freetype font \"%s\"", clean_name);
 	}
-	if( font->as_font == NULL && name != NULL )
+	if (font->as_font == NULL && name != NULL)
 	{
-		if( (font->as_font = get_asfont (ASDefaultScr->font_manager, name, 0, font_size, ASF_GuessWho)) != NULL )
-			show_progress( "Successfully loaded font \"%s\"", name );
+		if ((font->as_font = get_asfont (ASDefaultScr->font_manager, name, 0, font_size, ASF_GuessWho)) != NULL)
+			show_progress ("Successfully loaded font \"%s\"", name);
 	}
-	if( font->as_font == NULL )
+	if (font->as_font == NULL)
 	{
 		font->as_font = get_asfont (ASDefaultScr->font_manager, default_font, 0, font_size, ASF_GuessWho);
-		show_warning( "failed to load font \"%s\" - using default instead", name );
+		show_warning ("failed to load font \"%s\" - using default instead", name);
 	}
 
-	if( clean_name && clean_name != name )
-		free( clean_name );
+	if (clean_name && clean_name != name)
+		free (clean_name);
 
-	if ( font->as_font != NULL && name != font->name )
-		set_string(&(font->name), mystrdup(name));
+	if (font->as_font != NULL && name != font->name)
+		set_string (&(font->name), mystrdup (name));
 
 	return (font->as_font != NULL);
 }

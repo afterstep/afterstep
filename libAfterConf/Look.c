@@ -33,8 +33,10 @@
 
 
 flag_options_xref LookFlagsXref[] = {
-    {MenuMiniPixmaps, LOOK_MenuMiniPixmaps_ID, 0},
-    {SeparateButtonTitle, LOOK_SeparateButtonTitle_ID, 0},
+	{MenuMiniPixmaps, LOOK_MenuMiniPixmaps_ID, 0}
+	,
+	{SeparateButtonTitle, LOOK_SeparateButtonTitle_ID, 0}
+	,
 	{0, 0, 0}
 
 };
@@ -48,21 +50,22 @@ flag_options_xref LookFlagsXref[] = {
 
 /*****************  Create/Destroy DeskBackConfig     *****************/
 DesktopConfig *
-GetDesktopConfig (DesktopConfig **plist, int desk)
+GetDesktopConfig (DesktopConfig ** plist, int desk)
 {
 
-	register DesktopConfig *curr = *plist ;
-	while( curr )
-		if( curr->desk == desk )
-			return curr ;
+	register DesktopConfig *curr = *plist;
+
+	while (curr)
+		if (curr->desk == desk)
+			return curr;
 		else
-			curr = curr->next ;
+			curr = curr->next;
 
 	curr = (DesktopConfig *) safecalloc (1, sizeof (DesktopConfig));
 
 	curr->desk = desk;
 	curr->next = *plist;
-	*plist = curr ;
+	*plist = curr;
 
 	return curr;
 }
@@ -73,8 +76,7 @@ PrintDesktopConfig (DesktopConfig * head)
 	DesktopConfig *cur;
 
 	for (cur = head; cur; cur = cur->next)
-		fprintf ( stderr, "Desk: %d, back[%s], layout[%s]\n",
-		          cur->desk, cur->back_name, cur->layout_name );
+		fprintf (stderr, "Desk: %d, back[%s], layout[%s]\n", cur->desk, cur->back_name, cur->layout_name);
 }
 
 void
@@ -100,21 +102,21 @@ DestroyDesktopConfig (DesktopConfig ** head)
 }
 
 DesktopConfig *
-ParseDesktopOptions (DesktopConfig **plist, ConfigItem * item, int id )
+ParseDesktopOptions (DesktopConfig ** plist, ConfigItem * item, int id)
 {
 	DesktopConfig *config = GetDesktopConfig (plist, item->index);
 
 	item->ok_to_free = 0;
-	switch( id )
+	switch (id)
 	{
-		case DESK_CONFIG_BACK :
-			set_string (&(config->back_name), item->data.string);
-			break;
-		case DESK_CONFIG_LAYOUT :
-			set_string (&(config->layout_name), item->data.string);
-			break;
-		default:
-			item->ok_to_free = 1;
+	 case DESK_CONFIG_BACK:
+		 set_string (&(config->back_name), item->data.string);
+		 break;
+	 case DESK_CONFIG_LAYOUT:
+		 set_string (&(config->layout_name), item->data.string);
+		 break;
+	 default:
+		 item->ok_to_free = 1;
 	}
 	return config;
 }
@@ -123,43 +125,45 @@ ParseDesktopOptions (DesktopConfig **plist, ConfigItem * item, int id )
 /********************************************************************/
 /* Supported Hints processing code                                  */
 /********************************************************************/
-ASSupportedHints *ProcessSupportedHints(FreeStorageElem *options)
+ASSupportedHints *
+ProcessSupportedHints (FreeStorageElem * options)
 {
-    ASSupportedHints *list = NULL ;
-    if( options )
-    {
-        list = create_hints_list();
-        while( options )
-        {
-            enable_hints_support( list, options->term->id - HINTS_ID_START );
-            options = options->next ;
-        }
-    }
-    return list;
+	ASSupportedHints *list = NULL;
+
+	if (options)
+	{
+		list = create_hints_list ();
+		while (options)
+		{
+			enable_hints_support (list, options->term->id - HINTS_ID_START);
+			options = options->next;
+		}
+	}
+	return list;
 }
 
 static FreeStorageElem **
-SupportedHints2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASSupportedHints *list)
+SupportedHints2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASSupportedHints * list)
 {
 	register int  i;
 	FreeStorageElem **new_tail;
-    HintsTypes *hints ;
-    int hints_num ;
+	HintsTypes   *hints;
+	int           hints_num;
 
-    if (list == NULL)
+	if (list == NULL)
 		return tail;
 
-    new_tail = Flag2FreeStorage (syntax, tail, LOOK_SupportedHints_ID);
+	new_tail = Flag2FreeStorage (syntax, tail, LOOK_SupportedHints_ID);
 	if (new_tail == tail)
 		return tail;
 
 	/* we must not free hints after the following !!!!!!!!!! */
-    if( (hints = supported_hints_types( list, &hints_num )) != NULL )
-    {
-        tail = &((*tail)->sub);
-        for (i = 0; i < hints_num; i++)
-            tail = Flag2FreeStorage (&SupportedHintsSyntax, tail, HINTS_ID_START + hints[i]);
-    }
+	if ((hints = supported_hints_types (list, &hints_num)) != NULL)
+	{
+		tail = &((*tail)->sub);
+		for (i = 0; i < hints_num; i++)
+			tail = Flag2FreeStorage (&SupportedHintsSyntax, tail, HINTS_ID_START + hints[i]);
+	}
 	return new_tail;
 }
 
@@ -170,7 +174,8 @@ SupportedHints2FreeStorage (SyntaxDef * syntax, FreeStorageElem ** tail, ASSuppo
 LookConfig   *
 CreateLookConfig ()
 {
-    LookConfig   *config = (LookConfig *) safecalloc (1, sizeof (LookConfig));
+	LookConfig   *config = (LookConfig *) safecalloc (1, sizeof (LookConfig));
+
 	return config;
 }
 
@@ -190,19 +195,19 @@ DestroyLookConfig (LookConfig * config)
 		if (config->text_gradient[i] != NULL)
 			free (config->text_gradient[i]);   /* title text */
 	for (i = 0; i < MAX_BUTTONS; i++)
-    {
-        if (config->normal_buttons[i] != NULL)
+	{
+		if (config->normal_buttons[i] != NULL)
 		{
-            destroy_asbutton (config->normal_buttons[i], False);
-			config->normal_buttons[i] = NULL ;
-        }
+			destroy_asbutton (config->normal_buttons[i], False);
+			config->normal_buttons[i] = NULL;
+		}
 		if (config->icon_buttons[i] != NULL)
 		{
-            destroy_asbutton (config->icon_buttons[i], False);
-			config->icon_buttons[i] = NULL ;
+			destroy_asbutton (config->icon_buttons[i], False);
+			config->icon_buttons[i] = NULL;
 		}
-    }
-    for (i = 0; i < BACK_STYLES; i++)
+	}
+	for (i = 0; i < BACK_STYLES; i++)
 		if (config->window_styles[i] != NULL)
 			free (config->window_styles[i]);
 
@@ -215,15 +220,15 @@ DestroyLookConfig (LookConfig * config)
 	DestroyMyStyleDefinitions (&(config->style_defs));
 	DestroyMyFrameDefinitions (&(config->frame_defs));
 	DestroyFreeStorage (&(config->more_stuff));
-    DestroyMyBackgroundConfig(&(config->back_defs));
-	DestroyDesktopConfig(&(config->desk_configs));
+	DestroyMyBackgroundConfig (&(config->back_defs));
+	DestroyDesktopConfig (&(config->desk_configs));
 
 
-    if( config->menu_frame )
-        free(config->menu_frame);
+	if (config->menu_frame)
+		free (config->menu_frame);
 
-    if( config->supported_hints )
-        destroy_hints_list( &(config->supported_hints));
+	if (config->supported_hints)
+		destroy_hints_list (&(config->supported_hints));
 
 	free (config);
 }
@@ -249,11 +254,12 @@ merge_depreciated_options (LookConfig * config, FreeStorageElem * Storage)
 	MyStyleDefinition **mystyles_list = &(config->style_defs);
 	ConfigItem    item;
 	register int  i;
-    char         *button_title_styles[BACK_STYLES] = {  ICON_STYLE_FOCUS,
-                                                        ICON_STYLE_STICKY,
-                                                        ICON_STYLE_UNFOCUS,
-                                                        NULL
-                                                     };
+
+	char         *button_title_styles[BACK_STYLES] = { ICON_STYLE_FOCUS,
+		ICON_STYLE_STICKY,
+		ICON_STYLE_UNFOCUS,
+		NULL
+	};
 	char         *ButtonColors[2] = { NULL, NULL };
 	char         *ButtonTextureColors[2] = { NULL, NULL };
 	char         *ButtonPixmap = NULL;
@@ -465,9 +471,9 @@ merge_depreciated_options (LookConfig * config, FreeStorageElem * Storage)
 		}
 		if (array != NULL)
 		{
-            if( item.data.int_array.size > BACK_STYLES + MENU_BACK_STYLES )
-                item.data.int_array.size = BACK_STYLES + MENU_BACK_STYLES ;
-            spread_back_param_array (array, item.data.int_array.array, item.data.int_array.size);
+			if (item.data.int_array.size > BACK_STYLES + MENU_BACK_STYLES)
+				item.data.int_array.size = BACK_STYLES + MENU_BACK_STYLES;
+			spread_back_param_array (array, item.data.int_array.array, item.data.int_array.size);
 			item.ok_to_free = 1;
 
 			if (item.data.int_array.size > 0)
@@ -487,7 +493,7 @@ merge_depreciated_options (LookConfig * config, FreeStorageElem * Storage)
 		{
 			MergeMyStyleText (mystyles_list, config->window_styles[i], Fonts[SET_WINDOW], WinColors[i][0],
 							  WinColors[i][1], TitleTextStyle);
-            MergeMyStyleTextureOld (mystyles_list, config->window_styles[i], TextureTypes[i],
+			MergeMyStyleTextureOld (mystyles_list, config->window_styles[i], TextureTypes[i],
 									WinTextureColors[i][0], WinTextureColors[i][0], WinPixmaps[i]);
 
 			if (WinColors[i][0])
@@ -550,7 +556,7 @@ merge_depreciated_options (LookConfig * config, FreeStorageElem * Storage)
 LookConfig   *
 ParseLookOptions (const char *filename, char *myname)
 {
-	ConfigData cd ;
+	ConfigData    cd;
 	ConfigDef    *ConfigReader;
 	LookConfig   *config = CreateLookConfig ();
 	FreeStorageElem *Storage = NULL, *pCurr;
@@ -558,7 +564,7 @@ ParseLookOptions (const char *filename, char *myname)
 	MyFrameDefinition **frames_tail = &(config->frame_defs);
 	MyBackgroundConfig **backs_tail = &(config->back_defs);
 
-	cd.filename = filename ;
+	cd.filename = filename;
 	ConfigReader = InitConfigReader (myname, &LookSyntax, CDT_Filename, cd, NULL);
 	if (!ConfigReader)
 		return config;
@@ -583,7 +589,7 @@ ParseLookOptions (const char *filename, char *myname)
 		id = pCurr->term->id;
 		if (id == BGR_MYBACKGROUND)
 		{
-            if ((*backs_tail = ParseMyBackgroundOptions (pCurr->sub, myname)) != NULL)
+			if ((*backs_tail = ParseMyBackgroundOptions (pCurr->sub, myname)) != NULL)
 				backs_tail = &((*backs_tail)->next);
 			continue;
 		}
@@ -609,7 +615,8 @@ ParseLookOptions (const char *filename, char *myname)
 			 case LOOK_IconBox_ID:
 				 {
 					 register int  bnum = config->icon_boxes_num++;
-					 config->icon_boxes = saferealloc (config->icon_boxes, config->icon_boxes_num*sizeof(ASBox)) ;
+
+					 config->icon_boxes = saferealloc (config->icon_boxes, config->icon_boxes_num * sizeof (ASBox));
 					 config->icon_boxes[bnum] = item.data.box;
 				 }
 				 break;
@@ -644,13 +651,13 @@ ParseLookOptions (const char *filename, char *myname)
 			 case LOOK_TitleButton_ID:
 				 if (item.data.button != NULL)
 				 {
-                     if (config->normal_buttons[item.index])
-                         destroy_asbutton (config->normal_buttons[item.index], False);
-                     config->normal_buttons[item.index] = item.data.button;
+					 if (config->normal_buttons[item.index])
+						 destroy_asbutton (config->normal_buttons[item.index], False);
+					 config->normal_buttons[item.index] = item.data.button;
 				 } else
 					 item.ok_to_free = 1;
 				 break;
-             case LOOK_ResizeMoveGeometry_ID:
+			 case LOOK_ResizeMoveGeometry_ID:
 				 config->resize_move_geometry = item.data.geometry;
 				 set_flags (config->set_flags, LOOK_ResizeMoveGeometry);
 				 break;
@@ -685,11 +692,11 @@ ParseLookOptions (const char *filename, char *myname)
 				 break;
 
 			 case LOOK_SupportedHints_ID:
-                 if( config->supported_hints )
-                    destroy_hints_list( &(config->supported_hints) );
-                 config->supported_hints = ProcessSupportedHints(pCurr->sub);
-                 item.ok_to_free = 1;
-                 break;
+				 if (config->supported_hints)
+					 destroy_hints_list (&(config->supported_hints));
+				 config->supported_hints = ProcessSupportedHints (pCurr->sub);
+				 item.ok_to_free = 1;
+				 break;
 
 			 default:
 				 item.ok_to_free = 1;
@@ -717,7 +724,7 @@ ParseLookOptions (const char *filename, char *myname)
 int
 WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsigned long flags)
 {
-	ConfigData cd ;
+	ConfigData    cd;
 	ConfigDef    *ConfigWriter = NULL;
 	FreeStorageElem *Storage = NULL, **tail = &Storage;
 	register int  i;
@@ -740,7 +747,7 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
 		tail = MyFrameDefs2FreeStorage (&LookSyntax, tail, config->frame_defs);
 
 	/* Window Styles */
-    for (i = 0; i < BACK_STYLES; i++)
+	for (i = 0; i < BACK_STYLES; i++)
 		if (config->window_styles[i])
 			tail = QuotedString2FreeStorage (&LookSyntax, tail, NULL, config->window_styles[i],
 											 LOOK_WindowStyle_ID_START + i);
@@ -751,20 +758,21 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
 			tail = QuotedString2FreeStorage (&LookSyntax, tail, NULL, config->menu_styles[i],
 											 LOOK_MenuStyle_ID_START + i);
 
-    /* Menu Icons */
+	/* Menu Icons */
 	if (config->menu_arrow)
 		tail = String2FreeStorage (&LookSyntax, tail, config->menu_arrow, LOOK_MArrowPixmap_ID);
 	if (config->menu_pin_on)
 		tail = String2FreeStorage (&LookSyntax, tail, config->menu_pin_on, LOOK_MenuPinOn_ID);
 	/* Other Misc stuff */
 	if (get_flags (config->set_flags, LOOK_StartMenuSortMode))
-        tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->start_menu_sort_mode, LOOK_StartMenuSortMode_ID);
+		tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->start_menu_sort_mode, LOOK_StartMenuSortMode_ID);
 	if (get_flags (config->set_flags, LOOK_DrawMenuBorders))
-        tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->draw_menu_borders, LOOK_DrawMenuBorders_ID);
+		tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->draw_menu_borders, LOOK_DrawMenuBorders_ID);
 	if (get_flags (config->set_flags, LOOK_RubberBand))
-        tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->rubber_band, LOOK_RubberBand_ID);
+		tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->rubber_band, LOOK_RubberBand_ID);
 	if (get_flags (config->set_flags, LOOK_ShadeAnimationSteps))
-        tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->shade_animation_steps, LOOK_ShadeAnimationSteps_ID);
+		tail =
+			Integer2FreeStorage (&LookSyntax, tail, NULL, config->shade_animation_steps, LOOK_ShadeAnimationSteps_ID);
 	/* flags : */
 	tail = Flags2FreeStorage (&LookSyntax, tail, LookFlagsXref, config->set_flags, config->flags);
 
@@ -781,30 +789,30 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
         tail = balloon2FreeStorage (&LookSyntax, tail, config->balloon_conf); */
 
 	if (get_flags (config->set_flags, LOOK_TitleTextAlign))
-        tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_text_align, LOOK_TitleTextAlign_ID);
+		tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_text_align, LOOK_TitleTextAlign_ID);
 	if (get_flags (config->set_flags, LOOK_TitleButtonStyle))
-        tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_button_style, LOOK_TitleButtonStyle_ID);
+		tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_button_style, LOOK_TitleButtonStyle_ID);
 	if (get_flags (config->set_flags, LOOK_TitleButtonXOffset))
-        tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_button_x_offset, LOOK_TitleButtonXOffset_ID);
+		tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_button_x_offset, LOOK_TitleButtonXOffset_ID);
 	if (get_flags (config->set_flags, LOOK_TitleButtonYOffset))
-        tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_button_y_offset, LOOK_TitleButtonYOffset_ID);
+		tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_button_y_offset, LOOK_TitleButtonYOffset_ID);
 	if (get_flags (config->set_flags, LOOK_TitleButtonSpacing))
-        tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_button_spacing, LOOK_TitleButtonSpacing_ID);
+		tail = Integer2FreeStorage (&LookSyntax, tail, NULL, config->title_button_spacing, LOOK_TitleButtonSpacing_ID);
 
-    /* then Supported Hints :*/
-    if (config->supported_hints)
-        tail = SupportedHints2FreeStorage (&LookSyntax, tail, config->supported_hints);
+	/* then Supported Hints : */
+	if (config->supported_hints)
+		tail = SupportedHints2FreeStorage (&LookSyntax, tail, config->supported_hints);
 
-    /* Normal Title Buttons : */
+	/* Normal Title Buttons : */
 	for (i = 0; i < MAX_BUTTONS; i++)
-        if (config->normal_buttons[i] != NULL)
-            tail = ASButton2FreeStorage (&LookSyntax, tail, i, config->normal_buttons[i], LOOK_TitleButton_ID);
+		if (config->normal_buttons[i] != NULL)
+			tail = ASButton2FreeStorage (&LookSyntax, tail, i, config->normal_buttons[i], LOOK_TitleButton_ID);
 
 	/* writing config into the file */
-	cd.filename = filename ;
+	cd.filename = filename;
 	WriteConfig (ConfigWriter, Storage, CDT_Filename, &cd, flags);
 	DestroyFreeStorage (&Storage);
-    DestroyConfig (ConfigWriter);
+	DestroyConfig (ConfigWriter);
 
 	if (Storage)
 	{
@@ -817,17 +825,17 @@ WriteLookOptions (const char *filename, char *myname, LookConfig * config, unsig
 
 #if 0
 MyLook       *
-LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
-				    struct ASImageManager *imman, struct ASFontManager *fontman,
-                    Bool free_resources, Bool do_init, unsigned long what_flags	)
+LookConfig2MyLook (struct LookConfig * config, MyLook * look,
+				   struct ASImageManager * imman, struct ASFontManager * fontman,
+				   Bool free_resources, Bool do_init, unsigned long what_flags)
 {
 	register int  i;
 
 	if (look)
 	{
-        if( look->magic != MAGIC_MYLOOK )
-            look = mylook_create ();
-        else if (do_init)
+		if (look->magic != MAGIC_MYLOOK)
+			look = mylook_create ();
+		else if (do_init)
 			mylook_init (look, free_resources, what_flags);
 	} else
 		look = mylook_create ();
@@ -839,19 +847,19 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 	{
 		MyStyleDefinition *pCurr;
 
-		look->styles_list = mystyle_list_init();
+		look->styles_list = mystyle_list_init ();
 		for (pCurr = config->style_defs; pCurr; pCurr = pCurr->next)
 			mystyle_list_create_from_definition (look->styles_list, pCurr, imman, fontman);
 
 /*	DestroyMyStyleDefinitions (list); */
 		if (config->style_defs != NULL)
-			mystyle_list_fix_styles (look->styles_list, imman, fontman );
+			mystyle_list_fix_styles (look->styles_list, imman, fontman);
 
 		if (get_flags (what_flags, LL_MSMenu))
 		{									   /* menu MyStyles */
 			for (i = 0; i < MENU_BACK_STYLES; i++)
 				if (config->menu_styles[i] != NULL)
-					look->MSMenu[i] = mystyle_list_new(look->styles_list, config->menu_styles[i]);
+					look->MSMenu[i] = mystyle_list_new (look->styles_list, config->menu_styles[i]);
 		}
 
 		if (get_flags (what_flags, LL_MSWindow))
@@ -864,74 +872,77 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 
 	if (get_flags (what_flags, LL_DeskBacks))
 	{
-		MyBackgroundConfig 	*pcurr ;
-		MyBackground 		*myback;
+		MyBackgroundConfig *pcurr;
+		MyBackground *myback;
 
-		init_deskbacks_list( look );
-		for( pcurr = config->back_defs ; pcurr ; pcurr = pcurr->next )
-			if( (myback = render_myback( look, pcurr, imman ))!=NULL )
-				add_myback_to_list( look->backs_list, myback, imman);
+		init_deskbacks_list (look);
+		for (pcurr = config->back_defs; pcurr; pcurr = pcurr->next)
+			if ((myback = render_myback (look, pcurr, imman)) != NULL)
+				add_myback_to_list (look->backs_list, myback, imman);
 	}
 	if (get_flags (what_flags, LL_DeskConfigs))
 	{
-		register DesktopConfig 		*pcurr ;
+		register DesktopConfig *pcurr;
 
-		init_deskconfigs_list( look );
+		init_deskconfigs_list (look);
 
-		for( pcurr = config->desk_configs ; pcurr ; pcurr = pcurr->next )
+		for (pcurr = config->desk_configs; pcurr; pcurr = pcurr->next)
 		{
-			MyDesktopConfig 	*dc = safecalloc( 1, sizeof(MyDesktopConfig));
-			dc->desk = pcurr->desk ;
-			dc->back_name = pcurr->back_name ;
-			dc->layout_name = pcurr->layout_name ;
-			pcurr->back_name = pcurr->layout_name = NULL ;
+			MyDesktopConfig *dc = safecalloc (1, sizeof (MyDesktopConfig));
 
-			add_deskconfig_to_list( look->desk_configs, dc);
+			dc->desk = pcurr->desk;
+			dc->back_name = pcurr->back_name;
+			dc->layout_name = pcurr->layout_name;
+			pcurr->back_name = pcurr->layout_name = NULL;
+
+			add_deskconfig_to_list (look->desk_configs, dc);
 		}
 	}
 
 	if (get_flags (what_flags, LL_MenuIcons))
 	{
 		if (config->menu_arrow)
-			look->MenuArrow = filename2asicon (config->menu_arrow, imman );
+			look->MenuArrow = filename2asicon (config->menu_arrow, imman);
 		if (config->menu_pin_on)
-			look->MenuPinOn = filename2asicon (config->menu_pin_on, imman );
+			look->MenuPinOn = filename2asicon (config->menu_pin_on, imman);
 		if (config->menu_pin_off)
-			look->MenuPinOff = filename2asicon(config->menu_pin_off, imman );
+			look->MenuPinOff = filename2asicon (config->menu_pin_off, imman);
 	}
 
 	if (get_flags (what_flags, LL_Buttons))
 	{										   /* TODO: Titlebuttons - we 'll move them into  MyStyles */
-        check_ascontextbuttons( &(look->normal_buttons), ASC_TitleButton_Start, ASC_TitleButton_End );
-        check_ascontextbuttons( &(look->icon_buttons), ASC_TitleButton_Start, ASC_TitleButton_End );
-        /* we will translate button numbers from the user input */
-        for (i = 0; i <= ASC_TitleButton_End-ASC_TitleButton_Start; i++)
+		check_ascontextbuttons (&(look->normal_buttons), ASC_TitleButton_Start, ASC_TitleButton_End);
+		check_ascontextbuttons (&(look->icon_buttons), ASC_TitleButton_Start, ASC_TitleButton_End);
+		/* we will translate button numbers from the user input */
+		for (i = 0; i <= ASC_TitleButton_End - ASC_TitleButton_Start; i++)
 		{
-            look->normal_buttons.buttons[i] = dup_asbutton(config->normal_buttons[i]);
-            if (look->normal_buttons.buttons[i])
+			look->normal_buttons.buttons[i] = dup_asbutton (config->normal_buttons[i]);
+			if (look->normal_buttons.buttons[i])
 			{
-				int s ;
-				for( s = 0 ; s < ASB_StateCount ; ++s )
-        			if( look->normal_buttons.buttons[i]->shapes[s] )
-	                    load_asicon (look->normal_buttons.buttons[i]->shapes[s], NULL, imman);
+				int           s;
 
-                look->buttons[i] = look->normal_buttons.buttons[i]->shapes[ASB_State_Up];
-                look->dbuttons[i] = look->normal_buttons.buttons[i]->shapes[ASB_State_Down];
+				for (s = 0; s < ASB_StateCount; ++s)
+					if (look->normal_buttons.buttons[i]->shapes[s])
+						load_asicon (look->normal_buttons.buttons[i]->shapes[s], NULL, imman);
+
+				look->buttons[i] = look->normal_buttons.buttons[i]->shapes[ASB_State_Up];
+				look->dbuttons[i] = look->normal_buttons.buttons[i]->shapes[ASB_State_Down];
 			} else
 			{
 				look->buttons[i] = NULL;
 				look->dbuttons[i] = NULL;
 			}
 
-            look->icon_buttons.buttons[i] = dup_asbutton(config->icon_buttons[i]);
-            if (look->icon_buttons.buttons[i])
+			look->icon_buttons.buttons[i] = dup_asbutton (config->icon_buttons[i]);
+			if (look->icon_buttons.buttons[i])
 			{
-				int s ;
-				for( s = 0 ; s < ASB_StateCount ; ++s )
-                	if (look->icon_buttons.buttons[i]->shapes[s])
-                    	load_asicon (look->icon_buttons.buttons[i]->shapes[s], NULL, imman);
-            }
-        }
+				int           s;
+
+				for (s = 0; s < ASB_StateCount; ++s)
+					if (look->icon_buttons.buttons[i]->shapes[s])
+						load_asicon (look->icon_buttons.buttons[i]->shapes[s], NULL, imman);
+			}
+		}
 	}
 
 	if (get_flags (what_flags, LL_SizeWindow))
@@ -956,10 +967,10 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 			free (test_str);
 		}
 
-		if( get_flags (config->set_flags, LOOK_ResizeMoveGeometry) )
+		if (get_flags (config->set_flags, LOOK_ResizeMoveGeometry))
 			look->resize_move_geometry = config->resize_move_geometry;
 		else
-			look->resize_move_geometry.flags = 0 ;
+			look->resize_move_geometry.flags = 0;
 		if (!get_flags (look->resize_move_geometry.flags, WidthValue) && width > 0)
 		{
 			look->resize_move_geometry.width = width;
@@ -985,42 +996,42 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 			get_flags (config->set_flags, LOOK_TitleButtonXOffset) ? config->title_button_x_offset : 0;
 		look->TitleButtonYOffset =
 			get_flags (config->set_flags, LOOK_TitleButtonYOffset) ? config->title_button_y_offset : 0;
-        look->TitleButtonStyle %= 3;
-        switch (look->TitleButtonStyle)
-        {
-            case 0:                                   /* traditional AfterStep style */
-	            look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 3;
-    	        look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 3;
-        	    break ;
-        	case 1 :
-            	look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 1;
-            	look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 1;
-                break;
-            case 2:                                   /* advanced AfterStep style */
-                /* nothing to do here - user must supply values for x/y offsets */
-                break;
-        }
-		mylook_init_layouts( look );
+		look->TitleButtonStyle %= 3;
+		switch (look->TitleButtonStyle)
+		{
+		 case 0:							   /* traditional AfterStep style */
+			 look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 3;
+			 look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 3;
+			 break;
+		 case 1:
+			 look->TitleButtonXOffset[0] = look->TitleButtonXOffset[1] = 1;
+			 look->TitleButtonYOffset[0] = look->TitleButtonYOffset[1] = 1;
+			 break;
+		 case 2:							   /* advanced AfterStep style */
+			 /* nothing to do here - user must supply values for x/y offsets */
+			 break;
+		}
+		mylook_init_layouts (look);
 
 		while (frame_def != NULL)
 		{
-			add_frame_to_list(look->layouts, filenames2myframe (frame_def->name, frame_def->parts, imman));
+			add_frame_to_list (look->layouts, filenames2myframe (frame_def->name, frame_def->parts, imman));
 			frame_def = frame_def->next;
 		}
-        if( config->menu_frame )
+		if (config->menu_frame)
 		{
-			ASHashData hdata = {0};
-            if( get_hash_item( look->layouts, (ASHashableValue) config->menu_frame, &hdata.vptr) != ASH_Success )
-                look->menu_frame = NULL;
+			ASHashData    hdata = { 0 };
+			if (get_hash_item (look->layouts, (ASHashableValue) config->menu_frame, &hdata.vptr) != ASH_Success)
+				look->menu_frame = NULL;
 			else
-				look->menu_frame = hdata.vptr ;
+				look->menu_frame = hdata.vptr;
 		}
 	}
 
-	if (get_flags (what_flags, LL_Buttons) && look->layouts )
+	if (get_flags (what_flags, LL_Buttons) && look->layouts)
 	{
-		update_titlebar_buttons( look->layouts, NULL, False, &(look->normal_buttons) );
-		update_titlebar_buttons( look->layouts, NULL, True, &(look->icon_buttons) );
+		update_titlebar_buttons (look->layouts, NULL, False, &(look->normal_buttons));
+		update_titlebar_buttons (look->layouts, NULL, True, &(look->icon_buttons));
 	}
 
 	if (get_flags (what_flags, LL_Boundary))
@@ -1038,21 +1049,25 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 		for (i = 0; i < config->icon_boxes_num; i++)
 		{
 			look->IconBoxes[i] = config->icon_boxes[i];
-			while( look->IconBoxes[i].left < 0 ) look->IconBoxes[i].left += Scr.MyDisplayWidth ;
-			if( look->IconBoxes[i].left == 0 && get_flags( look->IconBoxes[i].flags, LeftNegative ) )
-				look->IconBoxes[i].left = Scr.MyDisplayWidth ;
+			while (look->IconBoxes[i].left < 0)
+				look->IconBoxes[i].left += Scr.MyDisplayWidth;
+			if (look->IconBoxes[i].left == 0 && get_flags (look->IconBoxes[i].flags, LeftNegative))
+				look->IconBoxes[i].left = Scr.MyDisplayWidth;
 
-			while( look->IconBoxes[i].top < 0 ) look->IconBoxes[i].top += Scr.MyDisplayHeight ;
-			if( look->IconBoxes[i].top == 0 && get_flags( look->IconBoxes[i].flags, TopNegative ) )
-				look->IconBoxes[i].top = Scr.MyDisplayHeight ;
+			while (look->IconBoxes[i].top < 0)
+				look->IconBoxes[i].top += Scr.MyDisplayHeight;
+			if (look->IconBoxes[i].top == 0 && get_flags (look->IconBoxes[i].flags, TopNegative))
+				look->IconBoxes[i].top = Scr.MyDisplayHeight;
 
-			while( look->IconBoxes[i].right < 0 ) look->IconBoxes[i].right += Scr.MyDisplayWidth ;
-			if( look->IconBoxes[i].right == 0 && get_flags( look->IconBoxes[i].flags, RightNegative ) )
-				look->IconBoxes[i].right = Scr.MyDisplayWidth ;
+			while (look->IconBoxes[i].right < 0)
+				look->IconBoxes[i].right += Scr.MyDisplayWidth;
+			if (look->IconBoxes[i].right == 0 && get_flags (look->IconBoxes[i].flags, RightNegative))
+				look->IconBoxes[i].right = Scr.MyDisplayWidth;
 
-			while( look->IconBoxes[i].bottom < 0 ) look->IconBoxes[i].bottom += Scr.MyDisplayHeight ;
-			if( look->IconBoxes[i].bottom == 0 && get_flags( look->IconBoxes[i].flags, BottomNegative ) )
-				look->IconBoxes[i].bottom = Scr.MyDisplayHeight ;
+			while (look->IconBoxes[i].bottom < 0)
+				look->IconBoxes[i].bottom += Scr.MyDisplayHeight;
+			if (look->IconBoxes[i].bottom == 0 && get_flags (look->IconBoxes[i].flags, BottomNegative))
+				look->IconBoxes[i].bottom = Scr.MyDisplayHeight;
 		}
 		look->NumBoxes = config->icon_boxes_num;
 		if (get_flags (config->set_flags, LOOK_ButtonSize))
@@ -1075,28 +1090,28 @@ LookConfig2MyLook ( struct LookConfig * config, MyLook * look,
 		look->balloon_look = balloon_look_new ();
 		if (config->menu_balloon_conf)
 			BalloonConfig2BalloonLook (look->menu_balloon_look, config->balloon_conf);
-*/			
+*/
 	}
 
-    if (get_flags (what_flags, LL_SupportedHints))
-    {
-        if( config->supported_hints )
-        {
-            look->supported_hints = config->supported_hints ;
-            config->supported_hints = NULL ;
-        }else
-        {/* Otherwise we should enable all the hints possible in standard order :*/
-            look->supported_hints = create_hints_list();
-            enable_hints_support( look->supported_hints, HINTS_ICCCM );
-            enable_hints_support( look->supported_hints, HINTS_Motif );
-            enable_hints_support( look->supported_hints, HINTS_Gnome );
-            enable_hints_support( look->supported_hints, HINTS_KDE );
-            enable_hints_support( look->supported_hints, HINTS_ExtendedWM );
-            enable_hints_support( look->supported_hints, HINTS_ASDatabase );
-            enable_hints_support( look->supported_hints, HINTS_GroupLead );
-            enable_hints_support( look->supported_hints, HINTS_Transient );
-        }
-    }
+	if (get_flags (what_flags, LL_SupportedHints))
+	{
+		if (config->supported_hints)
+		{
+			look->supported_hints = config->supported_hints;
+			config->supported_hints = NULL;
+		} else
+		{									   /* Otherwise we should enable all the hints possible in standard order : */
+			look->supported_hints = create_hints_list ();
+			enable_hints_support (look->supported_hints, HINTS_ICCCM);
+			enable_hints_support (look->supported_hints, HINTS_Motif);
+			enable_hints_support (look->supported_hints, HINTS_Gnome);
+			enable_hints_support (look->supported_hints, HINTS_KDE);
+			enable_hints_support (look->supported_hints, HINTS_ExtendedWM);
+			enable_hints_support (look->supported_hints, HINTS_ASDatabase);
+			enable_hints_support (look->supported_hints, HINTS_GroupLead);
+			enable_hints_support (look->supported_hints, HINTS_Transient);
+		}
+	}
 
 	return look;
 }

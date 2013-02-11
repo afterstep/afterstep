@@ -32,7 +32,8 @@
 
 
 TermDef       CleanTerms[] = {
-	{TF_INDEXED, "", 0, TT_FLAG, CLEAN_Clean_ID, &DummyFuncSyntax},
+	{TF_INDEXED, "", 0, TT_FLAG, CLEAN_Clean_ID, &DummyFuncSyntax}
+	,
 	{0, NULL, 0, 0, 0}						   /* end of structure */
 
 };
@@ -53,10 +54,11 @@ SyntaxDef     CleanSyntax = {
 };
 
 
-CleanConfig *
+CleanConfig  *
 CreateCleanConfig ()
 {
-	CleanConfig *config = (CleanConfig *) safecalloc (1, sizeof (CleanConfig));
+	CleanConfig  *config = (CleanConfig *) safecalloc (1, sizeof (CleanConfig));
+
 	return config;
 }
 
@@ -67,17 +69,17 @@ DestroyCleanConfig (CleanConfig * config)
 	free (config);
 }
 
-CleanConfig *
+CleanConfig  *
 ParseCleanOptions (const char *filename, char *myname)
 {
-	ConfigData cd ;
+	ConfigData    cd;
 	ConfigDef    *CleanConfigReader;
-	CleanConfig *config = CreateCleanConfig ();
+	CleanConfig  *config = CreateCleanConfig ();
 
 	FreeStorageElem *Storage = NULL, *pCurr;
 	ConfigItem    item;
 
-	cd.filename = filename ;
+	cd.filename = filename;
 	CleanConfigReader = InitConfigReader (myname, &CleanSyntax, CDT_Filename, cd, NULL);
 
 	if (!CleanConfigReader)
@@ -126,13 +128,13 @@ int
 WriteCleanOptions (const char *filename, char *myname, CleanConfig * config, unsigned long flags)
 {
 	ConfigDef    *CleanConfigWriter = NULL;
-	FreeStorageElem *Storage = NULL/*, **tail = &Storage*/;
-	ConfigData cd ;
+	FreeStorageElem *Storage = NULL /*, **tail = &Storage */ ;
+	ConfigData    cd;
 
 	if (config == NULL)
 		return 1;
 
-	cd.filename = filename ;
+	cd.filename = filename;
 	if ((CleanConfigWriter = InitConfigWriter (myname, &CleanSyntax, CDT_Filename, cd)) == NULL)
 		return 2;
 

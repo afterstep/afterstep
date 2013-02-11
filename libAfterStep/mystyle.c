@@ -32,16 +32,16 @@ static char  *DefaultMyStyleName = "default";
 
 
 void
-mystyle_free_back_icon( MyStyle *style )
+mystyle_free_back_icon (MyStyle * style)
 {
-	if( !get_flags (style->inherit_flags, F_BACKPIXMAP) )
+	if (!get_flags (style->inherit_flags, F_BACKPIXMAP))
 	{
-		if( get_flags( style->user_flags, F_EXTERNAL_BACKPIX ) )
-			style->back_icon.pix = None ;
-		if( get_flags( style->user_flags, F_EXTERNAL_BACKMASK ) )
+		if (get_flags (style->user_flags, F_EXTERNAL_BACKPIX))
+			style->back_icon.pix = None;
+		if (get_flags (style->user_flags, F_EXTERNAL_BACKMASK))
 		{
-			style->back_icon.mask = None ;
-			style->back_icon.alpha = None ;
+			style->back_icon.mask = None;
+			style->back_icon.alpha = None;
 		}
 
 		free_icon_resources (&(style->back_icon));
@@ -88,10 +88,10 @@ make_component_hilite (int cmp)
 inline        ARGB32
 GetHilite (ARGB32 background)
 {
-	CARD32 a = make_component_hilite (ARGB32_ALPHA8 (background));
-	CARD32 r = make_component_hilite (ARGB32_RED8 (background));
-	CARD32 g = make_component_hilite (ARGB32_GREEN8 (background));
-	CARD32 b = make_component_hilite (ARGB32_BLUE8 (background));
+	CARD32        a = make_component_hilite (ARGB32_ALPHA8 (background));
+	CARD32        r = make_component_hilite (ARGB32_RED8 (background));
+	CARD32        g = make_component_hilite (ARGB32_GREEN8 (background));
+	CARD32        b = make_component_hilite (ARGB32_BLUE8 (background));
 
 	return MAKE_ARGB32 (a, r, g, b);
 }
@@ -102,11 +102,11 @@ GetShadow (ARGB32 background)
 {
 	CARD16        a, r, g, b;
 
-	a = (ARGB32_ALPHA8 (background))*3/4;
-	r = (ARGB32_RED8 (background))*3/4;
-	g = (ARGB32_GREEN8 (background))*3/4;
-	b = (ARGB32_BLUE8 (background))*3/4;
-	
+	a = (ARGB32_ALPHA8 (background)) * 3 / 4;
+	r = (ARGB32_RED8 (background)) * 3 / 4;
+	g = (ARGB32_GREEN8 (background)) * 3 / 4;
+	b = (ARGB32_BLUE8 (background)) * 3 / 4;
+
 	return MAKE_ARGB32 (a, r, g, b);
 }
 
@@ -115,24 +115,24 @@ GetAverage (ARGB32 foreground, ARGB32 background)
 {
 	CARD16        a, r, g, b;
 
-	a = (ARGB32_ALPHA8 (foreground) + ARGB32_ALPHA8 (background))/2;
-	r = (ARGB32_RED8 (foreground) + ARGB32_RED8 (background))/2;
-	g = (ARGB32_GREEN8 (foreground) + ARGB32_GREEN8 (background))/2;
-	b = (ARGB32_BLUE8 (foreground) + ARGB32_BLUE8 (background))/2;
+	a = (ARGB32_ALPHA8 (foreground) + ARGB32_ALPHA8 (background)) / 2;
+	r = (ARGB32_RED8 (foreground) + ARGB32_RED8 (background)) / 2;
+	g = (ARGB32_GREEN8 (foreground) + ARGB32_GREEN8 (background)) / 2;
+	b = (ARGB32_BLUE8 (foreground) + ARGB32_BLUE8 (background)) / 2;
 	return MAKE_ARGB32 (a, r, g, b);
 }
 
 /* create the default style if necessary, and fill in the unset fields
  * of the other styles from the default */
 void
-mystyle_list_fix_styles (ASHashTable *list)
+mystyle_list_fix_styles (ASHashTable * list)
 {
 	MyStyle      *dflt;
 	MyStyle      *style;
-	ASHashIterator iterator ;
+	ASHashIterator iterator;
 
-	if( list == NULL )
-		if( (list = ASDefaultScr->Look.styles_list) == NULL )
+	if (list == NULL)
+		if ((list = ASDefaultScr->Look.styles_list) == NULL)
 			return;
 
 /*
@@ -155,7 +155,7 @@ mystyle_list_fix_styles (ASHashTable *list)
 	{
 		if (load_font (NULL, &dflt->font) == False)
 		{
-			show_error("couldn't load the default font");
+			show_error ("couldn't load the default font");
 			exit (1);
 		}
 		dflt->user_flags |= F_FONT;
@@ -163,36 +163,37 @@ mystyle_list_fix_styles (ASHashTable *list)
 	dflt->set_flags = dflt->inherit_flags | dflt->user_flags;
 
 /* fix up the styles, using the default style */
-	if( start_hash_iteration( list, &iterator ))
+	if (start_hash_iteration (list, &iterator))
 		do
 		{
-			Bool transparent = False ;
-			style = (MyStyle*)curr_hash_data(&iterator);
-			if( style != dflt )
+			Bool          transparent = False;
+
+			style = (MyStyle *) curr_hash_data (&iterator);
+			if (style != dflt)
 				mystyle_merge_styles (dflt, style, False, False);
-			if(  style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
-				 style->texture_type == TEXTURE_SHAPED_PIXMAP ||
-				style->texture_type > TEXTURE_PIXMAP )
+			if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
+				style->texture_type == TEXTURE_SHAPED_PIXMAP || style->texture_type > TEXTURE_PIXMAP)
 			{
 				transparent = True;
-			}else if (  style->texture_type >= TEXTURE_GRADIENT_START &&
-						style->texture_type <= TEXTURE_GRADIENT_END	)
+			} else if (style->texture_type >= TEXTURE_GRADIENT_START && style->texture_type <= TEXTURE_GRADIENT_END)
 			{
 				/* need to check if any of the gradient colors has alpha channel < 0xff */
-				int i = style->gradient.npoints ;
-				while( --i >= 0 )
-					if( ARGB32_ALPHA8(style->gradient.color[i]) < 0x00F0 )
+				int           i = style->gradient.npoints;
+
+				while (--i >= 0)
+					if (ARGB32_ALPHA8 (style->gradient.color[i]) < 0x00F0)
 					{
-						transparent = True ;
+						transparent = True;
 						break;
 					}
 			}
-			if( transparent )
+			if (transparent)
 			{
-				set_flags( style->user_flags, F_TRANSPARENT );
-				set_flags( style->set_flags, F_TRANSPARENT );
+				set_flags (style->user_flags, F_TRANSPARENT);
+				set_flags (style->set_flags, F_TRANSPARENT);
 			}
-		}while(next_hash_item( &iterator ));
+		}
+		while (next_hash_item (&iterator));
 }
 
 void
@@ -232,103 +233,103 @@ mystyle_translate_grad_type (int type)
 /****************************************************************************
  * grab a section of the screen and darken it
  ***************************************************************************/
-ASImage *
-grab_root_asimage( ScreenInfo *scr, Window target, Bool screenshot )
+ASImage      *
+grab_root_asimage (ScreenInfo * scr, Window target, Bool screenshot)
 {
-	XSetWindowAttributes attr ;
-	XEvent event ;
-	int tick_count = 0 ;
-	Window src;
-	ASImage *root_im = NULL ;
-	int x = scr->RootClipArea.x, y = scr->RootClipArea.y ;
-	int width = scr->RootClipArea.width, height = scr->RootClipArea.height ;
+	XSetWindowAttributes attr;
+	XEvent        event;
+	int           tick_count = 0;
+	Window        src;
+	ASImage      *root_im = NULL;
+	int           x = scr->RootClipArea.x, y = scr->RootClipArea.y;
+	int           width = scr->RootClipArea.width, height = scr->RootClipArea.height;
 
-	if( scr == NULL )
-		scr = ASDefaultScr ;
-	/* this only works if we use DefaultVisual - same visual as the Root window :*/
-	if( scr->asv->visual_info.visual != DefaultVisual( dpy, DefaultScreen(dpy) ) )
-		return NULL ;
+	if (scr == NULL)
+		scr = ASDefaultScr;
+	/* this only works if we use DefaultVisual - same visual as the Root window : */
+	if (scr->asv->visual_info.visual != DefaultVisual (dpy, DefaultScreen (dpy)))
+		return NULL;
 
-	if( target != None && target != scr->Root )
+	if (target != None && target != scr->Root)
 	{
-		Window wdumm ;
-		unsigned int udumm ;
-		unsigned int bw = 0 ;
-		int tx, ty ;
-		unsigned int tw, th ;
+		Window        wdumm;
+		unsigned int  udumm;
+		unsigned int  bw = 0;
+		int           tx, ty;
+		unsigned int  tw, th;
 
-		if( XGetGeometry(dpy, target, &wdumm, &tx, &ty, &tw, &th, &bw, &udumm )!= 0 )
+		if (XGetGeometry (dpy, target, &wdumm, &tx, &ty, &tw, &th, &bw, &udumm) != 0)
 		{
 			/* we need root window position : */
 			XTranslateCoordinates (dpy, target, scr->Root, 0, 0, &tx, &ty, &wdumm);
 			x = tx - bw;
 			y = ty - bw;
 			width = tw + bw + bw;
-			height = th + bw + bw ;
+			height = th + bw + bw;
 		}
 	}
 
-	if( x < 0 )
+	if (x < 0)
 	{
-		width += x ;
-		x = 0 ;
+		width += x;
+		x = 0;
 	}
-	if( y < 0 )
+	if (y < 0)
 	{
-		height += y ;
-		y = 0 ;
+		height += y;
+		y = 0;
 	}
-	if( x + width > ASDefaultScrWidth )
-		width = (int)(ASDefaultScrWidth) - x ;
-	if( y + height > ASDefaultScrHeight )
-		height = (int)(ASDefaultScrHeight) - y ;
+	if (x + width > ASDefaultScrWidth)
+		width = (int)(ASDefaultScrWidth) - x;
+	if (y + height > ASDefaultScrHeight)
+		height = (int)(ASDefaultScrHeight) - y;
 
-	if( height < 0 || width < 0 )
-		return NULL ;
+	if (height < 0 || width < 0)
+		return NULL;
 
-	attr.background_pixmap = screenshot?None:ParentRelative ;
-	attr.backing_store = NotUseful ;
-	attr.event_mask = ExposureMask ;
-	attr.override_redirect = True ;
+	attr.background_pixmap = screenshot ? None : ParentRelative;
+	attr.backing_store = NotUseful;
+	attr.event_mask = ExposureMask;
+	attr.override_redirect = True;
 
-	LOCAL_DEBUG_OUT( "grabbing root image from %dx%d%+d%+d", width, height, x, y );
+	LOCAL_DEBUG_OUT ("grabbing root image from %dx%d%+d%+d", width, height, x, y);
 
-	src = create_visual_window( scr->asv, scr->Root, x, y, width, height, 0, CopyFromParent,
-								CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask,
-								&attr);
+	src = create_visual_window (scr->asv, scr->Root, x, y, width, height, 0, CopyFromParent,
+								CWBackPixmap | CWBackingStore | CWOverrideRedirect | CWEventMask, &attr);
 
-	if( src == None ) return NULL ;
-	grab_server();
-	XMapRaised( dpy, src );
-	XSync(dpy, False );
-	start_ticker(1);
+	if (src == None)
+		return NULL;
+	grab_server ();
+	XMapRaised (dpy, src);
+	XSync (dpy, False);
+	start_ticker (1);
 	/* now we have to wait for our window to become mapped - waiting for Expose */
-	for( tick_count = 0 ; !XCheckWindowEvent( dpy, src, ExposureMask, &event ) && tick_count < 100 ; tick_count++)
+	for (tick_count = 0; !XCheckWindowEvent (dpy, src, ExposureMask, &event) && tick_count < 100; tick_count++)
 		/*sleep_a_millisec(500); */
-		wait_tick();
-	if( tick_count < 100 )
-		if( (root_im = pixmap2asimage( scr->asv, src, 0, 0, width, height, AllPlanes, False, 100 )) != NULL )
+		wait_tick ();
+	if (tick_count < 100)
+		if ((root_im = pixmap2asimage (scr->asv, src, 0, 0, width, height, AllPlanes, False, 100)) != NULL)
 		{
-			if( (scr->RootClipArea.y < 0 || scr->RootClipArea.y < 0) && !screenshot )
+			if ((scr->RootClipArea.y < 0 || scr->RootClipArea.y < 0) && !screenshot)
 			{
-				ASImage *tmp ;
+				ASImage      *tmp;
 
-				x = ( scr->RootClipArea.x < 0 )? -scr->RootClipArea.x : 0 ;
-				y = ( scr->RootClipArea.y < 0 )? -scr->RootClipArea.y : 0 ;
+				x = (scr->RootClipArea.x < 0) ? -scr->RootClipArea.x : 0;
+				y = (scr->RootClipArea.y < 0) ? -scr->RootClipArea.y : 0;
 
 				tmp = tile_asimage (scr->asv, root_im,
 									x, y, scr->RootClipArea.width, scr->RootClipArea.height, TINT_NONE,
-								   ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-				if( tmp )
+									ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+				if (tmp)
 				{
-					destroy_asimage( &root_im );
-					root_im = tmp ;
+					destroy_asimage (&root_im);
+					root_im = tmp;
 				}
 			}
 		}
-	XDestroyWindow( dpy, src );
-	ungrab_server();
-	return root_im ;
+	XDestroyWindow (dpy, src);
+	ungrab_server ();
+	return root_im;
 }
 
 
@@ -357,169 +358,178 @@ static merge_scanlines_func mystyle_merge_scanlines_func_xref[] = {
 };
 
 merge_scanlines_func
-mystyle_translate_texture_type( int texture_type )
+mystyle_translate_texture_type (int texture_type)
 {
-	register int index = 1 ;                   /* default is alphablending */
-	if (texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
-		texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
+	register int  index = 1;				   /* default is alphablending */
+
+	if (texture_type >= TEXTURE_SCALED_TRANSPIXMAP && texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
 		index = texture_type - TEXTURE_SCALED_TRANSPIXMAP;
 	else if (texture_type >= TEXTURE_TRANSPIXMAP && texture_type < TEXTURE_TRANSPIXMAP_END)
 		index = texture_type - TEXTURE_TRANSPIXMAP;
-	return  mystyle_merge_scanlines_func_xref[index];
+	return mystyle_merge_scanlines_func_xref[index];
 }
 
 static inline ASImage *
-mystyle_flip_image( ASImage *im, int width, int height, int flip )
+mystyle_flip_image (ASImage * im, int width, int height, int flip)
 {
-	ASImage *tmp ;
-	if(flip == 0)
+	ASImage      *tmp;
+
+	if (flip == 0)
 		return im;
-	tmp = flip_asimage( ASDefaultVisual, im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
-	if( tmp != NULL )
+	tmp = flip_asimage (ASDefaultVisual, im, 0, 0, width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+	if (tmp != NULL)
 	{
-		safe_asimage_destroy( im );
+		safe_asimage_destroy (im);
 		im = tmp;
 	}
 	return im;
 }
 
 static ASImage *
-clip_root_pixmap( Pixmap root_pixmap, int width, int height )
+clip_root_pixmap (Pixmap root_pixmap, int width, int height)
 {
-	ASImage *result = NULL ;
-	XRectangle *clip_area = &(ASDefaultScr->RootClipArea) ; 
+	ASImage      *result = NULL;
+	XRectangle   *clip_area = &(ASDefaultScr->RootClipArea);
 
 	if (root_pixmap)
 	{
-		ASImage *tmp_root ;
-		int root_x = 0, root_y = 0 ;
-		int clip_x = clip_area->x ;
-		int clip_y = clip_area->y ;
+		ASImage      *tmp_root;
+		int           root_x = 0, root_y = 0;
+		int           clip_x = clip_area->x;
+		int           clip_y = clip_area->y;
 
-		while( clip_x < 0 )
-			clip_x += ASDefaultScrWidth ;
-		clip_x %= width ;
-		while( clip_y < 0 )
-			clip_y += ASDefaultScrHeight ;
-		clip_y %= height ;
+		while (clip_x < 0)
+			clip_x += ASDefaultScrWidth;
+		clip_x %= width;
+		while (clip_y < 0)
+			clip_y += ASDefaultScrHeight;
+		clip_y %= height;
 
 		/* at this point clip_x and clip_y fall into root pixmap */
 
-		if( clip_x + clip_area->width  <= width  ) 
+		if (clip_x + clip_area->width <= width)
 		{
-			root_x = clip_x ; 
-			width = clip_area->width ;
+			root_x = clip_x;
+			width = clip_area->width;
 		}
-		if( clip_y + clip_area->height <= height  ) 
+		if (clip_y + clip_area->height <= height)
 		{
-			root_y = clip_y ; 
-			height = clip_area->height  ;
+			root_y = clip_y;
+			height = clip_area->height;
 		}
 		/* fprintf( stderr, "RootPixmap2RootImage %dx%d%+d%+d", root_w, root_h, root_x,
-		root_y); */
+		   root_y); */
 		tmp_root = pixmap2asimage (ASDefaultVisual, root_pixmap, root_x, root_y, width, height, AllPlanes, False, 100);
 
-		LOCAL_DEBUG_OUT ("Root pixmap ASImage = %p, size = %dx%d", tmp_root, tmp_root?tmp_root->width:0, tmp_root?tmp_root->height:0);
-		if( tmp_root )
+		LOCAL_DEBUG_OUT ("Root pixmap ASImage = %p, size = %dx%d", tmp_root, tmp_root ? tmp_root->width : 0,
+						 tmp_root ? tmp_root->height : 0);
+		if (tmp_root)
 		{
-			if( clip_x == root_x && clip_y == root_y &&
-				clip_area->width == width && clip_area->height == height )
+			if (clip_x == root_x && clip_y == root_y && clip_area->width == width && clip_area->height == height)
 			{
-				result = tmp_root ;
-			}else
+				result = tmp_root;
+			} else
 			{
-				result = tile_asimage ( ASDefaultVisual, tmp_root,
-										(clip_x == root_x)?0:clip_area->x, 
-										(clip_y == root_y)?0:clip_area->y,
-										clip_area->width, clip_area->height, TINT_NONE,
-										ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-				destroy_asimage( &tmp_root );
+				result = tile_asimage (ASDefaultVisual, tmp_root,
+									   (clip_x == root_x) ? 0 : clip_area->x,
+									   (clip_y == root_y) ? 0 : clip_area->y,
+									   clip_area->width, clip_area->height, TINT_NONE,
+									   ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+				destroy_asimage (&tmp_root);
 			}
 		}
 	}
 	return result;
-}	 
+}
 
-static ASImage      *
-mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int crop_y, int crop_width, int crop_height, int scale_width, int scale_height, int flip, ASImage *underlayment, int overlay_type )
+static ASImage *
+mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int crop_y, int crop_width,
+						int crop_height, int scale_width, int scale_height, int flip, ASImage * underlayment,
+						int overlay_type)
 {
 	ASImage      *im = NULL;
 	Pixmap        root_pixmap;
-	Bool transparency = TransparentMS(style) ;
-	int preflip_width, preflip_height ;
-	int width, height ; 
-	
-	if(underlayment ) 
+	Bool          transparency = TransparentMS (style);
+	int           preflip_width, preflip_height;
+	int           width, height;
+
+	if (underlayment)
 	{
-		if( overlay_type >= TEXTURE_SCALED_TRANSPIXMAP )
+		if (overlay_type >= TEXTURE_SCALED_TRANSPIXMAP)
 			overlay_type = TEXTURE_TRANSPIXMAP + (overlay_type - TEXTURE_SCALED_TRANSPIXMAP);
-		if( overlay_type < TEXTURE_TRANSPIXMAP || overlay_type >= TEXTURE_TRANSPIXMAP_END ) 
-			overlay_type = TEXTURE_TRANSPIXMAP_ALPHA ;
-		
-		if( transparency )
+		if (overlay_type < TEXTURE_TRANSPIXMAP || overlay_type >= TEXTURE_TRANSPIXMAP_END)
+			overlay_type = TEXTURE_TRANSPIXMAP_ALPHA;
+
+		if (transparency)
 			transparency = (overlay_type != TEXTURE_TRANSPIXMAP_ALPHA);
-	} 
+	}
 
-	if( crop_x < 0 ) 
+	if (crop_x < 0)
 	{
-		root_x += crop_x ; 
-		width = scale_width-crop_x ; 
-		crop_x = 0 ;
-		if( width < crop_width )
+		root_x += crop_x;
+		width = scale_width - crop_x;
+		crop_x = 0;
+		if (width < crop_width)
 			width = crop_width;
-	}else
+	} else
 	{
-		width = crop_width + crop_x ; 
-		if( width < scale_width ) 
-			width = scale_width ;
+		width = crop_width + crop_x;
+		if (width < scale_width)
+			width = scale_width;
 	}
 
-	if( crop_y < 0 ) 
+	if (crop_y < 0)
 	{
-		root_y += crop_y ; 
-		height = scale_height-crop_y ; 
-		crop_y = 0 ;
-		if( height < crop_height )
+		root_y += crop_y;
+		height = scale_height - crop_y;
+		crop_y = 0;
+		if (height < crop_height)
 			height = crop_height;
-	}else
+	} else
 	{
-		height = crop_height + crop_y ; 
-		if( height < scale_height ) 
-			height = scale_height ;
+		height = crop_height + crop_y;
+		if (height < scale_height)
+			height = scale_height;
 	}
-	
+
 	if (width < 1)
 		width = 1;
 	if (height < 1)
 		height = 1;
-		
-		
-	LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX, geom=(%dx%d%+d%+d), flip = %d", style->name, style->texture_type,
-					 style->back_icon.image, style->tint, width, height, root_x, root_y, flip);
 
-	if( transparency )
-	{	/* in this case we need valid root image : */
-		
+
+	LOCAL_DEBUG_OUT ("style \"%s\", texture_type = %d, im = %p, tint = 0x%lX, geom=(%dx%d%+d%+d), flip = %d",
+					 style->name, style->texture_type, style->back_icon.image, style->tint, width, height, root_x,
+					 root_y, flip);
+
+	if (transparency)
+	{										   /* in this case we need valid root image : */
+
 		if (ASDefaultScr->RootImage == NULL)
 		{
 			unsigned int  root_w, root_h;
+
 			root_pixmap = ValidatePixmap (None, 1, 1, &root_w, &root_h);
 			show_activity ("obtained Root pixmap = %lX, size %dx%d", root_pixmap, root_w, root_h);
-			ASDefaultScr->RootImage = clip_root_pixmap( root_pixmap, root_w, root_h );
-			 
-			if( ASDefaultScr->RootImage == NULL )
-				ASDefaultScr->RootImage = grab_root_asimage( ASDefaultScr, None, False );
+			ASDefaultScr->RootImage = clip_root_pixmap (root_pixmap, root_w, root_h);
+
+			if (ASDefaultScr->RootImage == NULL)
+				ASDefaultScr->RootImage = grab_root_asimage (ASDefaultScr, None, False);
 		}
-		LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", ASDefaultScr->RootImage, ASDefaultScr->RootClipArea.width, ASDefaultScr->RootClipArea.height, ASDefaultScr->RootClipArea.x, ASDefaultScr->RootClipArea.y, ASDefaultScr->RootImage?ASDefaultScr->RootImage->width:0, ASDefaultScr->RootImage?ASDefaultScr->RootImage->height:0);
+		LOCAL_DEBUG_OUT ("RootImage = %p clip(%ux%u%+d%+d) size(%dx%d)", ASDefaultScr->RootImage,
+						 ASDefaultScr->RootClipArea.width, ASDefaultScr->RootClipArea.height,
+						 ASDefaultScr->RootClipArea.x, ASDefaultScr->RootClipArea.y,
+						 ASDefaultScr->RootImage ? ASDefaultScr->RootImage->width : 0,
+						 ASDefaultScr->RootImage ? ASDefaultScr->RootImage->height : 0);
 	}
-	if( get_flags( flip, FLIP_VERTICAL )  )
+	if (get_flags (flip, FLIP_VERTICAL))
 	{
-		preflip_width = height ;
-		preflip_height = width ;
-	}else
+		preflip_width = height;
+		preflip_height = width;
+	} else
 	{
-		preflip_width = width ;
-		preflip_height = height ;
+		preflip_width = width;
+		preflip_height = height;
 	}
 
 	switch (style->texture_type)
@@ -540,72 +550,76 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 	 case TEXTURE_GRADIENT_BL2TR:
 	 case TEXTURE_GRADIENT_T2B:
 	 case TEXTURE_GRADIENT_L2R:
-		{
-			ASGradient *grad = flip_gradient( &(style->gradient), flip );
-			LOCAL_DEBUG_OUT( "orig grad type = %d, translated grad_type = %d, texture_type = %d", style->gradient.type, grad->type, style->texture_type );
-			im = make_gradient (ASDefaultVisual, grad, width, height, 0xFFFFFFFF, ASA_ASImage, 0,
-							 ASIMAGE_QUALITY_DEFAULT);
-			if( grad != &(style->gradient) )
-				destroy_asgradient( &grad );
-		}
-		break;
+		 {
+			 ASGradient   *grad = flip_gradient (&(style->gradient), flip);
+
+			 LOCAL_DEBUG_OUT ("orig grad type = %d, translated grad_type = %d, texture_type = %d", style->gradient.type,
+							  grad->type, style->texture_type);
+			 im = make_gradient (ASDefaultVisual, grad, width, height, 0xFFFFFFFF, ASA_ASImage, 0,
+								 ASIMAGE_QUALITY_DEFAULT);
+			 if (grad != &(style->gradient))
+				 destroy_asgradient (&grad);
+		 }
+		 break;
 	 case TEXTURE_SHAPED_SCALED_PIXMAP:
 	 case TEXTURE_SCALED_PIXMAP:
-		if( get_flags( style->set_flags, F_SLICE ) )
-		{
-			im = slice_asimage2(ASDefaultVisual, style->back_icon.image, 
-								style->slice_x_start, style->slice_x_end,
-								style->slice_y_start, style->slice_y_end,
-								preflip_width, preflip_height, True, 
-								ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
-		}else	 
-			im = scale_asimage (ASDefaultVisual, style->back_icon.image, 
-								preflip_width, preflip_height, 
-								ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-		if( flip != 0 )
-			im = mystyle_flip_image( im, width, height, flip );
-		break;
+		 if (get_flags (style->set_flags, F_SLICE))
+		 {
+			 im = slice_asimage2 (ASDefaultVisual, style->back_icon.image,
+								  style->slice_x_start, style->slice_x_end,
+								  style->slice_y_start, style->slice_y_end,
+								  preflip_width, preflip_height, True, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 } else
+			 im = scale_asimage (ASDefaultVisual, style->back_icon.image,
+								 preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 if (flip != 0)
+			 im = mystyle_flip_image (im, width, height, flip);
+		 break;
 	 case TEXTURE_SHAPED_PIXMAP:
 	 case TEXTURE_PIXMAP:
-		 if( get_flags( style->set_flags, F_SLICE ) )
+		 if (get_flags (style->set_flags, F_SLICE))
 		 {
-			im = slice_asimage2(ASDefaultVisual, style->back_icon.image, 
-								style->slice_x_start, style->slice_x_end,
-								style->slice_y_start, style->slice_y_end,
-								preflip_width, preflip_height, False, 
-								ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
-		 }else
-		 {	
-			im = tile_asimage ( ASDefaultVisual, style->back_icon.image,
-								0, 0, 
-								preflip_width, preflip_height, TINT_LEAVE_SAME, 
+			 im = slice_asimage2 (ASDefaultVisual, style->back_icon.image,
+								  style->slice_x_start, style->slice_x_end,
+								  style->slice_y_start, style->slice_y_end,
+								  preflip_width, preflip_height, False, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+		 } else
+		 {
+			 im = tile_asimage (ASDefaultVisual, style->back_icon.image,
+								0, 0,
+								preflip_width, preflip_height, TINT_LEAVE_SAME,
 								ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 		 }
-		 LOCAL_DEBUG_OUT( "back_icon.image = %p,im = %p, preflip_size=%dx%d", style->back_icon.image, im, preflip_width, preflip_height );
-		 if( flip != 0 )
-			im = mystyle_flip_image( im, width, height, flip );
+		 LOCAL_DEBUG_OUT ("back_icon.image = %p,im = %p, preflip_size=%dx%d", style->back_icon.image, im, preflip_width,
+						  preflip_height);
+		 if (flip != 0)
+			 im = mystyle_flip_image (im, width, height, flip);
 		 break;
 	}
 
-	if( transparency )
+	if (transparency)
 	{
 		if (ASDefaultScr->RootImage != NULL)
 		{
-			ASImage *root_im = ASDefaultScr->RootImage;
-			int root_src_x = root_x - ASDefaultScr->RootClipArea.x;
-			int root_src_y = root_y - ASDefaultScr->RootClipArea.y;
-			Bool do_tint = (style->texture_type == TEXTURE_TRANSPARENT || style->texture_type == TEXTURE_TRANSPARENT_TWOWAY);
-			Bool do_blur = (get_flags (style->set_flags, F_BLUR) && (style->blur_x > 1 || style->blur_y > 1));
-			LOCAL_DEBUG_OUT( "root+im = %p, blur is %s set, size = %dx%d", root_im, get_flags (style->set_flags, F_BLUR)?"is":"not", style->blur_x, style->blur_y);
-			if ( do_tint 
-				 || (do_blur && (root_src_x != 0 || root_src_y != 0 
-								 || width != root_im->width || height != root_im->height)))
+			ASImage      *root_im = ASDefaultScr->RootImage;
+			int           root_src_x = root_x - ASDefaultScr->RootClipArea.x;
+			int           root_src_y = root_y - ASDefaultScr->RootClipArea.y;
+			Bool          do_tint = (style->texture_type == TEXTURE_TRANSPARENT ||
+									 style->texture_type == TEXTURE_TRANSPARENT_TWOWAY);
+			Bool          do_blur = (get_flags (style->set_flags, F_BLUR) && (style->blur_x > 1 || style->blur_y > 1));
+
+			LOCAL_DEBUG_OUT ("root+im = %p, blur is %s set, size = %dx%d", root_im,
+							 get_flags (style->set_flags, F_BLUR) ? "is" : "not", style->blur_x, style->blur_y);
+			if (do_tint ||
+				(do_blur &&
+				 (root_src_x != 0 || root_src_y != 0 || width != root_im->width || height != root_im->height)))
 			{
-				ASImage *tmp = tile_asimage ( ASDefaultVisual, root_im,
-											  root_src_x, root_src_y,
-											  width, height, do_tint?style->tint:TINT_LEAVE_SAME, 
-											  ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-				LOCAL_DEBUG_OUT( "tint result = %p", tmp );
+				ASImage      *tmp = tile_asimage (ASDefaultVisual, root_im,
+												  root_src_x, root_src_y,
+												  width, height, do_tint ? style->tint : TINT_LEAVE_SAME,
+												  ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+
+				LOCAL_DEBUG_OUT ("tint result = %p", tmp);
 				if (tmp)
 				{
 					root_src_x = root_src_y = 0;
@@ -615,8 +629,10 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 			if (do_blur)
 			{
 #if 1
-				ASImage *tmp = blur_asimage_gauss( ASDefaultVisual, root_im, style->blur_x, style->blur_y, 0xFFFFFFFF, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-				LOCAL_DEBUG_OUT( "blur result = %p", tmp );
+				ASImage      *tmp =
+					blur_asimage_gauss (ASDefaultVisual, root_im, style->blur_x, style->blur_y, 0xFFFFFFFF, ASA_ASImage,
+										0, ASIMAGE_QUALITY_DEFAULT);
+				LOCAL_DEBUG_OUT ("blur result = %p", tmp);
 				if (tmp && tmp != root_im)
 				{
 					if (root_im != ASDefaultScr->RootImage)
@@ -629,209 +645,214 @@ mystyle_make_image_int (MyStyle * style, int root_x, int root_y, int crop_x, int
 				im = root_im;
 			else
 			{
-				 ASImageLayer  layers[2];
-				 ASImage      *scaled_im = NULL;
-				 Bool do_scale = False ;
-				 int           index = 1;      /* default is alphablending !!! */
+				ASImageLayer  layers[2];
+				ASImage      *scaled_im = NULL;
+				Bool          do_scale = False;
+				int           index = 1;	   /* default is alphablending !!! */
 
-				 init_image_layers (&layers[0], 2);
+				init_image_layers (&layers[0], 2);
 
-				 layers[0].im = root_im;
-				 if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP &&
-					 style->texture_type == TEXTURE_SHAPED_PIXMAP)
-				 {
-					 index = 1 ;               /* alphablending  */
-				 }else if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
-					 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
-					 index = style->texture_type - TEXTURE_SCALED_TRANSPIXMAP;
-				 else if (style->texture_type >= TEXTURE_TRANSPIXMAP && style->texture_type < TEXTURE_TRANSPIXMAP_END)
-					 index = style->texture_type - TEXTURE_TRANSPIXMAP;
-
-				 LOCAL_DEBUG_OUT ("index = %d", index);
-				 layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
-				 layers[0].dst_x = 0;
-				 layers[0].dst_y = 0;
-				 layers[0].clip_x = root_src_x;
-				 layers[0].clip_y = root_src_y;
-				 layers[0].clip_width = width;
-				 layers[0].clip_height = height;
-
-				 layers[1].im = im?im:style->back_icon.image;
-					
-				 do_scale = (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
-							 style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END);
-
-				if( get_flags( style->set_flags, F_SLICE ) )
+				layers[0].im = root_im;
+				if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP && style->texture_type == TEXTURE_SHAPED_PIXMAP)
 				{
-					scaled_im = slice_asimage2 (ASDefaultVisual, layers[1].im, 
+					index = 1;				   /* alphablending  */
+				} else if (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
+						   style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END)
+					index = style->texture_type - TEXTURE_SCALED_TRANSPIXMAP;
+				else if (style->texture_type >= TEXTURE_TRANSPIXMAP && style->texture_type < TEXTURE_TRANSPIXMAP_END)
+					index = style->texture_type - TEXTURE_TRANSPIXMAP;
+
+				LOCAL_DEBUG_OUT ("index = %d", index);
+				layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
+				layers[0].dst_x = 0;
+				layers[0].dst_y = 0;
+				layers[0].clip_x = root_src_x;
+				layers[0].clip_y = root_src_y;
+				layers[0].clip_width = width;
+				layers[0].clip_height = height;
+
+				layers[1].im = im ? im : style->back_icon.image;
+
+				do_scale = (style->texture_type >= TEXTURE_SCALED_TRANSPIXMAP &&
+							style->texture_type < TEXTURE_SCALED_TRANSPIXMAP_END);
+
+				if (get_flags (style->set_flags, F_SLICE))
+				{
+					scaled_im = slice_asimage2 (ASDefaultVisual, layers[1].im,
 												style->slice_x_start, style->slice_x_end,
 												style->slice_y_start, style->slice_y_end,
-												preflip_width, preflip_height, do_scale, 
-												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);			   
-					LOCAL_DEBUG_OUT( "image scliced to %p", scaled_im ) ;
-				}else if( do_scale )  
-				{
-					scaled_im = scale_asimage ( ASDefaultVisual, layers[1].im, 
-												preflip_width, preflip_height,
+												preflip_width, preflip_height, do_scale,
 												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-					LOCAL_DEBUG_OUT( "image scaled to %p", scaled_im ) ;
+					LOCAL_DEBUG_OUT ("image scliced to %p", scaled_im);
+				} else if (do_scale)
+				{
+					scaled_im = scale_asimage (ASDefaultVisual, layers[1].im,
+											   preflip_width, preflip_height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+					LOCAL_DEBUG_OUT ("image scaled to %p", scaled_im);
 				}
-				
-				 if (scaled_im)	 
-				 {	
-					 /* here layers[1].im is always style->back_icon.image, so we should not destroy it ! */
-					 scaled_im = mystyle_flip_image( scaled_im, width, height, flip );
-					 layers[1].im = scaled_im ;
-					 LOCAL_DEBUG_OUT( "image flipped to %p", layers[1].im ) ;
-					 /* scaled_im got destroyed in mystyle_flip_image if it had to be */
-				 }else if( flip != 0 && layers[1].im == style->back_icon.image )
-				 {
+
+				if (scaled_im)
+				{
+					/* here layers[1].im is always style->back_icon.image, so we should not destroy it ! */
+					scaled_im = mystyle_flip_image (scaled_im, width, height, flip);
+					layers[1].im = scaled_im;
+					LOCAL_DEBUG_OUT ("image flipped to %p", layers[1].im);
+					/* scaled_im got destroyed in mystyle_flip_image if it had to be */
+				} else if (flip != 0 && layers[1].im == style->back_icon.image)
+				{
 					/* safely assuming that im is NULL at this point,( see logic above ) */
-					 layers[1].im = im = flip_asimage( ASDefaultVisual, layers[1].im, 
-													   0, 0, 
-													   width, height, flip, 
-													   ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
-				 }
-				 layers[1].merge_scanlines = layers[0].merge_scanlines;
-				 layers[1].dst_x = 0;
-				 layers[1].dst_y = 0;
-				 layers[1].clip_x = 0;
-				 layers[1].clip_y = 0;
-				 layers[1].clip_width = width;
-				 layers[1].clip_height = height;
+					layers[1].im = im = flip_asimage (ASDefaultVisual, layers[1].im,
+													  0, 0,
+													  width, height, flip, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+				}
+				layers[1].merge_scanlines = layers[0].merge_scanlines;
+				layers[1].dst_x = 0;
+				layers[1].dst_y = 0;
+				layers[1].clip_x = 0;
+				layers[1].clip_y = 0;
+				layers[1].clip_width = width;
+				layers[1].clip_height = height;
 
 				{
-					ASImage *tmp = merge_layers(ASDefaultVisual, &layers[0], 2, 
-												width, height, 
-												ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-					if( tmp )
+					ASImage      *tmp = merge_layers (ASDefaultVisual, &layers[0], 2,
+													  width, height,
+													  ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+
+					if (tmp)
 					{
-						if( im )
+						if (im)
 						{
 							if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
 								style->texture_type == TEXTURE_SHAPED_PIXMAP)
 							{
 								/*we need to keep alpha channel intact */
-								LOCAL_DEBUG_OUT( "copying alpha channel from %p to %p", im, tmp );
-								copy_asimage_channel(tmp, IC_ALPHA, im, IC_ALPHA);
+								LOCAL_DEBUG_OUT ("copying alpha channel from %p to %p", im, tmp);
+								copy_asimage_channel (tmp, IC_ALPHA, im, IC_ALPHA);
 							}
-							 if ( im != ASDefaultScr->RootImage)
+							if (im != ASDefaultScr->RootImage)
 								safe_asimage_destroy (im);
 						}
-						im = tmp ;
+						im = tmp;
 					}
 				}
 				if (scaled_im)
 					destroy_asimage (&scaled_im);
-			 }
-			 if ( root_im && root_im != ASDefaultScr->RootImage && root_im != im)
-				destroy_asimage( &root_im);
-		}else
-			show_warning( "MyStyle \"%s\" : failed to accure Root background image", style->name );
+			}
+			if (root_im && root_im != ASDefaultScr->RootImage && root_im != im)
+				destroy_asimage (&root_im);
+		} else
+			show_warning ("MyStyle \"%s\" : failed to accure Root background image", style->name);
 	}
 	/* simply creating solid color image under no circumstances we want to return NULL here */
-	if( im == NULL )
+	if (im == NULL)
 	{
-		im = create_asimage( width, height, 100 );
-		im->back_color = style->colors.back ;
-		show_warning( "MyStyle \"%s\" : failed to generate background image - using solid fill instead with color #0x%8.8X", style->name, style->colors.back );
+		im = create_asimage (width, height, 100);
+		im->back_color = style->colors.back;
+		show_warning
+			("MyStyle \"%s\" : failed to generate background image - using solid fill instead with color #0x%8.8X",
+			 style->name, style->colors.back);
 	}
 
-	if( underlayment )
+	if (underlayment)
 	{
-		 ASImageLayer  layers[2];
-		 int           index = 1;      /* default is alphablending !!! */
+		ASImageLayer  layers[2];
+		int           index = 1;			   /* default is alphablending !!! */
 
-		 init_image_layers (&layers[0], 2);
+		init_image_layers (&layers[0], 2);
 
-		 layers[0].im = underlayment;
-		 index = overlay_type - TEXTURE_TRANSPIXMAP;
+		layers[0].im = underlayment;
+		index = overlay_type - TEXTURE_TRANSPIXMAP;
 
-		 LOCAL_DEBUG_OUT ("index = %d", index);
-		 layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
-		 layers[0].dst_x = 0;
-		 layers[0].dst_y = 0;
-		 layers[0].clip_x = 0;
-		 layers[0].clip_y = 0;
-		 layers[0].clip_width = width;
-		 layers[0].clip_height = height;
+		LOCAL_DEBUG_OUT ("index = %d", index);
+		layers[0].merge_scanlines = mystyle_merge_scanlines_func_xref[index];
+		layers[0].dst_x = 0;
+		layers[0].dst_y = 0;
+		layers[0].clip_x = 0;
+		layers[0].clip_y = 0;
+		layers[0].clip_width = width;
+		layers[0].clip_height = height;
 
-		 layers[1].im = im;
-		 layers[1].merge_scanlines = layers[0].merge_scanlines;
-		 layers[1].dst_x = 0;
-		 layers[1].dst_y = 0;
-		 layers[1].clip_x = 0;
-		 layers[1].clip_y = 0;
-		 layers[1].clip_width = width;
-		 layers[1].clip_height = height;
+		layers[1].im = im;
+		layers[1].merge_scanlines = layers[0].merge_scanlines;
+		layers[1].dst_x = 0;
+		layers[1].dst_y = 0;
+		layers[1].clip_x = 0;
+		layers[1].clip_y = 0;
+		layers[1].clip_width = width;
+		layers[1].clip_height = height;
 
 		{
-			ASImage *tmp = merge_layers(ASDefaultVisual, &layers[0], 2, 
-										width, height, 
-										ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			if( tmp )
+			ASImage      *tmp = merge_layers (ASDefaultVisual, &layers[0], 2,
+											  width, height,
+											  ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+
+			if (tmp)
 			{
-				if( im )
+				if (im)
 				{
 					if (style->texture_type == TEXTURE_SHAPED_SCALED_PIXMAP ||
 						style->texture_type == TEXTURE_SHAPED_PIXMAP)
 					{
 						/*we need to keep alpha channel intact */
-						LOCAL_DEBUG_OUT( "copying alpha channel from %p to %p", im, tmp );
-						copy_asimage_channel(tmp, IC_ALPHA, im, IC_ALPHA);
+						LOCAL_DEBUG_OUT ("copying alpha channel from %p to %p", im, tmp);
+						copy_asimage_channel (tmp, IC_ALPHA, im, IC_ALPHA);
 					}
-					if ( im != ASDefaultScr->RootImage)
+					if (im != ASDefaultScr->RootImage)
 						safe_asimage_destroy (im);
 				}
-				im = tmp ;
+				im = tmp;
 			}
 		}
 	}
 
-	if( style->overlay ) 
+	if (style->overlay)
 	{
-		ASImage *overlayed = mystyle_make_image_int (style->overlay, root_x, root_y, crop_x, crop_y, crop_width, crop_height, scale_width, scale_height, flip, im, style->overlay_type );
+		ASImage      *overlayed =
+			mystyle_make_image_int (style->overlay, root_x, root_y, crop_x, crop_y, crop_width, crop_height,
+									scale_width, scale_height, flip, im, style->overlay_type);
 /* 		fprintf( stderr, "overlay_style = %p\n", style->overlay ); */
-		if( overlayed ) 
+		if (overlayed)
 		{
-			if( im && overlayed != im && im != ASDefaultScr->RootImage) 
+			if (im && overlayed != im && im != ASDefaultScr->RootImage)
 				safe_asimage_destroy (im);
-			im = overlayed ;
-		}			
+			im = overlayed;
+		}
 	}
-	if( crop_x > 0 || crop_y > 0 || 
-		(crop_width > 0 && crop_width < im->width ) ||
-		(crop_height > 0 && crop_height < im->height ) ) 
+	if (crop_x > 0 || crop_y > 0 ||
+		(crop_width > 0 && crop_width < im->width) || (crop_height > 0 && crop_height < im->height))
 	{
-		ASImage *cropped_im = tile_asimage( ASDefaultVisual, im,
-											crop_x, crop_y,
-											crop_width, crop_height,
-											TINT_LEAVE_SAME,
-											ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT );
-		if( cropped_im ) 
+		ASImage      *cropped_im = tile_asimage (ASDefaultVisual, im,
+												 crop_x, crop_y,
+												 crop_width, crop_height,
+												 TINT_LEAVE_SAME,
+												 ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
+
+		if (cropped_im)
 		{
-			if( im && cropped_im != im && im != ASDefaultScr->RootImage ) 
+			if (im && cropped_im != im && im != ASDefaultScr->RootImage)
 				safe_asimage_destroy (im);
-			im = cropped_im ;
-		}			
+			im = cropped_im;
+		}
 	}
 	return im;
 }
 
 ASImage      *
-mystyle_make_image(MyStyle * style, int root_x, int root_y, int width, int height, int flip )
+mystyle_make_image (MyStyle * style, int root_x, int root_y, int width, int height, int flip)
 {
-	if( style != NULL ) 
-		return mystyle_make_image_int (style, root_x, root_y, 0, 0, width, height, width, height, flip, NULL, 0 );
-	return NULL ;
+	if (style != NULL)
+		return mystyle_make_image_int (style, root_x, root_y, 0, 0, width, height, width, height, flip, NULL, 0);
+	return NULL;
 }
 
 ASImage      *
-mystyle_crop_image(MyStyle * style, int root_x, int root_y, int crop_x, int crop_y, int width, int height, int scale_width, int scale_height, int flip )
+mystyle_crop_image (MyStyle * style, int root_x, int root_y, int crop_x, int crop_y, int width, int height,
+					int scale_width, int scale_height, int flip)
 {
-	if( style != NULL ) 
-		return mystyle_make_image_int (style, root_x, root_y, crop_x, crop_y, width, height, scale_width, scale_height, flip, NULL, 0 );
-	return NULL ;
+	if (style != NULL)
+		return mystyle_make_image_int (style, root_x, root_y, crop_x, crop_y, width, height, scale_width, scale_height,
+									   flip, NULL, 0);
+	return NULL;
 }
 
 
@@ -839,15 +860,14 @@ mystyle_crop_image(MyStyle * style, int root_x, int root_y, int crop_x, int crop
 /* Mystyle creation/deletion                                             */
 /*************************************************************************/
 static void
-mystyle_free_resources( MyStyle *style )
+mystyle_free_resources (MyStyle * style)
 {
-	if( style->magic == MAGIC_MYSTYLE )
+	if (style->magic == MAGIC_MYSTYLE)
 	{
-		LOCAL_DEBUG_OUT( "style %p, style->name = \"%s\", style->font->name = \"%s\"", 
-						  style, style->name?style->name:"(null)", 
-						  style->font.name?style->font.name:"(null)" );
+		LOCAL_DEBUG_OUT ("style %p, style->name = \"%s\", style->font->name = \"%s\"",
+						 style, style->name ? style->name : "(null)", style->font.name ? style->font.name : "(null)");
 
-		if (get_flags( style->user_flags, F_FONT))
+		if (get_flags (style->user_flags, F_FONT))
 		{
 			unload_font (&style->font);
 		}
@@ -856,16 +876,16 @@ mystyle_free_resources( MyStyle *style )
 			free (style->gradient.color);
 			free (style->gradient.offset);
 		}
-		if( !get_flags (style->inherit_flags, F_BACKTRANSPIXMAP) )
+		if (!get_flags (style->inherit_flags, F_BACKTRANSPIXMAP))
 		{
-			LOCAL_DEBUG_OUT( "calling mystyle_free_back_icon for style %p", style );
-			mystyle_free_back_icon(style);
+			LOCAL_DEBUG_OUT ("calling mystyle_free_back_icon for style %p", style);
+			mystyle_free_back_icon (style);
 		}
 	}
 }
 
 void
-mystyle_init (MyStyle  *style)
+mystyle_init (MyStyle * style)
 {
 	style->user_flags = 0;
 	style->inherit_flags = 0;
@@ -894,68 +914,71 @@ mystyle_init (MyStyle  *style)
 void
 mystyle_destroy (ASHashableValue value, void *data)
 {
-	if ((char*)value != NULL)
+	if ((char *)value != NULL)
 	{
 /*	fprintf( stderr, "destroying mystyle [%s]\n", value.string_val ); */
-		free ((char*)value);               /* destroying our name */
+		free ((char *)value);				   /* destroying our name */
 	}
-	if ( data != NULL)
+	if (data != NULL)
 	{
-		MyStyle *style = (MyStyle*) data ;
-		mystyle_free_resources( style );
-		style->magic = 0 ;                 /* invalidating memory block */
+		MyStyle      *style = (MyStyle *) data;
+
+		mystyle_free_resources (style);
+		style->magic = 0;					   /* invalidating memory block */
 		free (data);
 	}
 }
 
-ASHashTable *
-mystyle_list_init()
+ASHashTable  *
+mystyle_list_init ()
 {
-	ASHashTable *list = NULL;
+	ASHashTable  *list = NULL;
 
-	list = create_ashash( 0, casestring_hash_value, casestring_compare, mystyle_destroy );
+	list = create_ashash (0, casestring_hash_value, casestring_compare, mystyle_destroy);
 
 	return list;
 }
 
-MyStyle *
-mystyle_list_new (struct ASHashTable *list, char *name)
+MyStyle      *
+mystyle_list_new (struct ASHashTable * list, char *name)
 {
-	MyStyle      *style = NULL ;
-	ASHashData   hdata = {0} ;
+	MyStyle      *style = NULL;
+	ASHashData    hdata = { 0 };
 
-	if( name == NULL ) return NULL ;
+	if (name == NULL)
+		return NULL;
 
-	if( list == NULL )
+	if (list == NULL)
 	{
-		if( ASDefaultScr->Look.styles_list == NULL )
-			if( (ASDefaultScr->Look.styles_list = mystyle_list_init())== NULL ) return NULL;
-		list = ASDefaultScr->Look.styles_list ;
+		if (ASDefaultScr->Look.styles_list == NULL)
+			if ((ASDefaultScr->Look.styles_list = mystyle_list_init ()) == NULL)
+				return NULL;
+		list = ASDefaultScr->Look.styles_list;
 	}
 
-	if( get_hash_item( list, AS_HASHABLE(name), &hdata.vptr ) == ASH_Success )
+	if (get_hash_item (list, AS_HASHABLE (name), &hdata.vptr) == ASH_Success)
 	{
-		if( (style = hdata.vptr) != NULL )
+		if ((style = hdata.vptr) != NULL)
 		{
-			if( style->magic == MAGIC_MYSTYLE )
+			if (style->magic == MAGIC_MYSTYLE)
 				return style;
 			else
-				remove_hash_item( list, (ASHashableValue)name, NULL, True );
+				remove_hash_item (list, (ASHashableValue) name, NULL, True);
 		}
 	}
 	style = (MyStyle *) safecalloc (1, sizeof (MyStyle));
 
-	mystyle_init(style);
-	style->name = mystrdup( name );
+	mystyle_init (style);
+	style->name = mystrdup (name);
 
-	if( add_hash_item( list, AS_HASHABLE(style->name), style ) != ASH_Success )
-	{   /* something terrible has happen */
-		if( style->name )
-			free( style->name );
-		free( style );
+	if (add_hash_item (list, AS_HASHABLE (style->name), style) != ASH_Success)
+	{										   /* something terrible has happen */
+		if (style->name)
+			free (style->name);
+		free (style);
 		return NULL;
 	}
-	style->magic = MAGIC_MYSTYLE ;
+	style->magic = MAGIC_MYSTYLE;
 	return style;
 }
 
@@ -963,57 +986,57 @@ MyStyle      *
 mystyle_new_with_name (char *name)
 {
 	if (name == NULL)
-		return NULL ;
-	return mystyle_list_new( NULL, name );
+		return NULL;
+	return mystyle_list_new (NULL, name);
 }
 
 
 /* destruction of all mystyle records : */
 void
-mystyle_list_destroy_all( ASHashTable **plist )
+mystyle_list_destroy_all (ASHashTable ** plist)
 {
-	if( plist == NULL )
-		plist = &(ASDefaultScr->Look.styles_list) ;
-	destroy_ashash( plist );
+	if (plist == NULL)
+		plist = &(ASDefaultScr->Look.styles_list);
+	destroy_ashash (plist);
 }
 
 void
-mystyle_destroy_all()
+mystyle_destroy_all ()
 {
-	mystyle_list_destroy_all( NULL );
+	mystyle_list_destroy_all (NULL);
 }
 
 
 /*
  * MyStyle Lookup functions :
  */
-MyStyle *
+MyStyle      *
 mystyle_list_find (struct ASHashTable *list, const char *name)
 {
-	ASHashData hdata = {0};
-	if( list == NULL )
-		list = ASDefaultScr->Look.styles_list ;
+	ASHashData    hdata = { 0 };
+	if (list == NULL)
+		list = ASDefaultScr->Look.styles_list;
 
-	if( list && name )
-		if( get_hash_item( list, AS_HASHABLE((char*)name), &hdata.vptr ) != ASH_Success )
-			hdata.vptr = NULL ;
+	if (list && name)
+		if (get_hash_item (list, AS_HASHABLE ((char *)name), &hdata.vptr) != ASH_Success)
+			hdata.vptr = NULL;
 	return hdata.vptr;
 }
 
-MyStyle *
-mystyle_list_find_or_default (struct ASHashTable *list, const char *name)
+MyStyle      *
+mystyle_list_find_or_default (struct ASHashTable * list, const char *name)
 {
-	ASHashData hdata = {0};
+	ASHashData    hdata = { 0 };
 
-	if( list == NULL )
-		list = ASDefaultScr->Look.styles_list ;
+	if (list == NULL)
+		list = ASDefaultScr->Look.styles_list;
 
-	if( name == NULL )
-		name = DefaultMyStyleName ;
-	if( list && name )
-		if( get_hash_item( list, AS_HASHABLE((char*)name), &hdata.vptr ) != ASH_Success )
-			if( get_hash_item( list, AS_HASHABLE(DefaultMyStyleName), &hdata.vptr ) != ASH_Success )
-				hdata.vptr = NULL ;
+	if (name == NULL)
+		name = DefaultMyStyleName;
+	if (list && name)
+		if (get_hash_item (list, AS_HASHABLE ((char *)name), &hdata.vptr) != ASH_Success)
+			if (get_hash_item (list, AS_HASHABLE (DefaultMyStyleName), &hdata.vptr) != ASH_Success)
+				hdata.vptr = NULL;
 	return hdata.vptr;
 }
 
@@ -1021,14 +1044,14 @@ mystyle_list_find_or_default (struct ASHashTable *list, const char *name)
 MyStyle      *
 mystyle_find (const char *name)
 {
-	return mystyle_list_find(NULL, name);
+	return mystyle_list_find (NULL, name);
 }
 
 /* find a style by name or return the default style */
 MyStyle      *
 mystyle_find_or_default (const char *name)
 {
-	return mystyle_list_find_or_default( NULL, name);
+	return mystyle_list_find_or_default (NULL, name);
 }
 
 /*
@@ -1039,30 +1062,30 @@ mystyle_find_or_default (const char *name)
  *   inherit if the parent style could go away before the child
  */
 void
-mystyle_merge_font( MyStyle *style, MyFont *font, Bool override)
+mystyle_merge_font (MyStyle * style, MyFont * font, Bool override)
 {
-	if ( override && get_flags(style->user_flags, F_FONT))
+	if (override && get_flags (style->user_flags, F_FONT))
 	{
 		unload_font (&style->font);
-		clear_flags(style->user_flags, F_FONT);
-		clear_flags(style->set_flags, F_FONT);
+		clear_flags (style->user_flags, F_FONT);
+		clear_flags (style->set_flags, F_FONT);
 	}
-	if ( override || !get_flags(style->set_flags, F_FONT) )
+	if (override || !get_flags (style->set_flags, F_FONT))
 	{
-		set_string( &(style->font.name), mystrdup(font->name));
-		style->font.as_font = dup_asfont( font->as_font );
-		set_flags(style->user_flags, F_FONT);
-		clear_flags(style->inherit_flags, F_FONT);
+		set_string (&(style->font.name), mystrdup (font->name));
+		style->font.as_font = dup_asfont (font->as_font);
+		set_flags (style->user_flags, F_FONT);
+		clear_flags (style->inherit_flags, F_FONT);
 	}
 }
 
 void
 mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool copy)
 {
-	if( parent == NULL || child == NULL ) 
+	if (parent == NULL || child == NULL)
 		return;
 	if (parent->set_flags & F_FONT)
-		mystyle_merge_font( child, &(parent->font), override);
+		mystyle_merge_font (child, &(parent->font), override);
 
 	if (parent->set_flags & F_TEXTSTYLE)
 	{
@@ -1157,8 +1180,8 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 	{
 		if ((override == True) && (child->user_flags & F_BACKPIXMAP))
 		{
-			LOCAL_DEBUG_OUT( "calling mystyle_free_back_icon for style %p", child );
-			mystyle_free_back_icon(child);
+			LOCAL_DEBUG_OUT ("calling mystyle_free_back_icon for style %p", child);
+			mystyle_free_back_icon (child);
 		}
 		if ((override == True) || !(child->set_flags & F_BACKPIXMAP))
 		{
@@ -1242,8 +1265,8 @@ mystyle_merge_styles (MyStyle * parent, MyStyle * child, Bool override, Bool cop
 		{
 			child->flags &= ~F_OVERLAY;
 			child->flags |= parent->flags & F_OVERLAY;
-			child->overlay = parent->overlay ;
-			child->overlay_type = parent->overlay_type ;
+			child->overlay = parent->overlay;
+			child->overlay_type = parent->overlay_type;
 			if (copy == False)
 			{
 				child->user_flags &= ~F_OVERLAY;
@@ -1288,7 +1311,7 @@ mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient * gradien
 	 default:
 		 break;
 	}
-	if( gradient )
+	if (gradient)
 	{
 		gradient->npoints = 2 + cylindrical;
 		gradient->color = NEW_ARRAY (ARGB32, gradient->npoints);
@@ -1302,17 +1325,16 @@ mystyle_parse_old_gradient (int type, ARGB32 c1, ARGB32 c2, ASGradient * gradien
 		if (cylindrical)
 			gradient->offset[1] = 0.5;
 		gradient->offset[gradient->npoints - 1] = 1.0;
-		gradient->type = mystyle_translate_grad_type(type) ;
+		gradient->type = mystyle_translate_grad_type (type);
 	}
 	return type;
 }
 
 void
-mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back,
-					   char *gradient, char *pixmap)
+mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back, char *gradient, char *pixmap)
 {
-	if( style == NULL ) 
-		return ;
+	if (style == NULL)
+		return;
 	if ((fore != NULL) && !((*style).user_flags & F_FORECOLOR))
 	{
 		if (parse_argb_color (fore, &((*style).colors.fore)) != fore)
@@ -1375,15 +1397,15 @@ mystyle_merge_colors (MyStyle * style, int type, char *fore, char *back,
 			} else
 				show_error ("bad gradient definition in look file: %s", gradient);
 		}
-	} else if ((type == TEXTURE_PIXMAP) && !get_flags(style->user_flags, F_BACKPIXMAP))
+	} else if ((type == TEXTURE_PIXMAP) && !get_flags (style->user_flags, F_BACKPIXMAP))
 	{
 		if (pixmap != NULL)
 		{
 /* treat second parameter as an image filename : */
-			if ( load_icon(&(style->back_icon), pixmap, ASDefaultScr->image_manager ))
+			if (load_icon (&(style->back_icon), pixmap, ASDefaultScr->image_manager))
 			{
 				style->texture_type = type;
-				set_flags(style->user_flags, F_BACKPIXMAP);
+				set_flags (style->user_flags, F_BACKPIXMAP);
 			} else
 				show_error ("failed to load image file \"%s\" in MyStyle \"%s\".", pixmap, style->name);
 		}
@@ -1398,10 +1420,10 @@ mystyle_inherit_font (MyStyle * style, MyFont * font)
 	 *       unloaded once */
 	if (style != NULL && !(style->set_flags & F_FONT))
 	{
-		set_string (&(style->font.name), mystrdup(font->name));
-		style->font.as_font = dup_asfont(font->as_font);
-		clear_flags(style->inherit_flags, F_FONT);
-		set_flags(style->user_flags, F_FONT);		   /* to prevent confusion */
+		set_string (&(style->font.name), mystrdup (font->name));
+		style->font.as_font = dup_asfont (font->as_font);
+		clear_flags (style->inherit_flags, F_FONT);
+		set_flags (style->user_flags, F_FONT); /* to prevent confusion */
 		style->set_flags = style->user_flags | style->inherit_flags;
 	}
 }
@@ -1410,10 +1432,11 @@ mystyle_inherit_font (MyStyle * style, MyFont * font)
 ASImageBevel *
 mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reverse)
 {
-	if (style && (hilite&HILITE_MASK) != 0 && 
-		(hilite&(NO_HILITE_INLINE|NO_HILITE_OUTLINE)) != (NO_HILITE_INLINE|NO_HILITE_OUTLINE))
+	if (style && (hilite & HILITE_MASK) != 0 &&
+		(hilite & (NO_HILITE_INLINE | NO_HILITE_OUTLINE)) != (NO_HILITE_INLINE | NO_HILITE_OUTLINE))
 	{
-		int extra_hilite = get_flags (hilite, EXTRA_HILITE)?2:0;
+		int           extra_hilite = get_flags (hilite, EXTRA_HILITE) ? 2 : 0;
+
 		if (bevel == NULL)
 			bevel = safecalloc (1, sizeof (ASImageBevel));
 		else
@@ -1433,13 +1456,14 @@ mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reve
 		}
 		bevel->hilo_color = GetAverage (bevel->hi_color, bevel->lo_color);
 #if 1
-		if( !get_flags (hilite, NO_HILITE_OUTLINE) )
+		if (!get_flags (hilite, NO_HILITE_OUTLINE))
 		{
-			if (get_flags (hilite, NORMAL_HILITE) )
+			if (get_flags (hilite, NORMAL_HILITE))
 			{
 				bevel->left_outline = bevel->top_outline = bevel->right_outline = bevel->bottom_outline = 1;
 				bevel->left_inline = bevel->top_inline =
-					bevel->right_inline = bevel->bottom_inline = extra_hilite + get_flags( hilite, NO_HILITE_INLINE )?0:1;
+					bevel->right_inline = bevel->bottom_inline =
+					extra_hilite + get_flags (hilite, NO_HILITE_INLINE) ? 0 : 1;
 			} else
 			{
 #ifndef DONT_HILITE_PLAIN
@@ -1447,66 +1471,65 @@ mystyle_make_bevel (MyStyle * style, ASImageBevel * bevel, int hilite, Bool reve
 #endif
 			}
 		}
-
 #endif
 		if (get_flags (hilite, LEFT_HILITE))
 		{
 			bevel->left_outline++;
-			if( !get_flags( hilite, NO_HILITE_INLINE ) )
+			if (!get_flags (hilite, NO_HILITE_INLINE))
 				bevel->left_inline++;
-			if( get_flags (hilite, NO_HILITE_OUTLINE) )
+			if (get_flags (hilite, NO_HILITE_OUTLINE))
 			{
 				bevel->left_outline++;
-				bevel->left_inline += extra_hilite ;
+				bevel->left_inline += extra_hilite;
 			}
 		}
 		if (get_flags (hilite, TOP_HILITE))
 		{
 			bevel->top_outline++;
-			if( !get_flags( hilite, NO_HILITE_INLINE ) )
+			if (!get_flags (hilite, NO_HILITE_INLINE))
 				bevel->top_inline++;
-			if( get_flags (hilite, NO_HILITE_OUTLINE) )
-				bevel->top_inline += extra_hilite ;
+			if (get_flags (hilite, NO_HILITE_OUTLINE))
+				bevel->top_inline += extra_hilite;
 		}
 		if (get_flags (hilite, RIGHT_HILITE))
 		{
 			bevel->right_outline++;
-			if( !get_flags( hilite, NO_HILITE_INLINE ) )
+			if (!get_flags (hilite, NO_HILITE_INLINE))
 				bevel->right_inline++;
-			if( get_flags (hilite, NO_HILITE_OUTLINE) )
-				bevel->right_inline += extra_hilite ;
+			if (get_flags (hilite, NO_HILITE_OUTLINE))
+				bevel->right_inline += extra_hilite;
 		}
 		if (get_flags (hilite, BOTTOM_HILITE))
 		{
 			bevel->bottom_outline++;
-			if( !get_flags( hilite, NO_HILITE_INLINE ) )
+			if (!get_flags (hilite, NO_HILITE_INLINE))
 				bevel->bottom_inline++;
-			if( get_flags (hilite, NO_HILITE_OUTLINE) )
-				bevel->bottom_inline += extra_hilite ;
+			if (get_flags (hilite, NO_HILITE_OUTLINE))
+				bevel->bottom_inline += extra_hilite;
 		}
 /* experimental code */
 #if 1
-		if( !get_flags( hilite, NO_HILITE_INLINE ) )
-		{	
-			if( bevel->top_outline > 1 ) 
-			{	
-				bevel->top_inline += bevel->top_outline - 1 ;
-				bevel->top_outline = 1 ;
+		if (!get_flags (hilite, NO_HILITE_INLINE))
+		{
+			if (bevel->top_outline > 1)
+			{
+				bevel->top_inline += bevel->top_outline - 1;
+				bevel->top_outline = 1;
 			}
-			if( bevel->left_outline > 1 ) 
-			{	
-				bevel->left_inline += bevel->left_outline - 1 ;
-				bevel->left_outline = 1 ;
+			if (bevel->left_outline > 1)
+			{
+				bevel->left_inline += bevel->left_outline - 1;
+				bevel->left_outline = 1;
 			}
-			if( bevel->right_outline > 1 ) 
-			{	
-				bevel->right_inline += bevel->right_outline - 1 ;
-				bevel->right_outline = 1 ;
+			if (bevel->right_outline > 1)
+			{
+				bevel->right_inline += bevel->right_outline - 1;
+				bevel->right_outline = 1;
 			}
-			if( bevel->bottom_outline > 1 ) 
-			{	
-				bevel->bottom_inline += bevel->bottom_outline - 1 ;
-				bevel->bottom_outline = 1 ;
+			if (bevel->bottom_outline > 1)
+			{
+				bevel->bottom_inline += bevel->bottom_outline - 1;
+				bevel->bottom_outline = 1;
 			}
 		}
 #endif
@@ -1524,26 +1547,33 @@ mystyle_draw_text_image (MyStyle * style, const char *text, unsigned long encodi
 	if (style && text)
 	{
 		/* load fonts on demand only - no need to waste memory if ain't never gonna use it ! */
-		if ( style->font.as_font == NULL )
-			load_font( NULL, &style->font );
+		if (style->font.as_font == NULL)
+			load_font (NULL, &style->font);
 
 		if (style->font.as_font)
 		{
-			ASTextAttributes attr = {ASTA_VERSION_1, ASTA_UseTabStops, AST_Plain, ASCT_Char, 8, 0, NULL, 0, ARGB32_White };
+			ASTextAttributes attr =
+				{ ASTA_VERSION_1, ASTA_UseTabStops, AST_Plain, ASCT_Char, 8, 0, NULL, 0, ARGB32_White };
 
-			attr.type = style->text_style ;
-			attr.fore_color = style->colors.fore ;
-		
-			switch( encoding )
+			attr.type = style->text_style;
+			attr.fore_color = style->colors.fore;
+
+			switch (encoding)
 			{
-				case AS_Text_ASCII : attr.char_type = ASCT_Char;	break ;
-				case AS_Text_UTF8  : attr.char_type = ASCT_UTF8; 	break ;
-				case AS_Text_UNICODE: attr.char_type = ASCT_Unicode; 	break ;
+			 case AS_Text_ASCII:
+				 attr.char_type = ASCT_Char;
+				 break;
+			 case AS_Text_UTF8:
+				 attr.char_type = ASCT_UTF8;
+				 break;
+			 case AS_Text_UNICODE:
+				 attr.char_type = ASCT_Unicode;
+				 break;
 			}
-			
-			im = draw_fancy_text( text, style->font.as_font, &attr, 100, 0 );
 
-			LOCAL_DEBUG_OUT( "encoding is %ld, im is %p, back_color is %lX", encoding, im, style->colors.fore );
+			im = draw_fancy_text (text, style->font.as_font, &attr, 100, 0);
+
+			LOCAL_DEBUG_OUT ("encoding is %ld, im is %p, back_color is %lX", encoding, im, style->colors.fore);
 			if (im)
 			{
 				im->back_color = style->colors.fore;
@@ -1558,8 +1588,8 @@ mystyle_get_font_height (MyStyle * style)
 {
 	if (style)
 	{
-		if (style->font.as_font == NULL )
-			load_font( NULL, &style->font );
+		if (style->font.as_font == NULL)
+			load_font (NULL, &style->font);
 
 		if (style->font.as_font)
 			return style->font.as_font->max_height;
@@ -1568,15 +1598,14 @@ mystyle_get_font_height (MyStyle * style)
 }
 
 void
-mystyle_get_text_size (MyStyle * style, const char *text, unsigned int *width, unsigned int *height )
+mystyle_get_text_size (MyStyle * style, const char *text, unsigned int *width, unsigned int *height)
 {
 	if (style && text)
 	{
-		if (style->font.as_font == NULL )
-			load_font( NULL, &style->font );
+		if (style->font.as_font == NULL)
+			load_font (NULL, &style->font);
 
 		if (style->font.as_font)
-			get_text_size( text, style->font.as_font, style->text_style, width, height );
+			get_text_size (text, style->font.as_font, style->text_style, width, height);
 	}
 }
-

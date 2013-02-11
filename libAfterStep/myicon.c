@@ -35,8 +35,8 @@ make_icon_pixmaps (icon_t * icon, Bool ignore_alpha)
 	{
 		icon->pix = asimage2pixmap (ASDefaultVisual, ASDefaultRoot, icon->image, NULL, False);
 #ifdef LOCAL_DEBUG
-	LOCAL_DEBUG_OUT( "syncing %s","");
-	ASSync(False);
+		LOCAL_DEBUG_OUT ("syncing %s", "");
+		ASSync (False);
 #endif
 		if (!ignore_alpha)
 		{
@@ -45,54 +45,55 @@ make_icon_pixmaps (icon_t * icon, Bool ignore_alpha)
 			if (depth > 0)
 				icon->mask = asimage2alpha (ASDefaultVisual, ASDefaultRoot, icon->image, NULL, False, True);
 #ifdef LOCAL_DEBUG
-	LOCAL_DEBUG_OUT( "syncing %s","");
-	ASSync(False);
+			LOCAL_DEBUG_OUT ("syncing %s", "");
+			ASSync (False);
 #endif
 			if (depth == 8)
 				icon->alpha = asimage2alpha (ASDefaultVisual, ASDefaultRoot, icon->image, NULL, False, False);
 #ifdef LOCAL_DEBUG
-	LOCAL_DEBUG_OUT( "syncing %s","");
-	ASSync(False);
+			LOCAL_DEBUG_OUT ("syncing %s", "");
+			ASSync (False);
 #endif
 
 		}
-		LOCAL_DEBUG_OUT(" icon pixmaps: %lX,%lX,%lX", icon->pix, icon->mask, icon->alpha );
-		flush_asimage_cache(icon->image);
+		LOCAL_DEBUG_OUT (" icon pixmaps: %lX,%lX,%lX", icon->pix, icon->mask, icon->alpha);
+		flush_asimage_cache (icon->image);
 	}
 }
 
 void
-icon_from_pixmaps( MyIcon *icon, Pixmap pix, Pixmap mask, Pixmap alpha )
+icon_from_pixmaps (MyIcon * icon, Pixmap pix, Pixmap mask, Pixmap alpha)
 {
-	if( icon ) 
+	if (icon)
 	{
-		free_icon_resources( icon );
-		icon->pix = pix ; 
-		icon->mask = mask ; 
-		icon->alpha = alpha ;
-		icon->image = NULL ;
-		
-		if ( pix != None)
+		free_icon_resources (icon);
+		icon->pix = pix;
+		icon->mask = mask;
+		icon->alpha = alpha;
+		icon->image = NULL;
+
+		if (pix != None)
 		{
 			unsigned int  width, height;
-			if (!get_drawable_size( pix, &width, &height))
+
+			if (!get_drawable_size (pix, &width, &height))
 			{
 				icon->pix = None;
 				icon->width = 0;
 				icon->height = 0;
-			}else
+			} else
 			{
 				icon->width = width;
 				icon->height = height;
 				if (mask)
-					icon->image = picture2asimage ( ASDefaultVisual, pix, mask, 0, 0, icon->width, icon->height,
-													AllPlanes, False, 0);
+					icon->image = picture2asimage (ASDefaultVisual, pix, mask, 0, 0, icon->width, icon->height,
+												   AllPlanes, False, 0);
 				else
-					icon->image = picture2asimage ( ASDefaultVisual, pix, alpha, 0, 0, icon->width, icon->height,
-													AllPlanes, False, 0);
+					icon->image = picture2asimage (ASDefaultVisual, pix, alpha, 0, 0, icon->width, icon->height,
+												   AllPlanes, False, 0);
 			}
 		}
-	}		   
+	}
 }
 
 void
@@ -103,22 +104,24 @@ asimage2icon (ASImage * im, icon_t * icon)
 	{
 		icon->width = im->width;
 		icon->height = im->height;
-		flush_asimage_cache(im);
+		flush_asimage_cache (im);
 	}
 }
 
 Bool
-load_icon (icon_t *icon, const char *filename, ASImageManager *imman )
+load_icon (icon_t * icon, const char *filename, ASImageManager * imman)
 {
 	if (icon && filename)
 	{
-		ASImage *im = get_asimage( imman, filename, ASFLAGS_EVERYTHING, 100 );
-		if( im == NULL )
-			show_error( "failed to locate icon file %s in the IconPath and PixmapPath", filename );
+		ASImage      *im = get_asimage (imman, filename, ASFLAGS_EVERYTHING, 100);
+
+		if (im == NULL)
+			show_error ("failed to locate icon file %s in the IconPath and PixmapPath", filename);
 		else
 		{
 			asimage2icon (im, icon);
-			LOCAL_DEBUG_OUT("icon file \"%s\" loaded into ASImage %p(imman %p) using imageman = %p and has size %dx%d", filename, im, im->imageman, imman, icon->width, icon->height );
+			LOCAL_DEBUG_OUT ("icon file \"%s\" loaded into ASImage %p(imman %p) using imageman = %p and has size %dx%d",
+							 filename, im, im->imageman, imman, icon->width, icon->height);
 		}
 		return (icon->image != NULL);
 	}
@@ -126,12 +129,15 @@ load_icon (icon_t *icon, const char *filename, ASImageManager *imman )
 }
 
 Bool
-scale_icon (icon_t *icon, int width, int height, ASVisual *asv)
+scale_icon (icon_t * icon, int width, int height, ASVisual * asv)
 {
 	if (icon && icon->image && width > 0 && height > 0
-			&& (icon->image->width != width || icon->image->height != height)) {
-		ASImage *tmp = scale_asimage (asv, icon->image, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-		if (tmp) {
+		&& (icon->image->width != width || icon->image->height != height))
+	{
+		ASImage      *tmp = scale_asimage (asv, icon->image, width, height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
+
+		if (tmp)
+		{
 			safe_asimage_destroy (icon->image);
 			asimage2icon (tmp, icon);
 			return True;
@@ -141,106 +147,108 @@ scale_icon (icon_t *icon, int width, int height, ASVisual *asv)
 }
 
 void
-free_icon_resources (icon_t *icon)
+free_icon_resources (icon_t * icon)
 {
-	if( icon ) 
+	if (icon)
 	{
 #ifdef DEBUG_ALLOCS
-		LOCAL_DEBUG_OUT( "icon's pixmap to be freed: %lX,%lX,%lX", icon->pix, icon->mask, icon->alpha );
-#endif		
-		destroy_visual_pixmap(ASDefaultVisual, &(icon->pix));
-		destroy_visual_pixmap(ASDefaultVisual, &(icon->mask));
-		destroy_visual_pixmap(ASDefaultVisual, &(icon->alpha));
+		LOCAL_DEBUG_OUT ("icon's pixmap to be freed: %lX,%lX,%lX", icon->pix, icon->mask, icon->alpha);
+#endif
+		destroy_visual_pixmap (ASDefaultVisual, &(icon->pix));
+		destroy_visual_pixmap (ASDefaultVisual, &(icon->mask));
+		destroy_visual_pixmap (ASDefaultVisual, &(icon->alpha));
 		if (icon->image)
 		{
 			safe_asimage_destroy (icon->image);
-			icon->image = NULL ; 
+			icon->image = NULL;
 		}
 	}
 }
 
 void
-destroy_icon(icon_t **picon)
+destroy_icon (icon_t ** picon)
 {
-	icon_t *pi = *picon ;
-	if( pi )
+	icon_t       *pi = *picon;
+
+	if (pi)
 	{
-		free_icon_resources (pi) ;
-		free( pi );
-		*picon = NULL ;
+		free_icon_resources (pi);
+		free (pi);
+		*picon = NULL;
 	}
 }
 
 
-void destroy_asbutton( ASButton *btn, Bool reusable )
+void
+destroy_asbutton (ASButton * btn, Bool reusable)
 {
-	if( btn )
+	if (btn)
 	{
-		int i = ASB_StateCount;
-		while( --i >= 0 )
-			if( btn->shapes[i] )
+		int           i = ASB_StateCount;
+
+		while (--i >= 0)
+			if (btn->shapes[i])
 			{
-				free( btn->shapes[i] );
-				btn->shapes[i] = NULL ;
+				free (btn->shapes[i]);
+				btn->shapes[i] = NULL;
 			}
-		if( !reusable )
-			free( btn );
+		if (!reusable)
+			free (btn);
 	}
 }
 
-static void 
-update_button_size (button_t *button)
+static void
+update_button_size (button_t * button)
 {
-  button->width = 0 ;
-  button->height = 0 ;
+	button->width = 0;
+	button->height = 0;
 
-  if( button->unpressed.image )
-  {
-	  button->width = button->unpressed.image->width ;
-	  button->height = button->unpressed.image->height ;
-  }
-  if( button->pressed.image )
-  {
-	  if( button->pressed.image->width > button->width )
-		  button->width = button->pressed.image->width ;
-	  if( button->pressed.image->height > button->height )
-		  button->height = button->pressed.image->height ;
-  }
+	if (button->unpressed.image)
+	{
+		button->width = button->unpressed.image->width;
+		button->height = button->unpressed.image->height;
+	}
+	if (button->pressed.image)
+	{
+		if (button->pressed.image->width > button->width)
+			button->width = button->pressed.image->width;
+		if (button->pressed.image->height > button->height)
+			button->height = button->pressed.image->height;
+	}
 
 }
 
 Bool
-load_button( button_t *button, char **filenames, ASImageManager *imman )
+load_button (button_t * button, char **filenames, ASImageManager * imman)
 {
-	if( button && imman && filenames )
+	if (button && imman && filenames)
 	{
-		if( filenames[0] )
-			load_icon(&(button->unpressed), filenames[0], imman );
-		if( filenames[1] )
-			load_icon(&(button->pressed), filenames[1], imman );
-				update_button_size (button);
-		return ( button->width > 0 && button->height > 0 );
+		if (filenames[0])
+			load_icon (&(button->unpressed), filenames[0], imman);
+		if (filenames[1])
+			load_icon (&(button->pressed), filenames[1], imman);
+		update_button_size (button);
+		return (button->width > 0 && button->height > 0);
 	}
 	return False;
 }
 
 Bool
-scale_button( button_t *button, int width, int height, ASVisual *asv)
+scale_button (button_t * button, int width, int height, ASVisual * asv)
 {
-	if( button && asv && width > 0 && height > 0 )
+	if (button && asv && width > 0 && height > 0)
 	{
-		scale_icon(&(button->unpressed), width, height, asv);
-		scale_icon(&(button->pressed), width, height, asv);
-				update_button_size (button);
-		return ( button->width > 0 && button->height > 0 );
+		scale_icon (&(button->unpressed), width, height, asv);
+		scale_icon (&(button->pressed), width, height, asv);
+		update_button_size (button);
+		return (button->width > 0 && button->height > 0);
 	}
 	return False;
 }
 
 void
-free_button_resources( button_t *button )
+free_button_resources (button_t * button)
 {
-	free_icon_resources( &(button->unpressed) );
-	free_icon_resources( &(button->pressed) );
+	free_icon_resources (&(button->unpressed));
+	free_icon_resources (&(button->pressed));
 }
-

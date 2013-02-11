@@ -34,71 +34,72 @@
  *************************************************************************************/
 
 void
-init_asfeel( ASFeel *feel )
+init_asfeel (ASFeel * feel)
 {
-	int i ;
-	memset( feel, 0x00, sizeof(ASFeel));
-	feel->magic = MAGIC_ASFEEL ;
+	int           i;
+
+	memset (feel, 0x00, sizeof (ASFeel));
+	feel->magic = MAGIC_ASFEEL;
 	feel->buttons2grab = 7;
 	feel->AutoReverse = 0;
 	feel->Xzap = 12;
 	feel->Yzap = 12;
 	feel->EdgeScrollX = feel->EdgeScrollY = -100000;
 	feel->EdgeResistanceScroll = 0;
-	feel->EdgeResistanceMove = 30 ;
+	feel->EdgeResistanceMove = 30;
 	feel->EdgeAttractionScreen = 20;
 	feel->EdgeAttractionWindow = 10;
-	feel->EdgeResistanceDragScroll = -1; /* by default should use EdgeResistanceScroll */
+	feel->EdgeResistanceDragScroll = -1;	   /* by default should use EdgeResistanceScroll */
 	feel->OpaqueMove = 5;
 	feel->OpaqueResize = 5;
-	feel->ClickTime = 500; /* half a sec, for those sluggish folks */
+	feel->ClickTime = 500;					   /* half a sec, for those sluggish folks */
 	feel->AutoRaiseDelay = 0;
 	feel->RaiseButtons = 0;
-#ifdef __CYGWIN__		
+#ifdef __CYGWIN__
 	feel->flags = DoHandlePageing;
 #else
-	feel->flags = DoHandlePageing/*|DontAnimateBackground*/;
+	feel->flags = DoHandlePageing /*|DontAnimateBackground */ ;
 #endif
 	feel->XorValue = (((unsigned long)1) << ASDefaultScr->d_depth) - 1;
 
-	feel->no_snaping_mod = ShiftMask|ControlMask ;
+	feel->no_snaping_mod = ShiftMask | ControlMask;
 
 	feel->MouseButtonRoot = NULL;
 	feel->FuncKeyRoot = NULL;
 	feel->Popups = NULL;
 	feel->ComplexFunctions = NULL;
 	feel->ShadeAnimationSteps = 12;
-	
+
 	feel->desk_cover_animation_type = 10;
 	feel->desk_cover_animation_steps = 12;
 
-	feel->recent_submenu_items = 4 ;
+	feel->recent_submenu_items = 4;
 
-	for( i = 0 ; i < MAX_CURSORS; ++i )
-		if( feel->cursors[i] )
-			feel->cursors[i] = ASDefaultScr->standard_cursors[i] ;
+	for (i = 0; i < MAX_CURSORS; ++i)
+		if (feel->cursors[i])
+			feel->cursors[i] = ASDefaultScr->standard_cursors[i];
 }
 
-ASFeel *
-create_asfeel()
+ASFeel       *
+create_asfeel ()
 {
-	ASFeel *feel ;
+	ASFeel       *feel;
 
-	feel = safecalloc( 1, sizeof(ASFeel));
-	init_asfeel( feel );
+	feel = safecalloc (1, sizeof (ASFeel));
+	init_asfeel (feel);
 	return feel;
 }
 
 void
-destroy_asfeel( ASFeel *feel, Bool reusable )
+destroy_asfeel (ASFeel * feel, Bool reusable)
 {
-	if( feel )
+	if (feel)
 	{
-		if(feel->magic == MAGIC_ASFEEL )
+		if (feel->magic == MAGIC_ASFEEL)
 		{
-			register int i ;
+			register int  i;
 
-			feel->magic = 0 ;
+			feel->magic = 0;
 
 			while (feel->MouseButtonRoot != NULL)
 			{
@@ -107,7 +108,7 @@ destroy_asfeel( ASFeel *feel, Bool reusable )
 				feel->MouseButtonRoot = mb->NextButton;
 				if (mb->fdata)
 				{
-					free_func_data( mb->fdata);
+					free_func_data (mb->fdata);
 					free (mb->fdata);
 				}
 				free (mb);
@@ -121,59 +122,60 @@ destroy_asfeel( ASFeel *feel, Bool reusable )
 					free (fk->name);
 				if (fk->fdata != NULL)
 				{
-					free_func_data(fk->fdata);
+					free_func_data (fk->fdata);
 					free (fk->fdata);
 				}
 				free (fk);
 			}
-			for( i = 0 ; i < MAX_CURSORS; ++i )
-				if( feel->cursors[i] && feel->cursors[i] != ASDefaultScr->standard_cursors[i] )
+			for (i = 0; i < MAX_CURSORS; ++i)
+				if (feel->cursors[i] && feel->cursors[i] != ASDefaultScr->standard_cursors[i])
 				{
-					XFreeCursor( dpy, feel->cursors[i] );
-					feel->cursors[i] = None ;
+					XFreeCursor (dpy, feel->cursors[i]);
+					feel->cursors[i] = None;
 				}
-			if( feel->Popups )
-				destroy_ashash( &feel->Popups );
-			if( feel->ComplexFunctions )
-				destroy_ashash( &feel->ComplexFunctions );
-			if( feel->window_boxes )
+			if (feel->Popups)
+				destroy_ashash (&feel->Popups);
+			if (feel->ComplexFunctions)
+				destroy_ashash (&feel->ComplexFunctions);
+			if (feel->window_boxes)
 			{
 				i = feel->window_boxes_num;
-				while( --i >= 0 )
-					destroy_aswindow_box( &(feel->window_boxes[i]), True );
-				free( feel->window_boxes );
+				while (--i >= 0)
+					destroy_aswindow_box (&(feel->window_boxes[i]), True);
+				free (feel->window_boxes);
 			}
-			destroy_string( &(feel->default_window_box_name ) );
+			destroy_string (&(feel->default_window_box_name));
 		}
-		if( !reusable )
-			free(feel);
+		if (!reusable)
+			free (feel);
 		else
-			memset( feel, 0x00, sizeof(ASFeel) );
+			memset (feel, 0x00, sizeof (ASFeel));
 	}
 }
 
 void
-apply_feel_cursor( Window w, ASFeel *feel, int cursor )
+apply_feel_cursor (Window w, ASFeel * feel, int cursor)
 {
-	if( feel && cursor >= 0 && cursor < MAX_CURSORS && w != None)
+	if (feel && cursor >= 0 && cursor < MAX_CURSORS && w != None)
 		XDefineCursor (dpy, w, feel->cursors[cursor]);
 }
 
 void
-recolor_feel_cursors( ASFeel *feel, CARD32 fore, CARD32 back )
+recolor_feel_cursors (ASFeel * feel, CARD32 fore, CARD32 back)
 {
-	if( feel )
+	if (feel)
 	{
-		int i ;
-		XColor xfore, xback ;
-		xfore.red = ARGB32_RED16(fore);
-		xfore.green = ARGB32_GREEN16(fore);
-		xfore.blue = ARGB32_BLUE16(fore);
-		xback.red = ARGB32_RED16(back);
-		xback.green = ARGB32_GREEN16(back);
-		xback.blue = ARGB32_BLUE16(back);
-		for( i = 0 ; i < MAX_CURSORS ; ++i )
-			if( feel->cursors[i] )
+		int           i;
+		XColor        xfore, xback;
+
+		xfore.red = ARGB32_RED16 (fore);
+		xfore.green = ARGB32_GREEN16 (fore);
+		xfore.blue = ARGB32_BLUE16 (fore);
+		xback.red = ARGB32_RED16 (back);
+		xback.green = ARGB32_GREEN16 (back);
+		xback.blue = ARGB32_BLUE16 (back);
+		for (i = 0; i < MAX_CURSORS; ++i)
+			if (feel->cursors[i])
 				XRecolorCursor (dpy, feel->cursors[i], &xfore, &xback);
 	}
 }
@@ -181,73 +183,93 @@ recolor_feel_cursors( ASFeel *feel, CARD32 fore, CARD32 back )
 
 
 void
-apply_context_cursor( Window w, ASFeel *feel, unsigned long context )
+apply_context_cursor (Window w, ASFeel * feel, unsigned long context)
 {
-	if( feel && context != 0 && w != None)
+	if (feel && context != 0 && w != None)
 	{
-		static Cursor last_cursor = None ;
-		static Window last_window = None ;
-		Cursor c = None ;
-		switch( context )
+		static Cursor last_cursor = None;
+		static Window last_window = None;
+		Cursor        c = None;
+
+		switch (context)
 		{
-			case C_TITLE   : c = feel->cursors[ASCUR_Title] ; 		break ;
-			case C_FrameN  : c = feel->cursors[ASCUR_Top] ; 		break ;
-			case C_FrameE  : c = feel->cursors[ASCUR_Right] ; 		break ;
-			case C_FrameS  : c = feel->cursors[ASCUR_Bottom] ; 		break ;
-			case C_FrameW  : c = feel->cursors[ASCUR_Left] ; 		break ;
-			case C_FrameNW : c = feel->cursors[ASCUR_TopLeft] ; 	break ;
-			case C_FrameNE : c = feel->cursors[ASCUR_TopRight] ; 	break ;
-			case C_FrameSW : c = feel->cursors[ASCUR_BottomLeft] ; 	break ;
-			case C_FrameSE : c = feel->cursors[ASCUR_BottomRight] ; break ;
-			default:
-				if( get_flags(context,C_TButtonAll) )
-					c = feel->cursors[ASCUR_Sys] ;
-				else if( get_flags(context,C_FRAME) )
-					c = feel->cursors[ASCUR_Move] ;
+		 case C_TITLE:
+			 c = feel->cursors[ASCUR_Title];
+			 break;
+		 case C_FrameN:
+			 c = feel->cursors[ASCUR_Top];
+			 break;
+		 case C_FrameE:
+			 c = feel->cursors[ASCUR_Right];
+			 break;
+		 case C_FrameS:
+			 c = feel->cursors[ASCUR_Bottom];
+			 break;
+		 case C_FrameW:
+			 c = feel->cursors[ASCUR_Left];
+			 break;
+		 case C_FrameNW:
+			 c = feel->cursors[ASCUR_TopLeft];
+			 break;
+		 case C_FrameNE:
+			 c = feel->cursors[ASCUR_TopRight];
+			 break;
+		 case C_FrameSW:
+			 c = feel->cursors[ASCUR_BottomLeft];
+			 break;
+		 case C_FrameSE:
+			 c = feel->cursors[ASCUR_BottomRight];
+			 break;
+		 default:
+			 if (get_flags (context, C_TButtonAll))
+				 c = feel->cursors[ASCUR_Sys];
+			 else if (get_flags (context, C_FRAME))
+				 c = feel->cursors[ASCUR_Move];
 		}
 
-		if( c == None && get_flags(context,C_FRAME) )
-			c = feel->cursors[ASCUR_Move] ;
-		LOCAL_DEBUG_OUT( "context %s, selected cursor %ld, window %lX", context2text(context), c, w );
-		if( last_window != w || last_cursor != c )
+		if (c == None && get_flags (context, C_FRAME))
+			c = feel->cursors[ASCUR_Move];
+		LOCAL_DEBUG_OUT ("context %s, selected cursor %ld, window %lX", context2text (context), c, w);
+		if (last_window != w || last_cursor != c)
 		{
-			last_cursor = c ;
-			last_window = w ;
+			last_cursor = c;
+			last_window = w;
 			XDefineCursor (dpy, w, c);
 		}
 	}
 }
 
 void
-free_feel_cursors (ASFeel *feel)
+free_feel_cursors (ASFeel * feel)
 {
-	register int i ;
+	register int  i;
 
-	if( dpy == NULL || feel == NULL ) return ;
+	if (dpy == NULL || feel == NULL)
+		return;
 	/* free cursors */
-	for( i = 0 ; i < MAX_CURSORS ; i++ )
-		if( feel->cursors[i] )
-			XFreeCursor (dpy, feel->cursors[i] );
+	for (i = 0; i < MAX_CURSORS; i++)
+		if (feel->cursors[i])
+			XFreeCursor (dpy, feel->cursors[i]);
 }
 
 void
-check_feel_sanity(ASFeel *feel)
+check_feel_sanity (ASFeel * feel)
 {
-	int i ;
+	int           i;
 
-LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
+	LOCAL_DEBUG_CALLER_OUT ("feel %p", feel);
 	/* If no edge scroll line is provided in the setup file, use a default */
 	if (feel->EdgeScrollX == -100000)
 		feel->EdgeScrollX = 25;
 	if (feel->EdgeScrollY == -100000)
 		feel->EdgeScrollY = feel->EdgeScrollX;
 
-	if (get_flags(feel->flags, ClickToRaise) && (feel->AutoRaiseDelay == 0))
+	if (get_flags (feel->flags, ClickToRaise) && (feel->AutoRaiseDelay == 0))
 		feel->AutoRaiseDelay = -1;
 
 	/* if edgescroll >1000 and < 100000m
 	 * wrap at edges of desktop (a "spherical" desktop) */
-	feel->flags &= ~(EdgeWrapX|EdgeWrapY);
+	feel->flags &= ~(EdgeWrapX | EdgeWrapY);
 	if (feel->EdgeScrollX >= 1000)
 	{
 		feel->EdgeScrollX /= 1000;
@@ -262,83 +284,83 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
 	feel->EdgeScrollX = feel->EdgeScrollX * ASDefaultScr->MyDisplayWidth / 100;
 	feel->EdgeScrollY = feel->EdgeScrollY * ASDefaultScr->MyDisplayHeight / 100;
 
-	if( feel->no_snaping_mod == 0 )
-		feel->no_snaping_mod = ShiftMask ;
+	if (feel->no_snaping_mod == 0)
+		feel->no_snaping_mod = ShiftMask;
 
 	if (ASDefaultScr->VxMax == 0)
-		clear_flags(feel->flags, EdgeWrapX);
+		clear_flags (feel->flags, EdgeWrapX);
 	if (ASDefaultScr->VyMax == 0)
-		clear_flags(feel->flags, EdgeWrapY);
+		clear_flags (feel->flags, EdgeWrapY);
 
-	i = feel->window_boxes_num ;
-	while( --i >= 0 )
+	i = feel->window_boxes_num;
+	while (--i >= 0)
 	{
-		if( !get_flags(feel->window_boxes[i].area.flags, WidthValue) )
+		if (!get_flags (feel->window_boxes[i].area.flags, WidthValue))
 		{
-			feel->window_boxes[i].area.width = ASDefaultScr->MyDisplayWidth ;
-			if( get_flags( feel->window_boxes[i].flags, ASA_Virtual ) )
-				feel->window_boxes[i].area.width += ASDefaultScr->VxMax ;
-			feel->window_boxes[i].area.width -= feel->window_boxes[i].area.x ;
+			feel->window_boxes[i].area.width = ASDefaultScr->MyDisplayWidth;
+			if (get_flags (feel->window_boxes[i].flags, ASA_Virtual))
+				feel->window_boxes[i].area.width += ASDefaultScr->VxMax;
+			feel->window_boxes[i].area.width -= feel->window_boxes[i].area.x;
 		}
-		if( !get_flags(feel->window_boxes[i].area.flags, HeightValue) )
+		if (!get_flags (feel->window_boxes[i].area.flags, HeightValue))
 		{
-			feel->window_boxes[i].area.height = ASDefaultScr->MyDisplayHeight ;
-			if( get_flags( feel->window_boxes[i].flags, ASA_Virtual ) )
-				feel->window_boxes[i].area.height += ASDefaultScr->VyMax ;
-			feel->window_boxes[i].area.height -= feel->window_boxes[i].area.y ;
+			feel->window_boxes[i].area.height = ASDefaultScr->MyDisplayHeight;
+			if (get_flags (feel->window_boxes[i].flags, ASA_Virtual))
+				feel->window_boxes[i].area.height += ASDefaultScr->VyMax;
+			feel->window_boxes[i].area.height -= feel->window_boxes[i].area.y;
 		}
-		if( !get_flags(feel->window_boxes[i].flags, ASA_DesktopSet) )
+		if (!get_flags (feel->window_boxes[i].flags, ASA_DesktopSet))
 			feel->window_boxes[i].desk = INVALID_DESK;
 
-		if( !get_flags(feel->window_boxes[i].flags, ASA_MinLayerSet) )
+		if (!get_flags (feel->window_boxes[i].flags, ASA_MinLayerSet))
 			feel->window_boxes[i].min_layer = AS_LayerLowest;
 
-		if( !get_flags(feel->window_boxes[i].flags, ASA_MaxLayerSet) )
+		if (!get_flags (feel->window_boxes[i].flags, ASA_MaxLayerSet))
 			feel->window_boxes[i].max_layer = AS_LayerHighest;
 
-		if( feel->default_window_box_name != NULL )
+		if (feel->default_window_box_name != NULL)
 		{
-			if( feel->window_boxes[i].name &&
-				mystrcasecmp( feel->window_boxes[i].name, feel->default_window_box_name ) == 0 )
+			if (feel->window_boxes[i].name &&
+				mystrcasecmp (feel->window_boxes[i].name, feel->default_window_box_name) == 0)
 				feel->default_window_box = &(feel->window_boxes[i]);
 		}
 #if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
-		if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+		if (get_output_threshold () >= OUTPUT_LEVEL_DEBUG)
 #endif
-		   print_window_box (&(feel->window_boxes[i]), i);
+			print_window_box (&(feel->window_boxes[i]), i);
 	}
 
 #if 1
-	if( feel->default_window_box == NULL )
-	{ /* build new default windowbox */
-		i = feel->window_boxes_num ;
-		feel->window_boxes = realloc( feel->window_boxes, sizeof(ASWindowBox)*(i+1) );
+	if (feel->default_window_box == NULL)
+	{										   /* build new default windowbox */
+		i = feel->window_boxes_num;
+		feel->window_boxes = realloc (feel->window_boxes, sizeof (ASWindowBox) * (i + 1));
 		++(feel->window_boxes_num);
 		feel->default_window_box = &(feel->window_boxes[i]);
-		memset( feel->default_window_box, 0x00, sizeof(ASWindowBox));
-		feel->default_window_box->name = mystrdup("default");
-		feel->default_window_box->area.width = ASDefaultScr->MyDisplayWidth ;
-		feel->default_window_box->area.height = ASDefaultScr->MyDisplayHeight ;
-		feel->default_window_box->main_strategy = ASP_Manual ;
-		feel->default_window_box->backup_strategy = ASP_Manual ;
+		memset (feel->default_window_box, 0x00, sizeof (ASWindowBox));
+		feel->default_window_box->name = mystrdup ("default");
+		feel->default_window_box->area.width = ASDefaultScr->MyDisplayWidth;
+		feel->default_window_box->area.height = ASDefaultScr->MyDisplayHeight;
+		feel->default_window_box->main_strategy = ASP_Manual;
+		feel->default_window_box->backup_strategy = ASP_Manual;
 		/* we should enforce this one : */
-		feel->default_window_box->desk = INVALID_DESK ;
+		feel->default_window_box->desk = INVALID_DESK;
 		feel->default_window_box->min_layer = AS_LayerLowest;
 		feel->default_window_box->max_layer = AS_LayerHighest;
-		if( get_flags( feel->deprecated_flags, FEEL_DEPRECATED_SmartPlacement )  )
+		if (get_flags (feel->deprecated_flags, FEEL_DEPRECATED_SmartPlacement))
 		{
-			feel->default_window_box->main_strategy = ASP_SmartPlacement ;
-			if( get_flags( feel->deprecated_flags, FEEL_DEPRECATED_RandomPlacement )  )
-				feel->default_window_box->backup_strategy = ASP_RandomPlacement ;
-		}else if( get_flags( feel->deprecated_flags, FEEL_DEPRECATED_RandomPlacement )  )
-		{   /* don't really want to use ManualPlacement if onlyRandomPlacement is requested */
-			feel->default_window_box->main_strategy = ASP_RandomPlacement ;
-			feel->default_window_box->backup_strategy = ASP_RandomPlacement ;
+			feel->default_window_box->main_strategy = ASP_SmartPlacement;
+			if (get_flags (feel->deprecated_flags, FEEL_DEPRECATED_RandomPlacement))
+				feel->default_window_box->backup_strategy = ASP_RandomPlacement;
+		} else if (get_flags (feel->deprecated_flags, FEEL_DEPRECATED_RandomPlacement))
+		{									   /* don't really want to use ManualPlacement if onlyRandomPlacement is requested */
+			feel->default_window_box->main_strategy = ASP_RandomPlacement;
+			feel->default_window_box->backup_strategy = ASP_RandomPlacement;
 		}
 #if !defined(LOCAL_DEBUG) || defined(NO_DEBUG_OUTPUT)
-		if( get_output_threshold() >= OUTPUT_LEVEL_DEBUG )
+		if (get_output_threshold () >= OUTPUT_LEVEL_DEBUG)
 #endif
-		   print_window_box (&(feel->window_boxes[i]), i);
+			print_window_box (&(feel->window_boxes[i]), i);
 	}
 #endif
 }
@@ -346,29 +368,31 @@ LOCAL_DEBUG_CALLER_OUT( "feel %p", feel);
 /*************************************************************************
  * WindowBox utility functions
  *************************************************************************/
-ASWindowBox *create_aswindow_box( const char *name )
+ASWindowBox  *
+create_aswindow_box (const char *name)
 {
-	ASWindowBox *aswbox = safecalloc( 1, sizeof(ASWindowBox) );
-	aswbox->name = mystrdup( name );
+	ASWindowBox  *aswbox = safecalloc (1, sizeof (ASWindowBox));
+
+	aswbox->name = mystrdup (name);
 	return aswbox;
 }
 
 void
-destroy_aswindow_box( ASWindowBox *aswbox, Bool reusable )
+destroy_aswindow_box (ASWindowBox * aswbox, Bool reusable)
 {
-	if( aswbox )
+	if (aswbox)
 	{
-		if( aswbox->name )
-			free( aswbox->name );
-		if( !reusable )
-			free(aswbox);
+		if (aswbox->name)
+			free (aswbox->name);
+		if (!reusable)
+			free (aswbox);
 		else
-			memset( aswbox, 0x00, sizeof(ASWindowBox) );
+			memset (aswbox, 0x00, sizeof (ASWindowBox));
 	}
 }
 
 void
-print_window_box (ASWindowBox *aswbox, int index)
+print_window_box (ASWindowBox * aswbox, int index)
 {
 	if (aswbox)
 	{
@@ -377,7 +401,8 @@ print_window_box (ASWindowBox *aswbox, int index)
 		fprintf (stderr, "WindowBox[%d].set_flags = 0x%lX;\n", index, aswbox->set_flags);
 		fprintf (stderr, "WindowBox[%d].flags = 0x%lX;\n", index, aswbox->flags);
 		fprintf (stderr, "WindowBox[%d].area.flags = 0x%X;\n", index, aswbox->area.flags);
-		fprintf (stderr, "WindowBox[%d].area.geometry = %dx%d%+d%+d;\n", index, aswbox->area.width, aswbox->area.height, aswbox->area.x, aswbox->area.y);
+		fprintf (stderr, "WindowBox[%d].area.geometry = %dx%d%+d%+d;\n", index, aswbox->area.width, aswbox->area.height,
+				 aswbox->area.x, aswbox->area.y);
 		fprintf (stderr, "WindowBox[%d].min_size = %dx%d;\n", index, aswbox->min_width, aswbox->min_height);
 		fprintf (stderr, "WindowBox[%d].max_size = %dx%d;\n", index, aswbox->max_width, aswbox->max_height);
 		fprintf (stderr, "WindowBox[%d].main_strategy = %d;\n", index, aswbox->main_strategy);
@@ -388,15 +413,16 @@ print_window_box (ASWindowBox *aswbox, int index)
 	}
 }
 
-ASWindowBox*
-find_window_box( ASFeel *feel, const char *name )
+ASWindowBox  *
+find_window_box (ASFeel * feel, const char *name)
 {
-	if( feel && name )
+	if (feel && name)
 	{
-		int i = feel->window_boxes_num ;
-		ASWindowBox *aswbox = &(feel->window_boxes[0]) ;
-		while(--i >= 0)
-			if( mystrcasecmp( aswbox[i].name, name ) == 0 )
+		int           i = feel->window_boxes_num;
+		ASWindowBox  *aswbox = &(feel->window_boxes[0]);
+
+		while (--i >= 0)
+			if (mystrcasecmp (aswbox[i].name, name) == 0)
 				return &(aswbox[i]);
 	}
 	return NULL;
@@ -406,42 +432,38 @@ find_window_box( ASFeel *feel, const char *name )
  * Menus :
  *************************************************************************/
 void
-menu_data_destroy(ASHashableValue value, void *data)
+menu_data_destroy (ASHashableValue value, void *data)
 {
-	MenuData *md = data ;
+	MenuData     *md = data;
+
 #ifdef DEBUG_ALLOCS
-LOCAL_DEBUG_CALLER_OUT( "menu_data_destroy(\"%s\", %p)", (char*)value, data );
+	LOCAL_DEBUG_CALLER_OUT ("menu_data_destroy(\"%s\", %p)", (char *)value, data);
 #endif
-	if( (char*)value )
-		free( (char*)value );
-	if( md )
+	if ((char *)value)
+		free ((char *)value);
+	if (md)
 	{
-		if( md->magic == MAGIC_MENU_DATA )
+		if (md->magic == MAGIC_MENU_DATA)
 		{
-			if( md->name == (char*)value )
-				md->name = NULL ;
-			destroy_menu_data( &md ); 
+			if (md->name == (char *)value)
+				md->name = NULL;
+			destroy_menu_data (&md);
 		}
 	}
 }
 
 void
-init_list_of_menus(ASHashTable **list, Bool force)
+init_list_of_menus (ASHashTable ** list, Bool force)
 {
-	if( list == NULL ) return ;
+	if (list == NULL)
+		return;
 
-	if( force && *list != NULL )
-		destroy_ashash( list );
+	if (force && *list != NULL)
+		destroy_ashash (list);
 
-	if( *list == NULL )
+	if (*list == NULL)
 	{
-		*list = create_ashash( 0, casestring_hash_value,
-								  casestring_compare,
-								  menu_data_destroy);
-		LOCAL_DEBUG_OUT( "created the list of Popups %p", *list );
+		*list = create_ashash (0, casestring_hash_value, casestring_compare, menu_data_destroy);
+		LOCAL_DEBUG_OUT ("created the list of Popups %p", *list);
 	}
 }
-
-
-
-
