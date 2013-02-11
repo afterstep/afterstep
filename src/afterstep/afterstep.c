@@ -706,7 +706,7 @@ void SaveSession (Bool force)
 	static Bool saved = False;
 	if (!saved || force) {
 		char *fname = make_session_file (Session, AFTER_SAVE, False);
-		save_aswindow_list (Scr.Windows, NULL);
+		save_aswindow_list (Scr.Windows, fname, get_gnome_autosave ());
 		free (fname);
 		saved = True;
 	}
@@ -734,7 +734,7 @@ void CloseSessionClients (Bool only_modules)
 		show_progress ("Session end: Closing down all remaining windows ...");
 		display_progress (True,
 											"Session end: Closing down all remaining windows ...");
-		close_aswindow_list (Scr.Windows);
+		close_aswindow_list (Scr.Windows, True);
 		ASFlushAndSync ();
 		sleep_a_millisec (100);
 	}

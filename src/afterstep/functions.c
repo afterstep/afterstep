@@ -1863,7 +1863,7 @@ void install_theme_file_func_handler (FunctionData * data, ASEvent * event,
 void save_workspace_func_handler (FunctionData * data, ASEvent * event,
 																	int module)
 {
-	save_aswindow_list (Scr.Windows, data->text ? data->text : NULL);
+	save_aswindow_list (Scr.Windows, data->text ? data->text : NULL, False);
 }
 
 Bool send_client_message_iter_func (void *data, void *aux_data)

@@ -259,8 +259,7 @@ static void do_save_aswindow (ASWindow * asw,
 															struct SaveWindowAuxData *swad)
 {
 	Bool same_host = (asw->hints->client_host == NULL
-										|| mystrcasecmp (asw->hints->client_host,
-																		 swad->this_host) == 0);
+										|| mystrcasecmp (asw->hints->client_host, swad->this_host) == 0);
 	if (asw->hints->client_cmd == NULL && same_host) {
 		if (ASWIN_HFLAGS (asw, AS_PID) && asw->hints->pid > 0)
 			asw->hints->client_cmd = pid2cmd (asw->hints->pid);
@@ -328,10 +327,10 @@ static void do_save_aswindow (ASWindow * asw,
 						 cmd_app ? cmd_app : asw->hints->client_cmd);
 		if (geometry_keyword)
 			fprintf (swad->f, " %s %s", geometry_keyword, geom);
-
+#if 0
 		if (asw->group && asw->group->sm_client_id)
 			fprintf (swad->f, " --sm-client-id %s", asw->group->sm_client_id);
-
+#endif
 		if (cmd_app != NULL) {
 			fprintf (swad->f, " %s", clean_cmd_args);
 			destroy_string (&cmd_app);
@@ -425,6 +424,7 @@ Bool make_aswindow_cmd_iter_func (void *data, void *aux_data)
 	if (asw && swad) {
 
 		/* don't want to save windows with short life span - wharf subfolders, menus, dialogs, etc. */
+		LOCAL_DEBUG_OUT ("short lived? %s", ASWIN_HFLAGS (asw, AS_ShortLived) ? "yes" : "no");
 		if (ASWIN_HFLAGS (asw, AS_ShortLived))
 			return True;
 
@@ -434,7 +434,7 @@ Bool make_aswindow_cmd_iter_func (void *data, void *aux_data)
 				return True;
 		} else if (swad->only_modules)
 			return True;
-
+		LOCAL_DEBUG_OUT ("group = %p", asw->group);
 		/* we only restart the group leader, then let it worry about its children */
 		if (asw->group != swad->group)
 			return True;
@@ -445,7 +445,7 @@ Bool make_aswindow_cmd_iter_func (void *data, void *aux_data)
 	return False;
 }
 
-void save_aswindow_list (ASWindowList * list, char *file)
+void save_aswindow_list (ASWindowList * list, char *file, Bool skip_session_managed)
 {
 	struct SaveWindowAuxData swad;
 
@@ -479,12 +479,10 @@ void save_aswindow_list (ASWindowList * list, char *file)
 	if (swad.f) {
 		ASHashIterator it;
 		fprintf (swad.f, "Function \"WorkspaceState\"\n");
+		swad.group = NULL;
 		swad.only_modules = False;
-		swad.res_name_counts =
-				create_ashash (0, string_hash_value, string_compare,
-											 string_destroy);
-		iterate_asbidirlist (list->clients, make_aswindow_cmd_iter_func, &swad,
-												 NULL, False);
+		swad.res_name_counts = create_ashash (0, string_hash_value, string_compare, string_destroy);
+		iterate_asbidirlist (list->clients, make_aswindow_cmd_iter_func, &swad, NULL, False);
 
 		if (start_hash_iteration (list->window_groups, &it)) {
 			do {
@@ -493,9 +491,11 @@ void save_aswindow_list (ASWindowList * list, char *file)
 					LOCAL_DEBUG_OUT ("group \"%lx\", sm-client-id = \"%s\"",
 													 (unsigned long)g->leader,
 													 g->sm_client_id ? g->sm_client_id : "none");
-					swad.group = g;
-					iterate_asbidirlist (list->clients, make_aswindow_cmd_iter_func,
-															 &swad, NULL, False);
+					if (!skip_session_managed || !g->sm_client_id) {
+						swad.group = g;
+						iterate_asbidirlist (list->clients, make_aswindow_cmd_iter_func,
+																 &swad, NULL, False);
+					}
 				}
 			} while (next_hash_item (&it));
 			swad.group = NULL;
@@ -517,25 +517,32 @@ void save_aswindow_list (ASWindowList * list, char *file)
 	}
 }
 
+typedef struct ASCloseWindowAuxData {
+	Bool skipSessionManaged;
+}ASCloseWindowAuxData;
+
 Bool close_aswindow_iter_func (void *data, void *aux_data)
 {
 	ASWindow *asw = (ASWindow *) data;
+	struct ASCloseWindowAuxData *auxd = (struct ASCloseWindowAuxData*)aux_data;
 	if (asw == NULL)
 		return False;
 
 	if (!ASWIN_HFLAGS (asw, AS_Module)
 			&& get_flags (asw->hints->protocols, AS_DoesWmDeleteWindow)) {
-		LOCAL_DEBUG_OUT ("sending delete window request to 0x%lX",
-										 (unsigned long)asw->w);
+		if (auxd->skipSessionManaged && asw->group && asw->group->sm_client_id)
+			return True;
+		LOCAL_DEBUG_OUT ("sending delete window request to 0x%lX", (unsigned long)asw->w);
 		send_wm_protocol_request (asw->w, _XA_WM_DELETE_WINDOW, CurrentTime);
 	}
 	return True;
 }
 
-void close_aswindow_list (ASWindowList * list)
+void close_aswindow_list (ASWindowList * list, Bool skip_session_managed)
 {
-	iterate_asbidirlist (list->clients, close_aswindow_iter_func, NULL, NULL,
-											 False);
+	ASCloseWindowAuxData aux;
+	aux.skipSessionManaged = skip_session_managed;
+	iterate_asbidirlist (list->clients, close_aswindow_iter_func, &aux, NULL, False);
 }
 
 

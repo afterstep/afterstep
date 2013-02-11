@@ -443,8 +443,8 @@ void add_aswindow_to_layer( ASWindow *asw, int layer );
 void remove_aswindow_from_layer( ASWindow *asw, int layer );
 Bool enlist_aswindow( ASWindow *t );
 void delist_aswindow( ASWindow *t );
-void save_aswindow_list( ASWindowList *list, char *file );
-void close_aswindow_list (ASWindowList *list); /* close all windows */
+void save_aswindow_list( ASWindowList *list, char *file, Bool skip_session_managed);
+void close_aswindow_list (ASWindowList *list, Bool skip_session_managed); /* close all windows */
 
 ASWindow* find_topmost_client( int desk, int root_x, int root_y );
 void free_scratch_layers_vector();
@@ -567,6 +567,7 @@ void asdbus_process_messages ();
 
 char *asdbus_RegisterSMClient(const char *sm_client_id);
 void asdbus_Notify(const char *summary, const char *body, int timeout);
+Bool get_gnome_autosave ();
 
 /*************************** decorations.c ********************************/
 ASOrientation* get_orientation_data( ASWindow *asw );

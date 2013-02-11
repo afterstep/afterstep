@@ -31,11 +31,17 @@
 #ifdef HAVE_DBUS1
 # include "dbus/dbus.h"
 
-#ifndef TEST_AS_DBUS
-#define AFTERSTEP_APP_ID			            "afterstep"
-#else
-#define AFTERSTEP_APP_ID			            "afterstep-test"
-#endif
+# ifdef HAVE_GLIB
+#  include <gio/gio.h>
+#  define GSM_MANAGER_SCHEMA        "org.gnome.SessionManager"
+#  define KEY_AUTOSAVE              "auto-save-session"
+# endif
+
+# ifndef TEST_AS_DBUS
+#  define AFTERSTEP_APP_ID			            "afterstep"
+# else
+#  define AFTERSTEP_APP_ID			            "afterstep-test"
+# endif
 
 #define AFTERSTEP_DBUS_SERVICE_NAME	      "org.afterstep." AFTERSTEP_APP_ID
 #define AFTERSTEP_DBUS_INTERFACE			    "org.afterstep." AFTERSTEP_APP_ID
@@ -137,6 +143,30 @@ void asdbus_shutdown ()
 													 AFTERSTEP_DBUS_SERVICE_NAME, NULL);
 		dbus_shutdown ();
 	}
+}
+
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
+Bool get_gnome_autosave ()
+{ 
+	Bool autosave = False;
+#ifdef HAVE_GLIB		
+	static Bool g_types_inited = False; 
+	if (!g_types_inited) {
+		g_type_init();
+		g_types_inited = True;
+	}
+	if (ASDBus.client_session_path) {
+		GSettings *gsm_settings = g_settings_new (GSM_MANAGER_SCHEMA);
+		if (gsm_settings) {
+			autosave = g_settings_get_boolean (gsm_settings, KEY_AUTOSAVE);
+  		g_object_unref (gsm_settings);
+		} else
+			show_error (" Failed to get gnome-session Autosave settings");
+	}
+#endif		
+	return autosave;
 }
 
 /******************************************************************************/
@@ -608,8 +638,14 @@ void Done (Bool restart, char *cmd)
 {
 	exit (1);
 }
+void SaveSession (Bool force)
+{
+}
 
-void main (int argc, char **argv)
+void CloseSessionClients (Bool only_modules)
+{}
+
+int main (int argc, char **argv)
 {
 	int logout_mode = -1;
 	if (argc > 1 && strcmp (argv[1], "--logout") == 0) {
@@ -632,6 +668,8 @@ void main (int argc, char **argv)
 								 3000);
 
 	GnomeSessionClientID = asdbus_RegisterSMClient (NULL);
+
+	show_progress ("gnome-session Autosave set to %d", 	get_gnome_autosave ());
 	if (GnomeSessionClientID != NULL)
 		show_progress
 				("Successfuly registered with GNOME Session Manager with Client Path \"%s\".",
