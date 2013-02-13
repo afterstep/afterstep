@@ -49,15 +49,25 @@
 
 #define IFACE_SESSION_PRIVATE 						"org.gnome.SessionManager.ClientPrivate"
 
+#define CK_NAME      "org.freedesktop.ConsoleKit"
+#define CK_PATH      "/org/freedesktop/ConsoleKit"
+#define CK_INTERFACE "org.freedesktop.ConsoleKit"
+
+#define CK_MANAGER_PATH      CK_PATH "/Manager"
+#define CK_MANAGER_INTERFACE CK_NAME ".Manager"
+#define CK_SEAT_INTERFACE    CK_NAME ".Seat"
+#define CK_SESSION_INTERFACE CK_NAME ".Session"
+
 #define HAVE_DBUS_CONTEXT 1
 
 typedef struct ASDBusContext {
+	DBusConnection *system_conn;
 	DBusConnection *session_conn;
 	int watch_fd;
 	char *client_session_path;
 } ASDBusContext;
 
-static ASDBusContext ASDBus = { NULL, -1, NULL };
+static ASDBusContext ASDBus = { NULL, NULL, -1, NULL };
 
 static DBusHandlerResult asdbus_handle_message (DBusConnection *,
 																								DBusMessage *, void *);
@@ -92,57 +102,85 @@ asdbus_handle_message (DBusConnection * conn, DBusMessage * msg,
 
 }
 
+static DBusConnection *
+_asdbus_get_session_connection()
+{ 
+	DBusError error;
+	int res;
+	DBusConnection *session_conn;
+	dbus_error_init (&error);
+
+	session_conn = dbus_bus_get (DBUS_BUS_SESSION, &error);
+
+	if (dbus_error_is_set (&error)) {
+		show_error ("Failed to connect to Session DBus: %s", error.message);
+	} else {
+		dbus_connection_set_exit_on_disconnect (session_conn, FALSE);
+		res = dbus_bus_request_name (session_conn,
+																 AFTERSTEP_DBUS_SERVICE_NAME,
+																 DBUS_NAME_FLAG_REPLACE_EXISTING |
+																 DBUS_NAME_FLAG_ALLOW_REPLACEMENT,
+																 &error);
+		if (dbus_error_is_set (&error)) {
+			show_error ("Failed to request name from DBus: %s", error.message);
+		} else if (res != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
+			show_error ("Failed to request name from DBus - not a primary owner.");
+		} else {
+			dbus_connection_register_object_path (session_conn,
+																						AFTERSTEP_DBUS_ROOT_PATH,
+																						&ASDBusMessagesVTable, 0);
+		}
+	}
+	if (dbus_error_is_set (&error))
+		dbus_error_free (&error);
+
+	return session_conn;
+} 
+
+static DBusConnection *
+_asdbus_get_system_connection()
+{ 
+	DBusError error;
+	DBusConnection *sys_conn;
+	
+	dbus_error_init (&error);
+	sys_conn = dbus_bus_get (DBUS_BUS_SYSTEM, &error);
+
+	if (dbus_error_is_set (&error)) {
+		show_error ("Failed to connect to System DBus: %s", error.message);
+		dbus_error_free (&error);
+	} else {
+		dbus_connection_set_exit_on_disconnect (sys_conn, FALSE);
+		show_progress ("Connected to System DBus.");
+	}
+	return sys_conn;
+} 
+
 /******************************************************************************/
 /* External interfaces : */
 /******************************************************************************/
 int asdbus_init ()
 {																/* return connection unix fd */
-	DBusError error;
-	int res;
+	if (!ASDBus.session_conn)
+		ASDBus.session_conn = _asdbus_get_session_connection();
 
-	dbus_error_init (&error);
-
-	if (!ASDBus.session_conn) {
-		DBusConnection *session_conn = dbus_bus_get (DBUS_BUS_SESSION, &error);
-
-		if (dbus_error_is_set (&error))
-			show_error ("Failed to connect to Session DBus: %s", error.message);
-		else {
-			res = dbus_bus_request_name (session_conn,
-																	 AFTERSTEP_DBUS_SERVICE_NAME,
-																	 DBUS_NAME_FLAG_REPLACE_EXISTING |
-																	 DBUS_NAME_FLAG_ALLOW_REPLACEMENT,
-																	 &error);
-			if (dbus_error_is_set (&error)) {
-				show_error ("Failed to request name from DBus: %s", error.message);
-			} else if (res != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
-				show_error
-						("Failed to request name from DBus - not a primary owner.");
-			} else {
-				dbus_connection_set_exit_on_disconnect (session_conn, FALSE);
-				dbus_connection_register_object_path (session_conn,
-																							AFTERSTEP_DBUS_ROOT_PATH,
-																							&ASDBusMessagesVTable, 0);
-				ASDBus.session_conn = session_conn;
-			}
-		}
-	}
+	if (!ASDBus.system_conn)
+		ASDBus.system_conn = _asdbus_get_system_connection();
 
 	if (ASDBus.session_conn && ASDBus.watch_fd < 0)
 		dbus_connection_get_unix_fd (ASDBus.session_conn, &(ASDBus.watch_fd));
-
-	dbus_error_free (&error);
 
 	return ASDBus.watch_fd;
 }
 
 void asdbus_shutdown ()
 {
-	if (ASDBus.session_conn) {
+	if (ASDBus.session_conn)
 		dbus_bus_release_name (ASDBus.session_conn,
 													 AFTERSTEP_DBUS_SERVICE_NAME, NULL);
+
+	if (ASDBus.session_conn || ASDBus.system_conn)
 		dbus_shutdown ();
-	}
 }
 
 /******************************************************************************/
@@ -363,6 +401,8 @@ char *asdbus_RegisterSMClient (const char *sm_client_id)
 					ASDBus.client_session_path = mystrdup (ret_client_path);
 				}
 
+				if (dbus_error_is_set (&error))
+					dbus_error_free (&error);
 				dbus_message_unref (replay);
 			}
 		}
@@ -402,6 +442,8 @@ void asdbus_UnregisterSMClient (const char *sm_client_path)
 				show_progress ("Unregistered from Gnome Session Manager");
 				dbus_message_unref (replay);
 			}
+			if (dbus_error_is_set (&error))
+				dbus_error_free (&error);
 		}
 	}
 #endif
@@ -432,14 +474,16 @@ Bool asdbus_Logout (int mode, int timeout)
 																										 &error);
 			dbus_message_unref (message);
 
-			if (!replay)
+			if (!replay) {
 				show_error
 						("Failed to request Logout with the Gnome Session Manager. DBus error: %s",
 						 dbus_error_is_set (&error) ? error.message : "unknown error");
-			else {										/* nothing is returned in replay to this message */
+			} else {										/* nothing is returned in replay to this message */
 				dbus_message_unref (replay);
 				requested = True;
 			}
+			if (dbus_error_is_set (&error))
+				dbus_error_free (&error);
 		}
 	}
 #endif
@@ -476,16 +520,92 @@ void asdbus_EndSessionOk ()
 #endif
 }
 
+/*******************************************************************************
+ * Freedesktop Console Kit
+ *******************************************************************************/
+char* asdbus_GetConsoleSessionId ()
+{
+  const char     *session_id = NULL;
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.system_conn) {
+		DBusMessage *message = dbus_message_new_method_call (CK_NAME,
+                        						                     CK_MANAGER_PATH,
+                                      						       CK_MANAGER_INTERFACE,
+                                            						 "GetCurrentSession");
+    if (message) {
+			DBusMessage *reply;
+			DBusError error;
+			DBusMessageIter iter;
+      const char     *val = NULL;
 
+  	  dbus_error_init (&error);
+      reply = dbus_connection_send_with_reply_and_block (ASDBus.system_conn, message, -1, &error);
+			dbus_message_unref (message);
+																															 
+      if (reply == NULL) {
+				if (dbus_error_is_set (&error))
+					show_error ("Unable to determine Console Kit Session: %s", error.message);
+			} else {
+        dbus_message_iter_init (reply, &iter);
+        dbus_message_iter_get_basic (&iter, &val);
+				session_id = mystrdup (val);
+        dbus_message_unref (reply);
+			}
+			if (dbus_error_is_set (&error))
+				dbus_error_free (&error);
+		}
+	}
+#endif
+	return session_id;	
+} 
+
+char* asdbus_GetConsoleSessionType (const char *session_id)
+{
+  const char     *session_type = NULL;
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.system_conn && session_id) {
+		DBusMessage *message = dbus_message_new_method_call (CK_NAME,
+																													session_id,
+																													CK_SESSION_INTERFACE,
+																													"GetSessionType");
+    if (message) {
+			DBusMessage *reply;
+			DBusError error;
+
+			dbus_error_init (&error);
+			reply = dbus_connection_send_with_reply_and_block (ASDBus.system_conn, message, -1, &error);
+			dbus_message_unref (message);
+
+      if (reply == NULL) {
+				if (dbus_error_is_set (&error))
+					show_error ("Unable to determine Console Kit Session Type: %s", error.message);
+			} else {
+				DBusMessageIter iter;
+  	    const char     *val = NULL;
+        dbus_message_iter_init (reply, &iter);
+        dbus_message_iter_get_basic (&iter, &val);
+				session_type = mystrdup (val);
+/*				show_progress ("sess_type returned = \"%s\", arg_type = \"%c\"", val, dbus_message_iter_get_arg_type (&iter)); */
+        dbus_message_unref (reply);
+			}
+			if (dbus_error_is_set (&error))
+				dbus_error_free (&error);
+		}
+	}
+#endif
+	return session_type;	
+}
+/*******************************************************************************
+ * Notifications
+ *******************************************************************************/
 void asdbus_Notify (const char *summary, const char *body, int timeout)
 {
 #ifdef HAVE_DBUS_CONTEXT
 	if (ASDBus.session_conn) {
-		DBusMessage *message =
-				dbus_message_new_method_call ("org.freedesktop.Notifications",
-																			"/org/freedesktop/Notifications",
-																			"org.freedesktop.Notifications",
-																			"Notify");
+		DBusMessage *message = dbus_message_new_method_call  ("org.freedesktop.Notifications",
+																													"/org/freedesktop/Notifications",
+																													"org.freedesktop.Notifications",
+																													"Notify");
 		if (message) {
 			const char *app_id = "AfterStep Window Manager";
 			dbus_uint32_t replace_id = 0;
@@ -517,30 +637,29 @@ void asdbus_Notify (const char *summary, const char *body, int timeout)
 				DBusError error;
 
 				dbus_error_init (&error);
-				replay =
-						dbus_connection_send_with_reply_and_block (ASDBus.session_conn,
+				replay = dbus_connection_send_with_reply_and_block (ASDBus.session_conn,
 																											 message, 200,
 																											 &error);
 				dbus_message_unref (message);
 
-				if (!replay)
+				if (!replay) {
 					show_error ("Failed to send the notification. DBus error: %s",
-											dbus_error_is_set (&error) ? error.
-											message : "unknown error");
-				else {									/* get the allocated session ClientID */
+											dbus_error_is_set (&error) ? error.message : "unknown error");
+				} else {									/* get the allocated session ClientID */
 					dbus_uint32_t req_id;
-					if (!dbus_message_get_args
-							(replay, &error, DBUS_TYPE_UINT32, &req_id,
-							 DBUS_TYPE_INVALID))
+					if (!dbus_message_get_args(replay, &error, DBUS_TYPE_UINT32, &req_id, DBUS_TYPE_INVALID)) {
 						show_error ("Malformed Notification replay. DBus error: %s",
-												dbus_error_is_set (&error) ? error.
-												message : "unknown error");
+												dbus_error_is_set (&error) ? error.message : "unknown error");
+					} 
 #ifdef TEST_AS_DBUS
-					else
+					else {
 						show_progress ("Notification Request_id = %d", req_id);
+					}
 #endif
 					dbus_message_unref (replay);
 				}
+				if (dbus_error_is_set (&error))
+					dbus_error_free (&error);
 			}
 		}
 	}
@@ -648,6 +767,8 @@ void CloseSessionClients (Bool only_modules)
 int main (int argc, char **argv)
 {
 	int logout_mode = -1;
+	char *console_session_id, *console_session_type;
+	
 	if (argc > 1 && strcmp (argv[1], "--logout") == 0) {
 		if (argc > 2)
 			logout_mode = atoi (argv[2]);
@@ -661,7 +782,9 @@ int main (int argc, char **argv)
 		show_error ("Failed to accure Session DBus connection.");
 		return 0;
 	}
-
+	console_session_id = asdbus_GetConsoleSessionId ();
+	console_session_type = asdbus_GetConsoleSessionType (console_session_id);
+	show_progress ("ConsoleKit session id is \"%s\", type = \"%s\"", console_session_id, console_session_type);
 	show_progress ("Successfuly accured Session DBus connection.");
 
 	asdbus_Notify ("TestNotification Summary", "Test notification body",

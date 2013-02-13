@@ -11,7 +11,13 @@ version 2.2.12 release
 				 switch to more standard and stable ALSA.
 			3) It is recommended to uninstall zeitgeist daemon since its useless under 
 				 AfterStep anyway but wastes resources with its snooping activity.
-				 
+		  4) gnome-session will save any app that support session mamgement at the end 
+			   of the session to be restarted the next time. Unless you run UBUNTU in 
+				 which case this functionality my be disabled in stock gnome-session. If 
+				 you want it back, then it is recommended that you build your own 
+				 gnome-session from sources. On the other hand if you do not want this 
+				 functionality, again, get gnome-session source and comment out contents of
+				 maybe_load_saved_session_apps() function in gnome-session/gsm-session-fill.c.
 				 
 version 2.2.11 release
 	* new WarpPointer feel option to make pointer warping on viewport change
