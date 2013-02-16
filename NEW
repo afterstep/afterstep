@@ -18,6 +18,10 @@ version 2.2.12 release
 				 gnome-session from sources. On the other hand if you do not want this 
 				 functionality, again, get gnome-session source and comment out contents of
 				 maybe_load_saved_session_apps() function in gnome-session/gsm-session-fill.c.
+			5) If you find that your GTK apps look butt-ugly - its probably because gconfd 
+			   is not running. It is normally started by gnome-session, but bastardised 
+				 version of it that comes with Ubuntu does not do it for some reason.
+	* More Useless packages : ubuntu-desktop deja-dup
 				 
 version 2.2.11 release
 	* new WarpPointer feel option to make pointer warping on viewport change

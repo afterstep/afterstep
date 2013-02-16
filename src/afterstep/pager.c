@@ -248,6 +248,7 @@ void MoveViewport (int newx, int newy, Bool grab)
 	Scr.Vx = newx;
 	Scr.Vy = newy;
 	SendPacket (-1, M_NEW_PAGE, 3, Scr.Vx, Scr.Vy, Scr.CurrentDesk);
+	LOCAL_DEBUG_OUT ("Updating viewport property to %d, %d", Scr.Vx, Scr.Vy);
 	set_current_viewport_prop (Scr.wmprops, Scr.Vx, Scr.Vy,
 														 get_flags (AfterStepState,
 																				ASS_NormalOperation));

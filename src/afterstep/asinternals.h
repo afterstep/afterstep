@@ -586,6 +586,7 @@ const char *context2text(int ctx);
 void DigestEvent    ( struct ASEvent *event );
 void DispatchEvent  ( struct ASEvent *event, Bool deferred );
 void HandleEvents   ();
+void HandleEventsWhileFunctionsPending ();
 void InteractiveMoveLoop ();
 void WaitForButtonsUpLoop ();
 Bool WaitEventLoop( struct ASEvent *event, int finish_event_type, long timeout, struct ASHintWindow *hint );
@@ -628,6 +629,7 @@ void ExecuteFunction (struct FunctionData *data, struct ASEvent *event, int Modu
 void ExecuteFunctionForClient(struct FunctionData *data, Window client);
 void ExecuteFunctionExt (struct FunctionData *data, struct ASEvent *event, int module, Bool defered);
 /* execute all the scheduled functions from the queue */
+Bool FunctionsPending ();
 void ExecutePendingFunctions();
 void DestroyPendingFunctionsQueue();
 /* non-window specific, non-defferrable functions are run : */

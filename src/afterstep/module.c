@@ -355,12 +355,9 @@ int HandleModuleInput (module_t * module)
 
 #define PREALLOCED_QUEUE_LEN		256
 #define PREALLOCED_QUEUE_DATA_LEN	128
-static unsigned char
-		_as_prealloced_queue_data[PREALLOCED_QUEUE_LEN]
-		[PREALLOCED_QUEUE_DATA_LEN];
+static unsigned char		_as_prealloced_queue_data[PREALLOCED_QUEUE_LEN][PREALLOCED_QUEUE_DATA_LEN];
 static Bool _as_prealloced_init = False;
-static struct queue_buff_struct
-		_as_prealloced_queue_elems[PREALLOCED_QUEUE_LEN];
+static struct queue_buff_struct		_as_prealloced_queue_elems[PREALLOCED_QUEUE_LEN];
 
 static void
 AddToQueue (module_t * module, send_data_type * ptr, int size, int done)
@@ -373,6 +370,7 @@ AddToQueue (module_t * module, send_data_type * ptr, int size, int done)
 						sizeof (_as_prealloced_queue_elems));
 		_as_prealloced_init = True;
 	}
+#if 1
 	if (size < PREALLOCED_QUEUE_DATA_LEN)
 		while (++i < PREALLOCED_QUEUE_LEN)
 			if (_as_prealloced_queue_elems[i].prealloced_idx == 0)
@@ -383,7 +381,9 @@ AddToQueue (module_t * module, send_data_type * ptr, int size, int done)
 		new_elem->prealloced_idx = i;
 		new_elem->data = &_as_prealloced_queue_data[i][0];
 		new_elem->next = NULL;
-	} else {
+	} else 
+#endif	
+	{
 		new_elem = safecalloc (1, sizeof (struct queue_buff_struct));
 		new_elem->data = safemalloc (size);
 	}
@@ -392,7 +392,9 @@ AddToQueue (module_t * module, send_data_type * ptr, int size, int done)
 	memcpy (new_elem->data, ptr, size);
 	LOCAL_DEBUG_OUT ("que_buff %p: size = %d, done = %d, data = %p",
 									 new_elem, size, done, new_elem->data);
-	for (tail = &(module->output_queue); *tail; tail = &((*tail)->next)) ;
+	for (tail = &(module->output_queue); *tail; tail = &((*tail)->next)) {
+		/*LOCAL_DEBUG_OUT ("*tail = %p, (*tail)->next = %p", *tail, ((*tail)->next))*/;
+	}	
 	*tail = new_elem;
 }
 
@@ -416,7 +418,7 @@ int FlushQueue (module_t * module)
 	extern int errno;
 	int fd;
 	register struct queue_buff_struct *curr;
-
+LOCAL_DEBUG_OUT ("module \"%s\", active= %d, out_queue = %p", module->name, module->active, module->output_queue);
 	if (module->active <= 0)
 		return -1;
 	if (module->output_queue == NULL)
@@ -471,9 +473,8 @@ void FlushAllQueues ()
 			if (list[i].fd >= 0) {
 
 				int res = 0;
-				if (list[i].output_queue
-						&& (retval < 0 || FD_ISSET (list[i].fd, &out_fdset)))
-					FlushQueue (&(list[i]));
+				if (list[i].output_queue && (retval < 0 || FD_ISSET (list[i].fd, &out_fdset)))
+					res = FlushQueue (&(list[i]));
 				if (res >= 0 && list[i].output_queue != NULL) {
 					FD_SET (list[i].fd, &out_fdset);
 					if (max_fd < list[i].fd)
@@ -506,18 +507,21 @@ PositiveWrite (unsigned int channel, send_data_type * ptr, int size)
 	module_t *module = &(MODULES_LIST[channel]);
 	register CARD32 mask = ptr[1];
 
-	LOCAL_DEBUG_OUT ("module(%p)->active(%d)->module_mask(0x%X)->mask(0x%X)",
-									 module, module->active, module->mask, mask);
+	LOCAL_DEBUG_OUT ("module(%p)->name(\"%s\")->active(%d)->module_mask(0x%X)->mask(0x%X)",
+									 module, module->name, module->active, module->mask, mask);
 	if (module->active < 0 || !get_flags (module->mask, mask))
 		return -1;
 
 	AddToQueue (module, ptr, size, 0);
+	LOCAL_DEBUG_OUT("lock_on_send_mask = %d,is_server_grabbed =%d", get_flags (module->lock_on_send_mask, mask), is_server_grabbed ());
 	if (get_flags (module->lock_on_send_mask, mask) && !is_server_grabbed ()) {
 		int res;
 		int wait_count = 0;
 		do {
+			LOCAL_DEBUG_OUT ("Attempting to FlushQueue for module %d", module);
 			if ((res = FlushQueue (module)) >= 0) {
 				sleep_a_millisec (10);	/* give it some time to react */
+				/* LOCAL_DEBUG_OUT ("HandleModuleInput for module %d", module);*/
 				res = HandleModuleInput (module);
 			}
 			if (res > 0) {						/* need to run command */
@@ -533,6 +537,7 @@ PositiveWrite (unsigned int channel, send_data_type * ptr, int size)
 			/* module has no more then 20 seconds to unlock us */
 		} while (res >= 0 && wait_count < 2000);
 	}
+	LOCAL_DEBUG_OUT ("all done %d", size);
 	return size;
 }
 
@@ -563,8 +568,11 @@ void SendBuffer (int channel)
 			PositiveWrite (channel, b, size_to_send * sizeof (send_data_type));
 		else {
 			register int i = MODULES_NUM;
-			while (--i >= 0)
+			while (--i >= 0) {
+				LOCAL_DEBUG_OUT ("sending to module %d ...", i);
 				PositiveWrite (i, b, size_to_send * sizeof (send_data_type));
+				LOCAL_DEBUG_OUT ("done sending to module %d ...", i);
+			}
 		}
 	}
 }
@@ -818,7 +826,9 @@ SendPacket (int channel, send_data_type msg_type, send_data_type num_datum,
 	VECTOR_USED (module_output_buffer) += num_datum;
 	va_end (ap);
 
+	LOCAL_DEBUG_OUT("Sending buffer , used = %d", VECTOR_USED (module_output_buffer));
 	SendBuffer (channel);
+	LOCAL_DEBUG_OUT("Done sending buffer , used = %d", VECTOR_USED (module_output_buffer));
 }
 
 

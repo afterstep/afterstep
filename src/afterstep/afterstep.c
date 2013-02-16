@@ -350,11 +350,9 @@ int main (int argc, char **argv, char **envp)
 	/* once all the windows are swallowed and placed in its proper desks - we cas restore proper
 	   desktop/viewport : */
 	clear_flags (AfterStepState, ASS_SuppressDeskBack);
-	ChangeDeskAndViewport (start_desk, start_viewport_x, start_viewport_y,
-												 False);
-
 	/* all system Go! we are completely Operational! */
 	set_flags (AfterStepState, ASS_NormalOperation);
+	ChangeDeskAndViewport (start_desk, start_viewport_x, start_viewport_y, False);
 
 #if (defined(LOCAL_DEBUG)||defined(DEBUG)) && defined(DEBUG_ALLOCS)
 	LOCAL_DEBUG_OUT ("printing memory%s", "");
@@ -665,6 +663,7 @@ void DoAutoexec (Bool restarting)
 			func.name = &(screen_func_name[0]);
 	}
 	ExecuteFunction (&func, &event, -1);
+	HandleEventsWhileFunctionsPending ();
 }
 
 /***********************************************************************

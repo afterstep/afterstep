@@ -62,31 +62,49 @@
 void DigestEvent (ASEvent * event);
 void afterstep_wait_pipes_input (int timeout_sec);
 
+static void
+_exec_while_x_pending ()
+{
+	ASEvent event;
+	while (XPending (dpy)) {
+		if (ASNextEvent (&(event.x), True)) {
+			DigestEvent (&event);
+			DispatchEvent (&event, False);
+		}
+		ASSync (False);
+		/* before we exec any function - we ought to process any Unmap and Destroy
+		 * events to handle all the pending window destroys : */
+		while (ASCheckTypedEvent (DestroyNotify, &(event.x)) ||
+					 ASCheckTypedEvent (UnmapNotify, &(event.x)) ||
+					 ASCheckMaskEvent (FocusChangeMask, &(event.x))) {
+			DigestEvent (&event);
+			DispatchEvent (&event, False);
+		}
+		ExecutePendingFunctions ();
+	}
+}
+
+
 void HandleEvents ()
 {
 	/* this is the only loop that allowed to run ExecutePendingFunctions(); */
-	ASEvent event;
 	while (True) {
-		while (XPending (dpy)) {
-			if (ASNextEvent (&(event.x), True)) {
-				DigestEvent (&event);
-				DispatchEvent (&event, False);
-			}
-			ASSync (False);
-			/* before we exec any function - we ought to process any Unmap and Destroy
-			 * events to handle all the pending window destroys : */
-			while (ASCheckTypedEvent (DestroyNotify, &(event.x)) ||
-						 ASCheckTypedEvent (UnmapNotify, &(event.x)) ||
-						 ASCheckMaskEvent (FocusChangeMask, &(event.x))) {
-				DigestEvent (&event);
-				DispatchEvent (&event, False);
-			}
-			ExecutePendingFunctions ();
-		}
+		_exec_while_x_pending ();
 		afterstep_wait_pipes_input (0);
 		ExecutePendingFunctions ();
 	}
 }
+
+void HandleEventsWhileFunctionsPending ()
+{
+	/* this is the only loop that allowed to run ExecutePendingFunctions(); */
+	while (FunctionsPending ()) {
+		ExecutePendingFunctions ();
+		afterstep_wait_pipes_input (2);
+		_exec_while_x_pending ();
+	}
+}
+
 
 /***************************************************************************
  * Wait for all mouse buttons to be released
@@ -1172,7 +1190,10 @@ void HandleMapRequest (ASEvent * event)
 {
 	/* If the window has never been mapped before ... */
 	if (event->client == NULL) {	/* lets delay handling map request in case client needs time to update its properties */
-		timer_new (200, delayed_add_window, (void *)event->w);
+		if (get_flags (AfterStepState, ASS_NormalOperation))
+			timer_new (200, delayed_add_window, (void *)event->w);
+		else
+			AddWindow (event->w, True);
 
 /*        if( (event->client = AddWindow (event->w, True)) == NULL ) */
 		return;
@@ -1766,10 +1787,13 @@ void afterstep_wait_pipes_input (int timeout_sec)
 		tv.tv_sec = timeout_sec;
 		tv.tv_usec = 0;
 	}
+
+	LOCAL_DEBUG_OUT ("selecting ... ");
 	retval =
 			PORTABLE_SELECT (min (max_fd + 1, fd_width), &in_fdset, &out_fdset,
 											 NULL, t);
 
+	LOCAL_DEBUG_OUT ("select ret val = %d", retval);
 	if (retval > 0) {
 		register module_t *list;
 		register int i;

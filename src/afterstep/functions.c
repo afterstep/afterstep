@@ -556,6 +556,11 @@ static void DoExecuteFunction (ASScheduledFunction * sf)
 	destroy_scheduled_function (sf);
 }
 
+Bool FunctionsPending ()
+{
+	return (FunctionQueue && FunctionQueue->head != NULL);
+}
+
 void ExecutePendingFunctions ()
 {
 	ASScheduledFunction *sf;
