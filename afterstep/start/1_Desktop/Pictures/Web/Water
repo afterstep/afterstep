@@ -1,0 +1,8 @@
+Popup "Water"
+	BackgroundForeign "Dark Water" http://farm9.static.flickr.com/8369/8493142514_0bc08706ed_o.jpg
+	Preview "http://farm9.staticflickr.com/8369/8493142514_52ed6ffc11_n.jpg"
+	BackgroundForeign "Sydney Sunset" http://farm9.staticflickr.com/8246/8469464818_8ecc1c3953_k.jpg
+	Preview "http://farm9.staticflickr.com/8246/8469464818_75f285e62e_m.jpg"
+	BackgroundForeign "Ibiza Sunset" http://farm5.staticflickr.com/4107/5053029888_9a0917fde4_o.jpg
+	Preview "http://farm5.staticflickr.com/4107/5053029888_314dfbd578_m.jpg"
+EndPopup

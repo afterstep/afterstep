@@ -1,0 +1,18 @@
+Popup "Mountains"
+	BackgroundForeign "Winter afternoon in Tegernsee" http://farm9.static.flickr.com/8239/8493540488_724e74af3d_o.jpg
+	Preview "http://farm9.staticflickr.com/8239/8493540488_5f1bfcee7c_m.jpg"
+	BackgroundForeign "Medicine Bow" http://farm9.staticflickr.com/8299/7775244064_b28429c39d_k_d.jpg
+	Preview "http://farm9.staticflickr.com/8299/7775244064_0f4c1aa9c0_m.jpg"
+	BackgroundForeign "Bendemeer Estates"	http://farm9.staticflickr.com/8234/8479886242_16237a9780_k_d.jpg
+	Preview "http://farm9.staticflickr.com/8234/8479886242_e43018f89c_m_d.jpg"
+	BackgroundForeign "Torn Skies" http://farm3.staticflickr.com/2582/4105054854_de562ac1fd_o.jpg
+	Preview "http://farm3.staticflickr.com/2582/4105054854_2927d15bc6_m.jpg"
+	BackgroundForeign "Grand Canyon" http://farm6.staticflickr.com/5128/5233684256_791fd8636b_o.jpg
+	Preview "http://farm6.staticflickr.com/5128/5233684256_30e86a6f75_n.jpg"
+	BackgroundForeign "Rockies" http://farm9.staticflickr.com/8016/7797194726_740a994b42_o.jpg
+	Preview "http://farm9.staticflickr.com/8016/7797194726_d4d5e3eaf7_m.jpg"
+	BackgroundForeign "Moab Sandstone" http://farm6.staticflickr.com/5008/5272794157_8c392ef985_o.jpg
+	Preview "http://farm6.staticflickr.com/5008/5272794157_9663937363_m.jpg"
+	BackgroundForeign "Broken Arch" http://farm6.staticflickr.com/5287/5273401884_ec16a5073f_o.jpg
+	Preview "http://farm6.staticflickr.com/5287/5273401884_2f4a4e470c_m.jpg"
+EndPopup
