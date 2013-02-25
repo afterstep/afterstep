@@ -15,9 +15,9 @@
 #include "sun_headers.h"
 #endif
 
-#if defined(__alpha)
-/*#include "alpha_header.h"*/
-#endif /* NEEDS_ALPHA_HEADER */
+/*#if defined(__alpha)
+#include "alpha_header.h"
+#endif  NEEDS_ALPHA_HEADER */
 
 /* Some people say that AIX and AIXV3 need 3 preceding underscores, other say
  * no. I'll do both */
