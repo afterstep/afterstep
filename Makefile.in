@@ -36,7 +36,7 @@ subdirs         = libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTK
                   $(@GTK_APP_DIRS@) \
                   doc tools
 
-RECURSIVE_TARGETS = all libs install install.bin install.lib install.man install.script uninstall clean distclean indent deps
+RECURSIVE_TARGETS = all libs install install.bin install.lib install.man install.script install.data uninstall clean distclean indent deps
 
 all: AfterStep.desktop.final AfterStep.desktop.session
 libs: AfterStep.desktop.final AfterStep.desktop.session
@@ -159,9 +159,6 @@ install.desktop: AfterStep.desktop.final AfterStep.desktop.session mkdir.share
 
 install.share:
 	@cd afterstep && ${MAKE} install
-
-install.data:
-	@cd afterstep && ${MAKE} install.data
 
 install.data_html:
 	@cd src/ASDocGen && ${MAKE} install.data_html

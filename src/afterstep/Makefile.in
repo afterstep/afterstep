@@ -58,3 +58,6 @@ test_asdbus.o: dbus.c
 test_asdbus:	test_asdbus.o
 		$(CC) test_asdbus.o $(LIBS_ALL) -o test_asdbus
 
+
+install.man:
+uninstall.man:

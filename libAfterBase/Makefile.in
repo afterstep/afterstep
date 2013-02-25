@@ -201,6 +201,8 @@ install.inc:
 		)
 
 
+install.data:
+
 # uninstallation targets : 
 #
 STATIC_LIB_FILES=$(LIBDIR)/$(LIB_STATIC)

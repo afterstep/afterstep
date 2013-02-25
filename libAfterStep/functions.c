@@ -828,8 +828,7 @@ load_menuitem_pmap (MenuDataItem * mdi, MinipixmapTypes type, Bool force)
 				int s1 = 0, s2 = 0;
 
 				cachedFileName = make_session_webcache_file (Session, filename);
-				use_thumbnail =
-						check_download_complete (0, cachedFileName, &s1, &s2);
+				use_thumbnail =	check_download_complete (0, cachedFileName, &s1, &s2);
 				use_thumbnail = use_thumbnail && ((s1 > 0 || s2 == s1));
 				if (use_thumbnail)
 					filename = cachedFileName;
@@ -847,8 +846,7 @@ load_menuitem_pmap (MenuDataItem * mdi, MinipixmapTypes type, Bool force)
 			}
 
 			if (use_thumbnail)
-				minipixmap->image =
-						get_thumbnail_asimage (ASDefaultScr->image_manager, filename,
+				minipixmap->image =	get_thumbnail_asimage (ASDefaultScr->image_manager, filename,
 																	 0, h,
 																	 AS_THUMBNAIL_PROPORTIONAL |
 																	 AS_THUMBNAIL_DONT_ENLARGE);

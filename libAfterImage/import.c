@@ -498,8 +498,8 @@ static char* get_thumbnail_dir()
 
 static char* get_thumbnail_image_path(const char * file, ASImageImportParams *iparams, int * need_save)
 {
-	* need_save = 0;
 	char *th_dir = get_thumbnail_dir();
+	*need_save = 0;
 	if (!th_dir || !*th_dir)
 		return NULL;
 

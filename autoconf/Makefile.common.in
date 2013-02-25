@@ -26,6 +26,10 @@ distclean:	clean
 
 install.lib:	@LIBPROG@ @LIBINSTALL@
 
+install.man:
+install.data:
+
+
 install.script:
 		@for i in $(SCRIPTS); do \
 		  echo $(INSTALL_SCRIPT) $$i $(AFTER_BIN_DIR); \

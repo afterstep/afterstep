@@ -47,7 +47,7 @@
 #define CANONICAL_BUILD_VENDOR	"@build_vendor@"
 #define AFTER_BIN_DIR	"@bindir@"
 #define AFTER_MAN_DIR	"@mandir@/man1"
-#define AFTER_DOC_DIR	"@datarootdir@/afterstep/doc"
+#define AFTER_DOC_DIR	"@datarootdir@/doc/afterstep"
 #define DEFAULT_ICON_DIR "@x_includes@/X11/bitmaps"
 #define DEFAULT_PIXMAP_DIR "@x_includes@/X11/pixmaps"
 #define DEFAULT_TTF_DIR "@x_libraries@/X11/fonts/TTF"

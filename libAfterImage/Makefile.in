@@ -436,3 +436,4 @@ install:	install.lib install.man install.doc install.apps
 
 uninstall:	uninstall.lib
 
+install.data:

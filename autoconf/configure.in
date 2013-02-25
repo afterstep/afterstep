@@ -639,7 +639,7 @@ if test "x$enable_ascp" = "xyes"; then
 
     if fltk-config --libs >/dev/null  ;then
 		present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-		for l in `fltk-config --ldstaticflags`; do
+		for l in `fltk-config --ldflags`; do
 	  	  lib_found=no
 	  	  for p in `echo "$present_libs"` ; do
 			  if test "x$l" = "x$p" ; then
