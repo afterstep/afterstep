@@ -1,0 +1,2 @@
+Exec "XTerminal" exec x-terminal-emulator -T "XTerminal@`hostname --long`" &
+MiniPixmap "mini-app.xpm"
