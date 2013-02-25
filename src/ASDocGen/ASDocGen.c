@@ -749,11 +749,13 @@ gen_syntax_doc( const char *source_dir, const char *dest_dir, SyntaxDef *syntax,
 		i = 0 ;
 		if( syntax == NULL ) 
 		{	
-			convert_xml_file( syntax_dir, StandardSourceEntries[0], &state );
-			++i ;
+			if ( doc_type != DocType_NROFF ) {
+				convert_xml_file( syntax_dir, StandardSourceEntries[0], &state );
+				++i ;
+			}
 			convert_xml_file( syntax_dir, StandardOptionsEntry, &state );
 		}
-		for( ; i < OPENING_PARTS_END ; ++i ) 
+		for( ; doc_type != DocType_NROFF && i < OPENING_PARTS_END ; ++i ) 
 			convert_xml_file( syntax_dir, StandardSourceEntries[i], &state );
 		if( syntax ) 
 		{	
