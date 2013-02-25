@@ -1,12 +1,15 @@
 ##########################################################################
-# Windows behaviour
+# Root window feeling
+#
+#------------------------------------------------------------------------
 ##########################################################################
+# Windows behaviour
 #
 # Alt-tab between windows, similar to Windows9x.  For instance:
 #  AutoReverse 0: default switching among the windows in one direction
 #  AutoReverse 1: #1->#2->#3->#4 and then #4->#3->#2->#1
 #  AutoReverse 2: #1->#2->#3->#4 and then #4->#1->#3->#2 etc.
-AutoReverse 2
+AutoReverse 0
 #
 # window switching through desks?
 #AutoTabThroughDesks
@@ -23,7 +26,7 @@ Yzap 2
 KeepIconWindows
 
 # when application changes its name - hints will be updated and applied
-#FollowTitleChanges
+FollowTitleChanges
 
 #
 # Don't push titlebar when clicked
@@ -36,10 +39,10 @@ KeepIconWindows
 ClickToRaise
 #
 # Focus on window until pointer gets in another one
-SloppyFocus
+# SloppyFocus
 #
 # Iconify to original place
-StubbornIcons
+# StubbornIcons
 #
 # Uniconify to original place
 StubbornPlacement
@@ -59,15 +62,15 @@ CirculateSkipIcons
 # Center the screen on the current window while circulating
 #CenterOnCirculate
 #
-# If time between Button Press and release events is short then the below 
-# value - that will be considered a click event : 
+# If time between Button Press and release events is short then the below
+# value - that will be considered a click event :
 # ClickTime 500
 #
 # Keep showing window while being moved if size<N%
-OpaqueMove 100
+OpaqueMove 50
 #
 # Keep showing window while being resized if size<N%
-OpaqueResize 100
+OpaqueResize 50
 #
 # Mouse pushing on screen edge : N% move
 EdgeScroll 100 100
@@ -84,7 +87,7 @@ EdgeResistance 800 4
 # Place window in empty zones
 SmartPlacement
 # Random window placement
-RandomPlacement
+#RandomPlacement
 # Windows can't chose where to place
 #NoPPosition
 
@@ -109,16 +112,16 @@ RandomPlacement
 #
 #DefaultWindowBox  "some_name"
 #
-
 # this window box prevents windows from being random-placed under WinList :
 WindowBox   "nowinlist"
- 	Area   		+0+30
+	Area   		+0+30
 	FirstTry	SmartPlacement
 	ThenTry 	RandomPlacement
-     	MaxLayer    	2
+	MaxLayer    	2
 ~WindowBox
 
 DefaultWindowBox  "nowinlist"
+
 
 ##########################################################################
 # X server performance tweaks :
@@ -135,7 +138,7 @@ DefaultWindowBox  "nowinlist"
 DecorateTransients
 #
 
-# this will cause blue screen to come up on desktop changes even if desktop background 
+# this will cause blue screen to come up on desktop changes even if desktop background
 # in the same  on both desks :
 AnimateDeskChange
 
@@ -147,11 +150,11 @@ AnimateDeskChange
 CoverAnimationSteps	12
 CoverAnimationType	10
 
-# The following two settings are usefull for thoise who prefered old afterstep 1.8 behaviour : 
-#To disable colored desktop cover use this : 
+# The following two settings are useful for thoise who prefered old afterstep 1.8 behaviour :
+#To disable colored desktop cover use this :
 #DontCoverDesktop
 
-#To disable animated root background change use this : 
+#To disable animated root background change use this :
 #DontAnimateBackground
 
 ##########################################################################
@@ -205,7 +208,7 @@ Cursor 16 14
 Function "Move-or-Top"
         Move            "Motion"
         RaiseLower      "Click"
-        ToggleLayer     "DoubleClick" 1
+        ToggleLayer     "DoubleClick" 0
 EndFunction
 
 Function "Move-or-Normal"
@@ -248,7 +251,7 @@ Popup "Window"
  SmallMiniPixmap "normal/WindowsResize"
         Maximize "Maximize 100%" 100 100
  SmallMiniPixmap "normal/WindowsResize"
-        Fullscreen "Make Fullscreen" 
+        Fullscreen "Make Fullscreen"
  SmallMiniPixmap "normal/WindowsResize"
         Destroy         "Kill"
  SmallMiniPixmap "large/Stopsign"
@@ -313,10 +316,12 @@ EndPopup
 #
 Mouse 1         R       A       PopUp "0" 0
 Mouse 2         R       A       GetHelp
+Mouse 2 	R	A	PopUp "Window Menu" Window
 Mouse 3         R       A       WindowList
 Mouse 1         1       A       ChangeWindowUp
 Mouse 2         1       C       BookmarkWindow "1"	bkmrk1
 Mouse 2         1       S       GoToBookmark "1"	bkmrk1
+Mouse 2         1       A       GetHelp
 Mouse 3         1       A       ChangeWindowDown
 Mouse 1         2       A       Delete
 Mouse 2         2       A       Close
@@ -335,9 +340,9 @@ Mouse 2         6       A       Maximize
 Mouse 3         6       A       Maximize
 Mouse 1         7       A       Delete
 Mouse 2         7       A       WindowList 2
-Mouse 3         7       A       PopUp "Window Menu" Window
+Mouse 3         7       A       PopUp "Window menu" Window
 Mouse 1         FS      A       Function "Resize-or-Top"
-Mouse 2         FS      A       Function "Resize-or-Top"
+Mouse 2         FS      A       Function "Move-or-Top"
 Mouse 3         FS      A       Function "Resize-or-Top"
 Mouse 1         T       A       Function "Move-or-Top"
 Mouse 2         T       A       Function "Move-or-Normal"
@@ -361,11 +366,11 @@ Key Down        A       C       Scroll +0   +100
 #Key Up          A       M       Scroll +0  -10
 #Key Down        A       M       Scroll +0  +10
 
-# alt + shift + arrow = move cursor
-Key Left        A       MS       CursorMove -1 0
-Key Right       A       MS       CursorMove +1 +0
-Key Up          A       MS       CursorMove +0 -1
-Key Down        A       MS       CursorMove +0 +1
+## alt + shift + arrow = move cursor
+#Key Left        A       MS       CursorMove -1 0
+#Key Right       A       MS       CursorMove +1 +0
+#Key Up          A       MS       CursorMove +0 -1
+#Key Down        A       MS       CursorMove +0 +1
 
 # shift + control + arrow = change desktop
 #Key Left        A       SC      Desk 0 0
@@ -378,28 +383,28 @@ Key F1          A       C        Desk 0 0
 Key F2          A       C        Desk 0 1
 Key F3          A       C        Desk 0 2
 Key F4          A       C        Desk 0 3
-
 # For asforms & menus : Ctrl-Shift-Fx =
-Key F1          A       SC      Module "Help" Form HELPForm
-Key F1          A       SC      GetHelp
-Key F2          A       SC      Iconify
-Key F3          A       SC      Resize
-Key F4          A       SC      Delete
-Key F5          A       SC      Move
-Key F6          A       SC      Destroy
+Key F1          A       M      Module "Help" Form HELPForm
+Key F1          A       M      GetHelp
+Key F2          A       M      Move
+Key F3          A       M      Resize
+Key F4          A       M      Destroy
+Key F5          A       M      Iconify
+Key F6          A       M      Delete
 Key F7          A       SC      ChangeWindowUp
 Key F8          A       SC      Module "Run"  Form RUNForm
 Key F9          A       SC      Maximize
 Key F10         A       SC      PutOnBack
 #Key F11         A       SC      Module "Find" Form FINDForm
 Key F11         A       SC      WindowList
-Key F12         A       SC      PopUp "Start Menu"  0
+Key F12         A       SC      PopUp "Start Menu" 0
 
 # GWCommand
 Key 	j 	A	CM	Exec "-" GWCommand jump
 Key 	i 	A	CM	Exec "-" GWCommand iconify
 Key 	c 	A	CM	Exec "-" GWCommand center
 Key 	s 	A	CM	Exec "-" GWCommand sendtodesk
+
 
 ################################################################################
 # Menu popups keybindings
@@ -418,14 +423,15 @@ Key Menu        A       S       WindowList
 # alt + tab = change window
 Key Tab         A       M       WarpFore
 # alt + q = return to window
-Key q		A	M	WarpBack
+Key Tab		A	SC	WarpBack
+#Key q		A	M	WarpBack
 # shift + alt + tab = focus on current window
-Key Tab         A       S       Focus
+#Key Tab         A       S       Focus
 #Key Meta_L      A       A       WarpFore
 #Key Meta_R      A       A       WarpBack
 
 # ctrl-v = paste
-# If you have problems with pasting data into applications - 
+# If you have problems with pasting data into applications -
 # try uncommenting this :
 #Key v		W	C	PasteSelection
 
@@ -435,9 +441,10 @@ Key Print       A       A       TakeScreenShot
 Key Print       A       S       TakeWindowShot
 #Key Print       A       S       Exec "windowshot" exec xwd -nobdrs -out ~/window.xwd && mogrify -format png ~/window.xwd && rm ~/window.xwd
 Key Print       A       M       TakeFrameShot
-#Key Print       A       M       Exec "frameshot" exec xwd -frame -out ~/frame.xwd && mogrify -format png ~/frame.xwd && rm ~/frame.xwd 
+#Key Print       A       M       Exec "frameshot" exec xwd -frame -out ~/frame.xwd && mogrify -format png ~/frame.xwd && rm ~/frame.xwd
 Key Pause       A       A       Exec "xscreensaver" exec xscreensaver-command -lock
-Key Sys_Req     A       A       GetHelp
+#Key Pause       A       A       Exec "xscreensaver" exec xscreensaver-command -lock
+#Key Sys_Req     A       A       GetHelp
 #Key Scroll_Lock A       A       Desk 0
 
 ################################################################################
@@ -447,6 +454,7 @@ Key Sys_Req     A       A       GetHelp
 # To get the keymap table : $ xmodmap -pke
 # Binding the asterisk key + Ctrl to display a term window
 Key asterisk    A       C       Exec "x-terminal-emulator" exec x-terminal-emulator
+#Key asterisk    A       C       Exec "rxvt" exec rxvt
 
 ################################################################################
 # XMMS keybindings
@@ -459,4 +467,3 @@ Key asterisk    A       C       Exec "x-terminal-emulator" exec x-terminal-emula
 #Key t           A       CS      Exec "-" xmms --play-pause
 #Key b           A       CS      Exec "-" xmms --rew
 #Key f           A       CS      Exec "-" xmms --fwd
-
