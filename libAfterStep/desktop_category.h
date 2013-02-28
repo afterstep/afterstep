@@ -160,9 +160,9 @@ char *make_desktop_entry_categories( ASDesktopEntry *de );
 void save_desktop_entry( ASDesktopEntry* de, FILE *fp );
 
 ASDesktopEntryInfo *
-desktop_category_get_entries ( ASCategoryTree *ct, ASDesktopCategory *dc, 
+desktop_category_get_entries ( const ASCategoryTree *ct, const ASDesktopCategory *dc, 
 							   int max_depth /* if > 0 - then include subdirectories */, 
-							   struct ASHashTable *exclusions/* optional */, int *nitems);
+							   const struct ASHashTable *exclusions/* optional */, int *nitems);
 /* this will check if de belongs to any directory entry from the list of entries */
 Bool desktop_entry_in_subcategory( ASCategoryTree *ct, ASDesktopEntry *de, 
 								   ASDesktopEntryInfo *entries, int entries_num );

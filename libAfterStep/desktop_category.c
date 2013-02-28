@@ -16,8 +16,9 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* #define LOCAL_DEBUG */
+#define LOCAL_DEBUG
 #define EVENT_TRACE
+#undef DEBUG_GET_ENTRIES
 
 #include "../configure.h"
 #include <unistd.h>
@@ -165,10 +166,28 @@ void desktop_category_print (ASHashableValue value, void *data)
 	print_desktop_category ((ASDesktopCategory *) data);
 }
 
-ASDesktopEntryInfo *desktop_category_get_entries (ASCategoryTree * ct,
-																									ASDesktopCategory * dc,
+
+
+static Bool check_de_categories_excluded (const ASDesktopEntry *de, const ASHashTable * exclusions)
+{
+	int k;
+#ifdef DEBUG_GET_ENTRIES
+	LOCAL_DEBUG_OUT ("DE \"%s\" - Checking %d categories for exclusion", de->Name, de->categories_num);
+#endif
+	for (k = 0 ; k < de->categories_num ; ++k) {
+#ifdef DEBUG_GET_ENTRIES	
+		LOCAL_DEBUG_OUT ("Checking \"%s\" for exclusion", de->categories_shortcuts[k]);
+#endif		
+		if (get_hash_item (exclusions, AS_HASHABLE (de->categories_shortcuts[k]), NULL) == ASH_Success)
+			return True;
+	}
+	return False;
+}
+
+ASDesktopEntryInfo *desktop_category_get_entries (const ASCategoryTree * ct,
+																									const ASDesktopCategory * dc,
 																									int max_depth,
-																									ASHashTable * exclusions,
+																									const ASHashTable * exclusions,
 																									int *nitems)
 {
 	int i, entries_num, valid_entries_num = 0;
@@ -182,8 +201,11 @@ ASDesktopEntryInfo *desktop_category_get_entries (ASCategoryTree * ct,
 		return NULL;
 
 	entries_num = PVECTOR_USED (dc->entries);
+#ifdef DEBUG_GET_ENTRIES	
 	LOCAL_DEBUG_OUT ("DesktopCategory \"%s\", has %d entries", dc->name,
 									 entries_num);
+	if (exclusions)			print_ashash (exclusions, string_print);
+#endif
 	if (entries_num == 0)
 		return NULL;
 	entries_names = PVECTOR_HEAD (char *, dc->entries);
@@ -193,16 +215,18 @@ ASDesktopEntryInfo *desktop_category_get_entries (ASCategoryTree * ct,
 		ASDesktopEntry *de;
 
 		if (exclusions)
-			if (get_hash_item (exclusions, AS_HASHABLE (entries_names[i]), NULL)
-					== ASH_Success)
+			if (get_hash_item (exclusions, AS_HASHABLE (entries_names[i]), NULL) == ASH_Success)
 				continue;
 
 		de = fetch_desktop_entry (ct, entries_names[i]);
+#ifdef DEBUG_GET_ENTRIES		
 		LOCAL_DEBUG_OUT ("entry \"%s\", de = %p", entries_names[i], de);
+#endif
 		if (de == NULL)
 			continue;
 		if (get_flags (de->flags, ASDE_Hidden | ASDE_NoDisplay))
 			continue;
+		
 		if (de->type == ASDE_TypeDirectory) {
 			if (max_depth <= 0)
 				continue;
@@ -214,7 +238,9 @@ ASDesktopEntryInfo *desktop_category_get_entries (ASCategoryTree * ct,
 			if (entries[valid_entries_num].dc == NULL
 					|| PVECTOR_USED (entries[valid_entries_num].dc->entries) == 0)
 				continue;
-		}
+		}else	if (exclusions && check_de_categories_excluded(de, exclusions)) 
+			continue;
+
 		entries[valid_entries_num].de = de;
 		++valid_entries_num;
 	}
@@ -1021,8 +1047,8 @@ print_category_subtree (ASCategoryTree * ct, const char *entry_name,
 			ASDesktopCategory *sub_dc = fetch_desktop_category (ct, entries[i]);
 
 			if (sub_dc == dc) {
-				fprintf (stderr, "%5.5d:reccurent refference to self \"%s\"!!! ",
-								 level, entries[i]);
+				fprintf (stderr, "%5.5d: !!! reccurent refference \"%s\" to self \"%s\"(\"%s\")!!! \n",
+								 level, entries[i], dc->name, dc->index_name);
 				continue;
 			}
 			fprintf (stderr, "%5.5d:", level);

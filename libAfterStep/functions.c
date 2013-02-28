@@ -851,8 +851,17 @@ load_menuitem_pmap (MenuDataItem * mdi, MinipixmapTypes type, Bool force)
 																	 AS_THUMBNAIL_PROPORTIONAL |
 																	 AS_THUMBNAIL_DONT_ENLARGE);
 			destroy_string (&cachedFileName);
-		} else
+		} else {
 			minipixmap->image = load_environment_icon ("apps", filename, h);
+			if (!minipixmap->image)
+				minipixmap->image = load_environment_icon ("actions", filename, h);
+			if (!minipixmap->image)
+				minipixmap->image = load_environment_icon ("places", filename, h);
+			if (!minipixmap->image)
+				minipixmap->image = load_environment_icon ("categories", filename, h);
+			if (!minipixmap->image)
+				minipixmap->image = load_environment_icon ("devices", filename, h);
+		}
 		LOCAL_DEBUG_OUT ("minipixmap = \"%s\", minipixmap_image = %p",
 										 filename, minipixmap->image);
 	}

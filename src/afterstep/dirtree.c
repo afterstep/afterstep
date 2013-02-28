@@ -249,11 +249,14 @@ dirtree_set_command (dirtree_t * tree, struct FunctionData *command,
 void
 dirtree_add_category (dirtree_t * tree, ASCategoryTree * ct,
 											ASDesktopCategory * dc, Bool include_children,
-											ASHashTable * exclusions)
+											ASHashTable * exclusions, int depth)
 {
 	dirtree_t *t = NULL;
 	int i, valid_entries_num = 0;
 	ASDesktopEntryInfo *entries;
+	
+	if (++depth >= 50 ) 
+		return;
 
 	ASSERT_TREE (tree);
 	ASSERT_TREE (dc);
@@ -268,7 +271,7 @@ dirtree_add_category (dirtree_t * tree, ASCategoryTree * ct,
 	if (entries) {
 		for (i = 0; i < valid_entries_num; ++i) {
 			ASDesktopEntry *de = entries[i].de;
-			ASDesktopCategory *sub_dc = entries[i].dc;
+			ASDesktopCategory *sub_dc = entries[i].dc == dc ? NULL : entries[i].dc;
 
 			if (de->type != ASDE_TypeDirectory && include_children) {
 				if (desktop_entry_in_subcategory
@@ -293,7 +296,7 @@ dirtree_add_category (dirtree_t * tree, ASCategoryTree * ct,
 
 			if (sub_dc) {
 				t->flags |= DIRTREE_DIR;
-				dirtree_add_category (t, ct, sub_dc, include_children, exclusions);
+				dirtree_add_category (t, ct, sub_dc, include_children, exclusions, depth);
 			}
 		}
 		free (entries);
@@ -312,7 +315,7 @@ dirtree_add_category_by_name (dirtree_t * tree, const char *cat_name,
 	ASSERT_TREE (tree);
 
 	dc = name2desktop_category (cat_name, &ct);
-	dirtree_add_category (tree, ct, dc, include_children, exclusions);
+	dirtree_add_category (tree, ct, dc, include_children, exclusions, 0);
 }
 
 void dirtree_fill_from_reference (dirtree_t * tree, const char *reference)
@@ -338,6 +341,9 @@ void dirtree_fill_from_reference (dirtree_t * tree, const char *reference)
 	if (de->fulliconname) {
 		set_string (&(tree->icon), mystrdup (de->fulliconname));
 		set_flags (tree->flags, DIRTREE_ICON_IS_SMALL);
+	}else if (de->Icon) {
+		set_string (&(tree->icon), mystrdup (de->Icon));
+		set_flags (tree->flags, DIRTREE_ICON_IS_SMALL);
 	}
 }
 
@@ -356,7 +362,7 @@ int dirtree_parse (dirtree_t * tree, const char *file)
 	if ((fp = fopen (file, "r")) == NULL)
 		return 1;
 
-
+LOCAL_DEBUG_OUT ("Parsing \"%s\"", file);
 	str = safemalloc (8192);
 	while (fgets (str, 8192, fp) != NULL) {
 		char *ptr;
@@ -375,6 +381,7 @@ int dirtree_parse (dirtree_t * tree, const char *file)
 													 string_destroy);
 			if (exclusions) {
 				excl_name = stripcpy2 (ptr + 7, 0);
+				LOCAL_DEBUG_OUT("Exclusion [%s] added ", excl_name);
 				add_hash_item (exclusions, AS_HASHABLE (excl_name), NULL);
 			}
 			continue;

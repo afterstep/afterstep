@@ -1,0 +1,12 @@
+order 8
+
+# Look in:
+#	/usr/share/afterstep/applications/
+#		- OR -
+#	~/.afterstep/applications/
+#
+#	for *.desktop files with the following Categories:
+
+smallminipixmap "Folder-GNOME2"
+#FolderReference "System Settings"
+Category   "X-GNOME-Settings-Panel"

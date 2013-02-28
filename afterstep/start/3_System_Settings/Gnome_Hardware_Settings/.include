@@ -1,0 +1,11 @@
+order 8
+
+# Look in:
+#	/usr/share/afterstep/applications/
+#		- OR -
+#	~/.afterstep/applications/
+#
+#	for *.desktop files with the following Categories:
+
+smallminipixmap "Folder-Screwdriver"
+Category   "GNOME:HardwareSettings"

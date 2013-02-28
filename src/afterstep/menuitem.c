@@ -319,10 +319,12 @@ void ParseKeyEntry (char *tline, FILE * fd, char **junk, int *junk2)
 void add_minipixmap_from_dirtree_item (dirtree_t * tree, MenuData * menu)
 {
 	FunctionData *fdata = NULL;
-	if (tree->de != NULL && tree->de->fulliconname != NULL)
-		fdata =
-				create_named_function (F_SMALL_MINIPIXMAP, tree->de->fulliconname);
-	else if (tree->icon != NULL)	/* should default to: "mini-menu.xpm" */
+	if (tree->de != NULL) {
+	  if (tree->de->fulliconname != NULL)
+			fdata =	create_named_function (F_SMALL_MINIPIXMAP, tree->de->fulliconname);
+		else if (tree->de->Icon != NULL)
+			fdata =	create_named_function (F_SMALL_MINIPIXMAP, tree->de->Icon);
+	} else if (tree->icon != NULL)	/* should default to: "mini-menu.xpm" */
 		fdata =
 				create_named_function (get_flags
 															 (tree->flags,

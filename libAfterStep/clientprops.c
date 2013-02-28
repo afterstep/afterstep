@@ -577,6 +577,7 @@ void read_extwm_desktop (ASRawHints * hints, Window w)
 		if (read_32bit_property
 				(w, _XA_NET_WM_DESKTOP, &(hints->extwm_hints.desktop)))
 			set_flags (hints->extwm_hints.flags, EXTWM_DESKTOP);
+		LOCAL_DEBUG_OUT ("NET_WM_DESKTOP = 0x%X", hints->extwm_hints.desktop);
 	}
 }
 

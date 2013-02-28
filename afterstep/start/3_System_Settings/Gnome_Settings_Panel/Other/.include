@@ -6,10 +6,7 @@ order 8
 #	~/.afterstep/applications/
 #
 #	for *.desktop files with the following Categories:
-
 exclude         X-GNOME-Settings-Panel
-exclude         GNOME
-exclude         "X-XfceSettingsDialog"
-FolderReference "System Settings"
-Category        "Settings"
-Category        "SystemSetup"
+smallminipixmap "Folder-GNOME2"
+#FolderReference "System Settings"
+Category   "GNOME:Settings"

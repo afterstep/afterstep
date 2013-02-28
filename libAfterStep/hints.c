@@ -1182,6 +1182,7 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 
 	if (get_flags (what, HINT_STARTUP) && status != NULL) {
 		if (get_flags (eh->flags, EXTWM_DESKTOP)) {
+			LOCAL_DEBUG_OUT ("EXTWM Hints Desktop = 0x%X", eh->desktop);
 			if (eh->desktop == 0xFFFFFFFF)
 				set_flags (status->flags, AS_StartsSticky);
 			else {

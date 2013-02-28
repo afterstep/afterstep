@@ -295,6 +295,7 @@ find_item_in_bucket (ASHashBucket * bucket,
 	for (tmp = bucket; *tmp != NULL; tmp = &((*tmp)->next))
 	{
 		res = compare_func ((*tmp)->value, value);
+		LOCAL_DEBUG_OUT ("compare result = %d", res);		
 		if (res == 0)
 			return tmp;
 		else if (res > 0)
@@ -314,6 +315,7 @@ get_hash_item (ASHashTable * hash, ASHashableValue value, void **trg)
 		key = hash->hash_func (value, hash->size);
 		if (key < hash->size)
 			pitem = find_item_in_bucket (&(hash->buckets[key]), value, hash->compare_func);
+		LOCAL_DEBUG_OUT ("key = %d, pitem = %p", key, pitem);
 	}
 	if (pitem)
 		if (*pitem)
@@ -697,6 +699,7 @@ casestring_compare (ASHashableValue value1, ASHashableValue value2)
 		return -1;
 	if (str2 == NULL)
 		return 1;
+	LOCAL_DEBUG_OUT("Comparing \"%s\", \"%s\"", str1, str2);
 	do
 	{
 		int          u1, u2;
