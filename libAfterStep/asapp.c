@@ -831,70 +831,107 @@ set_environment_tool_from_list (ASEnvironment * e, ASToolType type,
 								 e->tool_command[type] ? e->tool_command[type] : "none");
 }
 
-ASImage *load_environment_icon (const char *category, const char *name,
-																int desired_size)
+static char *make_themed_icon_category_path (const char *category, int desired_size_idx, Bool fallback)
+{
+	char *tmp, *tmp2, *theme_path;
+	static char *standard_sizes[] =
+			{ "16x16", "32x32", "48x48", "64x64", "128x128", NULL };
+
+	if (!fallback && Environment->IconTheme == NULL) return NULL;
+	if (fallback && Environment->IconThemeFallback == NULL) return NULL;
+	
+	tmp =	make_file_name (fallback ? Environment->IconThemeFallback : Environment->IconTheme,	
+												standard_sizes[desired_size_idx]);
+	tmp2 = make_file_name (Environment->IconThemePath, tmp);
+	free (tmp);
+	theme_path = make_file_name (tmp2, category);
+	free (tmp2);
+
+	return theme_path;	
+}
+
+Bool is_themable_icon (const char *name)
+{
+	return (Environment && Environment->IconTheme && Environment->IconThemePath && strchr (name, '/') == NULL);
+}
+
+ASImage *load_environment_icon (const char *category, const char *name,	int desired_size)
 {
 	ASImage *icon = NULL;
 	char *png_name = NULL;
 	char *svg_name = NULL;
 	Bool add_to_man = False;
-	static char *standard_sizes[] =
-			{ "16x16", "32x32", "48x48", "64x64", "128x128", NULL };
-	desired_size = (desired_size + 15) / 16 - 1;
-	if (desired_size > 4)
-		desired_size = 4;
-
+	int len;
+	int desired_size_idx;
+	
 	if (name == NULL || ASDefaultScr == NULL)
 		return NULL;
 
-	icon =
-			get_asimage_quiet (ASDefaultScr->image_manager, name,
-												 ASFLAGS_EVERYTHING, 100);
-	if (icon == NULL) {
-		add_to_man = True;
-		if (strchr (name, '.') == NULL) {
-			png_name = add_file_extension (name, "png");
-			icon =
-					get_asimage_quiet (ASDefaultScr->image_manager, png_name,
-														 ASFLAGS_EVERYTHING, 100);
-			if (icon == NULL) {
-				svg_name = add_file_extension (name, "svg");
-				icon =
-						get_asimage_quiet (ASDefaultScr->image_manager, svg_name,
-															 ASFLAGS_EVERYTHING, 100);
+	desired_size_idx = (desired_size + 15) / 16 - 1;
+	if (desired_size_idx > 4)
+		desired_size_idx = 4;
+	else if (desired_size_idx < 0)
+		desired_size_idx = 0;
+
+	show_debug (__FILE__, __FUNCTION__, __LINE__, "IconTheme = %s",	Environment->IconTheme);
+
+	len = strlen (name);
+	if (len < 4 || name[len-4] != '.') {
+		png_name = add_file_extension (name, "png");
+		svg_name = add_file_extension (name, "svg");
+	}
+	/* we maybe already loaded so try with just the name : */
+	icon = fetch_asimage (ASDefaultScr->image_manager, name);
+	
+	/* nope we are not, so try loading as themed icon first: */
+	if (icon == NULL && is_themable_icon (name) && category) {
+		int fallback;
+		for (fallback = 0 ; fallback <= 1 ; fallback++ ) {
+			int try, try_size_idx = desired_size_idx;
+			for (try = 0 ; icon == NULL && try < 3; ++try) {
+				char *theme_path = make_themed_icon_category_path(category, try_size_idx, fallback);
+				if (theme_path == NULL) 
+					break;
+
+				if (icon == NULL && png_name) {
+					char *themed_name = make_file_name (theme_path, png_name);
+					icon = get_asimage_quiet (ASDefaultScr->image_manager, themed_name, ASFLAGS_EVERYTHING, 100);
+					free (themed_name);
+				}
+				if (icon == NULL && svg_name) {
+					char *themed_name = make_file_name (theme_path, svg_name);
+					icon = get_asimage_quiet (ASDefaultScr->image_manager, themed_name, ASFLAGS_EVERYTHING, 100);
+					free (themed_name);
+				}
+				if (icon == NULL) {
+					char *themed_name = make_file_name (theme_path, name);
+					icon = get_asimage_quiet (ASDefaultScr->image_manager, themed_name, ASFLAGS_EVERYTHING, 100);
+					free (themed_name);
+				}
+				free (theme_path);
+				switch (try) {
+					case 0: try_size_idx = desired_size_idx < 4 ? desired_size_idx + 1 : desired_size_idx - 1; break;
+					case 1: try_size_idx = desired_size_idx == 0 || desired_size_idx == 4 ? 2 : desired_size_idx - 1 ; break;
+					default : 
+						break;
+				}
 			}
 		}
+		add_to_man = True;
 	}
-	show_debug (__FILE__, __FUNCTION__, __LINE__, "IconTheme = %s",
-							Environment->IconTheme);
-	if (icon == NULL && Environment && Environment->IconTheme) {
-		char *tmp =
-				make_file_name (Environment->IconTheme,
-												standard_sizes[desired_size]);
-		char *theme_path = make_file_name (tmp, category);
-		char *themed_name = make_file_name (theme_path, name);
 
-		free (tmp);
-		icon =
-				get_asimage_quiet (ASDefaultScr->image_manager, themed_name,
-													 ASFLAGS_EVERYTHING, 100);
-		free (themed_name);
+	/* finally, try loading straight (for native AS icons primarily): */
+	if (icon == NULL) {
+		icon = get_asimage_quiet (ASDefaultScr->image_manager, name, ASFLAGS_EVERYTHING, 100);
 		if (icon == NULL) {
-			themed_name = make_file_name (theme_path, png_name);
-			icon =
-					get_asimage_quiet (ASDefaultScr->image_manager, themed_name,
-														 ASFLAGS_EVERYTHING, 100);
-			free (themed_name);
+			add_to_man = True;
+			if (png_name)
+				icon = get_asimage_quiet (ASDefaultScr->image_manager, png_name, ASFLAGS_EVERYTHING, 100);
+			if (icon == NULL && svg_name)
+				icon = get_asimage_quiet (ASDefaultScr->image_manager, svg_name, ASFLAGS_EVERYTHING, 100);
 		}
-		if (icon == NULL) {
-			themed_name = make_file_name (theme_path, svg_name);
-			icon =
-					get_asimage_quiet (ASDefaultScr->image_manager, themed_name,
-														 ASFLAGS_EVERYTHING, 100);
-			free (themed_name);
-		}
-		free (theme_path);
 	}
+
 	if (icon && add_to_man && icon->ref_count == 1) {
 		forget_asimage (icon);
 		if (icon->imageman == NULL)
@@ -904,6 +941,24 @@ ASImage *load_environment_icon (const char *category, const char *name,
 		free (png_name);
 	if (svg_name)
 		free (svg_name);
+	return icon;
+}
+
+ASImage *load_environment_icon_any (const char *filename,	int desired_size)
+{
+	ASImage *icon = NULL;
+	if (filename) {
+		Bool possibly_themed = is_themable_icon (filename);
+		icon = load_environment_icon ("apps", filename, desired_size);
+		if (!icon && possibly_themed)
+			icon = load_environment_icon ("actions", filename, desired_size);
+		if (!icon && possibly_themed)
+			icon = load_environment_icon ("places", filename, desired_size);
+		if (!icon && possibly_themed)
+			icon = load_environment_icon ("categories", filename, desired_size);
+		if (!icon && possibly_themed)
+			icon = load_environment_icon ("devices", filename, desired_size);
+	}
 	return icon;
 }
 
@@ -957,6 +1012,8 @@ ASEnvironment *make_default_environment ()
 	e->gtkrc_path = NULL;					/* make_session_rc_file(Session, GTKRC_FILE); */
 	e->gtkrc20_path = NULL;				/* make_session_rc_file(Session, GTKRC20_FILE) ; */
 	e->IconTheme = mystrdup ("oxygen");
+	e->IconThemePath = mystrdup ("/usr/chare/icons");
+	e->IconThemeFallback = mystrdup ("hicolor");
 	return e;
 }
 
@@ -986,6 +1043,8 @@ void destroy_asenvironment (ASEnvironment ** penv)
 			destroy_string (&(e->gtkrc_path));
 			destroy_string (&(e->gtkrc20_path));
 			destroy_string (&(e->IconTheme));
+			destroy_string (&(e->IconThemePath));
+			destroy_string (&(e->IconThemeFallback));
 
 			free (e);
 			*penv = NULL;

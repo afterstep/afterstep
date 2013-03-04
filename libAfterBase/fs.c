@@ -192,7 +192,7 @@ add_file_extension (const char *file, const char *ext)
 	if (ext == NULL)
 		return mystrdup (file);
 	fname_len = strlen(file);
-	res = safemalloc (fname_len+1+strlen(ext));
+	res = safemalloc (fname_len+1+strlen(ext) + 1);
 	strcpy (res, file);
 	res[fname_len] = '.';
 	strcpy (&res[fname_len+1], ext);

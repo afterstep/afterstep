@@ -113,18 +113,21 @@ reload_screen_image_manager (ScreenInfo * scr,
 		destroy_image_manager (scr->image_manager, False);
 
 	env_path1 = getenv ("IMAGE_PATH");
-	env_path2 = getenv ("PATH");
+	/* otherwise we'll be loading binary files as images - no good!!! */
+	/*	env_path2 = getenv ("PATH"); */
 	if (env_path1 == NULL) {
 		env_path1 = env_path2;
 		env_path2 = NULL;
 	}
 	scr->image_manager =
 			create_image_manager (NULL, 2.2,
-														Environment->pixmap_path ? Environment->
-														pixmap_path : "", env_path1, env_path2, NULL);
+														Environment->pixmap_path ? Environment->pixmap_path : "", 
+														Environment->IconThemePath ? Environment->IconThemePath : "", 
+														env_path1, env_path2, NULL);
 	set_xml_image_manager (scr->image_manager);
-	show_progress ("Pixmap Path changed to \"%s:%s:%s\" ...",
+	show_progress ("Pixmap Path changed to \"%s:%s:%s:%s\" ...",
 								 Environment->pixmap_path ? Environment->pixmap_path : "",
+								 Environment->IconThemePath ? Environment->IconThemePath : "", 
 								 env_path1 ? env_path1 : "", env_path2 ? env_path2 : "");
 }
 

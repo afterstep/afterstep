@@ -883,7 +883,7 @@ fill_window_data()
 			destroy_string( &categories ) ;
 			add_property(".desktop Entry Name:", de->Name, AS_Text_ASCII, False);
 			add_property(".desktop Entry Comment:", de->Comment, AS_Text_ASCII, True);
-			add_property(".desktop Entry Icon:", de->fulliconname, AS_Text_ASCII, True);
+			add_property(".desktop Entry Icon:", de->Icon, AS_Text_ASCII, True);
 		}
 	}
 }

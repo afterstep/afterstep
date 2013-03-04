@@ -93,6 +93,12 @@ TermDef BaseTerms[] = {
 	{TF_NO_MYNAME_PREPENDING, "IconTheme", 9, TT_TEXT, BASE_IconTheme_ID,
 	 NULL}
 	,
+	{TF_NO_MYNAME_PREPENDING, "IconThemePath", 14, TT_PATHNAME,
+	 BASE_IconThemePath_ID, NULL}
+	,
+	{TF_NO_MYNAME_PREPENDING, "IconThemeFallback", 18, TT_PATHNAME,
+	 BASE_IconThemeFallback_ID, NULL}
+	,
 	{0, NULL, 0, 0, 0}
 };
 
@@ -147,6 +153,8 @@ void DestroyBaseConfig (BaseConfig * config)
 	destroy_string (&(config->gtkrc_path));
 	destroy_string (&(config->gtkrc20_path));
 	destroy_string (&(config->IconTheme));
+	destroy_string (&(config->IconThemePath));
+	destroy_string (&(config->IconThemeFallback));
 
 	while (--i >= 0) {
 		destroy_string (&(config->term_command[i]));
@@ -252,6 +260,12 @@ BaseConfig *ParseBaseOptions (const char *filename, char *myname)
 		case BASE_IconTheme_ID:
 			set_string (&(config->IconTheme), item.data.string);
 			break;
+		case BASE_IconThemePath_ID:
+			set_string (&(config->IconThemePath), item.data.string);
+			break;
+		case BASE_IconThemeFallback_ID:
+			set_string (&(config->IconThemeFallback), item.data.string);
+			break;
 		default:
 			item.ok_to_free = 1;
 		}
@@ -321,6 +335,14 @@ WriteBaseOptions (const char *filename, char *myname, BaseConfig * config,
 	tail =
 			String2FreeStorage (&BaseSyntax, tail, config->IconTheme,
 													BASE_IconTheme_ID);
+	/* IconThemePath */
+	tail =
+			String2FreeStorage (&BaseSyntax, tail, config->IconThemePath,
+													BASE_IconThemePath_ID);
+	/* IconThemeFallback */
+	tail =
+			String2FreeStorage (&BaseSyntax, tail, config->IconThemeFallback,
+													BASE_IconThemeFallback_ID);
 
 	/* desktop_size */
 	tail =
@@ -410,6 +432,9 @@ BaseConfig2ASEnvironment (register BaseConfig * config,
 							 &(env->font_path), &(env->cursor_path), NULL,
 							 &(env->gtkrc_path), &(env->gtkrc20_path));
 	set_string (&(env->IconTheme), mystrdup (config->IconTheme));
+	set_string (&(env->IconThemePath), mystrdup (config->IconThemePath));
+	set_string (&(env->IconThemeFallback), mystrdup (config->IconThemeFallback));
+	
 	if (config->desktop_size.flags & WidthValue)
 		env->desk_pages_h = config->desktop_size.width;
 	else

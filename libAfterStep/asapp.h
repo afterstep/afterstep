@@ -220,6 +220,8 @@ typedef struct ASEnvironment
   char *gtkrc_path ;
   char *gtkrc20_path ;
 	char *IconTheme;
+	char *IconThemePath;	
+	char *IconThemeFallback;	
 }ASEnvironment;
 
 /*
@@ -237,6 +239,7 @@ void set_environment_tool_from_list( ASEnvironment *e, ASToolType type, char ** 
 void destroy_asenvironment( ASEnvironment **penv );
 struct ASImage;
 struct ASImage *load_environment_icon (const char* category, const char* name, int desired_size);
+struct ASImage *load_environment_icon_any (const char *filename,	int desired_size);
 
 /***********************************************************************************/
 /* general purpose application launcher :                                          */

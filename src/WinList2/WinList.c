@@ -1308,7 +1308,7 @@ configure_tbar_icon( ASTBarData *tbar, ASWindowData *wd )
     {
         if( merge_hints (&raw, Database, NULL, list, HINT_NAME|HINT_GENERAL, &clean, wd->client) )
         {
-            icon_im = get_client_icon_image( ASDefaultScr, &clean );
+            icon_im = get_client_icon_image( ASDefaultScr, &clean, 32);
             destroy_hints( &clean, True );
         }
         destroy_raw_hints ( &raw, True);

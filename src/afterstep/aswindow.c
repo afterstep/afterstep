@@ -2085,8 +2085,7 @@ MenuData *make_desk_winlist_menu (ASWindowList * list, int desk,
 			if (!get_flags (Scr.Feel.flags, WinListHideIcons))
 				minipixmaps[MINIPIXMAP_Icon].image =
 						get_client_icon_image (ASDefaultScr,
-																	 ((ASWindow *) (menuitems[i]->
-																									ref_data))->hints);
+																	 ((ASWindow *) (menuitems[i]->ref_data))->hints, 32);
 			else
 				minipixmaps[MINIPIXMAP_Icon].image = NULL;
 			if ((mdi =
@@ -2108,7 +2107,7 @@ MenuData *make_desk_winlist_menu (ASWindowList * list, int desk,
 														icon_name);
 				if (!get_flags (Scr.Feel.flags, WinListHideIcons))
 					minipixmaps[MINIPIXMAP_Icon].image =
-							get_client_icon_image (ASDefaultScr, clients[i]->hints);
+							get_client_icon_image (ASDefaultScr, clients[i]->hints, 32);
 				else
 					minipixmaps[MINIPIXMAP_Icon].image = NULL;
 				if ((mdi =

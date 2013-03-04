@@ -200,15 +200,15 @@ char *locate_image_file_in_path( const char *file, ASImageImportParams *iparams 
 		/* first lets try to find file as it is */
 		if( (realfilename = locate_image_file(file, iparams->search_path)) == NULL )
 		{
-			tmp = safemalloc( filename_len+3+1);
+  		tmp = safemalloc( filename_len+3+1);
 			strcpy(tmp, file);
 		}
-		if( realfilename == NULL )
+		if( realfilename == NULL && !get_flags(iparams->flags, AS_IMPORT_SKIP_COMPRESSED))
 		{ /* let's try and see if appending .gz will make any difference */
 			strcpy(&(tmp[filename_len]), ".gz");
 			realfilename = locate_image_file(tmp,iparams->search_path);
 		}
-		if( realfilename == NULL )
+		if( realfilename == NULL && !get_flags(iparams->flags, AS_IMPORT_SKIP_COMPRESSED))
 		{ /* let's try and see if appending .Z will make any difference */
 			strcpy(&(tmp[filename_len]), ".Z");
 			realfilename = locate_image_file(tmp,iparams->search_path);
@@ -225,12 +225,12 @@ char *locate_image_file_in_path( const char *file, ASImageImportParams *iparams 
 					tmp[i] = '\0';
 					filename_len = i ;
 					realfilename = locate_image_file(tmp,iparams->search_path);
-					if( realfilename == NULL )
+					if( realfilename == NULL  && !get_flags(iparams->flags, AS_IMPORT_SKIP_COMPRESSED))
 					{ /* let's try and see if appending .gz will make any difference */
 						strcpy(&(tmp[filename_len]), ".gz");
 						realfilename = locate_image_file(tmp,iparams->search_path);
 					}
-					if( realfilename == NULL )
+					if( realfilename == NULL  && !get_flags(iparams->flags, AS_IMPORT_SKIP_COMPRESSED))
 					{ /* let's try and see if appending .Z will make any difference */
 						strcpy(&(tmp[filename_len]), ".Z");
 						realfilename = locate_image_file(tmp,iparams->search_path);
@@ -316,6 +316,23 @@ void init_asimage_import_params( ASImageImportParams *iparams )
 	}
 }
 
+static Bool 
+check_compressed_file_type (const char *file)
+{
+	int len = strlen (file);
+	if (len > 5 && file[len-5] == '.') {
+		if (mystrcasecmp (&file[len-4], "jpeg") == 0 || mystrcasecmp (&file[len-4], "tiff") == 0)
+			return True;
+	}else if (len > 4 && file[len-4] == '.') {
+		if (mystrcasecmp (&file[len-3], "jpg") == 0 
+		    || mystrcasecmp (&file[len-3], "tif") == 0
+		    || mystrcasecmp (&file[len-3], "png") == 0
+		    || mystrcasecmp (&file[len-3], "svg") == 0)
+			return True;
+	}
+	return False; 
+}
+
 ASImage *
 file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... )
 {
@@ -333,6 +350,9 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	iparams.height = -1 ; 	
 	iparams.flags |= AS_IMPORT_SCALED_H|AS_IMPORT_SCALED_V ;
 #endif
+	if (check_compressed_file_type (file))
+		set_flags(iparams.flags, AS_IMPORT_SKIP_COMPRESSED);
+
 	va_start (ap, compression);
 	for( i = 0 ; i < MAX_SEARCH_PATHS ; i++ )
 	{	
@@ -397,6 +417,9 @@ load_image_from_path( const char *file, char **path, double gamma, int quiet)
 	if (quiet)
 		set_flags(iparams.flags, AS_IMPORT_IGNORE_IF_MISSING);
 
+	if (check_compressed_file_type (file))
+		set_flags(iparams.flags, AS_IMPORT_SKIP_COMPRESSED);
+		
 	return file2ASImage_extra( file, &iparams );
 }
 
@@ -411,6 +434,10 @@ get_asimage_file_type( ASImageManager* imageman, const char *file )
 	
 		init_asimage_import_params( &iparams );
 		iparams.search_path = imageman?&(imageman->search_path[0]):NULL;
+
+		if (check_compressed_file_type (file))
+			set_flags(iparams.flags, AS_IMPORT_SKIP_COMPRESSED);
+
 		realfilename = locate_image_file_in_path( file, &iparams ); 
 	
 		if( realfilename != NULL ) 
@@ -424,13 +451,23 @@ get_asimage_file_type( ASImageManager* imageman, const char *file )
 
 
 static ASImage *
-get_asimage_int( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression, int quiet)
+get_asimage_int( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression, int quiet, int path)
 {
 	ASImage *im = NULL ;
 	if( imageman && file )
 		if( (im = fetch_asimage(imageman, file )) == NULL )
 		{
-			im = load_image_from_path( file, &(imageman->search_path[0]), imageman->gamma, quiet);
+			if (path < 0 || path >=MAX_SEARCH_PATHS)
+				im = load_image_from_path( file, &(imageman->search_path[0]), imageman->gamma, quiet);
+			else {
+				char *tmp_search_path[MAX_SEARCH_PATHS+1];				
+				int i;
+				for (i = 1 ; i < MAX_SEARCH_PATHS+1 ; ++i)
+					tmp_search_path[i] = NULL;
+				tmp_search_path[0] = imageman->search_path[path];
+				im = load_image_from_path( file, &(tmp_search_path[0]), imageman->gamma, quiet);
+			}
+			
 			if( im )
 			{
 				store_asimage( imageman, im, file );
@@ -444,13 +481,13 @@ get_asimage_int( ASImageManager* imageman, const char *file, ASFlagType what, un
 ASImage *
 get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression )
 {
-	return get_asimage_int(imageman, file, what, compression, 0);
+	return get_asimage_int(imageman, file, what, compression, 0, -1);
 }
 
 ASImage *
-get_asimage_quiet( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression )
+get_asimage_quiet( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression)
 {
-	return get_asimage_int(imageman, file, what, compression, 1);
+	return get_asimage_int(imageman, file, what, compression, 1, -1);
 }
 
 void 
@@ -1020,7 +1057,7 @@ locate_image_file( const char *file, char **paths )
 		{
 			free( realfilename ) ;
 			realfilename = NULL ;
-			if( paths != NULL )
+			if(file[0] != '/' && paths != NULL )
 			{	/* now lets try and find the file in any of the optional paths :*/
 				register int i = 0;
 				do

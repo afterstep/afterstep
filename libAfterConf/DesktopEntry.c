@@ -274,26 +274,6 @@ fix_desktop_entry (ASDesktopEntry * de, const char *default_category,
 				compound_string2string_list (de->NotShowIn, ';', False,
 																		 &(de->not_show_in_num));
 	}
-	if (de->Icon && icon_path) {
-		int l = strlen (de->Icon);
-
-		if (l < 4 || de->Icon[l - 4] != '.') {
-			char *tmp = safemalloc (l + 4 + 1);
-
-			strcpy (tmp, de->Icon);
-			strcat (tmp, ".png");
-			de->fulliconname = find_file (tmp, icon_path, R_OK);
-			if (de->fulliconname == NULL) {
-				strcpy (tmp + l, ".svg");
-				de->fulliconname = find_file (tmp, icon_path, R_OK);
-			}
-			free (tmp);
-		}
-		if (de->fulliconname == NULL)
-			de->fulliconname = find_file (de->Icon, icon_path, R_OK);
-		LOCAL_DEBUG_OUT ("icon %s has fullname %s", de->Icon,
-										 de->fulliconname ? de->fulliconname : "(null)");
-	}
 	if (de->Exec)
 		de->clean_exec = filter_desktop_entry_exec (de->Exec);
 

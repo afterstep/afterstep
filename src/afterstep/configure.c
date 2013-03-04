@@ -613,16 +613,8 @@ void obsolete (char *text, FILE * fd, char **arg, int *i)
  **************************************************************/
 void CheckImageManager ()
 {
-	if (Scr.image_manager == NULL) {
-		char *ppath = Environment->pixmap_path;
-		if (ppath == NULL)
-			ppath = getenv ("IMAGE_PATH");
-		if (ppath == NULL)
-			ppath = getenv ("PATH");
-		Scr.image_manager =
-				create_image_manager (NULL, 2.2, ppath, getenv ("IMAGE_PATH"),
-															getenv ("PATH"), NULL);
-	}
+	if (Scr.image_manager == NULL)
+		reload_screen_image_manager (&Scr, NULL);
 }
 
 Bool GetIconFromFile (char *file, MyIcon * icon, int max_colors)

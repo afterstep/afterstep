@@ -1197,10 +1197,8 @@ MenuData *make_module_menu (FunctionCode func, const char *title,
 			ASDesktopEntry *de;
 			de = fetch_desktop_entry (AfterStepCategories, menuitems[i]->name);
 
-			if (de && de->fulliconname)
-				minipixmaps[MINIPIXMAP_Icon].filename = de->fulliconname;
-			else
-				minipixmaps[MINIPIXMAP_Icon].filename = NULL;
+			if (de)
+				minipixmaps[MINIPIXMAP_Icon].filename = de->Icon;
 
 			if ((mdi =
 					 add_menu_fdata_item (md, menuitems[i],
@@ -1225,12 +1223,9 @@ MenuData *make_module_menu (FunctionCode func, const char *title,
 			ASDesktopEntry *de;
 			module_t2func_data (func, &(modules[i]), &fdata, &scut);
 			de = fetch_desktop_entry (AfterStepCategories, fdata.name);
-			if (de && de->fulliconname)
-				minipixmaps[MINIPIXMAP_Icon].filename = de->fulliconname;
-			else
-				minipixmaps[MINIPIXMAP_Icon].filename = NULL;
-			if ((mdi =
-					 add_menu_fdata_item (md, &fdata, &(minipixmaps[0]))) != NULL)
+			if (de)
+				minipixmaps[MINIPIXMAP_Icon].filename = de->Icon;
+			if ((mdi = add_menu_fdata_item (md, &fdata, &(minipixmaps[0]))) != NULL)
 				set_flags (mdi->flags, MD_ScaleMinipixmapDown);
 		}
 	}

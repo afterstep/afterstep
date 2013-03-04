@@ -2743,7 +2743,7 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status,
 }
 
 
-ASImage *get_client_icon_image (ScreenInfo * scr, ASHints * hints)
+ASImage *get_client_icon_image (ScreenInfo * scr, ASHints * hints, int desired_size)
 {
 	ASImage *im = NULL;
 
@@ -2841,12 +2841,12 @@ ASImage *get_client_icon_image (ScreenInfo * scr, ASHints * hints)
 							 hints->res_class);
 				}
 				if (de) {
-					if (de && de->ref_count > 0 && de->fulliconname) {
+					if (de && de->ref_count > 0 && de->Icon) {
 						if (icon_file_im) {
 							safe_asimage_destroy (icon_file_im);
 							icon_file_im = NULL;
 						}
-						icon_file = de->fulliconname;
+						icon_file = de->Icon;
 					}
 				}
 
@@ -2855,11 +2855,10 @@ ASImage *get_client_icon_image (ScreenInfo * scr, ASHints * hints)
 				if (icon_file_im)
 					im = icon_file_im;
 				else
-					im = get_asimage (scr->image_manager, icon_file, 0xFFFFFFFF,
-														100);
+					im = load_environment_icon_any (icon_file, desired_size);
+					/*get_asimage (scr->image_manager, icon_file, 0xFFFFFFFF,	100); */
 				LOCAL_DEBUG_OUT ("loaded icon from \"%s\" into %dx%d %p",
-												 hints->icon_file, im ? im->width : 0,
-												 im ? im->height : 0, im);
+												 icon_file, im ? im->width : 0, im ? im->height : 0, im);
 			} else {
 				LOCAL_DEBUG_OUT ("no icon to use %s", "");
 			}

@@ -118,6 +118,7 @@ typedef struct ASImageListEntry
 #define AS_IMPORT_SCALED_BOTH	(AS_IMPORT_SCALED_H|AS_IMPORT_SCALED_V)
 #define AS_IMPORT_FAST			(0x01<<5)      /* can sacrifice quality for speed */
 
+#define AS_IMPORT_SKIP_COMPRESSED			(0x01<<15)
 #define AS_IMPORT_IGNORE_IF_MISSING		(0x01<<16)
 
 
@@ -220,7 +221,7 @@ ASImage *argb2ASImage( const char *path, ASImageImportParams *params );
 ASImage *file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int compression, ... );
 ASImage *file2ASImage_extra( const char *file, ASImageImportParams *params );
 ASImage *get_asimage( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression );
-ASImage *get_asimage_quiet( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression );
+ASImage *get_asimage_quiet( ASImageManager* imageman, const char *file, ASFlagType what, unsigned int compression);
 /* ASImage *get_asimage_extra( ASImageManager* imageman, const char *file, ASImageImportParams *params );*/
 ASImageFileTypes get_asimage_file_type( ASImageManager* imageman, const char *file );
 

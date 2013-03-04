@@ -338,10 +338,7 @@ void dirtree_fill_from_reference (dirtree_t * tree, const char *reference)
 	if (dup_desktop_entry_Comment (de, &(tree->Comment)))
 		set_flags (tree->flags, DIRTREE_COMMENT_IS_UTF8);
 
-	if (de->fulliconname) {
-		set_string (&(tree->icon), mystrdup (de->fulliconname));
-		set_flags (tree->flags, DIRTREE_ICON_IS_SMALL);
-	}else if (de->Icon) {
+	if (de->Icon) {
 		set_string (&(tree->icon), mystrdup (de->Icon));
 		set_flags (tree->flags, DIRTREE_ICON_IS_SMALL);
 	}

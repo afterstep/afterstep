@@ -334,8 +334,10 @@ struct FreeStorageElem *MyStyleDefinitionsList2free_storage (struct MyStyleDefin
 #define BASE_NoSharedMemory_ID	BASE_ID_START+14
 #define BASE_NoKDEGlobalsTheming_ID	BASE_ID_START+15
 #define BASE_NoModuleNameCollisions_ID	BASE_ID_START+16
-#define BASE_IconTheme_ID				BASE_ID_START+17
-#define BASE_ID_END             BASE_ID_START+18
+#define BASE_IconTheme_ID					BASE_ID_START+17
+#define BASE_IconThemePath_ID			BASE_ID_START+18
+#define BASE_IconThemeFallback_ID	BASE_ID_START+19
+#define BASE_ID_END             	BASE_ID_START+20
 
 typedef struct
 {
@@ -362,6 +364,8 @@ typedef struct
 	char *browser_command[MAX_TOOL_COMMANDS] ; 
 	char *editor_command[MAX_TOOL_COMMANDS] ; 
     char *IconTheme;
+    char *IconThemePath;
+    char *IconThemeFallback;
 
     struct FreeStorageElem *more_stuff;
 }BaseConfig;

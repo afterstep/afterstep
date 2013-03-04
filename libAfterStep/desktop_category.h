@@ -99,7 +99,6 @@ typedef struct ASDesktopEntry
 	char **not_show_in_shortcuts ; 
 	int not_show_in_num ; 
 
-	char *fulliconname ;
 	char *clean_exec ; 
 
 	char *origin ;

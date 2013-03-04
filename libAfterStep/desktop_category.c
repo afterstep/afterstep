@@ -320,7 +320,6 @@ static void destroy_desktop_entry (ASDesktopEntry ** pde)
 			FREE_ASDE_VAL (show_in_shortcuts);
 			FREE_ASDE_VAL (not_show_in_shortcuts);
 
-			FREE_ASDE_VAL (fulliconname);
 			FREE_ASDE_VAL (clean_exec);
 			FREE_ASDE_VAL (origin);
 			free (de);
@@ -409,7 +408,6 @@ void print_desktop_entry (ASDesktopEntry * de)
 //      PRINT_ASDE_VAL(categories_shortcuts) ; 
 //      PRINT_ASDE_VAL(show_in_shortcuts) ; 
 //      PRINT_ASDE_VAL(not_show_in_shortcuts);
-		PRINT_ASDE_VAL (fulliconname);
 		PRINT_ASDE_VAL (clean_exec);
 
 		PRINT_ASDE_VAL (origin);
@@ -504,8 +502,8 @@ void save_desktop_entry (ASDesktopEntry * de, FILE * fp)
 		if (get_flags (de->flags, ASDE_CheckAvailability))
 			fputs ("X-AfterStep-CheckAvailability=true\n", fp);
 
-		if (de->fulliconname)
-			fprintf (fp, "Icon=%s\n", de->fulliconname);
+		if (de->Icon)
+			fprintf (fp, "Icon=%s\n", de->Icon);
 
 #define PRINT_ASDE_FLAG(val)	do{if(get_flags(de->flags,ASDE_##val)) fputs(#val "=1\n", fp  );}while(0)
 		PRINT_ASDE_FLAG (NoDisplay);
