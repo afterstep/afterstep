@@ -32,6 +32,13 @@
 #include "../libAfterImage/afterimage.h"
 
 
+FunctionCode change_func_code (const char *func_name, FunctionCode new_code)
+{
+	TermDef *fterm;
+	if ((fterm = txt2fterm (func_name, True)) != NULL)
+		fterm->id = new_code;
+}
+
 /*************************************************************************/
 /* parsing code :
  */

@@ -210,10 +210,18 @@ int main (int argc, char **argv, char **envp)
 	if (ASDBus_fd >= 0) {
 		show_progress ("Successfuly accured System DBus connection.");
 		GnomeSessionClientID = asdbus_RegisterSMClient (SMClientID_string);
-		if (GnomeSessionClientID != NULL)
+		if (GnomeSessionClientID != NULL) {
 			show_progress
 					("Successfuly registered with GNOME Session Manager with Client Path \"%s\".",
 					 GnomeSessionClientID);
+			change_func_code ("Restart", F_NOP);
+			change_func_code ("QuitWM", F_NOP);
+			if (!CanShutdown())
+				change_func_code ("SystemShutdown", F_NOP);
+		} else {
+			change_func_code ("SystemShutdown", F_NOP);
+			change_func_code ("Logout", F_NOP);
+		}
 	}
 
 	SHOW_CHECKPOINT;
@@ -696,6 +704,34 @@ Bool RequestLogout ()
 	Bool requested = False;
 	if (GnomeSessionClientID)
 		requested = asdbus_Logout (0, 500);
+	return requested;
+}
+
+Bool CanShutdown ()
+{
+	return (GnomeSessionClientID && asdbus_GetCanShutdown ());
+}
+
+Bool CanRestart ()
+{
+	return (GnomeSessionClientID == NULL);
+}
+
+Bool CanLogout ()
+{
+	return (GnomeSessionClientID != NULL);
+}
+
+Bool CanQuit ()
+{
+	return (GnomeSessionClientID == NULL);
+}
+
+Bool RequestShutdown ()
+{
+	Bool requested = False;
+	if (GnomeSessionClientID && asdbus_GetCanShutdown ())
+		requested = asdbus_Shutdown (500);
 	return requested;
 }
 

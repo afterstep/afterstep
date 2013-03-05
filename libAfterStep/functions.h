@@ -22,6 +22,9 @@ typedef enum FunctionCode{
   F_BEEP,
   F_QUIT,
   F_RESTART,
+	F_SYSTEM_SHUTDOWN,
+	F_LOGOUT,
+	F_QUIT_WM,
   F_REFRESH,
 #ifndef NO_VIRTUAL
   F_SCROLL,
@@ -300,6 +303,9 @@ struct TermDef *txt2fterm (const char *txt, int quiet);
 int txt2func (const char *text, FunctionData * fdata, int quiet);
 int parse_func (const char *text, FunctionData * data, int quiet);
 FunctionData *String2Func ( const char *string, FunctionData *p_fdata, Bool quiet );
+
+/* changes function meaning in the parsing table, has no effect on already parsed function data */
+FunctionCode change_func_code (const char *func_name, FunctionCode new_code);
 
 void init_func_data (FunctionData * data);
 void copy_func_data (FunctionData * dst, FunctionData * src);

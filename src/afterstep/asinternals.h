@@ -418,6 +418,12 @@ extern ASOrientation VertOrientation ;
 
 /*************************** afterstep.c : ********************************/
 Bool RequestLogout ();
+Bool RequestShutdown ();
+Bool CanShutdown ();
+Bool CanRestart ();
+Bool CanLogout ();
+Bool CanQuit ();
+
 void Done (Bool restart, char *command);
 void SaveSession (Bool force);
 void CloseSessionClients (Bool only_modules);
@@ -567,6 +573,8 @@ void asdbus_process_messages ();
 
 char *asdbus_RegisterSMClient(const char *sm_client_id);
 void asdbus_Notify(const char *summary, const char *body, int timeout);
+Bool asdbus_GetCanShutdown ();
+Bool asdbus_Shutdown (int timeout);
 Bool get_gnome_autosave ();
 
 /*************************** decorations.c ********************************/

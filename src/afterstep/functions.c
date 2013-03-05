@@ -126,6 +126,7 @@ void restartmodule_func_handler (FunctionData * data, ASEvent * event,
 																 int module);
 void popup_func_handler (FunctionData * data, ASEvent * event, int module);
 void quit_func_handler (FunctionData * data, ASEvent * event, int module);
+void quit_wm_func_handler (FunctionData * data, ASEvent * event, int module);
 void windowlist_func_handler (FunctionData * data, ASEvent * event,
 															int module);
 void quickrestart_func_handler (FunctionData * data, ASEvent * event,
@@ -143,6 +144,8 @@ void test_func_handler (FunctionData * data, ASEvent * event, int module);
 void screenshot_func_handler (FunctionData * data, ASEvent * event,
 															int module);
 void swallow_window_func_handler (FunctionData * data, ASEvent * event,
+																	int module);
+void system_shutdown_func_handler (FunctionData * data, ASEvent * event,
 																	int module);
 void modulelist_func_handler (FunctionData * data, ASEvent * event,
 															int module);
@@ -271,6 +274,9 @@ void SetupFunctionHandlers ()
 			function_handlers[F_TAKE_FRAMESHOT] =
 			function_handlers[F_TAKE_SCREENSHOT] = screenshot_func_handler;
 	function_handlers[F_SWALLOW_WINDOW] = swallow_window_func_handler;
+	function_handlers[F_SYSTEM_SHUTDOWN] = system_shutdown_func_handler;
+	function_handlers[F_LOGOUT] = quit_func_handler;
+	function_handlers[F_QUIT_WM] = quit_wm_func_handler;
 }
 
 /* complex functions are stored in hash table ComplexFunctions */
@@ -1219,7 +1225,8 @@ void close_func_handler (FunctionData * data, ASEvent * event, int module)
 void restart_func_handler (FunctionData * data, ASEvent * event,
 													 int module)
 {
-	Done (True, data->text);
+	if (CanRestart())
+		Done (True, data->text);
 }
 
 void exec_func_handler (FunctionData * data, ASEvent * event, int module)
@@ -2208,6 +2215,17 @@ void quit_func_handler (FunctionData * data, ASEvent * event, int module)
 {
 	if (!RequestLogout ())
 		Done (0, NULL);
+}
+
+void quit_wm_func_handler (FunctionData * data, ASEvent * event, int module)
+{
+	Done (0, NULL);
+}
+
+void system_shutdown_func_handler (FunctionData * data, ASEvent * event, int module)
+{
+	if (!RequestShutdown ())
+		beep_func_handler (data, event, module);
 }
 
 void windowlist_func_handler (FunctionData * data, ASEvent * event,

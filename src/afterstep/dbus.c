@@ -65,9 +65,10 @@ typedef struct ASDBusContext {
 	DBusConnection *session_conn;
 	int watch_fd;
 	char *client_session_path;
+	Bool sessionManagerCanShutdown;
 } ASDBusContext;
 
-static ASDBusContext ASDBus = { NULL, NULL, -1, NULL };
+static ASDBusContext ASDBus = { NULL, NULL, -1, NULL, False };
 
 static DBusHandlerResult asdbus_handle_message (DBusConnection *,
 																								DBusMessage *, void *);
@@ -490,6 +491,43 @@ Bool asdbus_Logout (int mode, int timeout)
 	return requested;
 }
 
+Bool asdbus_Shutdown (int timeout)
+{
+	Bool requested = False;
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn) {
+		DBusMessage *message =
+				dbus_message_new_method_call ("org.gnome.SessionManager",
+																			"/org/gnome/SessionManager",
+																			"org.gnome.SessionManager",
+																			"Shutdown");
+		if (message) {
+			DBusMessage *replay;
+			DBusError error;
+
+			dbus_error_init (&error);
+			replay = dbus_connection_send_with_reply_and_block (ASDBus.session_conn,
+																										 message, timeout,
+																										 &error);
+			dbus_message_unref (message);
+
+			if (!replay) {
+				show_error
+						("Failed to request Shutdown with the Gnome Session Manager. DBus error: %s",
+						 dbus_error_is_set (&error) ? error.message : "unknown error");
+			} else {										/* nothing is returned in replay to this message */
+				dbus_message_unref (replay);
+				requested = True;
+			}
+			if (dbus_error_is_set (&error))
+				dbus_error_free (&error);
+		}
+	}
+#endif
+	return requested;
+}
+
+
 void asdbus_EndSessionOk ()
 {
 #ifdef HAVE_DBUS_CONTEXT
@@ -520,12 +558,49 @@ void asdbus_EndSessionOk ()
 #endif
 }
 
+Bool asdbus_GetCanShutdown ()
+{
+  Bool canShutdown = True;
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn) {
+		DBusMessage *message = 
+				dbus_message_new_method_call ("org.gnome.SessionManager",
+																			"/org/gnome/SessionManager",
+																			"org.gnome.SessionManager",
+                         						  "CanShutdown");
+    if (message) {
+			DBusMessage *reply;
+			DBusError error;
+			DBusMessageIter iter;
+      dbus_bool_t ok = 0;
+
+  	  dbus_error_init (&error);
+      reply = dbus_connection_send_with_reply_and_block (ASDBus.session_conn, message, -1, &error);
+			dbus_message_unref (message);
+																															 
+      if (reply == NULL) {
+				if (dbus_error_is_set (&error))
+					show_error ("Unable to determine if Session Manager can shutdown: %s", error.message);
+			} else {
+        dbus_message_iter_init (reply, &iter);
+        dbus_message_iter_get_basic (&iter, &ok);
+				canShutdown = ok;
+        dbus_message_unref (reply);
+			}
+			if (dbus_error_is_set (&error))
+				dbus_error_free (&error);
+		}
+	}
+#endif
+	return canShutdown;	
+} 
+
 /*******************************************************************************
  * Freedesktop Console Kit
  *******************************************************************************/
 char* asdbus_GetConsoleSessionId ()
 {
-  const char     *session_id = NULL;
+  char     *session_id = NULL;
 #ifdef HAVE_DBUS_CONTEXT
 	if (ASDBus.system_conn) {
 		DBusMessage *message = dbus_message_new_method_call (CK_NAME,
@@ -561,7 +636,7 @@ char* asdbus_GetConsoleSessionId ()
 
 char* asdbus_GetConsoleSessionType (const char *session_id)
 {
-  const char     *session_type = NULL;
+  char     *session_type = NULL;
 #ifdef HAVE_DBUS_CONTEXT
 	if (ASDBus.system_conn && session_id) {
 		DBusMessage *message = dbus_message_new_method_call (CK_NAME,
@@ -767,13 +842,17 @@ void CloseSessionClients (Bool only_modules)
 int main (int argc, char **argv)
 {
 	int logout_mode = -1;
+	Bool shutdown_mode = False;
 	char *console_session_id, *console_session_type;
 	
-	if (argc > 1 && strcmp (argv[1], "--logout") == 0) {
-		if (argc > 2)
-			logout_mode = atoi (argv[2]);
-		else
-			logout_mode = 0;
+	if (argc > 1) {
+		if (strcmp (argv[1], "--logout") == 0) {
+			if (argc > 2)
+				logout_mode = atoi (argv[2]);
+			else
+				logout_mode = 0;
+		}else if (strcmp (argv[1], "--shutdown") == 0)
+			shutdown_mode = True;
 	}
 	InitMyApp ("test_asdbus", argc, argv, NULL, NULL, 0);
 
@@ -782,10 +861,16 @@ int main (int argc, char **argv)
 		show_error ("Failed to accure Session DBus connection.");
 		return 0;
 	}
+	show_progress ("Successfuly accured Session DBus connection.");
+
+	change_func_code ("Restart", F_NOP);
+	if (!asdbus_GetCanShutdown())
+		change_func_code ("SystemShutdown", F_NOP);
+
 	console_session_id = asdbus_GetConsoleSessionId ();
 	console_session_type = asdbus_GetConsoleSessionType (console_session_id);
 	show_progress ("ConsoleKit session id is \"%s\", type = \"%s\"", console_session_id, console_session_type);
-	show_progress ("Successfuly accured Session DBus connection.");
+	show_progress ("CanShutdown = %d", asdbus_GetCanShutdown());
 
 	asdbus_Notify ("TestNotification Summary", "Test notification body",
 								 3000);
@@ -805,6 +890,9 @@ int main (int argc, char **argv)
 
 	if (logout_mode >= 0 && logout_mode <= 2)
 		asdbus_Logout (logout_mode, 100000);
+	else if (shutdown_mode)
+		asdbus_Shutdown (100000);
+	
 
 	asdbus_shutdown ();
 
