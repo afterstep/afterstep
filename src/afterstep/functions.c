@@ -275,6 +275,8 @@ void SetupFunctionHandlers ()
 			function_handlers[F_TAKE_SCREENSHOT] = screenshot_func_handler;
 	function_handlers[F_SWALLOW_WINDOW] = swallow_window_func_handler;
 	function_handlers[F_SYSTEM_SHUTDOWN] = system_shutdown_func_handler;
+	function_handlers[F_SUSPEND] = system_shutdown_func_handler;
+	function_handlers[F_HIBERNATE] = system_shutdown_func_handler;
 	function_handlers[F_LOGOUT] = quit_func_handler;
 	function_handlers[F_QUIT_WM] = quit_wm_func_handler;
 }
@@ -2224,7 +2226,7 @@ void quit_wm_func_handler (FunctionData * data, ASEvent * event, int module)
 
 void system_shutdown_func_handler (FunctionData * data, ASEvent * event, int module)
 {
-	if (!RequestShutdown ())
+	if (!RequestShutdown (data->func))
 		beep_func_handler (data, event, module);
 }
 

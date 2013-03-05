@@ -8,7 +8,7 @@ IMAGE_DIR_LIST= backgrounds backgrounds/Gradient_Textures backgrounds/Plain_Text
 				backgrounds/Mirrored_Tiles \
 				desktop/bars desktop/buttons desktop/icons \
 				desktop/icons/dots desktop/icons/large desktop/icons/logos \
-				desktop/icons/mini desktop/icons/normal desktop/tiles
+				desktop/icons/mini desktop/icons/normal desktop/tiles desktop/icons/128x128
 
 MISC_FILES_DIR_LIST= desktop/cursors desktop/fonts desktop/sounds
 

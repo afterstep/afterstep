@@ -121,9 +121,12 @@ TermDef FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("Beep", F_BEEP),		/* Beep               */
 	FUNC_TERM ("Quit", F_QUIT),		/* Quit     ["name"] */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Restart", F_RESTART),	/* Restart "name" WindowManagerName */
-	FUNC_TERM ("SystemShutdown", F_SYSTEM_SHUTDOWN), /* Shutdown "name" */
-	FUNC_TERM ("Logout", F_LOGOUT), /* Logout "name" */
+	FUNC_TERM ("SystemShutdown", F_SYSTEM_SHUTDOWN), /* Shutdown "name" | only available under gnome-session*/
+	FUNC_TERM ("Logout", F_LOGOUT), /* Logout "name" | only available under gnome-session*/
 	FUNC_TERM ("QuitWM", F_QUIT_WM), /* Will only work when not running under gnome-session */
+	FUNC_TERM ("Suspend", F_SUSPEND), /* If provided by UPower */
+	FUNC_TERM ("Hibernate", F_HIBERNATE),/* If provided by UPower */
+
 	FUNC_TERM ("Refresh", F_REFRESH),	/* Refresh  ["name"] */
 #ifndef NO_VIRTUAL
 	FUNC_TERM2 (USES_NUMVALS, "Scroll", F_SCROLL),	/* Scroll     horiz vert */

@@ -208,7 +208,7 @@ int main (int argc, char **argv, char **envp)
 	}
 
 	if (ASDBus_fd >= 0) {
-		show_progress ("Successfuly accured System DBus connection.");
+		show_progress ("Successfuly accured Session DBus connection.");
 		GnomeSessionClientID = asdbus_RegisterSMClient (SMClientID_string);
 		if (GnomeSessionClientID != NULL) {
 			show_progress
@@ -223,6 +223,11 @@ int main (int argc, char **argv, char **envp)
 			change_func_code ("Logout", F_NOP);
 		}
 	}
+	/* these use UPower which is sitting on system bus, independent from ASDBus_fd */
+	if (!CanSuspend())
+		change_func_code ("Suspend", F_NOP);
+	if (!CanHibernate())
+		change_func_code ("Hibernate", F_NOP);
 
 	SHOW_CHECKPOINT;
 	InitSession ();
@@ -712,6 +717,15 @@ Bool CanShutdown ()
 	return (GnomeSessionClientID && asdbus_GetCanShutdown ());
 }
 
+Bool CanSuspend ()
+{
+	return (asdbus_GetCanSuspend ());
+}
+Bool CanHibernate ()
+{
+	return (asdbus_GetCanHibernate ());
+}
+
 Bool CanRestart ()
 {
 	return (GnomeSessionClientID == NULL);
@@ -727,11 +741,24 @@ Bool CanQuit ()
 	return (GnomeSessionClientID == NULL);
 }
 
-Bool RequestShutdown ()
+Bool RequestShutdown (FunctionCode kind)
 {
 	Bool requested = False;
-	if (GnomeSessionClientID && asdbus_GetCanShutdown ())
-		requested = asdbus_Shutdown (500);
+	switch(kind)
+	{
+		case F_SYSTEM_SHUTDOWN : 
+			if (GnomeSessionClientID && asdbus_GetCanShutdown ())
+				requested = asdbus_Shutdown (500);
+			break;
+		case F_SUSPEND : 
+			if (asdbus_GetCanSuspend ())
+				requested = asdbus_Suspend (500); 
+			break;
+		case F_HIBERNATE : 
+			if (asdbus_GetCanHibernate ())
+				requested = asdbus_Hibernate (500); 
+			break;
+	}
 	return requested;
 }
 

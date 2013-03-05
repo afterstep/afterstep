@@ -47,7 +47,10 @@
 #define AFTERSTEP_DBUS_INTERFACE			    "org.afterstep." AFTERSTEP_APP_ID
 #define AFTERSTEP_DBUS_ROOT_PATH			    "/org/afterstep/" AFTERSTEP_APP_ID
 
-#define IFACE_SESSION_PRIVATE 						"org.gnome.SessionManager.ClientPrivate"
+#define SESSIONMANAGER_NAME				"org.gnome.SessionManager"
+#define SESSIONMANAGER_PATH				"/org/gnome/SessionManager"
+#define SESSIONMANAGER_INTERFACE	"org.gnome.SessionManager"
+#define IFACE_SESSION_PRIVATE 		SESSIONMANAGER_INTERFACE ".ClientPrivate"
 
 #define CK_NAME      "org.freedesktop.ConsoleKit"
 #define CK_PATH      "/org/freedesktop/ConsoleKit"
@@ -57,6 +60,21 @@
 #define CK_MANAGER_INTERFACE CK_NAME ".Manager"
 #define CK_SEAT_INTERFACE    CK_NAME ".Seat"
 #define CK_SESSION_INTERFACE CK_NAME ".Session"
+
+#define UPOWER_NAME 			"org.freedesktop.UPower"
+#define UPOWER_PATH 			"/org/freedesktop/UPower"
+#define UPOWER_INTERFACE	"org.freedesktop.UPower"
+
+typedef struct ASDBusOjectDescr {
+	char *displayName;
+	Bool systemBus;
+	char *name;
+	char *path;
+	char *interface;
+}ASDBusOjectDescr;
+
+static ASDBusOjectDescr dbusSessionManager = {"Session Manager", False, SESSIONMANAGER_NAME, SESSIONMANAGER_PATH, SESSIONMANAGER_INTERFACE }; 
+static ASDBusOjectDescr dbusUPower = {"Power Management Daemon", True, UPOWER_NAME, UPOWER_PATH, UPOWER_INTERFACE }; 
 
 #define HAVE_DBUS_CONTEXT 1
 
@@ -354,9 +372,9 @@ char *asdbus_RegisterSMClient (const char *sm_client_id)
 #ifdef HAVE_DBUS_CONTEXT
 	if (ASDBus.session_conn) {
 		DBusMessage *message =
-				dbus_message_new_method_call ("org.gnome.SessionManager",
-																			"/org/gnome/SessionManager",
-																			"org.gnome.SessionManager",
+				dbus_message_new_method_call (SESSIONMANAGER_NAME,
+																			SESSIONMANAGER_PATH,
+																			SESSIONMANAGER_INTERFACE,
 																			"RegisterClient");
 		if (message) {
 			DBusMessage *replay;
@@ -380,7 +398,7 @@ char *asdbus_RegisterSMClient (const char *sm_client_id)
 			dbus_error_init (&error);
 			replay =
 					dbus_connection_send_with_reply_and_block (ASDBus.session_conn,
-																										 message, 1000,
+																										 message, 20000, /* startup is busy time - better give gnome-session time to reply */
 																										 &error);
 			dbus_message_unref (message);
 
@@ -417,9 +435,9 @@ void asdbus_UnregisterSMClient (const char *sm_client_path)
 #ifdef HAVE_DBUS_CONTEXT
 	if (ASDBus.session_conn && sm_client_path) {
 		DBusMessage *message =
-				dbus_message_new_method_call ("org.gnome.SessionManager",
-																			"/org/gnome/SessionManager",
-																			"org.gnome.SessionManager",
+				dbus_message_new_method_call (SESSIONMANAGER_NAME,
+																			SESSIONMANAGER_PATH,
+																			SESSIONMANAGER_INTERFACE,
 																			"UnregisterClient");
 		if (message) {
 			DBusMessage *replay;
@@ -450,15 +468,111 @@ void asdbus_UnregisterSMClient (const char *sm_client_path)
 #endif
 }
 
+void asdbus_EndSessionOk ()
+{
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn) {
+		DBusMessage *message =
+				dbus_message_new_method_call (SESSIONMANAGER_NAME,
+																			ASDBus.client_session_path,	/*"/org/gnome/SessionManager", */
+																			IFACE_SESSION_PRIVATE,
+																			"EndSessionResponse");
+		if (message) {
+			DBusMessageIter iter;
+			char *reason = "";
+			dbus_bool_t ok = 1;
+			dbus_uint32_t msg_serial;
+
+			dbus_message_iter_init_append (message, &iter);
+			dbus_message_iter_append_basic (&iter, DBUS_TYPE_BOOLEAN, &ok);
+			dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &reason);
+			dbus_message_set_no_reply (message, TRUE);
+			if (!dbus_connection_send
+					(ASDBus.session_conn, message, &msg_serial))
+				show_error ("Failed to send EndSession indicator.");
+			else
+				show_progress ("Sent Ok to end session (time, %ld).", time (NULL));
+			dbus_message_unref (message);
+		}
+	}
+#endif
+}
+
+
+void *asdbus_SendSimpleCommandSync (ASDBusOjectDescr *descr, const char *command, int timeout)
+{
+	void *reply = NULL;
+	
+#ifdef HAVE_DBUS_CONTEXT
+	DBusConnection *conn = descr->systemBus ? ASDBus.system_conn : ASDBus.session_conn;
+	if (conn) {
+		DBusMessage *message =
+				dbus_message_new_method_call (descr->name,
+																			descr->path,
+																			descr->interface,
+                         						  command);
+		if (message) {
+			DBusError error;
+
+			dbus_error_init (&error);
+			reply = dbus_connection_send_with_reply_and_block (conn, message, timeout, &error);
+			dbus_message_unref (message);
+
+			if (!reply) {
+					show_error ("Request %s to %s failed: %s", command, descr->displayName, 
+				  						 dbus_error_is_set (&error) ? error.message : "unknown error");
+			}
+			if (dbus_error_is_set (&error))
+				dbus_error_free (&error);
+		}
+	}
+#endif
+	return reply;
+}
+
+Bool asdbus_SendSimpleCommandSyncNoRep (ASDBusOjectDescr *descr, const char *command, int timeout)
+{
+  Bool res = False;
+#ifdef HAVE_DBUS_CONTEXT
+	DBusMessage *reply = asdbus_SendSimpleCommandSync (descr, command, -1);
+	if (reply)
+	{
+		res = True;
+    dbus_message_unref (reply);
+	}
+#endif
+	return res;	
+}
+
+Bool asdbus_GetIndicator (ASDBusOjectDescr *descr, const char *command)
+{
+  Bool res = False;
+#ifdef HAVE_DBUS_CONTEXT
+	DBusMessage *reply = asdbus_SendSimpleCommandSync (descr, command, -1);
+	if (reply)
+	{
+		DBusMessageIter iter;
+    dbus_bool_t ok = 0;
+
+    dbus_message_iter_init (reply, &iter);
+    dbus_message_iter_get_basic (&iter, &ok);
+		res = ok;
+    dbus_message_unref (reply);
+	}
+#endif
+	return res;	
+} 
+
+
 Bool asdbus_Logout (int mode, int timeout)
 {
 	Bool requested = False;
 #ifdef HAVE_DBUS_CONTEXT
 	if (ASDBus.session_conn) {
 		DBusMessage *message =
-				dbus_message_new_method_call ("org.gnome.SessionManager",
-																			"/org/gnome/SessionManager",
-																			"org.gnome.SessionManager",
+				dbus_message_new_method_call (SESSIONMANAGER_NAME,
+																			SESSIONMANAGER_PATH,
+																			SESSIONMANAGER_INTERFACE,
 																			"Logout");
 		if (message) {
 			DBusMessage *replay;
@@ -493,106 +607,32 @@ Bool asdbus_Logout (int mode, int timeout)
 
 Bool asdbus_Shutdown (int timeout)
 {
-	Bool requested = False;
-#ifdef HAVE_DBUS_CONTEXT
-	if (ASDBus.session_conn) {
-		DBusMessage *message =
-				dbus_message_new_method_call ("org.gnome.SessionManager",
-																			"/org/gnome/SessionManager",
-																			"org.gnome.SessionManager",
-																			"Shutdown");
-		if (message) {
-			DBusMessage *replay;
-			DBusError error;
-
-			dbus_error_init (&error);
-			replay = dbus_connection_send_with_reply_and_block (ASDBus.session_conn,
-																										 message, timeout,
-																										 &error);
-			dbus_message_unref (message);
-
-			if (!replay) {
-				show_error
-						("Failed to request Shutdown with the Gnome Session Manager. DBus error: %s",
-						 dbus_error_is_set (&error) ? error.message : "unknown error");
-			} else {										/* nothing is returned in replay to this message */
-				dbus_message_unref (replay);
-				requested = True;
-			}
-			if (dbus_error_is_set (&error))
-				dbus_error_free (&error);
-		}
-	}
-#endif
-	return requested;
-}
-
-
-void asdbus_EndSessionOk ()
-{
-#ifdef HAVE_DBUS_CONTEXT
-	if (ASDBus.session_conn) {
-		DBusMessage *message =
-				dbus_message_new_method_call ("org.gnome.SessionManager",
-																			ASDBus.client_session_path,	/*"/org/gnome/SessionManager", */
-																			IFACE_SESSION_PRIVATE,
-																			"EndSessionResponse");
-		if (message) {
-			DBusMessageIter iter;
-			char *reason = "";
-			dbus_bool_t ok = 1;
-			dbus_uint32_t msg_serial;
-
-			dbus_message_iter_init_append (message, &iter);
-			dbus_message_iter_append_basic (&iter, DBUS_TYPE_BOOLEAN, &ok);
-			dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &reason);
-			dbus_message_set_no_reply (message, TRUE);
-			if (!dbus_connection_send
-					(ASDBus.session_conn, message, &msg_serial))
-				show_error ("Failed to send EndSession indicator.");
-			else
-				show_progress ("Sent Ok to end session (time, %ld).", time (NULL));
-			dbus_message_unref (message);
-		}
-	}
-#endif
+	return asdbus_SendSimpleCommandSyncNoRep (&dbusSessionManager, "Shutdown", timeout);
 }
 
 Bool asdbus_GetCanShutdown ()
 {
-  Bool canShutdown = True;
-#ifdef HAVE_DBUS_CONTEXT
-	if (ASDBus.session_conn) {
-		DBusMessage *message = 
-				dbus_message_new_method_call ("org.gnome.SessionManager",
-																			"/org/gnome/SessionManager",
-																			"org.gnome.SessionManager",
-                         						  "CanShutdown");
-    if (message) {
-			DBusMessage *reply;
-			DBusError error;
-			DBusMessageIter iter;
-      dbus_bool_t ok = 0;
+	return asdbus_GetIndicator (&dbusSessionManager, "CanShutdown");
+} 
 
-  	  dbus_error_init (&error);
-      reply = dbus_connection_send_with_reply_and_block (ASDBus.session_conn, message, -1, &error);
-			dbus_message_unref (message);
-																															 
-      if (reply == NULL) {
-				if (dbus_error_is_set (&error))
-					show_error ("Unable to determine if Session Manager can shutdown: %s", error.message);
-			} else {
-        dbus_message_iter_init (reply, &iter);
-        dbus_message_iter_get_basic (&iter, &ok);
-				canShutdown = ok;
-        dbus_message_unref (reply);
-			}
-			if (dbus_error_is_set (&error))
-				dbus_error_free (&error);
-		}
-	}
-#endif
-	return canShutdown;	
+Bool asdbus_Suspend (int timeout)
+{
+	return asdbus_SendSimpleCommandSyncNoRep (&dbusUPower, "Suspend", timeout);
+}
+
+Bool asdbus_GetCanSuspend ()
+{
+	return asdbus_GetIndicator (&dbusUPower, "SuspendAllowed");
+} 
+
+Bool asdbus_Hibernate (int timeout)
+{
+	return asdbus_SendSimpleCommandSyncNoRep (&dbusUPower, "Hibernate", timeout);
+}
+
+Bool asdbus_GetCanHibernate ()
+{
+	return asdbus_GetIndicator (&dbusUPower, "HibernateAllowed");
 } 
 
 /*******************************************************************************
@@ -871,6 +911,8 @@ int main (int argc, char **argv)
 	console_session_type = asdbus_GetConsoleSessionType (console_session_id);
 	show_progress ("ConsoleKit session id is \"%s\", type = \"%s\"", console_session_id, console_session_type);
 	show_progress ("CanShutdown = %d", asdbus_GetCanShutdown());
+	show_progress ("CanSuspend = %d", asdbus_GetCanSuspend());
+	show_progress ("CanHibernate = %d", asdbus_GetCanHibernate());
 
 	asdbus_Notify ("TestNotification Summary", "Test notification body",
 								 3000);

@@ -25,6 +25,8 @@ typedef enum FunctionCode{
 	F_SYSTEM_SHUTDOWN,
 	F_LOGOUT,
 	F_QUIT_WM,
+	F_SUSPEND,
+	F_HIBERNATE,
   F_REFRESH,
 #ifndef NO_VIRTUAL
   F_SCROLL,

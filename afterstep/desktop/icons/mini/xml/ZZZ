@@ -1,0 +1,9 @@
+<composite>
+	<solid width="$minipixmap.width" height="$minipixmap.height" color="#00000000"/>
+	<text x="14" y="-4" id="z_text_black" fgcolor="#0000FF" font="DefaultBold.ttf" point=15>z</text>
+	<text x="15" y="-2" id="z_text_white" fgcolor="#FFFFFF" font="DefaultBold.ttf" point=12>z</text>
+	<recall x="0" y="1" srcid="z_text_black"/>
+	<recall x="1" y="3" srcid="z_text_white"/>
+	<recall x="8" y="5" srcid="z_text_black"/>
+	<recall x="9" y="7" srcid="z_text_white"/>
+</composite>

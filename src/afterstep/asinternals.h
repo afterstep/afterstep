@@ -418,8 +418,10 @@ extern ASOrientation VertOrientation ;
 
 /*************************** afterstep.c : ********************************/
 Bool RequestLogout ();
-Bool RequestShutdown ();
+Bool RequestShutdown (FunctionCode kind);
 Bool CanShutdown ();
+Bool CanSuspend ();
+Bool CanHibernate ();
 Bool CanRestart ();
 Bool CanLogout ();
 Bool CanQuit ();
