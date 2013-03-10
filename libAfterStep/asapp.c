@@ -188,6 +188,7 @@ TermDef FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM2 (NEED_CMD, "Set", F_SET),	/* Set "name" <variable>=<value> */
 
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Test", F_Test),
+	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Remap", F_Remap),
 
 	/* this functions require window as aparameter */
 	FUNC_TERM ("&nonsense&", F_WINDOW_FUNC_START),	/* not really a command */

@@ -71,6 +71,7 @@ SIGNAL_T SigDone (int nonsense);
 void CaptureAllWindows (ScreenInfo * scr);
 void DoAutoexec (Bool restarting);
 void DeadPipe (int);
+void RemapFunctions();
 
 Bool afterstep_parent_hints_func (Window parent, ASParentHints * dst);
 
@@ -214,21 +215,11 @@ int main (int argc, char **argv, char **envp)
 			show_progress
 					("Successfuly registered with GNOME Session Manager with Client Path \"%s\".",
 					 GnomeSessionClientID);
-			change_func_code ("Restart", F_NOP);
-			change_func_code ("QuitWM", F_NOP);
-			if (!CanShutdown())
-				change_func_code ("SystemShutdown", F_NOP);
-		} else {
-			change_func_code ("SystemShutdown", F_NOP);
-			change_func_code ("Logout", F_NOP);
 		}
 	}
-	/* these use UPower which is sitting on system bus, independent from ASDBus_fd */
-	if (!CanSuspend())
-		change_func_code ("Suspend", F_NOP);
-	if (!CanHibernate())
-		change_func_code ("Hibernate", F_NOP);
-
+	
+	RemapFunctions();
+	
 	SHOW_CHECKPOINT;
 	InitSession ();
 	SHOW_CHECKPOINT;
@@ -740,6 +731,47 @@ Bool CanQuit ()
 {
 	return (GnomeSessionClientID == NULL);
 }
+
+void RemapFunctions()
+{
+	char *fname = make_session_file (Session, AFTER_FUNC_REMAP, False);
+	char *realfilename = PutHome (fname);
+	FILE *fp = fopen (realfilename != NULL?realfilename : fname, "w");
+	if (fp)	fprintf (fp, "Function \"RemapFunctions\"\n");
+	
+#define REMAP_FUNC(f) 	do { \
+		change_func_code (#f, F_NOP); \
+		if (fp)	fprintf (fp, "\tRemap \"" #f "\" Nop\n"); \
+	} while (0)
+
+	
+	if (GnomeSessionClientID != NULL) {
+		REMAP_FUNC(Restart);
+		REMAP_FUNC(QuitWM);
+	} else
+		REMAP_FUNC(Logout);
+
+	if (!CanShutdown())
+		REMAP_FUNC(SystemShutdown);
+
+	/* these use UPower which is sitting on system bus, independent from ASDBus_fd */
+	if (!CanSuspend()) 
+		REMAP_FUNC(Suspend);
+	if (!CanHibernate())
+		REMAP_FUNC(Hibernate);
+
+
+#undef REMAP_FUNC
+	if (fp)	{
+		fprintf (fp, "EndFunction\n");
+		fclose (fp);
+	}
+
+	if (realfilename != NULL)
+		free (realfilename);
+	free (fname);
+}
+
 
 Bool RequestShutdown (FunctionCode kind)
 {

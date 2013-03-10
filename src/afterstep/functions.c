@@ -269,6 +269,7 @@ void SetupFunctionHandlers ()
 	function_handlers[F_SEND_WINDOW_LIST] = send_window_list_func_handler;
 	function_handlers[F_SET] = set_func_handler;
 	function_handlers[F_Test] = test_func_handler;
+/*	function_handlers[F_Remap] = test_func_handler; */
 
 	function_handlers[F_TAKE_WINDOWSHOT] =
 			function_handlers[F_TAKE_FRAMESHOT] =

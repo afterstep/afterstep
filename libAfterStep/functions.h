@@ -89,6 +89,7 @@ typedef enum FunctionCode{
   F_SET,
   F_Test,    /* for debugging purposes to be able to test new features before actually
 			  * enabling them for user */
+	F_Remap,
 			 
   /* this functions require window as aparameter */
   F_WINDOW_FUNC_START,
