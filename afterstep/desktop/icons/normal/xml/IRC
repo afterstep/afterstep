@@ -1,9 +1,12 @@
 <set var="tilesize.icon" val=48\>
-	<text x=10 y=5 fgcolor="#FFFFFF" font="DefaultSansBold.ttf" point=15>IRC</text>
-	<scale x=2 y=22 id="bubble" width="$tilesize.icon/2+5" height="$tilesize.icon/2"><img src="128x128/SpeechBubble"/></scale>
-	<tile x=20 y=26 tint="#779F9F77"><mirror dir="horizontal"><scale x=5 y=25 id="bubble" width="$tilesize.icon/2" height="$tilesize.icon/2"><img src="128x128/SpeechBubble"/></scale></mirror></tint> 
 
 <composite>
-	<solid width="$tilesize.icon" height="$tilesize.icon" color="#FFFF0000"/>
+	<solid width="$tilesize.icon" height="$tilesize.icon" color="#00000000"/>
+	<text x=10 y=2 fgcolor="#FFFFFF" font="DefaultSansBold.ttf" point=15>IRC</text>
+	<scale x=2 y=22 id="bubble" width="$tilesize.icon/2+5" height="$tilesize.icon/2">
+		<img src="128x128/SpeechBubble"/>
+	</scale>
+	<text x=5 y=26 fgcolor="#00007f" font="Default.ttf" point=8>rofl</text>
+	<mirror x=15 y=20><recall srcid="bubble"/></mirror>
+	<text x=19 y=23 fgcolor="#000000" font="Default.ttf" point=8>stfu</text>
 </composite>
-	<img src="dots/arrow_dots"/>  
