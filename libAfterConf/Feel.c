@@ -516,6 +516,8 @@ FeelConfig *ParseFeelOptions (const char *filename, char *myname)
 			/* FreeStorage2MenuData( pCurr, &item, config->feel->Popups ); */
 			break;
 		case FEEL_Function_ID:
+			if (config->feel->ComplexFunctions == NULL)
+				init_list_of_funcs (&(config->feel->ComplexFunctions), False);
 			FreeStorage2ComplexFunction (pCurr, &item,
 																	 config->feel->ComplexFunctions);
 			break;

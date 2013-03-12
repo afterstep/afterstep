@@ -74,8 +74,8 @@
 *WharfGeometry		+1+1
 *WharfBevel		Bottom,Right,NoOutline,Extra
 
-#Use this setting to set what is show in the balloon : 
-# default is to show everything 
+#Use this setting to set what is show in the balloon :
+# default is to show everything
 #*WharfShowHints   Name, Comment, Exec
 
 #-------------------------------------------------------------------------------
@@ -251,9 +251,9 @@
 #-------------------------------------------------------------------------------
 # Monitoring Applications :
 #
-# separate action could be bound to different Buttons "l" - left "m" - middle "r" - right 
+# separate action could be bound to different Buttons "l" - left "m" - middle "r" - right
 #   "4" and "5" for other buttons. For Example :
-# left click opens docs, while right click opens StartMenu : 
+# left click opens docs, while right click opens StartMenu :
 *MonitorWharf afterstepdoc large/AfterStep3 Exec  "l" afterstepdoc &
 *MonitorWharf afterstepdoc -                PopUp "r" 0
 
@@ -266,10 +266,14 @@
 *MonitorWharf xeyes - Swallow "xeyes" xeyes -geometry -100-100 &
 *MonitorWharf xeyes - PopUp   "r" Window
 
-
+# some of the following maybe auto-disabled depending on the environment:
 *MonitorWharf QuitFolder normal/RedLight,dots/3_dots Folder
+*MonitorWharf 	EndSession normal/Logout Logout "Logout"
+*MonitorWharf 	EndSessionWM normal/Stopsign QuitWM "Quit AfterStep" afterstep
 *MonitorWharf 	Restart normal/Recycle Restart "" afterstep -r
-*MonitorWharf 	Quit normal/Stopsign Quit "" afterstep
+*MonitorWharf 	Suspend normal/MoonInMonitor Suspend "Suspend"
+*MonitorWharf 	Hibernate normal/Harddrive Hibernate "Hibernate"
+*MonitorWharf 	Shutdown normal/ExitSign SystemShutdown "ShutDown"
 *MonitorWharf ~Folder
 
 *MonitorWharf asfsm - Swallow "asfsm_lite" asfsm_lite -bg Grey30 -fg Grey70 -bp None -pbg Grey40 -pfg Grey70 -pbp None -i 30 &

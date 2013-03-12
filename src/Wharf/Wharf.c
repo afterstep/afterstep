@@ -152,7 +152,7 @@ typedef struct ASWharfFolder {
 
 	int animation_steps;					/* how many steps left */
 	int animation_dir;						/* +1 or -1 */
-	/* this will cache RootImage so we don't have to pull it every time we 
+	/* this will cache RootImage so we don't have to pull it every time we
 	 * have to be animated */
 	ASImage *root_image;
 	XRectangle root_clip_area;
@@ -206,6 +206,7 @@ void HandleEvents ();
 void process_message (send_data_type type, send_data_type * body);
 void DispatchEvent (ASEvent * Event);
 Window make_wharf_window ();
+void RemapFunctions();
 void GetOptions (const char *filename);
 void GetBaseOptions (const char *filename);
 void CheckConfigSanity ();
@@ -270,6 +271,9 @@ int main (int argc, char **argv)
 										M_NEW_DESKVIEWPORT |
 										M_END_WINDOWLIST |
 										WINDOW_CONFIG_MASK | WINDOW_NAME_MASK, 0);
+
+	RemapFunctions();
+
 	Config = CreateWharfConfig ();
 
 	LOCAL_DEBUG_OUT ("parsing Options ...%s", "");
@@ -502,6 +506,27 @@ void merge_wharf_folders (WharfButton ** pf1, WharfButton ** pf2)
 		pf1 = &((*pf1)->next);
 	*pf1 = *pf2;
 	*pf2 = NULL;
+}
+
+void RemapFunctions()
+{
+	char *fname = make_session_data_file (Session, False, 0, AFTER_FUNC_REMAP, NULL);
+	FeelConfig *feel_config = ParseFeelOptions (fname, MyName);
+
+	free (fname);
+
+	if (feel_config != NULL) {
+		ComplexFunction *remap_func = find_complex_func (feel_config->feel->ComplexFunctions, "RemapFunctions");
+		if (remap_func){
+			int i;
+			for (i = 0 ; i < remap_func->items_num ; ++i)
+				if (remap_func->items[i].func == F_Remap
+				    && remap_func->items[i].name != NULL
+				    && remap_func->items[i].text != NULL)
+					change_func_code (remap_func->items[i].name, txt2func_code (remap_func->items[i].text));
+		}
+		DestroyFeelConfig (feel_config);
+	}
 }
 
 void GetOptions (const char *filename)
@@ -893,7 +918,7 @@ void
 build_wharf_button_comment (ASWharfButton * aswb, WharfButton * wb,
 														ASTBarData * bar)
 {
-	/* if both comment and title are present - it came from Desktop Entries and thus are 
+	/* if both comment and title are present - it came from Desktop Entries and thus are
 	   encoded in UTF-8. So we should not worry.
 	 */
 	char *hint = NULL;
@@ -1273,24 +1298,23 @@ ASWharfFolder *build_wharf_folder (WharfButton * list,
 						function->func = F_Folder;
 
 					} else {
-						char *target = function->text;
-						disabled = True;
+						char *target = NULL;
 						if ((func < F_ExecToolStart || func > F_ExecToolEnd) &&
 								(IsSwallowFunc (func) || IsExecFunc (func))) {
+							target = function->text;
 						} else if (func == F_ExecInTerm) {
 							target = strstr (function->text, "-e ");
 							target = target ? target + 3 : function->text;
-						} else
-							disabled = False;
-
-						if (disabled)
-							disabled = !is_executable_in_path (target);
-						if (disabled) {
-							wb->contents[i].unavailable = True;
-							show_warning
-									("Application \"%s\" cannot be found in the PATH.",
-									 target);
 						}
+
+						if (target) {
+							disabled = !is_executable_in_path (target);
+							if (disabled) {
+								wb->contents[i].unavailable = True;
+								show_warning("Application \"%s\" cannot be found in the PATH.", target);
+							}
+						} else
+							disabled = (func == F_NOP);
 					}
 				}
 				if (!disabled) {
@@ -1376,8 +1400,8 @@ ASWharfFolder *build_wharf_folder (WharfButton * list,
 						}
 					}
 			}
-			/* TODO:  Transient buttons are just spacers - they should not 
-			 *      have any balloons displayed on them , nor they should 
+			/* TODO:  Transient buttons are just spacers - they should not
+			 *      have any balloons displayed on them , nor they should
 			 *      interpret any clicks
 			 */
 			if (get_flags (wb->set_flags, WHARF_BUTTON_TRANSIENT)) {
@@ -1563,7 +1587,7 @@ Bool update_wharf_folder_shape (ASWharfFolder * aswf)
 																 aswb->canvas->root_y);
 				update_canvas_display_mask (aswb->canvas, True);
 /*
- * We already combined swallowed shape with button's shape - now we need to combine 
+ * We already combined swallowed shape with button's shape - now we need to combine
  * this was causing wierd artifacts :  if( combine_canvas_shape_at (aswf->canvas, aswb->swallowed->current, aswb->folder_x, aswb->folder_y ) )
  */
 				do_combine = True;
@@ -2741,7 +2765,7 @@ void check_swallow_window (ASWindowData * wd)
 																									PAD_BOTTOM),
 																			 aswb->canvas->height, sheight),
 										 swidth, sheight);
-	if (!get_flags (wd->client_icon_flags, AS_ClientIcon)) {	/* workaround for broken wmdock apps that draw into icon, that is a child of a client, 
+	if (!get_flags (wd->client_icon_flags, AS_ClientIcon)) {	/* workaround for broken wmdock apps that draw into icon, that is a child of a client,
 																														 * and at the same time not properly sized ( Just don't ask - some ppl are wierd ) */
 		LOCAL_DEBUG_OUT ("wmfire workaround step1: wm_hints = %p", wm_hints);
 		if (wm_hints) {
@@ -3112,7 +3136,7 @@ void on_wharf_moveresize (ASEvent * event)
 	if (obj->magic == MAGIC_WHARF_BUTTON) {
 		ASWharfButton *aswb = (ASWharfButton *) obj;
 
-		/* need to check if there were any ConfigureNotify 's for our folder 
+		/* need to check if there were any ConfigureNotify 's for our folder
 		 * and if so - go process them first */
 		ASEvent parent_event;
 		while (ASCheckTypedWindowEvent

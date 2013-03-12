@@ -217,11 +217,12 @@ int main (int argc, char **argv, char **envp)
 					 GnomeSessionClientID);
 		}
 	}
-	
-	RemapFunctions();
-	
+
+
 	SHOW_CHECKPOINT;
 	InitSession ();
+	RemapFunctions();
+
 	SHOW_CHECKPOINT;
 	XSync (dpy, 0);
 	SHOW_CHECKPOINT;
@@ -734,17 +735,17 @@ Bool CanQuit ()
 
 void RemapFunctions()
 {
-	char *fname = make_session_file (Session, AFTER_FUNC_REMAP, False);
+	char *fname = make_session_data_file (Session, False, 0, AFTER_FUNC_REMAP, NULL);
 	char *realfilename = PutHome (fname);
 	FILE *fp = fopen (realfilename != NULL?realfilename : fname, "w");
 	if (fp)	fprintf (fp, "Function \"RemapFunctions\"\n");
-	
+
 #define REMAP_FUNC(f) 	do { \
 		change_func_code (#f, F_NOP); \
 		if (fp)	fprintf (fp, "\tRemap \"" #f "\" Nop\n"); \
 	} while (0)
 
-	
+
 	if (GnomeSessionClientID != NULL) {
 		REMAP_FUNC(Restart);
 		REMAP_FUNC(QuitWM);
@@ -755,7 +756,7 @@ void RemapFunctions()
 		REMAP_FUNC(SystemShutdown);
 
 	/* these use UPower which is sitting on system bus, independent from ASDBus_fd */
-	if (!CanSuspend()) 
+	if (!CanSuspend())
 		REMAP_FUNC(Suspend);
 	if (!CanHibernate())
 		REMAP_FUNC(Hibernate);
@@ -778,17 +779,17 @@ Bool RequestShutdown (FunctionCode kind)
 	Bool requested = False;
 	switch(kind)
 	{
-		case F_SYSTEM_SHUTDOWN : 
+		case F_SYSTEM_SHUTDOWN :
 			if (GnomeSessionClientID && asdbus_GetCanShutdown ())
 				requested = asdbus_Shutdown (500);
 			break;
-		case F_SUSPEND : 
+		case F_SUSPEND :
 			if (asdbus_GetCanSuspend ())
-				requested = asdbus_Suspend (500); 
+				requested = asdbus_Suspend (500);
 			break;
-		case F_HIBERNATE : 
+		case F_HIBERNATE :
 			if (asdbus_GetCanHibernate ())
-				requested = asdbus_Hibernate (500); 
+				requested = asdbus_Hibernate (500);
 			break;
 	}
 	return requested;
@@ -799,7 +800,7 @@ void SaveSession (Bool force)
 #ifndef NO_SAVEWINDOWS
 	static Bool saved = False;
 	if (!saved || force) {
-		char *fname = make_session_file (Session, AFTER_SAVE, False);
+		char *fname = make_session_data_file (Session, False, 0, AFTER_SAVE, NULL);
 		save_aswindow_list (Scr.Windows, fname, get_gnome_autosave ());
 		free (fname);
 		saved = True;
@@ -816,8 +817,8 @@ static void CloseSessionRetryHandler (void *data)
 void CloseSessionClients (Bool only_modules)
 {
 	int modules_killed;
-	/* Its the end of the session and we better close all non-module windows 
-	   that support the protocol. Otherwise they'll just crash when X connection goes down. 
+	/* Its the end of the session and we better close all non-module windows
+	   that support the protocol. Otherwise they'll just crash when X connection goes down.
 	 */
 	show_progress ("Closing down all modules ...");
 	display_progress (True, "Closing down all modules ...");
@@ -851,7 +852,7 @@ void Done (Bool restart, char *command)
 		already_dead = True;
 	}
 
-	/* lets duplicate the string so we don't accidentaly delete it while closing self down */
+	/* lets duplicate the string so we don't accidentally delete it while closing self down */
 	if (restart) {
 		int my_name_len = strlen (MyName);
 		if (command) {
@@ -883,7 +884,7 @@ void Done (Bool restart, char *command)
 	}
 
 #ifdef XSHMIMAGE
-	/* may not need to do that as server may still have some of the shared 
+	/* may not need to do that as server may still have some of the shared
 	 * memory and work in it */
 	flush_shm_cache ();
 #endif

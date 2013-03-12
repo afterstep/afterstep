@@ -35,7 +35,7 @@
 FunctionCode change_func_code (const char *func_name, FunctionCode new_code)
 {
 	TermDef *fterm;
-	if ((fterm = txt2fterm (func_name, True)) != NULL)
+	if (IsValidFunc(new_code) && (fterm = txt2fterm (func_name, True)) != NULL)
 		fterm->id = new_code;
 }
 
@@ -55,6 +55,15 @@ TermDef *txt2fterm (const char *txt, int quiet)
 								txt);
 
 	return fterm;
+}
+
+int txt2func_code (const char *text)
+{
+	TermDef *fterm;
+
+	for (; isspace (*text); text++) ;
+	fterm = txt2fterm (text, True);
+	return (fterm != NULL) ? fterm->id : F_FUNCTIONS_NUM;
 }
 
 int txt2func (const char *text, FunctionData * fdata, int quiet)

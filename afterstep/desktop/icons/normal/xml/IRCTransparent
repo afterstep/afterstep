@@ -1,7 +1,7 @@
 <set var="tilesize.icon" val=48\>
 
 <composite>
-	<solid width="$tilesize.icon" height="$tilesize.icon" color="#FF4444bb"/>
+	<solid width="$tilesize.icon" height="$tilesize.icon" color="#00000000"/>
 	<text x=10 y=2 fgcolor="#FFFFFF" font="DefaultSansBold.ttf" point=15>IRC</text>
 	<scale x=2 y=22 id="bubble" width="$tilesize.icon/2+5" height="$tilesize.icon/2">
 		<img src="128x128/SpeechBubble"/>

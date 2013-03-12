@@ -90,7 +90,7 @@ typedef enum FunctionCode{
   F_Test,    /* for debugging purposes to be able to test new features before actually
 			  * enabling them for user */
 	F_Remap,
-			 
+
   /* this functions require window as aparameter */
   F_WINDOW_FUNC_START,
   F_MOVE,
@@ -159,7 +159,7 @@ F_FUNCTIONS_NUM
 #define	USES_NUMVALS 	(1<<5)
 
 #define FUNC_ERR_START		-100
-#define FUNC_ERR_NO_NAME	-100 
+#define FUNC_ERR_NO_NAME	-100
 #define FUNC_ERR_NO_TEXT	-101
 
 typedef enum {
@@ -244,7 +244,7 @@ typedef struct MenuDataItem
 	ASFlagType            flags ;
 	struct FunctionData  *fdata ;
 	MinipixmapData minipixmap[MINIPIXMAP_TypesNum];
-	
+
 	char                 *preview ;         /* we always read filename from config !! */
 	struct ASImage       *preview_image ;
 	char  *item;         /* the character string displayed on left */
@@ -261,10 +261,10 @@ typedef struct MenuData
 	struct MenuDataItem *last;  /* last item in menu */
 	short items_num;        /* number of items in the menu */
 
-	ASFlagType            flags ; 
+	ASFlagType            flags ;
 	char  *name;         /* name of root */
 	char  *comment ;
-	int    recent_items ;   /*  negative value indicates that default, 
+	int    recent_items ;   /*  negative value indicates that default,
 								set in feel should be used */
 
 }MenuData;
@@ -304,6 +304,7 @@ typedef void (*as_function_handler)(struct FunctionData *data, struct ASEvent *e
 
 struct TermDef *txt2fterm (const char *txt, int quiet);
 int txt2func (const char *text, FunctionData * fdata, int quiet);
+int txt2func_code (const char *text);
 int parse_func (const char *text, FunctionData * data, int quiet);
 FunctionData *String2Func ( const char *string, FunctionData *p_fdata, Bool quiet );
 
@@ -338,7 +339,7 @@ Bool check_fdata_availability( FunctionData *fdata );
 
 MenuDataItem * add_menu_fdata_item( MenuData *menu, FunctionData *fdata, MinipixmapData *minipixmaps);
 MenuDataItem * menu_data_item_from_func (MenuData * menu, FunctionData * fdata, Bool do_check_availability);
-struct ASImage *check_scale_menu_pmap( struct ASImage *im, ASFlagType flags ); 
+struct ASImage *check_scale_menu_pmap( struct ASImage *im, ASFlagType flags );
 void free_menu_pmaps( MenuData *menu);
 void load_menuitem_pmap (MenuDataItem *mdi, MinipixmapTypes type, Bool force);
 void reload_menu_pmaps( MenuData *menu, Bool force  );
