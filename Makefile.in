@@ -10,8 +10,8 @@ libdirs         = libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTK
 gtk_app_dirs    = src/tools/ASFileBrowser src/tools/ASWallpaper
 no_gtk_app_dirs =
 
-glib_app_dirs    = src/ASMount
-no_glib_app_dirs =
+giolib_app_dirs    = src/ASMount
+no_giolib_app_dirs =
 
 desktop_subdirs = $(SYSSHAREDIR)/applications $(SHAREDIR)/applications
 session_subdirs = $(SYSCONFDIR)/X11/sessions $(SYSSHAREDIR)/xsessions $(SHAREDIR)/xsessions
@@ -32,7 +32,7 @@ subdirs         = libAfterBase libAfterImage libAfterStep libAfterConf @LIBASGTK
 									src/tools/ASRun \
                   afterstep \
                   src/ASDocGen \
-                  $(@GLIB_APP_DIRS@) \
+                  $(@GIOLIB_APP_DIRS@) \
                   $(@GTK_APP_DIRS@) \
                   doc tools
 
@@ -115,7 +115,7 @@ AfterStep.desktop.session:
 			echo "Exec=$(AFTER_EXEC_COMMAND)" >> AfterStep.desktop.session ; \
 			echo "TryExec=$(AFTER_BIN_DIR)/afterstep" >> AfterStep.desktop.session ; \
 		fi;
-        
+
 
 mkdir:  mkdir.bin mkdir.lib mkdir.man mkdir.share
 
@@ -150,11 +150,11 @@ install.desktop: AfterStep.desktop.final AfterStep.desktop.session mkdir.share
       echo "installing AfterStep.session into $$I" ; \
       $(INSTALL_DATA)  AfterStep.session $$I/AfterStep.session ; \
   	fi; done;
-		
+
 #    else if [ -d $(SHAREDIR) ] && [ -w $(SHAREDIR) ] ; then \
 #      echo "mkdir $(SHAREDIR)/xsessions"; $(MKDIR) -p $(SHAREDIR)/xsessions; \
 #      echo "installing AfterStep.desktop into $(SHAREDIR)/xsessions/" ; $(INSTALL_DATA)  AfterStep.desktop.final $(SHAREDIR)/xsessions/AfterStep.desktop ; \
-#    fi; 
+#    fi;
 
 
 install.share:

@@ -603,7 +603,7 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-GLIB_APP_DIRS
+GIOLIB_APP_DIRS
 RUN_COMMAND
 GTK_WIN_COMMAND
 GTK_APP_DIRS
@@ -656,6 +656,7 @@ xext_lib
 xine_libs
 x_libs
 user_ldflags
+GIOLIB_INCLUDES
 GLIB_INCLUDES
 GTK_INCLUDES
 ASCP_GTK
@@ -687,6 +688,8 @@ target_os
 target_vendor
 target_cpu
 target
+GIOLIB_LIBS
+GIOLIB_CFLAGS
 GLIB_LIBS
 GLIB_CFLAGS
 GTK_LIBS
@@ -7468,6 +7471,165 @@ fi
 
 GLIB_INCLUDES=$GLIB_CFLAGS
 
+have_giolib=
+GIOLIB_LIBS=
+GIOLIB_INCLUDES=
+
+if test "$with_giolib" = no; then
+	have_giolib=disabled
+else
+
+	if test "$PKG_CONFIG" = "no" ; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if gio 2.0 or better is available" >&5
+$as_echo_n "checking if gio 2.0 or better is available... " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: pkg-config is not found. Cannot check for gio 2.0." >&5
+$as_echo "pkg-config is not found. Cannot check for gio 2.0." >&6; }
+		have_giolib=no
+	else
+		have_giolib=yes
+		pkg_modules="gio-2.0 >= 2.0.0"
+
+  succeeded=no
+
+  if test -z "$PKG_CONFIG"; then
+    # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  fi
+
+  if test "$PKG_CONFIG" = "no" ; then
+     echo "*** The pkg-config script could not be found. Make sure it is"
+     echo "*** in your path, or set the PKG_CONFIG environment variable"
+     echo "*** to the full path to pkg-config."
+     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $pkg_modules" >&5
+$as_echo_n "checking for $pkg_modules... " >&6; }
+
+        if $PKG_CONFIG --exists "$pkg_modules" ; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+            succeeded=yes
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GIOLIB_CFLAGS" >&5
+$as_echo_n "checking GIOLIB_CFLAGS... " >&6; }
+            GIOLIB_CFLAGS=`$PKG_CONFIG --cflags "$pkg_modules"`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GIOLIB_CFLAGS" >&5
+$as_echo "$GIOLIB_CFLAGS" >&6; }
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GIOLIB_LIBS" >&5
+$as_echo_n "checking GIOLIB_LIBS... " >&6; }
+            GIOLIB_LIBS=`$PKG_CONFIG --libs "$pkg_modules"`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GIOLIB_LIBS" >&5
+$as_echo "$GIOLIB_LIBS" >&6; }
+        else
+            GIOLIB_CFLAGS=""
+            GIOLIB_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            GIOLIB_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$pkg_modules"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     :
+  else
+     have_giolib=no
+  fi
+
+
+		if test "x$have_giolib" = "xyes"; then
+			CLEAN_GIOLIB_LIBS=
+			CLEAN_GIOLIB_CFLAGS=
+
+
+$as_echo "#define HAVE_GIOLIB 1" >>confdefs.h
+
+
+			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+			for l in `echo "$GIOLIB_LIBS"`; do
+	  	  	lib_found=no
+	  	  	for p in `echo "$present_libs"` ; do
+			  	if test "x$l" = "x$p" ; then
+    		    	lib_found=yes;
+		  	  	fi;
+	  	  	done;
+	  	  	if test "x$lib_found" != "xyes" ; then
+		  		CLEAN_GIOLIB_LIBS="$CLEAN_GIOLIB_LIBS $l" ;
+	  	  	fi;
+			done;
+			present_incs="$CCFLAGS $x_includes";
+			for l in `echo "$GIOLIB_CFLAGS"` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					CLEAN_GIOLIB_CFLAGS="$CLEAN_GIOLIB_CFLAGS $l" ;
+	  			fi;
+			done;
+			GIOLIB_CFLAGS=$CLEAN_GIOLIB_CFLAGS ;
+			GIOLIB_LIBS=$CLEAN_GIOLIB_LIBS ;
+		fi
+	fi
+fi
+
+GIOLIB_INCLUDES=$GIOLIB_CFLAGS
+
+
 if test "x$enable_ascp" = "xyes"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking libraries required by FLTK version of ascp" >&5
 $as_echo_n "checking libraries required by FLTK version of ascp... " >&6; }
@@ -7475,7 +7637,7 @@ $as_echo_n "checking libraries required by FLTK version of ascp... " >&6; }
 
     if fltk-config --libs >/dev/null  ;then
 		present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
-		for l in `fltk-config --ldstaticflags`; do
+		for l in `fltk-config --ldflags`; do
 	  	  lib_found=no
 	  	  for p in `echo "$present_libs"` ; do
 			  if test "x$l" = "x$p" ; then
@@ -7838,6 +8000,9 @@ test -n "$target_alias" &&
 
 
 
+
+
+
 MAKEFILEDEFINES=./autoconf/Makefile.defines
 MAKEFILECOMMON=./autoconf/Makefile.common
 MAKEFILECOMMONLIB=./autoconf/Makefile.common.lib
@@ -7861,10 +8026,10 @@ else
 	RUN_COMMAND="ExecInTerm \"Run ...\" -n \"Run Command\" &"
 fi
 
-if test "x$have_glib" = "xyes"; then
-	GLIB_APP_DIRS=glib_app_dirs
+if test "x$have_giolib" = "xyes"; then
+	GIOLIB_APP_DIRS=giolib_app_dirs
 else
-	GLIB_APP_DIRS=no_glib_app_dirs
+	GIOLIB_APP_DIRS=no_giolib_app_dirs
 fi
 
 

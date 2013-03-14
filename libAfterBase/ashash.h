@@ -20,7 +20,8 @@ typedef union ASHashableValue
   void 				  *ptr ;
 }ASHashableValue;
 #else
-typedef unsigned long ASHashableValue;
+typedef unsigned long ASHashableValueBase;
+typedef const ASHashableValueBase ASHashableValue;
 #endif
 
 typedef union ASHashData
@@ -41,12 +42,12 @@ typedef union ASHashData
 }ASHashData;
 
 
-#define AS_HASHABLE(v)  ((ASHashableValue)((unsigned long)(v)))
+#define AS_HASHABLE(v)  ((ASHashableValue)((const unsigned long)(v)))
 
 typedef struct ASHashItem
 {
   struct ASHashItem *next;
-  ASHashableValue value;
+  ASHashableValueBase value;
   void *data;			/* optional data structure related to this
 				   hashable value */
 }
@@ -92,7 +93,7 @@ ASHashTable *create_ashash (ASHashKey size,
                 void (*item_destroy_func) (ASHashableValue,void *));
 void print_ashash (ASHashTable * hash,
 		   	void (*item_print_func) (ASHashableValue value));
-void print_ashash2 (ASHashTable * hash, 
+void print_ashash2 (ASHashTable * hash,
 			void (*item_print_func) (ASHashableValue value, void *data));
 
 void destroy_ashash (ASHashTable ** hash);
@@ -111,7 +112,7 @@ ASHashResult;
 ASHashResult add_hash_item (ASHashTable * hash, ASHashableValue value,
 			    void *data);
 /* Note that trg parameter is optional here */
-ASHashResult get_hash_item (ASHashTable * hash, ASHashableValue value,
+ASHashResult get_hash_item (const ASHashTable * hash, ASHashableValue value,
 			    void **trg);
 /* here if trg is NULL then both data and value will be destroyed;
    otherwise only value will be destroyed.
@@ -128,9 +129,9 @@ void flush_ashash (ASHashTable * hash);
 void flush_ashash_memory_pool();
 
 /* if max_items == 0 then all hash items will be returned */
-unsigned long sort_hash_items (ASHashTable * hash, ASHashableValue * values,
+unsigned long sort_hash_items (ASHashTable * hash, ASHashableValueBase * values,
 			       void **data, unsigned long max_items);
-unsigned long list_hash_items (ASHashTable * hash, ASHashableValue * values,
+unsigned long list_hash_items (ASHashTable * hash, ASHashableValueBase * values,
 			       void **data, unsigned long max_items);
 
 

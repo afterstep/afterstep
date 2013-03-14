@@ -28,6 +28,9 @@
    don't. */
 #undef HAVE_DECL_ENVIRON
 
+/* GIOLIB v.2.0 or higher is available */
+#undef HAVE_GIOLIB
+
 /* GLIB v.2.0 or higher is available */
 #undef HAVE_GLIB
 

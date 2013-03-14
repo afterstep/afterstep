@@ -175,9 +175,9 @@ static Bool check_de_categories_excluded (const ASDesktopEntry *de, const ASHash
 	LOCAL_DEBUG_OUT ("DE \"%s\" - Checking %d categories for exclusion", de->Name, de->categories_num);
 #endif
 	for (k = 0 ; k < de->categories_num ; ++k) {
-#ifdef DEBUG_GET_ENTRIES	
+#ifdef DEBUG_GET_ENTRIES
 		LOCAL_DEBUG_OUT ("Checking \"%s\" for exclusion", de->categories_shortcuts[k]);
-#endif		
+#endif
 		if (get_hash_item (exclusions, AS_HASHABLE (de->categories_shortcuts[k]), NULL) == ASH_Success)
 			return True;
 	}
@@ -201,7 +201,7 @@ ASDesktopEntryInfo *desktop_category_get_entries (const ASCategoryTree * ct,
 		return NULL;
 
 	entries_num = PVECTOR_USED (dc->entries);
-#ifdef DEBUG_GET_ENTRIES	
+#ifdef DEBUG_GET_ENTRIES
 	LOCAL_DEBUG_OUT ("DesktopCategory \"%s\", has %d entries", dc->name,
 									 entries_num);
 	if (exclusions)			print_ashash (exclusions, string_print);
@@ -219,14 +219,14 @@ ASDesktopEntryInfo *desktop_category_get_entries (const ASCategoryTree * ct,
 				continue;
 
 		de = fetch_desktop_entry (ct, entries_names[i]);
-#ifdef DEBUG_GET_ENTRIES		
+#ifdef DEBUG_GET_ENTRIES
 		LOCAL_DEBUG_OUT ("entry \"%s\", de = %p", entries_names[i], de);
 #endif
 		if (de == NULL)
 			continue;
 		if (get_flags (de->flags, ASDE_Hidden | ASDE_NoDisplay))
 			continue;
-		
+
 		if (de->type == ASDE_TypeDirectory) {
 			if (max_depth <= 0)
 				continue;
@@ -238,7 +238,7 @@ ASDesktopEntryInfo *desktop_category_get_entries (const ASCategoryTree * ct,
 			if (entries[valid_entries_num].dc == NULL
 					|| PVECTOR_USED (entries[valid_entries_num].dc->entries) == 0)
 				continue;
-		}else	if (exclusions && check_de_categories_excluded(de, exclusions)) 
+		}else	if (exclusions && check_de_categories_excluded(de, exclusions))
 			continue;
 
 		entries[valid_entries_num].de = de;
@@ -405,8 +405,8 @@ void print_desktop_entry (ASDesktopEntry * de)
 			fprintf (stderr, "de(%p).alias[%d]=\"%s\";\n", de, i,
 							 de->aliases_shortcuts[i]);
 
-//      PRINT_ASDE_VAL(categories_shortcuts) ; 
-//      PRINT_ASDE_VAL(show_in_shortcuts) ; 
+//      PRINT_ASDE_VAL(categories_shortcuts) ;
+//      PRINT_ASDE_VAL(show_in_shortcuts) ;
 //      PRINT_ASDE_VAL(not_show_in_shortcuts);
 		PRINT_ASDE_VAL (clean_exec);
 
@@ -570,10 +570,10 @@ FunctionData *desktop_entry2function (ASDesktopEntry * de,
 }
 
 /*************************************************************************
- * Desktop Category Tree functionality : 
+ * Desktop Category Tree functionality :
  *************************************************************************/
 
-ASDesktopCategory *fetch_desktop_category (ASCategoryTree * ct,
+ASDesktopCategory *fetch_desktop_category (const ASCategoryTree * ct,
 																					 const char *cname)
 {
 	void *tmp = NULL;
@@ -595,7 +595,7 @@ ASDesktopCategory *fetch_desktop_category (ASCategoryTree * ct,
 	return (ASDesktopCategory *) tmp;
 }
 
-ASDesktopEntry *fetch_desktop_entry (ASCategoryTree * ct, const char *name)
+ASDesktopEntry *fetch_desktop_entry (const ASCategoryTree * ct, const char *name)
 {
 	void *tmp = NULL;
 

@@ -73,8 +73,8 @@ typedef struct ASDBusOjectDescr {
 	char *interface;
 }ASDBusOjectDescr;
 
-static ASDBusOjectDescr dbusSessionManager = {"Session Manager", False, SESSIONMANAGER_NAME, SESSIONMANAGER_PATH, SESSIONMANAGER_INTERFACE }; 
-static ASDBusOjectDescr dbusUPower = {"Power Management Daemon", True, UPOWER_NAME, UPOWER_PATH, UPOWER_INTERFACE }; 
+static ASDBusOjectDescr dbusSessionManager = {"Session Manager", False, SESSIONMANAGER_NAME, SESSIONMANAGER_PATH, SESSIONMANAGER_INTERFACE };
+static ASDBusOjectDescr dbusUPower = {"Power Management Daemon", True, UPOWER_NAME, UPOWER_PATH, UPOWER_INTERFACE };
 
 #define HAVE_DBUS_CONTEXT 1
 
@@ -123,7 +123,7 @@ asdbus_handle_message (DBusConnection * conn, DBusMessage * msg,
 
 static DBusConnection *
 _asdbus_get_session_connection()
-{ 
+{
 	DBusError error;
 	int res;
 	DBusConnection *session_conn;
@@ -154,14 +154,14 @@ _asdbus_get_session_connection()
 		dbus_error_free (&error);
 
 	return session_conn;
-} 
+}
 
 static DBusConnection *
 _asdbus_get_system_connection()
-{ 
+{
 	DBusError error;
 	DBusConnection *sys_conn;
-	
+
 	dbus_error_init (&error);
 	sys_conn = dbus_bus_get (DBUS_BUS_SYSTEM, &error);
 
@@ -173,7 +173,7 @@ _asdbus_get_system_connection()
 		show_progress ("Connected to System DBus.");
 	}
 	return sys_conn;
-} 
+}
 
 /******************************************************************************/
 /* External interfaces : */
@@ -206,10 +206,10 @@ void asdbus_shutdown ()
 /******************************************************************************/
 /******************************************************************************/
 Bool get_gnome_autosave ()
-{ 
+{
 	Bool autosave = False;
-#ifdef HAVE_GLIB		
-	static Bool g_types_inited = False; 
+#ifdef HAVE_GIOLIB
+	static Bool g_types_inited = False;
 	if (!g_types_inited) {
 		g_type_init();
 		g_types_inited = True;
@@ -222,7 +222,7 @@ Bool get_gnome_autosave ()
 		} else
 			show_error (" Failed to get gnome-session Autosave settings");
 	}
-#endif		
+#endif
 	return autosave;
 }
 
@@ -322,30 +322,30 @@ void asdbus_process_messages ()
 #endif
 
 /*****************************************************************************/
-/* Gnome Session Manager's dbus Protocol : 
+/* Gnome Session Manager's dbus Protocol :
 
-1) send messages to org.gnome.SessionManager : 
+1) send messages to org.gnome.SessionManager :
 
 Setenv ("IMAGE_PATH", image_path)
 Setenv ("FONT_PATH", font_path)
 
 RegisterClient ( app_id, client_startup_id, object_path (returned))
 
-2) If Quit/Quit is selected, send message : 
+2) If Quit/Quit is selected, send message :
 Logout (0);
 
-3) If Quit/Shutdown is selected : 
+3) If Quit/Shutdown is selected :
 Shutdown ();
 
 4) What to do if Quit/Restart? send UnregisterClient() ?
 
-Dbus calls : 
+Dbus calls :
 
-dbus_message_new_method_call ("org.gnome.SessionManager", 
-							  "/org/gnome/SessionManager", 
-							  "org.gnome.SessionManager", 
+dbus_message_new_method_call ("org.gnome.SessionManager",
+							  "/org/gnome/SessionManager",
+							  "org.gnome.SessionManager",
 							  name_of_the_message );
-							  
+
 use dbus_message_append_args (msg, type1, arg1, ..., DBUS_TYPE_INVALID) if needed.
 use dbus_message_set_no_replay (msg, NULL) if no return value expected.
 
@@ -502,7 +502,7 @@ void asdbus_EndSessionOk ()
 void *asdbus_SendSimpleCommandSync (ASDBusOjectDescr *descr, const char *command, int timeout)
 {
 	void *reply = NULL;
-	
+
 #ifdef HAVE_DBUS_CONTEXT
 	DBusConnection *conn = descr->systemBus ? ASDBus.system_conn : ASDBus.session_conn;
 	if (conn) {
@@ -519,7 +519,7 @@ void *asdbus_SendSimpleCommandSync (ASDBusOjectDescr *descr, const char *command
 			dbus_message_unref (message);
 
 			if (!reply) {
-					show_error ("Request %s to %s failed: %s", command, descr->displayName, 
+					show_error ("Request %s to %s failed: %s", command, descr->displayName,
 				  						 dbus_error_is_set (&error) ? error.message : "unknown error");
 			}
 			if (dbus_error_is_set (&error))
@@ -541,7 +541,7 @@ Bool asdbus_SendSimpleCommandSyncNoRep (ASDBusOjectDescr *descr, const char *com
     dbus_message_unref (reply);
 	}
 #endif
-	return res;	
+	return res;
 }
 
 Bool asdbus_GetIndicator (ASDBusOjectDescr *descr, const char *command)
@@ -560,8 +560,8 @@ Bool asdbus_GetIndicator (ASDBusOjectDescr *descr, const char *command)
     dbus_message_unref (reply);
 	}
 #endif
-	return res;	
-} 
+	return res;
+}
 
 
 Bool asdbus_Logout (int mode, int timeout)
@@ -613,7 +613,7 @@ Bool asdbus_Shutdown (int timeout)
 Bool asdbus_GetCanShutdown ()
 {
 	return asdbus_GetIndicator (&dbusSessionManager, "CanShutdown");
-} 
+}
 
 Bool asdbus_Suspend (int timeout)
 {
@@ -623,7 +623,7 @@ Bool asdbus_Suspend (int timeout)
 Bool asdbus_GetCanSuspend ()
 {
 	return asdbus_GetIndicator (&dbusUPower, "SuspendAllowed");
-} 
+}
 
 Bool asdbus_Hibernate (int timeout)
 {
@@ -633,7 +633,7 @@ Bool asdbus_Hibernate (int timeout)
 Bool asdbus_GetCanHibernate ()
 {
 	return asdbus_GetIndicator (&dbusUPower, "HibernateAllowed");
-} 
+}
 
 /*******************************************************************************
  * Freedesktop Console Kit
@@ -656,7 +656,7 @@ char* asdbus_GetConsoleSessionId ()
   	  dbus_error_init (&error);
       reply = dbus_connection_send_with_reply_and_block (ASDBus.system_conn, message, -1, &error);
 			dbus_message_unref (message);
-																															 
+
       if (reply == NULL) {
 				if (dbus_error_is_set (&error))
 					show_error ("Unable to determine Console Kit Session: %s", error.message);
@@ -671,8 +671,8 @@ char* asdbus_GetConsoleSessionId ()
 		}
 	}
 #endif
-	return session_id;	
-} 
+	return session_id;
+}
 
 char* asdbus_GetConsoleSessionType (const char *session_id)
 {
@@ -708,7 +708,7 @@ char* asdbus_GetConsoleSessionType (const char *session_id)
 		}
 	}
 #endif
-	return session_type;	
+	return session_type;
 }
 /*******************************************************************************
  * Notifications
@@ -765,7 +765,7 @@ void asdbus_Notify (const char *summary, const char *body, int timeout)
 					if (!dbus_message_get_args(replay, &error, DBUS_TYPE_UINT32, &req_id, DBUS_TYPE_INVALID)) {
 						show_error ("Malformed Notification replay. DBus error: %s",
 												dbus_error_is_set (&error) ? error.message : "unknown error");
-					} 
+					}
 #ifdef TEST_AS_DBUS
 					else {
 						show_progress ("Notification Request_id = %d", req_id);
@@ -884,7 +884,7 @@ int main (int argc, char **argv)
 	int logout_mode = -1;
 	Bool shutdown_mode = False;
 	char *console_session_id, *console_session_type;
-	
+
 	if (argc > 1) {
 		if (strcmp (argv[1], "--logout") == 0) {
 			if (argc > 2)
@@ -934,7 +934,7 @@ int main (int argc, char **argv)
 		asdbus_Logout (logout_mode, 100000);
 	else if (shutdown_mode)
 		asdbus_Shutdown (100000);
-	
+
 
 	asdbus_shutdown ();
 

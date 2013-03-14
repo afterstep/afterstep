@@ -39,8 +39,8 @@
 static ASHashItem*  deallocated_mem[DEALLOC_CACHE_SIZE+10] ;
 static unsigned int deallocated_used = 0 ;
 
-static inline void 
-free_ashash_item( ASHashItem *item ) 
+static inline void
+free_ashash_item( ASHashItem *item )
 {
 
 #ifndef DEBUG_ALLOCS
@@ -217,7 +217,7 @@ add_hash_item (ASHashTable * hash, ASHashableValue value, void *data)
     if( deallocated_used > 0 )
         item = deallocated_mem[--deallocated_used];
     else
-#endif	
+#endif
         item = safecalloc (1, sizeof (ASHashItem));
 
 	LOCAL_DEBUG_OUT( "hash %p, value 0x%lX, data = %p, item = %p ", hash, value, data, item );
@@ -295,7 +295,7 @@ find_item_in_bucket (ASHashBucket * bucket,
 	for (tmp = bucket; *tmp != NULL; tmp = &((*tmp)->next))
 	{
 		res = compare_func ((*tmp)->value, value);
-		LOCAL_DEBUG_OUT ("compare result = %d", res);		
+		LOCAL_DEBUG_OUT ("compare result = %d", res);
 		if (res == 0)
 			return tmp;
 		else if (res > 0)
@@ -305,7 +305,7 @@ find_item_in_bucket (ASHashBucket * bucket,
 }
 
 ASHashResult
-get_hash_item (ASHashTable * hash, ASHashableValue value, void **trg)
+get_hash_item (const ASHashTable * hash, ASHashableValue value, void **trg)
 {
 	ASHashKey     key;
 	ASHashItem  **pitem = NULL;
@@ -376,7 +376,7 @@ remove_hash_item (ASHashTable * hash, ASHashableValue value, void **trg, Bool de
 }
 
 unsigned long
-sort_hash_items (ASHashTable * hash, ASHashableValue * values, void **data, unsigned long max_items)
+sort_hash_items (ASHashTable * hash, ASHashableValueBase * values, void **data, unsigned long max_items)
 {
 	if (hash)
 	{
@@ -390,7 +390,7 @@ sort_hash_items (ASHashTable * hash, ASHashableValue * values, void **data, unsi
 
 		if (max_items == 0)
 			max_items = hash->items_num;
-		
+
 		buckets = safecalloc (hash->buckets_used, sizeof (ASHashBucket));
 		for (i = 0; i < hash->size; i++)
 			if (hash->buckets[i])
@@ -425,7 +425,7 @@ sort_hash_items (ASHashTable * hash, ASHashableValue * values, void **data, unsi
 }
 
 unsigned long
-list_hash_items (ASHashTable * hash, ASHashableValue * values, void **data, unsigned long max_items)
+list_hash_items (ASHashTable * hash, ASHashableValueBase * values, void **data, unsigned long max_items)
 {
 	unsigned long count_in = 0;
 

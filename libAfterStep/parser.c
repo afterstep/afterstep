@@ -833,7 +833,7 @@ int config2tree_storage (ConfigDef * config, ASTreeStorageModel ** tail)
 			}
 			if (!get_flags (flags, SPECIAL_SKIP))
 				ProcessStatement (config);
-			/* Process Statement may alter config's state as it may dive into subconfig - 
+			/* Process Statement may alter config's state as it may dive into subconfig -
 			 * must make sure that did not happen : */
 			if (config->current_term) {
 				if (get_flags (config->current_term->flags, TF_SYNTAX_TERMINATOR)

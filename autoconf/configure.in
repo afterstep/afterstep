@@ -162,10 +162,10 @@ else
   STRIP_BINARIES="-s"
   DIRTY_CFLAGS="$CFLAGS"
   CFLAGS="-DNO_DEBUG_OUTPUT"
-  for f in $DIRTY_CFLAGS; do 
+  for f in $DIRTY_CFLAGS; do
         if test "x$f" != "x-g"; then
 	   CFLAGS="$CFLAGS $f"
-	fi	 
+	fi
   done
 fi
 
@@ -380,7 +380,7 @@ if test "$BUILD_ALSA" = "yes"; then
    AC_CHECK_LIB(asound, snd_pcm_open, have_alsa=yes, have_alsa=no)
    AC_CHECK_HEADER(alsa/asoundlib.h, , have_alsa=no)
 fi
-  
+
 if test "x$have_alsa" = xyes; then
         ALSA_LIBS="-lasound"
 else
@@ -415,8 +415,8 @@ if test "x$enable_sigsegv" = "xyes"; then
 fi
 
 if test "$with_readline" != no; then
-	AC_CHECK_LIB(ncurses, initscr, 
-			[AC_CHECK_LIB(	readline, readline, 
+	AC_CHECK_LIB(ncurses, initscr,
+			[AC_CHECK_LIB(	readline, readline,
 					[readline_libs="-lreadline -lncurses";AC_DEFINE(HAVE_READLINE,1,Support for readline library for console input)])])
 fi
 
@@ -448,9 +448,9 @@ else
 	else
 		have_dbus1=yes
 		pkg_modules="dbus-1 >= 0.22"
-		
+
 		PKG_CHECK_MODULES(DBUS1,[$pkg_modules],,[have_dbus1=no])
-		
+
 		if test "x$have_dbus1" = "xyes"; then
 			AC_DEFINE(HAVE_DBUS1,1,libdbus-1 v 0.22 or higher is available )
 		fi
@@ -490,7 +490,7 @@ else
    		WIDGETS_LIB="../Script/Widgets/libWidgets.so"
    		LIBPROG='$(LIB_SHARED)'
    		LIBINSTALL="install.dyn"
-		LIBUNINSTALL="uninstall.dyn"		
+		LIBUNINSTALL="uninstall.dyn"
 	fi
 fi
 
@@ -537,7 +537,7 @@ else
 		if test "x$have_gtk" = "xyes"; then
 			CLEAN_GTK_LIBS=
 			CLEAN_GTK_CFLAGS=
-	
+
 			AC_DEFINE(HAVE_GTK,1,GTK++ v.2.0 or higher is available )
 
 			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
@@ -595,7 +595,7 @@ else
 		if test "x$have_glib" = "xyes"; then
 			CLEAN_GLIB_LIBS=
 			CLEAN_GLIB_CFLAGS=
-	
+
 			AC_DEFINE(HAVE_GLIB,1,GLIB v.2.0 or higher is available )
 
 			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
@@ -633,6 +633,65 @@ fi
 
 GLIB_INCLUDES=$GLIB_CFLAGS
 
+have_giolib=
+GIOLIB_LIBS=
+GIOLIB_INCLUDES=
+
+if test "$with_giolib" = no; then
+	have_giolib=disabled
+else
+
+	if test "$PKG_CONFIG" = "no" ; then
+		AC_MSG_CHECKING(if gio 2.0 or better is available)
+		AC_MSG_RESULT(pkg-config is not found. Cannot check for gio 2.0.)
+		have_giolib=no
+	else
+		have_giolib=yes
+		pkg_modules="gio-2.0 >= 2.0.0"
+		PKG_CHECK_MODULES(GIOLIB, [$pkg_modules],,[have_giolib=no])
+
+		if test "x$have_giolib" = "xyes"; then
+			CLEAN_GIOLIB_LIBS=
+			CLEAN_GIOLIB_CFLAGS=
+
+			AC_DEFINE(HAVE_GIOLIB,1,GIOLIB v.2.0 or higher is available )
+
+			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
+			for l in `echo "$GIOLIB_LIBS"`; do
+	  	  	lib_found=no
+	  	  	for p in `echo "$present_libs"` ; do
+			  	if test "x$l" = "x$p" ; then
+    		    	lib_found=yes;
+		  	  	fi;
+	  	  	done;
+	  	  	if test "x$lib_found" != "xyes" ; then
+		  		CLEAN_GIOLIB_LIBS="$CLEAN_GIOLIB_LIBS $l" ;
+	  	  	fi;
+			done;
+			present_incs="$CCFLAGS $x_includes";
+			for l in `echo "$GIOLIB_CFLAGS"` ;	do
+	  			inc_found=no
+		  		for p in `echo "$present_incs"` ; do
+					if test "x$l" = "x$p" ; then
+    		  			inc_found=yes;
+					fi;
+					if test "x$l" = "x-I$p" ; then
+    		  			inc_found=yes;
+					fi;
+	  			done;
+	  			if test "x$inc_found" != "xyes" ; then
+					CLEAN_GIOLIB_CFLAGS="$CLEAN_GIOLIB_CFLAGS $l" ;
+	  			fi;
+			done;
+			GIOLIB_CFLAGS=$CLEAN_GIOLIB_CFLAGS ;
+			GIOLIB_LIBS=$CLEAN_GIOLIB_LIBS ;
+		fi
+	fi
+fi
+
+GIOLIB_INCLUDES=$GIOLIB_CFLAGS
+
+
 if test "x$enable_ascp" = "xyes"; then
     AC_MSG_CHECKING(libraries required by FLTK version of ascp)
 	enable_ascp=no ;
@@ -652,7 +711,7 @@ if test "x$enable_ascp" = "xyes"; then
 		done;
 		AC_MSG_RESULT($ASCP_FLTK_LIBS)
 	    AC_MSG_CHECKING(headers required by ascp-fltk)
-	
+
   		if fltk-config --cflags >/dev/null  ;then
 			present_incs="$CCFLAGS $x_includes";
 			for l in `fltk-config --cflags` ;	do
@@ -762,6 +821,9 @@ AC_SUBST(GTK_INCLUDES)
 AC_SUBST(GLIB_LIBS)
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_INCLUDES)
+AC_SUBST(GIOLIB_LIBS)
+AC_SUBST(GIOLIB_CFLAGS)
+AC_SUBST(GIOLIB_INCLUDES)
 AC_SUBST(user_ldflags)
 AC_SUBST(x_libs)
 AC_SUBST(xine_libs)
@@ -827,25 +889,25 @@ LIBAFTERSTEPFILES=./libAfterStep/.shared
 LIBAFTERCONFFILES=./libAfterConf/.shared
 LIBASGTKFILES=./libASGTK/.shared
 
-if test "x$have_gtk" = "xyes"; then 
+if test "x$have_gtk" = "xyes"; then
 	LIBASGTKDIR=libASGTK
 	LIBASGTKDEP='$(LIB_ASGTK)'
 	GTK_APP_DIRS=gtk_app_dirs
 	GTK_WIN_COMMAND=GWCommand
 	RUN_COMMAND="Exec \"Run ...\" ASRun --myname \"Run command using AfterStep\" &"
-else 
+else
 	LIBASGTKDIR=
-dnl# trick to not depend on libASGTK : 
+dnl# trick to not depend on libASGTK :
 	LIBASGTKDEP='$(LIB_AFTERCONF)'
 	GTK_APP_DIRS=no_gtk_app_dirs
 	GTK_WIN_COMMAND=
 	RUN_COMMAND="ExecInTerm \"Run ...\" -n \"Run Command\" &"
 fi
 
-if test "x$have_glib" = "xyes"; then 
-	GLIB_APP_DIRS=glib_app_dirs
-else 
-	GLIB_APP_DIRS=no_glib_app_dirs
+if test "x$have_giolib" = "xyes"; then
+	GIOLIB_APP_DIRS=giolib_app_dirs
+else
+	GIOLIB_APP_DIRS=no_giolib_app_dirs
 fi
 
 
@@ -861,17 +923,17 @@ AC_SUBST(GTK_APP_DIRS)
 AC_SUBST(GTK_WIN_COMMAND)
 AC_SUBST(RUN_COMMAND)
 
-AC_SUBST(GLIB_APP_DIRS)
+AC_SUBST(GIOLIB_APP_DIRS)
 
 AC_SUBST_FILE(MAKEFILEDEFINES)
 AC_SUBST_FILE(MAKEFILECOMMON)
 AC_SUBST_FILE(MAKEFILECOMMONLIB)
 
-dnl# These should be created before everything else, as it gets included by other files : 
+dnl# These should be created before everything else, as it gets included by other files :
 AC_CONFIG_FILES([autoconf/Makefile.defines autoconf/Makefile.common autoconf/Makefile.common.lib])
 
 if test -d src/ascp ; then AC_CONFIG_FILES([src/ascp/Makefile src/ascp/fltk/Makefile src/ascp/gtk/Makefile ]) fi
-if test -d src/tools ; then AC_CONFIG_FILES([src/tools/ASFileBrowser/Makefile 
+if test -d src/tools ; then AC_CONFIG_FILES([src/tools/ASFileBrowser/Makefile
 					     src/tools/ASRun/Makefile
 					     src/tools/ASWallpaper/Makefile]) fi
 
@@ -932,32 +994,32 @@ afterstep/start/1_Desktop/Pictures/User_Backgrounds/.include \
 echo "
 PRIVACY NOTICE
 
-As required by goverment regulations we now disclose all the illigal snooping 
-activities, that AfterStep Window Manager will be performing on your 
+As required by goverment regulations we now disclose all the illigal snooping
+activities, that AfterStep Window Manager will be performing on your
 computer(s).
 
 Being Big Brother AfterStep will keep an eye on any suspicious window movements
 on your screen, different clicking sounds made by your keyboard, detect slightest
-vibrations of your mouse/trackball, and most importantly  - it will keep track 
+vibrations of your mouse/trackball, and most importantly  - it will keep track
 of what images your are displaying in the root window of your desktop.
 
-Being Good hearted Big Brother, though AfterStep will keep all this information 
-in secret, and most likely will forget about it immidiately. Nothing will be 
-logged, mailed, broadcast or otherwise disclosed to unauthorized parties. So 
+Being Good hearted Big Brother, though AfterStep will keep all this information
+in secret, and most likely will forget about it immidiately. Nothing will be
+logged, mailed, broadcast or otherwise disclosed to unauthorized parties. So
 your secrets are safe with it.
 
-The only exception is when you compile it with --enable-gdb option or 
---enable-audit. In this case significant amounts of activity will be logged - 
-printed into console output. Make sure you keep it safe from all the malicious 
-persons out there (and from overflowing your disk)! It is your responsibility 
+The only exception is when you compile it with --enable-gdb option or
+--enable-audit. In this case significant amounts of activity will be logged -
+printed into console output. Make sure you keep it safe from all the malicious
+persons out there (and from overflowing your disk)! It is your responsibility
 now.
 
-We, the developers, always like to hear from you the user, and we would 
+We, the developers, always like to hear from you the user, and we would
 greately appreciate if you could let us know about any questions or suggestions
-you might have. Either e-mail us at as-users at afterstep . org or come talk to us 
+you might have. Either e-mail us at as-users at afterstep . org or come talk to us
 on #afterstep channel at freenode.net IRC network.
 
-Also you could send us an automated postcard, by using configure switch of : 
+Also you could send us an automated postcard, by using configure switch of :
 --enable-send-postcard-to-developer
 
 AfterStep $version IS NOW HOPEFULLY CONFIGURED:
@@ -965,9 +1027,9 @@ AfterStep $version IS NOW HOPEFULLY CONFIGURED:
 Just run : make ; make install
 
 and enjoy your eyecandy :)
-Other make targets you may find usefull : 
+Other make targets you may find usefull :
 
-make install.data       - installs all the images, fonts, etc. 
+make install.data       - installs all the images, fonts, etc.
 make install.config     - installs config files only
 make install.menu       - installs startmenu files
 make install.data_html  - catalogues installed data files

@@ -12,10 +12,10 @@ OBJS            = add_window.o afterstep.o aswindow.o \
 
 PROG		= afterstep
 
-INCS_PRIVATE	=  @GLIB_INCLUDES@ @DBUS1_CFLAGS@ -DDBUS_API_SUBJECT_TO_CHANGE
+INCS_PRIVATE	=  @GIOLIB_INCLUDES@ @DBUS1_CFLAGS@ -DDBUS_API_SUBJECT_TO_CHANGE
 
 LIBS_PRIVATE      = $(LIB_AFTERCONF) $(LIB_AFTERSTEP) \
-					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) @GLIB_LIBS@ $(LIBS_AFTERIMAGE) @DBUS1_LIBS@
+					$(LIB_AFTERIMAGE) $(LIB_AFTERBASE) @GIOLIB_LIBS@ $(LIBS_AFTERIMAGE) @DBUS1_LIBS@
 LIBS_DEPEND     = $(LIB_AFTERBASE) $(LIB_AFTERIMAGE) $(LIB_AFTERSTEP) \
 				  $(LIB_AFTERCONF)
 
@@ -45,7 +45,7 @@ install.alternative:
 
 
 module.clean:
-		
+
 
 install:	install.bin install.alternative
 
