@@ -121,11 +121,11 @@ TermDef FuncTerms[F_FUNCTIONS_NUM + 1] = {
 	FUNC_TERM ("Beep", F_BEEP),		/* Beep               */
 	FUNC_TERM ("Quit", F_QUIT),		/* Quit     ["name"] */
 	FUNC_TERM2 (NEED_NAME | NEED_CMD, "Restart", F_RESTART),	/* Restart "name" WindowManagerName */
-	FUNC_TERM ("SystemShutdown", F_SYSTEM_SHUTDOWN), /* Shutdown "name" | only available under gnome-session*/
-	FUNC_TERM ("Logout", F_LOGOUT), /* Logout "name" | only available under gnome-session*/
-	FUNC_TERM ("QuitWM", F_QUIT_WM), /* Will only work when not running under gnome-session */
-	FUNC_TERM ("Suspend", F_SUSPEND), /* If provided by UPower */
-	FUNC_TERM ("Hibernate", F_HIBERNATE),/* If provided by UPower */
+	FUNC_TERM ("SystemShutdown", F_SYSTEM_SHUTDOWN),	/* Shutdown "name" | only available under gnome-session */
+	FUNC_TERM ("Logout", F_LOGOUT),	/* Logout "name" | only available under gnome-session */
+	FUNC_TERM ("QuitWM", F_QUIT_WM),	/* Will only work when not running under gnome-session */
+	FUNC_TERM ("Suspend", F_SUSPEND),	/* If provided by UPower */
+	FUNC_TERM ("Hibernate", F_HIBERNATE),	/* If provided by UPower */
 
 	FUNC_TERM ("Refresh", F_REFRESH),	/* Refresh  ["name"] */
 #ifndef NO_VIRTUAL
@@ -319,22 +319,22 @@ CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] = {
 #define  SHOW_CONFIG    1
 #define  SHOW_USAGE     2
 /* 0*/ {"v", "version", "Display version information and stop", NULL,
-					handler_show_info, NULL, SHOW_VERSION},
+				handler_show_info, NULL, SHOW_VERSION},
 /* 1*/ {"c", "config", "Display Config information and stop", NULL,
-					handler_show_info, NULL, SHOW_CONFIG},
+				handler_show_info, NULL, SHOW_CONFIG},
 /* 2*/ {"h", "help", "Display uasge information and stop", NULL,
-					handler_show_info, NULL, SHOW_USAGE},
+				handler_show_info, NULL, SHOW_USAGE},
 /* 3*/ {NULL, "debug", "Debugging: Run in Synchronous mode", NULL,
-					handler_set_flag, &(as_app_args.flags),
+				handler_set_flag, &(as_app_args.flags),
 				ASS_Debugging},
 /* 4*/ {"s", "single", "Run on single screen only", NULL,
-					handler_set_flag, &(as_app_args.flags), ASS_SingleScreen},
+				handler_set_flag, &(as_app_args.flags), ASS_SingleScreen},
 /* 5*/ {"r", "restart", "Run as if it was restarted",
 				"same as regular startup, only \nruns RestartFunctioninstead of InitFunction",
 				handler_set_flag, &(as_app_args.flags), ASS_Restarting},
 #define OPTION_HAS_ARGS     6
 /* 6*/ {"d", "display", "Specify what X display we should connect to",
-					"Overrides $DISPLAY environment variable",
+				"Overrides $DISPLAY environment variable",
 				handler_set_string, &(as_app_args.display_name), 0, CMO_HasArgs},
 /* 7*/ {"f", "config-file", "Read all config from requested file",
 				"Use it if you want to use .steprc\ninstead of standard config files",
@@ -347,7 +347,7 @@ CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] = {
 				"Use it to override shared config location\nrequested in compile time",
 				handler_set_string, &(as_app_args.override_share), 0, CMO_HasArgs},
 /*10*/ {"V", "verbosity-level",
-					"Change verbosity of the AfterStep output",
+				"Change verbosity of the AfterStep output",
 				"0 - will disable any output;\n1 - will allow only error messages;\n5 - both errors and warnings(default)",
 				handler_set_int, &(as_app_args.verbosity_level), 0, CMO_HasArgs},
 /*11*/ {NULL, "window", "Internal Use: Window in which action occured",
@@ -367,14 +367,14 @@ CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] = {
 				handler_set_string, &(as_app_args.override_feel), 0, CMO_HasArgs},
 #ifdef DEBUG_TRACE_X
 /*16*/ {NULL, "trace-func",
-					"Debugging: Trace calls to a function with requested name", NULL,
+				"Debugging: Trace calls to a function with requested name", NULL,
 				handler_set_string, &(as_app_args.trace_calls), 0, CMO_HasArgs},
 #endif
 /*17*/ {"l", "log", "Save all output into the file",
-					"(instead of printing it to console)",
+				"(instead of printing it to console)",
 				handler_set_string, &(as_app_args.log_file), 0, CMO_HasArgs},
 /*18*/ {"L", "locale", "Set language locale",
-					"to be used while displaying text",
+				"to be used while displaying text",
 				handler_set_dup_string, &(as_app_args.locale), 0, CMO_HasArgs},
 /*19*/ {NULL, "myname", "Overrides module name",
 				"will be used while parsing config files\nand reporting to AfterStep",
@@ -689,10 +689,9 @@ InitMyApp (const char *app_class, int argc, char **argv,
 
 	set_output_threshold (as_app_args.verbosity_level);
 	if (as_app_args.log_file)
-		if (freopen
-				(as_app_args.log_file,
-				 /*get_flags( as_app_args.flags, ASS_Restarting)? */
-				 "a" /*:"w" */ , stderr)
+		if (freopen (as_app_args.log_file,
+								 /*get_flags( as_app_args.flags, ASS_Restarting)? */
+								 "a" /*:"w" */ , stderr)
 				== NULL)
 			show_system_error ("failed to redirect output into file \"%s\"",
 												 as_app_args.log_file);
@@ -838,31 +837,39 @@ set_environment_tool_from_list (ASEnvironment * e, ASToolType type,
 								 e->tool_command[type] ? e->tool_command[type] : "none");
 }
 
-static char *make_themed_icon_category_path (const char *category, int desired_size_idx, Bool fallback)
+static char *make_themed_icon_category_path (const char *category,
+																						 int desired_size_idx,
+																						 Bool fallback)
 {
 	char *tmp, *tmp2, *theme_path;
 	static char *standard_sizes[] =
 			{ "16x16", "32x32", "48x48", "64x64", "128x128", NULL };
 
-	if (!fallback && Environment->IconTheme == NULL) return NULL;
-	if (fallback && Environment->IconThemeFallback == NULL) return NULL;
-	
-	tmp =	make_file_name (fallback ? Environment->IconThemeFallback : Environment->IconTheme,	
-												standard_sizes[desired_size_idx]);
+	if (!fallback && Environment->IconTheme == NULL)
+		return NULL;
+	if (fallback && Environment->IconThemeFallback == NULL)
+		return NULL;
+
+	tmp =
+			make_file_name (fallback ? Environment->
+											IconThemeFallback : Environment->IconTheme,
+											standard_sizes[desired_size_idx]);
 	tmp2 = make_file_name (Environment->IconThemePath, tmp);
 	free (tmp);
 	theme_path = make_file_name (tmp2, category);
 	free (tmp2);
 
-	return theme_path;	
+	return theme_path;
 }
 
 Bool is_themable_icon (const char *name)
 {
-	return (Environment && Environment->IconTheme && Environment->IconThemePath && strchr (name, '/') == NULL);
+	return (Environment && Environment->IconTheme
+					&& Environment->IconThemePath && strchr (name, '/') == NULL);
 }
 
-ASImage *load_environment_icon (const char *category, const char *name,	int desired_size)
+ASImage *load_environment_icon (const char *category, const char *name,
+																int desired_size)
 {
 	ASImage *icon = NULL;
 	char *png_name = NULL;
@@ -870,7 +877,7 @@ ASImage *load_environment_icon (const char *category, const char *name,	int desi
 	Bool add_to_man = False;
 	int len;
 	int desired_size_idx;
-	
+
 	if (name == NULL || ASDefaultScr == NULL)
 		return NULL;
 
@@ -880,47 +887,63 @@ ASImage *load_environment_icon (const char *category, const char *name,	int desi
 	else if (desired_size_idx < 0)
 		desired_size_idx = 0;
 
-	show_debug (__FILE__, __FUNCTION__, __LINE__, "IconTheme = %s",	Environment->IconTheme);
+	show_debug (__FILE__, __FUNCTION__, __LINE__, "IconTheme = %s",
+							Environment->IconTheme);
 
 	len = strlen (name);
-	if (len < 4 || name[len-4] != '.') {
+	if (len < 4 || name[len - 4] != '.') {
 		png_name = add_file_extension (name, "png");
 		svg_name = add_file_extension (name, "svg");
 	}
 	/* we maybe already loaded so try with just the name : */
 	icon = fetch_asimage (ASDefaultScr->image_manager, name);
-	
+
 	/* nope we are not, so try loading as themed icon first: */
 	if (icon == NULL && is_themable_icon (name) && category) {
 		int fallback;
-		for (fallback = 0 ; fallback <= 1 ; fallback++ ) {
+		for (fallback = 0; fallback <= 1; fallback++) {
 			int try, try_size_idx = desired_size_idx;
-			for (try = 0 ; icon == NULL && try < 3; ++try) {
-				char *theme_path = make_themed_icon_category_path(category, try_size_idx, fallback);
-				if (theme_path == NULL) 
+			for (try = 0; icon == NULL && try < 3; ++try) {
+				char *theme_path =
+						make_themed_icon_category_path (category, try_size_idx,
+																						fallback);
+				if (theme_path == NULL)
 					break;
 
 				if (icon == NULL && png_name) {
 					char *themed_name = make_file_name (theme_path, png_name);
-					icon = get_asimage_quiet (ASDefaultScr->image_manager, themed_name, ASFLAGS_EVERYTHING, 100);
+					icon =
+							get_asimage_quiet (ASDefaultScr->image_manager, themed_name,
+																 ASFLAGS_EVERYTHING, 100);
 					free (themed_name);
 				}
 				if (icon == NULL && svg_name) {
 					char *themed_name = make_file_name (theme_path, svg_name);
-					icon = get_asimage_quiet (ASDefaultScr->image_manager, themed_name, ASFLAGS_EVERYTHING, 100);
+					icon =
+							get_asimage_quiet (ASDefaultScr->image_manager, themed_name,
+																 ASFLAGS_EVERYTHING, 100);
 					free (themed_name);
 				}
 				if (icon == NULL) {
 					char *themed_name = make_file_name (theme_path, name);
-					icon = get_asimage_quiet (ASDefaultScr->image_manager, themed_name, ASFLAGS_EVERYTHING, 100);
+					icon =
+							get_asimage_quiet (ASDefaultScr->image_manager, themed_name,
+																 ASFLAGS_EVERYTHING, 100);
 					free (themed_name);
 				}
 				free (theme_path);
 				switch (try) {
-					case 0: try_size_idx = desired_size_idx < 4 ? desired_size_idx + 1 : desired_size_idx - 1; break;
-					case 1: try_size_idx = desired_size_idx == 0 || desired_size_idx == 4 ? 2 : desired_size_idx - 1 ; break;
-					default : 
-						break;
+				case 0:
+					try_size_idx =
+							desired_size_idx <
+							4 ? desired_size_idx + 1 : desired_size_idx - 1;
+					break;
+				case 1:
+					try_size_idx = desired_size_idx == 0
+							|| desired_size_idx == 4 ? 2 : desired_size_idx - 1;
+					break;
+				default:
+					break;
 				}
 			}
 		}
@@ -929,13 +952,19 @@ ASImage *load_environment_icon (const char *category, const char *name,	int desi
 
 	/* finally, try loading straight (for native AS icons primarily): */
 	if (icon == NULL) {
-		icon = get_asimage_quiet (ASDefaultScr->image_manager, name, ASFLAGS_EVERYTHING, 100);
+		icon =
+				get_asimage_quiet (ASDefaultScr->image_manager, name,
+													 ASFLAGS_EVERYTHING, 100);
 		if (icon == NULL) {
 			add_to_man = True;
 			if (png_name)
-				icon = get_asimage_quiet (ASDefaultScr->image_manager, png_name, ASFLAGS_EVERYTHING, 100);
+				icon =
+						get_asimage_quiet (ASDefaultScr->image_manager, png_name,
+															 ASFLAGS_EVERYTHING, 100);
 			if (icon == NULL && svg_name)
-				icon = get_asimage_quiet (ASDefaultScr->image_manager, svg_name, ASFLAGS_EVERYTHING, 100);
+				icon =
+						get_asimage_quiet (ASDefaultScr->image_manager, svg_name,
+															 ASFLAGS_EVERYTHING, 100);
 		}
 	}
 
@@ -951,7 +980,7 @@ ASImage *load_environment_icon (const char *category, const char *name,	int desi
 	return icon;
 }
 
-ASImage *load_environment_icon_any (const char *filename,	int desired_size)
+ASImage *load_environment_icon_any (const char *filename, int desired_size)
 {
 	ASImage *icon = NULL;
 	if (filename) {

@@ -1,2 +1,2 @@
-Restart "Restart this session" afterstep -r
+Restart "Restart Window Manager" afterstep -r
 SmallMiniPixmap "normal/Recycle"

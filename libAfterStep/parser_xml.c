@@ -612,7 +612,7 @@ Bool xml_opt_tree_go_next (ASXmlOptionTreeContext * context)
 }
 
 ASXmlOptionTreeContext
-		*xml_opt_tree_traverse_subtree (ASXmlOptionTreeContext * context)
+		* xml_opt_tree_traverse_subtree (ASXmlOptionTreeContext * context)
 {
 	ASXmlOptionTreeContext *subtree_context = NULL;
 

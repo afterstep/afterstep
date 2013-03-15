@@ -420,14 +420,14 @@ const ASWindowData *ascom_get_next_window (Bool last)
 {
 	if (last)
 		return
-				fetch_window_by_id (((client_item *) (ASCommandState.
-																							selected_wins->tail->data))->
-														cl);
+				fetch_window_by_id (((client_item
+															*) (ASCommandState.selected_wins->tail->
+																	data))->cl);
 	else
 		return
-				fetch_window_by_id (((client_item *) (ASCommandState.
-																							selected_wins->head->data))->
-														cl);
+				fetch_window_by_id (((client_item
+															*) (ASCommandState.selected_wins->head->
+																	data))->cl);
 }
 
 Bool winlist_is_empty (void)

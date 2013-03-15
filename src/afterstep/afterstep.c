@@ -698,15 +698,12 @@ void SigDone (int nonsense)
 
 Bool RequestLogout ()
 {
-	Bool requested = False;
-	if (GnomeSessionClientID)
-		requested = asdbus_Logout (0, 500);
-	return requested;
+	return asdbus_Logout (0, 500);
 }
 
 Bool CanShutdown ()
 {
-	return (GnomeSessionClientID && asdbus_GetCanShutdown ());
+	return asdbus_GetCanShutdown ();
 }
 
 Bool CanSuspend ()
@@ -718,14 +715,14 @@ Bool CanHibernate ()
 	return (asdbus_GetCanHibernate ());
 }
 
+Bool CanLogout ()
+{
+	return (asdbus_GetCanLogout ());
+}
+
 Bool CanRestart ()
 {
 	return (GnomeSessionClientID == NULL);
-}
-
-Bool CanLogout ()
-{
-	return (GnomeSessionClientID != NULL);
 }
 
 Bool CanQuit ()
@@ -745,11 +742,12 @@ void RemapFunctions()
 		if (fp)	fprintf (fp, "\tRemap \"" #f "\" Nop\n"); \
 	} while (0)
 
-
-	if (GnomeSessionClientID != NULL) {
+	if (!CanRestart())
 		REMAP_FUNC(Restart);
+	if (!CanQuit())
 		REMAP_FUNC(QuitWM);
-	} else
+
+	if (!CanLogout())
 		REMAP_FUNC(Logout);
 
 	if (!CanShutdown())

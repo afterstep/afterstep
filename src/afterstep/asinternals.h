@@ -43,7 +43,7 @@ typedef struct ASWindowGroup
 	Window  leader;
 	long    member_count;
 	char* 	sm_client_id;
-	
+
 	struct ASVector*	members ;
 }ASWindowGroup;
 
@@ -111,7 +111,7 @@ typedef struct ASWindow
 
 	struct ASWindow      *transient_owner;
 	struct ASVector      *transients;
-	
+
 	ASWindowGroup 			 *group;
 
 
@@ -194,9 +194,9 @@ typedef struct ASWindow
 #define ASWF_FirstCornerFollowsTbarSize	(0x01<<3)
 #define ASWF_LastCornerFollowsTbarSize	(0x01<<6)
 	ASFlagType internal_flags ;
-  
+
   /* we use that to avoid excessive refreshes when property is updated with exact same contents */
-	XWMHints 	saved_wm_hints ; 
+	XWMHints 	saved_wm_hints ;
 	XSizeHints 	saved_wm_normal_hints;
 }ASWindow;
 
@@ -215,7 +215,7 @@ typedef struct ASWindowList
 	struct ASHashTable *bookmarks ;            /* list of windows with bookmark names assignet to them */
 
 	struct ASHashTable *window_groups;
-	
+
 	/* lists of pointers to the ASWindow structures */
 	struct ASVector    *circulate_list ;
 	struct ASVector    *sticky_list ;
@@ -265,7 +265,7 @@ typedef struct ASWindowList
 	 */
 
 	ASVector	*stacking_order ; 		/* array of pointers to ASWindow structures */
-	
+
 }ASWindowList;
 
 /* Mirror Note :
@@ -319,7 +319,7 @@ typedef struct queue_buff_struct
   unsigned char            *data;
   short                     size;
   short                     done;
-  short 					prealloced_idx ; 
+  short 					prealloced_idx ;
   short 					unused;
   /* 16 bytes total */
 }queue_buff_struct;
@@ -375,8 +375,8 @@ extern ASFlagType    AfterStepState;              /* see ASS_ flags above */
 extern struct ASDatabase *Database;
 extern ASHashTable       *ComplexFunctions;
 
-extern ASBalloonState *MenuBalloons ; 
-extern ASBalloonState *TitlebarBalloons ; 
+extern ASBalloonState *MenuBalloons ;
+extern ASBalloonState *TitlebarBalloons ;
 
 
 /* global variables for Look values : */
@@ -575,6 +575,15 @@ void asdbus_process_messages ();
 
 char *asdbus_RegisterSMClient(const char *sm_client_id);
 void asdbus_Notify(const char *summary, const char *body, int timeout);
+
+typedef enum {
+	ASDBUS_Logout_Normal = 0,
+	ASDBUS_Logout_Confirmed,
+	ASDBUS_Logout_Force
+} ASDbusLogoutMode;
+
+Bool asdbus_GetCanLogout ();
+Bool asdbus_Logout (ASDbusLogoutMode mode, int timeout);
 Bool asdbus_GetCanShutdown ();
 Bool asdbus_Shutdown (int timeout);
 Bool get_gnome_autosave ();

@@ -222,8 +222,8 @@ int PopSyntax (ConfigDef * config)
 		LOCAL_DEBUG_OUT ("%p: \"%s\", old is %p: term = \"%s\"\n",
 										 config->syntax, config->syntax->display_name,
 										 pold->syntax,
-										 config->current_term ? config->current_term->
-										 keyword : "");
+										 config->current_term ? config->
+										 current_term->keyword : "");
 
 		if (pold->syntax->terminator == '\n') {
 			if ((config->current_prepend_size -=

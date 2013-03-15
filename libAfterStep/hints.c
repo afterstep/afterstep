@@ -349,9 +349,8 @@ ASHints *merge_hints (ASRawHints * raw, ASDatabase * db,
 
 	hints_types = get_asdb_hint_mask (pdb_rec);
 	hints_types &=
-			raw->
-			hints_types | (0x01 << HINTS_ASDatabase) | (0x01 <<
-																									HINTS_XResources);
+			raw->hints_types | (0x01 << HINTS_ASDatabase) | (0x01 <<
+																											 HINTS_XResources);
 
 	/* now do the rest : */
 	if (what != 0)
@@ -807,9 +806,8 @@ void check_motif_hints_sanity (MwmHints * motif_hints)
 	}
 	/* This rule is implicit, but its easier to deal with if
 	 * I take care of it now */
-	if (motif_hints->
-			decorations & (MWM_DECOR_MENU | MWM_DECOR_MINIMIZE |
-										 MWM_DECOR_MAXIMIZE))
+	if (motif_hints->decorations & (MWM_DECOR_MENU | MWM_DECOR_MINIMIZE |
+																	MWM_DECOR_MAXIMIZE))
 		motif_hints->decorations |= MWM_DECOR_TITLE;
 }
 
@@ -1165,16 +1163,15 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 		if (eh->icon_name)
 			clean->icon_name_idx =
 					add_name_to_list (clean,
-														stripcpy ((const char *)(eh->icon_name->
-																										 value)), AS_Text_UTF8,
-														False);
+														stripcpy ((const char *)(eh->
+																										 icon_name->value)),
+														AS_Text_UTF8, False);
 		if (eh->visible_icon_name)
 			clean->icon_name_idx =
 					add_name_to_list (clean,
-														stripcpy ((const char *)(eh->
-																										 visible_icon_name->
-																										 value)), AS_Text_UTF8,
-														False);
+														stripcpy ((const char
+																			 *)(eh->visible_icon_name->value)),
+														AS_Text_UTF8, False);
 		clean->icon_name =
 				(clean->icon_name_idx <
 				 0) ? NULL : clean->names[clean->icon_name_idx];
@@ -1251,6 +1248,7 @@ merge_extwm_hints (ASHints * clean, ASRawHints * raw,
 			set_flags (clean->flags, AS_SkipWinList);
 
 		if (get_flags (eh->flags, EXTWM_TypeSet)) {
+			clean->extwm_window_type = eh->type_flags;
 			decode_simple_flags (&(clean->flags), extwm_type_xref,
 													 eh->type_flags);
 		}
@@ -1641,7 +1639,7 @@ update_property_hints_manager (Window w, Atom property,
 				hints->icon_name_idx = clean.icon_name_idx;
 				show_debug (__FILE__, __FUNCTION__, __LINE__, "names set");
 
-				/* Must not do that as it requires sugnificant changes in decorations and stuff : 
+				/* Must not do that as it requires sugnificant changes in decorations and stuff :
 				 * and should be done only when FollowTitleChanges is requested */
 				/* hints->flags = clean.flags ;
 				   hints->function_mask = clean.function_mask ;
@@ -2743,7 +2741,8 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status,
 }
 
 
-ASImage *get_client_icon_image (ScreenInfo * scr, ASHints * hints, int desired_size)
+ASImage *get_client_icon_image (ScreenInfo * scr, ASHints * hints,
+																int desired_size)
 {
 	ASImage *im = NULL;
 
@@ -2856,9 +2855,10 @@ ASImage *get_client_icon_image (ScreenInfo * scr, ASHints * hints, int desired_s
 					im = icon_file_im;
 				else
 					im = load_environment_icon_any (icon_file, desired_size);
-					/*get_asimage (scr->image_manager, icon_file, 0xFFFFFFFF,	100); */
+				/*get_asimage (scr->image_manager, icon_file, 0xFFFFFFFF, 100); */
 				LOCAL_DEBUG_OUT ("loaded icon from \"%s\" into %dx%d %p",
-												 icon_file, im ? im->width : 0, im ? im->height : 0, im);
+												 icon_file, im ? im->width : 0,
+												 im ? im->height : 0, im);
 			} else {
 				LOCAL_DEBUG_OUT ("no icon to use %s", "");
 			}
@@ -2983,6 +2983,7 @@ void print_clean_hints (stream_func func, void *stream, ASHints * clean)
 	if (clean->client_cmd)
 		func (stream, "CLEAN.client_cmd = \"%s\";\n", clean->client_cmd);
 
+	func (stream, "CLEAN.extwm_window_type = \"%s\";\n", clean->extwm_window_type);
 }
 
 void

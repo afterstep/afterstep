@@ -503,8 +503,8 @@ ASDatabase *build_asdb (name_list * nl)
 				db->styles_table = NULL;
 			} else
 				db->styles_table = (ASDatabaseRecord *) realloc (db->styles_table,
-																												 db->
-																												 allocated_num *
+																												 db->allocated_num
+																												 *
 																												 sizeof
 																												 (ASDatabaseRecord));
 		}

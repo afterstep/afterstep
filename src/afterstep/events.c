@@ -62,14 +62,16 @@
 void DigestEvent (ASEvent * event);
 void afterstep_wait_pipes_input (int timeout_sec);
 
-static void
+static int
 _exec_while_x_pending ()
 {
+	int handled_count = 0;
 	ASEvent event;
 	while (XPending (dpy)) {
 		if (ASNextEvent (&(event.x), True)) {
 			DigestEvent (&event);
 			DispatchEvent (&event, False);
+			++handled_count;
 		}
 		ASSync (False);
 		/* before we exec any function - we ought to process any Unmap and Destroy
@@ -79,9 +81,11 @@ _exec_while_x_pending ()
 					 ASCheckMaskEvent (FocusChangeMask, &(event.x))) {
 			DigestEvent (&event);
 			DispatchEvent (&event, False);
+			++handled_count;
 		}
 		ExecutePendingFunctions ();
 	}
+	return handled_count;
 }
 
 
@@ -97,11 +101,12 @@ void HandleEvents ()
 
 void HandleEventsWhileFunctionsPending ()
 {
+	int events_handled = 1;
 	/* this is the only loop that allowed to run ExecutePendingFunctions(); */
-	while (FunctionsPending ()) {
+	while (FunctionsPending () || events_handled > 0) {
 		ExecutePendingFunctions ();
-		afterstep_wait_pipes_input (2);
-		_exec_while_x_pending ();
+		afterstep_wait_pipes_input (3);
+		events_handled = _exec_while_x_pending ();
 	}
 }
 
@@ -360,7 +365,7 @@ void DigestEvent (ASEvent * event)
 				for (i = 0; i < PAN_FRAME_SIDES; i++) {
 					LOCAL_DEBUG_OUT ("checking panframe %d, mapped %d", i,
 													 Scr.PanFrame[i].isMapped);
-					if (Scr.PanFrame[i].isMapped && xbtn->subwindow == Scr.PanFrame[i].win) {	/* we should try and pass through this click onto any client that 
+					if (Scr.PanFrame[i].isMapped && xbtn->subwindow == Scr.PanFrame[i].win) {	/* we should try and pass through this click onto any client that
 																																										   maybe under the pan frames */
 						LOCAL_DEBUG_OUT ("looking for client at %+d%+d", xbtn->x_root,
 														 xbtn->y_root);
@@ -965,7 +970,7 @@ void HandlePropertyNotify (ASEvent * event)
 				get_flags (asw->internal_flags,
 									 ASWF_NameChanged) ? NULL : mystrdup (ASWIN_NAME (asw));
 
-		/* we want to check if there were some more events generated 
+		/* we want to check if there were some more events generated
 		 * as window names tend to change multiple properties : */
 		while (XCheckTypedWindowEvent (dpy, asw->w, PropertyNotify, &prop_xev))
 			if (!IsNameProp (prop_xev.xproperty.atom)) {
@@ -1147,6 +1152,15 @@ void HandleClientMessage (ASEvent * event)
 
 		if (as_flags != 0)
 			toggle_aswindow_status (event->client, as_flags);
+	} else if (event->x.xclient.message_type == _XA_NET_CURRENT_DESKTOP) {
+		CARD32 desktop_idx, timestamp;
+		XClientMessageEvent *xcli = &(event->x.xclient);
+
+		desktop_idx = xcli->data.l[0];
+		timestamp = xcli->data.l[1];
+
+		if (desktop_idx < Scr.wmprops->as_desk_num && get_flags (AfterStepState, ASS_NormalOperation))
+			ChangeDesks (Scr.wmprops->as_desk_numbers[desktop_idx]);
 	}
 }
 
@@ -1465,8 +1479,8 @@ void HandleEnterNotify (ASEvent * event)
 		if (Scr.PanFrame[i].isMapped && ewp->window == Scr.PanFrame[i].win) {
 			int delta_x = 0, delta_y = 0;
 			if (!get_flags (Scr.Feel.flags, ClickToFocus)) {
-				/* After HandlePaging the configuration of windows on screen will change and 
-				   we can no longer keep old focused window still focused, as it may be off-screen 
+				/* After HandlePaging the configuration of windows on screen will change and
+				   we can no longer keep old focused window still focused, as it may be off-screen
 				   or otherwise not under the pointer, resulting in input going into the wrong window.
 				 */
 				if (Scr.Windows->focused != NULL)

@@ -289,8 +289,7 @@ ASImage *grab_root_asimage (ScreenInfo * scr, Window target,
 	XSync (dpy, False);
 	start_ticker (1);
 	/* now we have to wait for our window to become mapped - waiting for Expose */
-	for (tick_count = 0;
-			 !XCheckWindowEvent (dpy, src, ExposureMask, &event)
+	for (tick_count = 0; !XCheckWindowEvent (dpy, src, ExposureMask, &event)
 			 && tick_count < 100; tick_count++)
 		/*sleep_a_millisec(500); */
 		wait_tick ();
@@ -513,10 +512,10 @@ static ASImage *mystyle_make_image_int (MyStyle * style, int root_x,
 										 ASDefaultScr->RootClipArea.height,
 										 ASDefaultScr->RootClipArea.x,
 										 ASDefaultScr->RootClipArea.y,
-										 ASDefaultScr->RootImage ? ASDefaultScr->RootImage->
-										 width : 0,
-										 ASDefaultScr->RootImage ? ASDefaultScr->RootImage->
-										 height : 0);
+										 ASDefaultScr->RootImage ? ASDefaultScr->
+										 RootImage->width : 0,
+										 ASDefaultScr->RootImage ? ASDefaultScr->
+										 RootImage->height : 0);
 	}
 	if (get_flags (flip, FLIP_VERTICAL)) {
 		preflip_width = height;
@@ -614,8 +613,8 @@ static ASImage *mystyle_make_image_int (MyStyle * style, int root_x,
 				ASImage *tmp = tile_asimage (ASDefaultVisual, root_im,
 																		 root_src_x, root_src_y,
 																		 width, height,
-																		 do_tint ? style->
-																		 tint : TINT_LEAVE_SAME,
+																		 do_tint ? style->tint :
+																		 TINT_LEAVE_SAME,
 																		 ASA_ASImage, 0,
 																		 ASIMAGE_QUALITY_DEFAULT);
 
@@ -1493,7 +1492,8 @@ ASImage *mystyle_draw_text_image (MyStyle * style, const char *text,
 		if (style->font.as_font) {
 			ASTextAttributes attr =
 					{ ASTA_VERSION_1, ASTA_UseTabStops, AST_Plain, ASCT_Char, 8, 0,
-NULL, 0, ARGB32_White };
+				NULL, 0, ARGB32_White
+			};
 
 			attr.type = style->text_style;
 			attr.fore_color = style->colors.fore;

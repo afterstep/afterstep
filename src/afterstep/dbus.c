@@ -65,6 +65,32 @@
 #define UPOWER_PATH 			"/org/freedesktop/UPower"
 #define UPOWER_INTERFACE	"org.freedesktop.UPower"
 
+#define KSMSERVER_NAME 			"org.kde.ksmserver"
+#define KSMSERVER_PATH 			"/KSMServer"
+#define KSMSERVER_INTERFACE	"org.kde.KSMServerInterface"
+
+typedef enum  {
+	KDE_ShutdownConfirmDefault = -1,
+	KDE_ShutdownConfirmNo = 0,
+	KDE_ShutdownConfirmYes = 1
+}KDE_ShutdownConfirm;
+
+typedef enum {
+  KDE_ShutdownModeDefault = -1,
+  KDE_ShutdownModeSchedule = 0,
+  KDE_ShutdownModeTryNow = 1,
+  KDE_ShutdownModeForceNow = 2,
+  KDE_ShutdownModeInteractive = 3
+}	KDE_ShutdownMode;
+
+typedef enum {
+  KDE_ShutdownTypeDefault = -1,
+  KDE_ShutdownTypeNone = 0,
+  KDE_ShutdownTypeReboot = 1,
+ 	KDE_ShutdownTypeHalt = 2,
+  KDE_ShutdownTypeLogout = 3 /* unused - use None instead */
+} KDE_ShutdownType;
+
 typedef struct ASDBusOjectDescr {
 	char *displayName;
 	Bool systemBus;
@@ -82,11 +108,12 @@ typedef struct ASDBusContext {
 	DBusConnection *system_conn;
 	DBusConnection *session_conn;
 	int watch_fd;
-	char *client_session_path;
+	char *gnomeSessionPath;
 	Bool sessionManagerCanShutdown;
+	int kdeSessionVersion;
 } ASDBusContext;
 
-static ASDBusContext ASDBus = { NULL, NULL, -1, NULL, False };
+static ASDBusContext ASDBus = { NULL, NULL, -1, NULL, False, 0 };
 
 static DBusHandlerResult asdbus_handle_message (DBusConnection *,
 																								DBusMessage *, void *);
@@ -180,6 +207,7 @@ _asdbus_get_system_connection()
 /******************************************************************************/
 int asdbus_init ()
 {																/* return connection unix fd */
+	char *tmp;
 	if (!ASDBus.session_conn)
 		ASDBus.session_conn = _asdbus_get_session_connection();
 
@@ -188,6 +216,9 @@ int asdbus_init ()
 
 	if (ASDBus.session_conn && ASDBus.watch_fd < 0)
 		dbus_connection_get_unix_fd (ASDBus.session_conn, &(ASDBus.watch_fd));
+
+	if ((tmp = getenv ("KDE_SESSION_VERSION")) != NULL)
+		ASDBus.kdeSessionVersion = atoi(tmp);
 
 	return ASDBus.watch_fd;
 }
@@ -214,7 +245,7 @@ Bool get_gnome_autosave ()
 		g_type_init();
 		g_types_inited = True;
 	}
-	if (ASDBus.client_session_path) {
+	if (ASDBus.gnomeSessionPath) {
 		GSettings *gsm_settings = g_settings_new (GSM_MANAGER_SCHEMA);
 		if (gsm_settings) {
 			autosave = g_settings_get_boolean (gsm_settings, KEY_AUTOSAVE);
@@ -417,7 +448,7 @@ char *asdbus_RegisterSMClient (const char *sm_client_id)
 							 message : "unknown error");
 				else {
 					client_path = mystrdup (ret_client_path);
-					ASDBus.client_session_path = mystrdup (ret_client_path);
+					ASDBus.gnomeSessionPath = mystrdup (ret_client_path);
 				}
 
 				if (dbus_error_is_set (&error))
@@ -474,7 +505,7 @@ void asdbus_EndSessionOk ()
 	if (ASDBus.session_conn) {
 		DBusMessage *message =
 				dbus_message_new_method_call (SESSIONMANAGER_NAME,
-																			ASDBus.client_session_path,	/*"/org/gnome/SessionManager", */
+																			ASDBus.gnomeSessionPath,	/*"/org/gnome/SessionManager", */
 																			IFACE_SESSION_PRIVATE,
 																			"EndSessionResponse");
 		if (message) {
@@ -564,7 +595,43 @@ Bool asdbus_GetIndicator (ASDBusOjectDescr *descr, const char *command)
 }
 
 
-Bool asdbus_Logout (int mode, int timeout)
+static Bool asdbus_LogoutKDE (KDE_ShutdownConfirm confirm, KDE_ShutdownMode mode, KDE_ShutdownType type, int timeout)
+{
+	Bool requested = False;
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn) {
+		DBusMessage *message =
+				dbus_message_new_method_call (KSMSERVER_NAME,
+																			KSMSERVER_PATH,
+																			KSMSERVER_INTERFACE,
+																			"logout");
+		if (message) {
+			DBusMessageIter iter;
+			dbus_uint32_t msg_serial;
+			dbus_int32_t i32_confirm = confirm;
+			dbus_int32_t i32_mode = mode;
+			dbus_int32_t i32_type = type;
+
+			dbus_message_iter_init_append (message, &iter);
+			dbus_message_iter_append_basic (&iter, DBUS_TYPE_INT32, &i32_confirm);
+			dbus_message_iter_append_basic (&iter, DBUS_TYPE_INT32, &i32_mode);
+			dbus_message_iter_append_basic (&iter, DBUS_TYPE_INT32, &i32_type);
+
+			dbus_message_set_no_reply (message, TRUE);
+			if (!dbus_connection_send	(ASDBus.session_conn, message, &msg_serial))
+				show_error ("Failed to send Logout request to KDE.");
+			else {
+				requested = True;
+				show_progress ("Sent Ok to end session (time, %ld).", time (NULL));
+			}
+			dbus_message_unref (message);
+		}
+	}
+#endif
+	return requested;
+}
+
+static Bool asdbus_LogoutGNOME (int mode, int timeout)
 {
 	Bool requested = False;
 #ifdef HAVE_DBUS_CONTEXT
@@ -605,14 +672,53 @@ Bool asdbus_Logout (int mode, int timeout)
 	return requested;
 }
 
+Bool asdbus_Logout (ASDbusLogoutMode mode, int timeout)
+{
+	Bool requested = False;
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn) {
+		if (ASDBus.gnomeSessionPath != NULL)
+			requested = asdbus_LogoutGNOME (mode, timeout);
+		else if (ASDBus.kdeSessionVersion >= 4) {
+			KDE_ShutdownConfirm kdeConfirm = KDE_ShutdownConfirmDefault;
+			KDE_ShutdownMode kdeMode = KDE_ShutdownModeDefault;
+			if (mode == ASDBUS_Logout_Confirmed) {
+				kdeConfirm = KDE_ShutdownConfirmNo;
+				kdeMode = KDE_ShutdownModeTryNow;
+			} else if (mode == ASDBUS_Logout_Force) {
+				kdeConfirm = KDE_ShutdownConfirmNo;
+				kdeMode = KDE_ShutdownModeForceNow;
+			}
+			requested = asdbus_LogoutKDE (kdeConfirm, kdeMode, KDE_ShutdownTypeNone, timeout);
+		}
+	}
+#endif
+	return requested;
+}
+
+Bool asdbus_GetCanLogout ()
+{
+	return (ASDBus.kdeSessionVersion >= 4 || ASDBus.gnomeSessionPath != NULL);
+}
+
 Bool asdbus_Shutdown (int timeout)
 {
-	return asdbus_SendSimpleCommandSyncNoRep (&dbusSessionManager, "Shutdown", timeout);
+	Bool requested = False;
+#ifdef HAVE_DBUS_CONTEXT
+	if (ASDBus.session_conn) {
+		if (ASDBus.gnomeSessionPath != NULL)
+			requested = asdbus_SendSimpleCommandSyncNoRep (&dbusSessionManager, "Shutdown", timeout);
+		else if (ASDBus.kdeSessionVersion >= 4)
+			requested = asdbus_LogoutKDE (KDE_ShutdownConfirmDefault, KDE_ShutdownModeDefault, KDE_ShutdownTypeHalt, timeout);
+	}
+#endif
+	return requested;
 }
 
 Bool asdbus_GetCanShutdown ()
 {
-	return asdbus_GetIndicator (&dbusSessionManager, "CanShutdown");
+	return (ASDBus.kdeSessionVersion >= 4
+	        || (ASDBus.gnomeSessionPath != NULL && asdbus_GetIndicator (&dbusSessionManager, "CanShutdown")));
 }
 
 Bool asdbus_Suspend (int timeout)
@@ -910,6 +1016,7 @@ int main (int argc, char **argv)
 	console_session_id = asdbus_GetConsoleSessionId ();
 	console_session_type = asdbus_GetConsoleSessionType (console_session_id);
 	show_progress ("ConsoleKit session id is \"%s\", type = \"%s\"", console_session_id, console_session_type);
+	show_progress ("CanLogout = %d", asdbus_GetCanLogout());
 	show_progress ("CanShutdown = %d", asdbus_GetCanShutdown());
 	show_progress ("CanSuspend = %d", asdbus_GetCanSuspend());
 	show_progress ("CanHibernate = %d", asdbus_GetCanHibernate());

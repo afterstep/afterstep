@@ -619,8 +619,9 @@ void destroy_astbar (ASTBarData ** ptbar)
 					int type = ASTileType (tbar->tiles[i]);
 
 					if (ASTileTypeHandlers[type].free_astile_handler)
-						ASTileTypeHandlers[type].
-								free_astile_handler (&(tbar->tiles[i]));
+						ASTileTypeHandlers[type].free_astile_handler (&
+																													(tbar->
+																													 tiles[i]));
 				}
 				free (tbar->tiles);
 			}
@@ -823,10 +824,10 @@ set_astile_styles (ASTBarData * tbar, ASTile * tile, int state)
 
 	for (i = 0; i < BAR_STATE_NUM; ++i)
 		if ((i == state || state == -1) && tbar->style[i])
-			if (ASTileTypeHandlers[ASTileType (*tile)].
-					on_style_changed_handler != NULL)
-				ASTileTypeHandlers[ASTileType (*tile)].
-						on_style_changed_handler (tile, tbar->style[i], i);
+			if (ASTileTypeHandlers[ASTileType (*tile)].on_style_changed_handler
+					!= NULL)
+				ASTileTypeHandlers[ASTileType (*tile)].on_style_changed_handler
+						(tile, tbar->style[i], i);
 }
 
 Bool set_astbar_style_ptr (ASTBarData * tbar, int state, MyStyle * style)
@@ -1860,9 +1861,12 @@ int check_astbar_point (ASTBarData * tbar, int root_x, int root_y)
 					if (tile_x >= 0 && tile_y >= 0 && tile_x < tbar->tiles[i].width
 							&& tile_y < tbar->tiles[i].height)
 						if ((tmp_context =
-								 ASTileTypeHandlers[type].
-								 check_point_handler (&(tbar->tiles[i]), tile_x,
-																			tile_y)) != C_NO_CONTEXT) {
+								 ASTileTypeHandlers[type].check_point_handler (&
+																															 (tbar->
+																																tiles[i]),
+																															 tile_x,
+																															 tile_y)) !=
+								C_NO_CONTEXT) {
 							context = tmp_context;
 							break;
 						}

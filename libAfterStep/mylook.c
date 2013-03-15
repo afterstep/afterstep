@@ -118,7 +118,8 @@ ARGB32 get_random_tint_color ()
 {
 	static ARGB32 tint_colors[6] =
 			{ 0xFFFF0000, 0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF, 0xFF00FF00,
-0xFF0000FF };
+		0xFF0000FF
+	};
 	return tint_colors[time (NULL) % 6];
 }
 
@@ -437,8 +438,8 @@ void inherit_myframe (MyFrame * frame, MyFrame * ancestor)
 		int i;
 
 		frame->parts_mask =
-				(frame->parts_mask & (~ancestor->set_parts)) | ancestor->
-				parts_mask;
+				(frame->
+				 parts_mask & (~ancestor->set_parts)) | ancestor->parts_mask;
 		frame->set_parts |= ancestor->set_parts;
 
 		for (i = 0; i < FRAME_PARTS; ++i) {

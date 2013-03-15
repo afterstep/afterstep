@@ -91,10 +91,10 @@ struct ASImage;
 #define AS_Module				(1<<23)
 #define AS_IgnoreConfigRequest  (1<<24)
 #define AS_IgnoreRestackRequest (1<<25)
-#define AS_WMDockApp			(1<<26)  /* res_class == "DockApp" and main 
+#define AS_WMDockApp			(1<<26)  /* res_class == "DockApp" and main
 										  * window is 1x1 (just don't ask why)
-										  * usually that means that icon 
-										  * window should be animated */ 
+										  * usually that means that icon
+										  * window should be animated */
 #define AS_UseCurrentViewport  	(1<<27)
 #define AS_WindowOpacity	   	(1<<28)
 #define AS_HitPager	   	(1<<29)
@@ -152,7 +152,7 @@ typedef struct ASHints
 
   /* these are copy of above done, when ASDatabase was last matched */
   char *matched_name0 ;
-  unsigned char matched_name0_encoding;  
+  unsigned char matched_name0_encoding;
 
   ASFlagType flags ;
   ASFlagType protocols ;
@@ -166,7 +166,7 @@ typedef struct ASHints
   ASFlagType client_icon_flags ;
   union { Window window; Pixmap pixmap; } icon ;
   Pixmap icon_mask ;
-  CARD32 *icon_argb ; 
+  CARD32 *icon_argb ;
   int icon_x, icon_y ;
   char *icon_file ;
 
@@ -199,6 +199,8 @@ typedef struct ASHints
   char *client_host ;    /* hostname of the computer on which client was executed */
   char *client_cmd  ;    /* preparsed command line of the client */
   CARD32 window_opacity ;
+
+  ASFlagType extwm_window_type;
 }
 ASHints;
 
@@ -281,7 +283,7 @@ Bool update_colormaps( struct ScreenInfo *scr, Window w, ASSupportedHints *list,
 Bool update_property_hints( Window w, Atom property, ASHints *hints, ASStatusHints *status );
 Bool update_property_hints_manager( Window w, Atom property, ASSupportedHints *list,
 									struct ASDatabase * db, ASHints *hints, ASStatusHints *status );
-void update_cmd_line_hints (Window w, Atom property, 
+void update_cmd_line_hints (Window w, Atom property,
 					   ASHints * hints, ASStatusHints * status);
 
 void check_hints_sanity (struct ScreenInfo * scr, ASHints * clean, ASStatusHints * status, Window client);

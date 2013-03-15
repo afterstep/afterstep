@@ -168,27 +168,33 @@ void desktop_category_print (ASHashableValue value, void *data)
 
 
 
-static Bool check_de_categories_excluded (const ASDesktopEntry *de, const ASHashTable * exclusions)
+static Bool check_de_categories_excluded (const ASDesktopEntry * de,
+																					const ASHashTable * exclusions)
 {
 	int k;
 #ifdef DEBUG_GET_ENTRIES
-	LOCAL_DEBUG_OUT ("DE \"%s\" - Checking %d categories for exclusion", de->Name, de->categories_num);
+	LOCAL_DEBUG_OUT ("DE \"%s\" - Checking %d categories for exclusion",
+									 de->Name, de->categories_num);
 #endif
-	for (k = 0 ; k < de->categories_num ; ++k) {
+	for (k = 0; k < de->categories_num; ++k) {
 #ifdef DEBUG_GET_ENTRIES
-		LOCAL_DEBUG_OUT ("Checking \"%s\" for exclusion", de->categories_shortcuts[k]);
+		LOCAL_DEBUG_OUT ("Checking \"%s\" for exclusion",
+										 de->categories_shortcuts[k]);
 #endif
-		if (get_hash_item (exclusions, AS_HASHABLE (de->categories_shortcuts[k]), NULL) == ASH_Success)
+		if (get_hash_item
+				(exclusions, AS_HASHABLE (de->categories_shortcuts[k]),
+				 NULL) == ASH_Success)
 			return True;
 	}
 	return False;
 }
 
-ASDesktopEntryInfo *desktop_category_get_entries (const ASCategoryTree * ct,
-																									const ASDesktopCategory * dc,
-																									int max_depth,
-																									const ASHashTable * exclusions,
-																									int *nitems)
+ASDesktopEntryInfo *desktop_category_get_entries (const ASCategoryTree *
+																									ct,
+																									const ASDesktopCategory *
+																									dc, int max_depth,
+																									const ASHashTable *
+																									exclusions, int *nitems)
 {
 	int i, entries_num, valid_entries_num = 0;
 	char **entries_names;
@@ -204,7 +210,8 @@ ASDesktopEntryInfo *desktop_category_get_entries (const ASCategoryTree * ct,
 #ifdef DEBUG_GET_ENTRIES
 	LOCAL_DEBUG_OUT ("DesktopCategory \"%s\", has %d entries", dc->name,
 									 entries_num);
-	if (exclusions)			print_ashash (exclusions, string_print);
+	if (exclusions)
+		print_ashash (exclusions, string_print);
 #endif
 	if (entries_num == 0)
 		return NULL;
@@ -215,7 +222,8 @@ ASDesktopEntryInfo *desktop_category_get_entries (const ASCategoryTree * ct,
 		ASDesktopEntry *de;
 
 		if (exclusions)
-			if (get_hash_item (exclusions, AS_HASHABLE (entries_names[i]), NULL) == ASH_Success)
+			if (get_hash_item (exclusions, AS_HASHABLE (entries_names[i]), NULL)
+					== ASH_Success)
 				continue;
 
 		de = fetch_desktop_entry (ct, entries_names[i]);
@@ -233,12 +241,12 @@ ASDesktopEntryInfo *desktop_category_get_entries (const ASCategoryTree * ct,
 
 			entries[valid_entries_num].dc =
 					fetch_desktop_category (ct,
-																	de->IndexName ? de->IndexName : de->
-																	Name);
+																	de->IndexName ? de->
+																	IndexName : de->Name);
 			if (entries[valid_entries_num].dc == NULL
 					|| PVECTOR_USED (entries[valid_entries_num].dc->entries) == 0)
 				continue;
-		}else	if (exclusions && check_de_categories_excluded(de, exclusions))
+		} else if (exclusions && check_de_categories_excluded (de, exclusions))
 			continue;
 
 		entries[valid_entries_num].de = de;
@@ -537,7 +545,7 @@ Bool dup_desktop_entry_##val( ASDesktopEntry* de, char **trg ) \
 }
 
 DupDesktopEntryVal_func (Name) DupDesktopEntryVal_func (Comment)
-		FunctionCode desktop_entry2function_code (ASDesktopEntry * de)
+FunctionCode desktop_entry2function_code (ASDesktopEntry * de)
 {
 	if (de == NULL || get_flags (de->flags, ASDE_Unavailable))
 		return F_NOP;
@@ -553,9 +561,8 @@ DupDesktopEntryVal_func (Name) DupDesktopEntryVal_func (Comment)
 }
 
 
-FunctionData *desktop_entry2function (ASDesktopEntry * de,
-																			char *name /* defaults to de->Name */
-																			)
+FunctionData *desktop_entry2function (ASDesktopEntry * de, char *name	/* defaults to de->Name */
+		)
 {
 	FunctionData *fdata = NULL;
 
@@ -595,7 +602,8 @@ ASDesktopCategory *fetch_desktop_category (const ASCategoryTree * ct,
 	return (ASDesktopCategory *) tmp;
 }
 
-ASDesktopEntry *fetch_desktop_entry (const ASCategoryTree * ct, const char *name)
+ASDesktopEntry *fetch_desktop_entry (const ASCategoryTree * ct,
+																		 const char *name)
 {
 	void *tmp = NULL;
 
@@ -1045,7 +1053,8 @@ print_category_subtree (ASCategoryTree * ct, const char *entry_name,
 			ASDesktopCategory *sub_dc = fetch_desktop_category (ct, entries[i]);
 
 			if (sub_dc == dc) {
-				fprintf (stderr, "%5.5d: !!! reccurent refference \"%s\" to self \"%s\"(\"%s\")!!! \n",
+				fprintf (stderr,
+								 "%5.5d: !!! reccurent refference \"%s\" to self \"%s\"(\"%s\")!!! \n",
 								 level, entries[i], dc->name, dc->index_name);
 				continue;
 			}
@@ -1082,8 +1091,8 @@ void print_category_tree2 (ASCategoryTree * ct, ASDesktopCategory * dc)
 		fprintf (stderr, "category_tree.categories_num=%ld;\n",
 						 ct->categories->items_num);
 		print_category_subtree (ct,
-														dc ? dc->
-														index_name : DEFAULT_DESKTOP_CATEGORY_NAME, 0);
+														dc ? dc->index_name :
+														DEFAULT_DESKTOP_CATEGORY_NAME, 0);
 	}
 
 }

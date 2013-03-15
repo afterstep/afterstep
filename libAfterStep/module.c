@@ -335,9 +335,9 @@ void DestroyASMessage (ASMessage * msg)
 }
 
 
-void
-module_wait_pipes_input (void (*as_msg_handler)
-												 (send_data_type type, send_data_type * body))
+void module_wait_pipes_input (void (*as_msg_handler)
+															 (send_data_type type,
+																send_data_type * body))
 {
 	fd_set in_fdset, out_fdset;
 	int retval;
@@ -392,9 +392,9 @@ ConnectAfterStep (send_data_type message_mask,
 	/* connect to AfterStep */
 	/* Dead pipe == AS died */
 	signal (SIGPIPE, ASDeadPipe);
-	fd = ASDefaultScr->wmprops ? socket_connect_client (ASDefaultScr->
-																											wmprops->
-																											as_socket_filename) :
+	fd = ASDefaultScr->
+			wmprops ?
+			socket_connect_client (ASDefaultScr->wmprops->as_socket_filename) :
 			-1;
 
 	set_module_in_fd (fd);
@@ -475,9 +475,10 @@ void LoadBaseConfig (void (*read_base_options_func) (const char *))
 	}
 
 	if (Session->overriding_file == NULL) {
-		char *configfile =
-				make_session_file (Session, BASE_FILE,
-													 False /* no longer use #bpp in filenames */ );
+		char *configfile = make_session_file (Session, BASE_FILE,
+																					False
+																					/* no longer use #bpp in filenames */
+																					);
 
 		if (configfile != NULL) {
 			read_base_options_func (configfile);

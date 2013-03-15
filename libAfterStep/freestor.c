@@ -1442,8 +1442,8 @@ FreeStorageElem **Flags2FreeStorage (SyntaxDef * syntax,
 				tail =
 						Flag2FreeStorage (syntax, tail,
 															get_flags (flags,
-																				 xref->flag) ? xref->id_on : xref->
-															id_off);
+																				 xref->flag) ? xref->
+															id_on : xref->id_off);
 
 			xref++;
 		}

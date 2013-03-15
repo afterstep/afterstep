@@ -129,10 +129,9 @@ static void setup_active_balloon_tiles (ASBalloonState * state)
 										 state->active->data.image.filename,
 										 state->active->data.image.image);
 		if (state->active->data.image.image == NULL) {
-			ASImage *im =
-					get_asimage (ASDefaultScr->image_manager,
-											 state->active->data.image.filename,
-											 ASFLAGS_EVERYTHING, 100);
+			ASImage *im = get_asimage (ASDefaultScr->image_manager,
+																 state->active->data.image.filename,
+																 ASFLAGS_EVERYTHING, 100);
 			if (im) {
 				int scale_height = Scr.MyDisplayHeight / 5;
 				int scale_width = (scale_height * im->width) / im->height;
@@ -141,10 +140,9 @@ static void setup_active_balloon_tiles (ASBalloonState * state)
 				if (scale_width > Scr.MyDisplayWidth / 3)
 					tile_width = Scr.MyDisplayWidth / 4;
 				if (im->width > tile_width || im->height > scale_height) {
-					ASImage *tmp =
-							scale_asimage (ASDefaultVisual, im, scale_width,
-														 scale_height, ASA_ASImage, 100,
-														 ASIMAGE_QUALITY_DEFAULT);
+					ASImage *tmp = scale_asimage (ASDefaultVisual, im, scale_width,
+																				scale_height, ASA_ASImage, 100,
+																				ASIMAGE_QUALITY_DEFAULT);
 					safe_asimage_destroy (im);
 					im = tmp;
 					if (tile_width < scale_width) {
