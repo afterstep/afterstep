@@ -28,14 +28,14 @@
 
 #undef HAVE_DBUS_CONTEXT
 
+#ifdef HAVE_GIOLIB
+# include <gio/gio.h>
+# define GSM_MANAGER_SCHEMA        "org.gnome.SessionManager"
+# define KEY_AUTOSAVE              "auto-save-session"
+#endif
+
 #ifdef HAVE_DBUS1
 # include "dbus/dbus.h"
-
-# ifdef HAVE_GLIB
-#  include <gio/gio.h>
-#  define GSM_MANAGER_SCHEMA        "org.gnome.SessionManager"
-#  define KEY_AUTOSAVE              "auto-save-session"
-# endif
 
 # ifndef TEST_AS_DBUS
 #  define AFTERSTEP_APP_ID			            "afterstep"
