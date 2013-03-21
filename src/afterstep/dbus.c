@@ -28,7 +28,7 @@
 
 #undef HAVE_DBUS_CONTEXT
 
-#ifdef HAVE_GIOLIB
+#if defined(HAVE_GIOLIB) && defined(HAVE_GSETTINGS)
 # include <gio/gio.h>
 # define GSM_MANAGER_SCHEMA        "org.gnome.SessionManager"
 # define KEY_AUTOSAVE              "auto-save-session"
@@ -246,12 +246,14 @@ Bool get_gnome_autosave ()
 		g_types_inited = True;
 	}
 	if (ASDBus.gnomeSessionPath) {
+#if defined(HAVE_GSETTINGS)
 		GSettings *gsm_settings = g_settings_new (GSM_MANAGER_SCHEMA);
 		if (gsm_settings) {
 			autosave = g_settings_get_boolean (gsm_settings, KEY_AUTOSAVE);
   		g_object_unref (gsm_settings);
 		} else
 			show_error (" Failed to get gnome-session Autosave settings");
+#endif
 	}
 #endif
 	return autosave;

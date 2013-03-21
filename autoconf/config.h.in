@@ -37,6 +37,9 @@
 /* Support for OpenGL extention */
 #undef HAVE_GLX
 
+/* Define to 1 if the system has the type `GSettings'. */
+#undef HAVE_GSETTINGS
+
 /* GTK++ v.2.0 or higher is available */
 #undef HAVE_GTK
 

@@ -655,6 +655,10 @@ else
 			CLEAN_GIOLIB_CFLAGS=
 
 			AC_DEFINE(HAVE_GIOLIB,1,GIOLIB v.2.0 or higher is available )
+			gio_saved_cflags=$CFLAGS
+			export CFLAGS="$CFLAGS $GIOLIB_CFLAGS"
+			AC_CHECK_TYPES([GSettings],[],[],[[#include "gio/gio.h"]])
+			export CFLAGS=$gio_saved_cflags
 
 			present_libs="$LDFLAGS $LIBS $x_libs $AFTERIMAGE_LIBS";
 			for l in `echo "$GIOLIB_LIBS"`; do
