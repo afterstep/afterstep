@@ -7,17 +7,35 @@
 
 Unarchive the distribution AfterStep-<version>.tar.(gz|bz2) then -
 
-	./install.script
-		OR
 	./configure
 	make
 	make install
+
+Now if you do not use graphical login and session management all you have to do is this:
+
 	mv ~/.xinitrc ~/xinitrc.old
 	echo afterstep > ~/.xinitrc
 
-Then try AfterStep... I guess you'll love it.  If so, please vote for
-AfterStep at http://www.PLiG.org/xwinman/vote.html so we will check if our
-work is worth something :-)
+
+If indeed graphical login is used the situation is more complex.
+ -  If you have gnome-session version 3.0 and above - all you have to do is select
+    AfterStep from available sessions list on your graphical login screen.
+
+ -  If you prefer KDE environment, then you need to add :
+
+    KDEWM=afterstep
+    export KDEWM
+
+    to your /etc/profile. Then just select KDE session on login screen.
+
+ - If your system is older (such as RHEL 6) and gnome-session is version 2,
+   then you need to add :
+
+    WINDOW_MANAGER=afterstep
+    export WINDOW_MANAGER
+
+    to your /etc/profile. Then just select GNOME session on login screen.
+
 
  DETAILED INSTRUCTIONS
 +----------------------+
@@ -36,28 +54,28 @@ within the brackets.
   --with-helpcommand=APP  display manpage for window [xiterm -e man]
   --with-startsort=METHOD start menu sorting method [SORTBYALPHA]
   --enable-different-looknfeels
-			  different look&feel for each desktop [no] 
-  --with-desktops=DESKS   default desktops in pager [4] 
+			  different look&feel for each desktop [no]
+  --with-desktops=DESKS   default desktops in pager [4]
   --with-deskgeometry=GEOM
-			  desktop views as COLUMNSxROWS [2x2] 
-  --enable-newlook        support new look options (MyStyles) [yes] 
+			  desktop views as COLUMNSxROWS [2x2]
+  --enable-newlook        support new look options (MyStyles) [yes]
   --enable-pagerbackground
-			  provide background support with the Pager [yes] 
-  --enable-i18n           support I18N [no] 
-  --enable-xlocale        using X_LOCALE [no] 
-  --enable-menuwarp       warp mouse pointer to menus [no] 
-  --enable-savewindows    save windows and re-open next session [yes] 
-  --enable-makemenus      make the start menu from the start/ tree [yes] 
+			  provide background support with the Pager [yes]
+  --enable-i18n           support I18N [no]
+  --enable-xlocale        using X_LOCALE [no]
+  --enable-menuwarp       warp mouse pointer to menus [no]
+  --enable-savewindows    save windows and re-open next session [yes]
+  --enable-makemenus      make the start menu from the start/ tree [yes]
   --enable-makemenusonboot
-			  always make the start menu when starting AS [no] 
-  --enable-texture        support gradient, XPM, and JPEG textures [yes] 
-  --enable-shade          support shaded windows [yes] 
-  --enable-virtual        support virtual desktops [yes] 
-  --enable-saveunders     request saveunders for menus [yes] 
+			  always make the start menu when starting AS [no]
+  --enable-texture        support gradient, XPM, and JPEG textures [yes]
+  --enable-shade          support shaded windows [yes]
+  --enable-virtual        support virtual desktops [yes]
+  --enable-saveunders     request saveunders for menus [yes]
   --enable-windowlist     compile built-in window-list [yes]
-  --enable-availability   check for unavailable binaries [yes] 
-  --enable-staticlibs     enable linking to libafterstep statically [yes] 
-  --enable-script         compile Script module [yes] 
+  --enable-availability   check for unavailable binaries [yes]
+  --enable-staticlibs     enable linking to libafterstep statically [yes]
+  --enable-script         compile Script module [yes]
   --with-xpm              support XPM image format [yes]
   --with-jpeg             support JPEG image format [yes]
   --with-png              support PNG image format [yes]
@@ -86,7 +104,7 @@ and man pages.
 
         su root -
 	make install
-	
+
 Insert a call to the window manager within the X servers user script.  If the
 path to the installed binary is not in your PATH, then provide the full path
 to it in the echo.  By default the binaries are installed into /usr/local and
