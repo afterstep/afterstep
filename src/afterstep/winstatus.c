@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2002,2003 Sasha Vasko <sasha@aftercode.net>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1161,7 +1161,7 @@ int update_window_tbar_size (ASWindow * asw)
 		}
 		/* we need that to set up tbar size : */
 		set_astbar_size (asw->tbar, tbar_width, tbar_height);
-		/* does not matter if we use frame canvas, since part's 
+		/* does not matter if we use frame canvas, since part's
 		 * canvas resizes at frame canvas origin anyway */
 		move_astbar (asw->tbar, asw->frame_canvas, x_offset, y_offset);
 
@@ -1280,7 +1280,7 @@ void on_window_status_changed (ASWindow * asw, Bool reconfigured)
 			unsigned int *frame_size = &(asw->status->frame_size[0]);
 			unsigned short tbar_size = 0;
 /*			int bw = 0 ;
-			if( asw->hints && get_flags(asw->hints->flags, AS_Border)) 
+			if( asw->hints && get_flags(asw->hints->flags, AS_Border))
 				bw = asw->hints->border_width ; */
 			tbar_size = update_window_tbar_size (asw);
 			for (i = 0; i < FRAME_SIDES; ++i) {
@@ -1562,7 +1562,7 @@ Bool init_aswindow_status (ASWindow * t, ASStatusHints * status)
 	if (!get_flags (t->status->flags, AS_Sticky)) {
 		Bool absolute_origin = (!ASWIN_HFLAGS (t, AS_UseCurrentViewport));
 
-		if (absolute_origin && get_flags (t->hints->flags, AS_Transient) && get_flags (t->status->flags, AS_StartPositionUser)) {	/* most likely stupid KDE or GNOME app that is abusing USPosition 
+		if (absolute_origin && get_flags (t->hints->flags, AS_Transient) && get_flags (t->status->flags, AS_StartPositionUser)) {	/* most likely stupid KDE or GNOME app that is abusing USPosition
 																																																															   for no good reason - place it on current viewport */
 			absolute_origin = (t->status->x >= Scr.MyDisplayWidth ||
 												 t->status->y >= Scr.MyDisplayHeight);
@@ -2011,7 +2011,7 @@ do_change_aswindow_desktop (ASWindow * asw, int new_desk, Bool force)
 	ASWIN_DESK (asw) = new_desk;
 
 	if (!ASWIN_GET_FLAGS (asw, AS_Dead)) {
-		set_client_desktop (asw->w, new_desk);
+		set_client_desktop (asw->w, as_desk2ext_desk_safe(new_desk));
 
 		/* desktop changing : */
 		if (new_desk == Scr.CurrentDesk) {
@@ -2211,6 +2211,9 @@ void toggle_aswindow_status (ASWindow * asw, ASFlagType flags)
 		} else if (!ASWIN_GET_FLAGS (asw, AS_Fullscreen))
 			need_placement = True;
 	}
+
+	if (get_flags (flags, AS_Focused))
+		activate_aswindow (asw, False, True);
 
 	if (need_placement)
 		place_aswindow (asw);

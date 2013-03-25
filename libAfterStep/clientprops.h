@@ -177,6 +177,7 @@ extern Atom _XA_NET_WM_STATE_FULLSCREEN;
 extern Atom _XA_NET_WM_STATE_ABOVE;
 extern Atom _XA_NET_WM_STATE_BELOW;
 extern Atom _XA_NET_WM_STATE_DEMANDS_ATTENTION;
+extern Atom _XA_NET_WM_STATE_FOCUSED;
 
 #define MAX_NET_WM_STATES   12
 
@@ -495,7 +496,7 @@ typedef struct ExtendedWMHints
 #define EXTWM_StateToggle   2    /* toggle property  */
 
   ASFlagType flags;
-  
+
 #define EXTWM_TypeDesktop       (0x01<<0)
 #define EXTWM_TypeDock          (0x01<<1)
 #define EXTWM_TypeToolbar       (0x01<<2)
@@ -523,14 +524,17 @@ typedef struct ExtendedWMHints
 #define EXTWM_StateAbove	 	(0x01<<25)
 #define EXTWM_StateBelow	 	(0x01<<26)
 #define EXTWM_StateDemandsAttention	(0x01<<27)
+#define EXTWM_StateFocused	(0x01<<28)
+
 #define EXTWM_StateEverything   (EXTWM_StateModal|EXTWM_StateSticky|EXTWM_StateMaximizedV| \
 								 EXTWM_StateMaximizedH|EXTWM_StateShaded| \
 								 EXTWM_StateSkipTaskbar|EXTWM_StateSkipPager | \
 								 EXTWM_StateHidden|EXTWM_StateFullscreen| \
-								 EXTWM_StateAbove|EXTWM_StateBelow|EXTWM_StateDemandsAttention)
+								 EXTWM_StateAbove|EXTWM_StateBelow|EXTWM_StateDemandsAttention \
+								 |EXTWM_StateFocused)
 
   ASFlagType state_flags;
-  
+
   XTextProperty *name;
   XTextProperty *icon_name;
   XTextProperty *visible_name;
@@ -547,7 +551,7 @@ typedef struct KDEHints
 {
 #define KDE_DesktopWindow              (0x01<<0)
 #define KDE_SysTrayWindowFor           (0x01<<1)
-	
+
 	ASFlagType flags ;
 	Window systray_window_for;
 }KDEHints;

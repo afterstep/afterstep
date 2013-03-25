@@ -97,21 +97,21 @@ typedef enum
 	WMC_ASViewport      = (0x01<<15),
 	WMC_ASServiceWindow = (0x01<<16),
 	WMC_ASTBarProps	 	= (0x01<<17)
-	
+
 }WMPropClass;
 
 typedef struct ASTBarProps
-{	
+{
 	CARD32 align ;
 	CARD32 bevel ;
 	CARD32 title_h_spacing, title_v_spacing ;
 	CARD32 buttons_h_border, buttons_v_border ;
 	CARD32 buttons_spacing ;
-	CARD32 buttons_num ; 
+	CARD32 buttons_num ;
 	struct ASButtonPropElem
 	{
 		CARD32 kind ;
-		CARD32 pmap, mask, alpha ;		
+		CARD32 pmap, mask, alpha ;
 	}*buttons;
 }ASTBarProps ;
 
@@ -151,8 +151,8 @@ typedef struct ASWMProps
 	CARD32  desktop_names_num;
 	/* ClientList : */
 	CARD32  clients_num ;
-	Window        *client_list ;
-	Window        *stacking_order ;
+	CARD32        *client_list ;
+	CARD32        *stacking_order ;
 	/* ActiveWindow : */
 	Window         active_window ;
 	/* WorkArea : */
@@ -165,7 +165,7 @@ typedef struct ASWMProps
 	CARD32 *as_styles_data ;
 
 	/* ASBackground : */
-	/* we maintain separate ID on our own window so that modules don't have to listen to 
+	/* we maintain separate ID on our own window so that modules don't have to listen to
 	 * PropertyNotify on the root window */
 	Pixmap         as_root_pixmap;
 

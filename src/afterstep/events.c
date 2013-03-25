@@ -770,7 +770,7 @@ void HandleFocusIn (ASEvent * event)
 	if (Scr.Windows->focused != event->client) {
 		LOCAL_DEBUG_OUT ("CHANGE Scr.Windows->focused from %p to NULL",
 										 Scr.Windows->focused);
-		Scr.Windows->focused = NULL;
+		unset_focused_window();
 	}
 	if (event->client == NULL
 			&& get_flags (AfterStepState, ASS_HousekeepingMode))

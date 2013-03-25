@@ -162,9 +162,9 @@ HandlePaging (int HorWarpSize, int VertWarpSize, int *xl, int *yt,
 			if (Grab)
 				grab_server ();
 /* Pointer warping on viewport change is considered harmfull.
-Negative side effects include: 
+Negative side effects include:
 1) Sometime window don't get focus due to distorted sequence on EnterNotify/LeaveNotify
-2) User feels at a loss, trying to find where the god damn pointer has jumped to. 
+2) User feels at a loss, trying to find where the god damn pointer has jumped to.
 If they move it to the edge of the screen - they expect it to stay at the edge of the screen.
 */
 #if 0
@@ -290,7 +290,7 @@ Bool deskviewport_aswindow_iter_func (void *data, void *aux_data)
 		if (ASWIN_DESK (asw) != new_desk && IsValidDesk (new_desk)) {
 			ASWIN_DESK (asw) = new_desk;
 			if (!ASWIN_GET_FLAGS (asw, AS_Dead))
-				set_client_desktop (asw->w, new_desk);
+				set_client_desktop (asw->w, as_desk2ext_desk_safe(new_desk));
 			broadcast_config (M_CONFIGURE_WINDOW, asw);
 		} else if (ASWIN_GET_FLAGS (asw, AS_Iconic) && get_flags (Scr.Feel.flags, StickyIcons)) {	/* we must update let all the modules know that icon viewport has changed
 																																															 * we dont have to do that for Sticky non-iconified windows, since its assumed
@@ -324,6 +324,30 @@ Bool count_desk_client_iter_func (void *data, void *aux_data)
 	}
 	return True;
 }
+
+Bool update_desk_prop_iter_func (void *data, void *aux_data)
+{
+	ASWindow *asw = (ASWindow *) data;
+	if (asw != NULL && !ASWIN_GET_FLAGS (asw, AS_Dead)) {
+		int ext_desk = as_desk2ext_desk (Scr.wmprops, ASWIN_DESK(asw));
+		if (ext_desk != INVALID_DESKTOP_PROP)
+			set_client_desktop (asw->w, ext_desk);
+	}
+	return True;
+}
+
+int as_desk2ext_desk_safe (int as_desk)
+{
+	int ext_desk = as_desk2ext_desk (Scr.wmprops, as_desk);
+	if (ext_desk == INVALID_DESKTOP_PROP) {
+		set_desktop_num_prop (Scr.wmprops, as_desk, Scr.Root, True);
+		ext_desk = as_desk2ext_desk (Scr.wmprops, as_desk);
+		/* now we need to update NET_WM_DESKTOP properties on all clients to keep it in sync */
+		iterate_asbidirlist (Scr.Windows->clients, update_desk_prop_iter_func, NULL, NULL, False);
+	}
+	return ext_desk;
+}
+
 
 void
 ChangeDeskAndViewport (int new_desk, int new_vx, int new_vy,
@@ -372,9 +396,7 @@ ChangeDeskAndViewport (int new_desk, int new_vx, int new_vy,
 
 	if (Scr.CurrentDesk != new_desk) {
 		Scr.CurrentDesk = new_desk;
-
-		if (as_desk2ext_desk (Scr.wmprops, new_desk) == INVALID_DESKTOP_PROP)
-			set_desktop_num_prop (Scr.wmprops, new_desk, Scr.Root, True);
+		as_desk2ext_desk_safe (new_desk);
 		set_current_desk_prop (Scr.wmprops, new_desk);
 	}
 

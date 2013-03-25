@@ -101,6 +101,7 @@ Atom _XA_NET_WM_STATE_FULLSCREEN;
 Atom _XA_NET_WM_STATE_ABOVE;
 Atom _XA_NET_WM_STATE_BELOW;
 Atom _XA_NET_WM_STATE_DEMANDS_ATTENTION;
+Atom _XA_NET_WM_STATE_FOCUSED;
 
 Atom _XA_NET_WM_PID;
 Atom _XA_NET_WM_ICON;
@@ -111,7 +112,7 @@ Atom _XA_NET_WM_WINDOW_OPACITY;
  * http://developer.kde.org/documentation/library/kdeqt/kde3arch/protocols-docking.html
  * https://listman.redhat.com/archives/xdg-list/2002-March/msg00014.html
  * http://standards.freedesktop.org/systemtray-spec/systemtray-spec-0.2.html#ftn.id2494129
- * 
+ *
  */
 Atom _XA_KDE_DESKTOP_WINDOW = None;
 Atom _XA_KDE_NET_SYSTEM_TRAY_WINDOW_FOR = None;
@@ -195,6 +196,7 @@ AtomXref _EXTWM_State[] = {
 	{"_NET_WM_STATE_BELOW", &_XA_NET_WM_STATE_BELOW, EXTWM_StateBelow},
 	{"_NET_WM_STATE_DEMANDS_ATTENTION",
 	 &_XA_NET_WM_STATE_DEMANDS_ATTENTION, EXTWM_StateDemandsAttention},
+	{"_NET_WM_STATE_FOCUSED", &_XA_NET_WM_STATE_FOCUSED, EXTWM_StateFocused},
 	{NULL, NULL, 0, None}
 };
 
@@ -334,8 +336,8 @@ void read_wm_hints (ASRawHints * hints, Window w)
 				}
 			}
 			if (get_flags (hints->wm_hints->flags, IconWindowHint)) {
-				/* some apps are written by truly insane ppl, most notably those 
-				 * designed to be docked in Window Maker's dock 
+				/* some apps are written by truly insane ppl, most notably those
+				 * designed to be docked in Window Maker's dock
 				 * So lets bite the bullet and check if it is indeed sane :*/
 				if (hints->wm_hints->icon_window != w) {
 					unsigned int width, height;
@@ -352,7 +354,7 @@ void read_wm_hints (ASRawHints * hints, Window w)
 						hints->wm_hints->icon_window = w;
 					}
 				}
-				/* while merging hints we will disable iconification for the window that 
+				/* while merging hints we will disable iconification for the window that
 				 * has icon window same as client */
 
 				if (hints->wm_hints->icon_window == None)
@@ -1304,6 +1306,9 @@ void set_client_state (Window w, struct ASStatusHints *status)
 			if (get_flags (status->flags, AS_MaximizedY)) {
 				extwm_states[used++] = _XA_NET_WM_STATE_MAXIMIZED_VERT;
 				gnome_state |= WIN_STATE_MAXIMIZED_VERT;
+			}
+			if (get_flags (status->flags, AS_Focused)) {
+				extwm_states[used++] = _XA_NET_WM_STATE_FOCUSED;
 			}
 /*			if (get_flags (status->flags, AS_Urgent))
 			{

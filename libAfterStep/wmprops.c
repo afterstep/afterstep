@@ -118,33 +118,20 @@ AtomXref _WMPropAtoms[] = {
 	 "_WIN_WORKSPACE_COUNT", &_XA_WIN_WORKSPACE_COUNT}, {
 																											 "_WIN_WORKSPACE_NAMES",
 																											 &_XA_WIN_WORKSPACE_NAMES},
-	{
-	 "_WIN_CLIENT_LIST", &_XA_WIN_CLIENT_LIST},
+	{ "_WIN_CLIENT_LIST", &_XA_WIN_CLIENT_LIST},
 	/* Extended Window Manager Compatibility specs : */
-	{
-	 "_NET_SUPPORTED", &_XA_NET_SUPPORTED}, {
-																					 "_NET_CLIENT_LIST",
-																					 &_XA_NET_CLIENT_LIST}, {
-																																	 "_NET_CLIENT_LIST_STACKING",
-																																	 &_XA_NET_CLIENT_LIST_STACKING},
-	{
-	 "_NET_NUMBER_OF_DESKTOPS", &_XA_NET_NUMBER_OF_DESKTOPS}, {
-																														 "_NET_DESKTOP_GEOMETRY",
-																														 &_XA_NET_DESKTOP_GEOMETRY},
-	{
-	 "_NET_DESKTOP_VIEWPORT", &_XA_NET_DESKTOP_VIEWPORT}, {
-																												 "_NET_CURRENT_DESKTOP",
-																												 &_XA_NET_CURRENT_DESKTOP},
-	{
-	 "_NET_DESKTOP_NAMES", &_XA_NET_DESKTOP_NAMES}, {
-																									 "_NET_ACTIVE_WINDOW",
-																									 &_XA_NET_ACTIVE_WINDOW},
-	{
-	 "_NET_WORKAREA", &_XA_NET_WORKAREA}, {
-																				 "_NET_SUPPORTING_WM_CHECK",
-																				 &_XA_NET_SUPPORTING_WM_CHECK}, {
-																																				 "_NET_VIRTUAL_ROOTS",
-																																				 &_XA_NET_VIRTUAL_ROOTS},
+	{ "_NET_SUPPORTED", &_XA_NET_SUPPORTED},
+	{ "_NET_CLIENT_LIST", &_XA_NET_CLIENT_LIST},
+	{ "_NET_CLIENT_LIST_STACKING", &_XA_NET_CLIENT_LIST_STACKING},
+	{ "_NET_NUMBER_OF_DESKTOPS", &_XA_NET_NUMBER_OF_DESKTOPS},
+	{ "_NET_DESKTOP_GEOMETRY", &_XA_NET_DESKTOP_GEOMETRY},
+	{ "_NET_DESKTOP_VIEWPORT", &_XA_NET_DESKTOP_VIEWPORT},
+	{ "_NET_CURRENT_DESKTOP", &_XA_NET_CURRENT_DESKTOP},
+	{ "_NET_DESKTOP_NAMES", &_XA_NET_DESKTOP_NAMES},
+	{ "_NET_ACTIVE_WINDOW", &_XA_NET_ACTIVE_WINDOW},
+	{ "_NET_WORKAREA", &_XA_NET_WORKAREA},
+	{ "_NET_SUPPORTING_WM_CHECK", &_XA_NET_SUPPORTING_WM_CHECK},
+	{ "_NET_VIRTUAL_ROOTS", &_XA_NET_VIRTUAL_ROOTS},
 	/* AfterStep specific stuff : */
 	/* these are volitile properties ; */
 	{
@@ -696,31 +683,15 @@ prop_description_struct WMPropsDescriptions_root[] = {
 																													NULL,
 																													WMC_ClientList,
 																													WMP_NeedsCleanup},
-	{
-	 &_XA_NET_SUPPORTED, NULL, 0, 0}, {
-																		 &_XA_NET_CLIENT_LIST, NULL,
-																		 WMC_ClientList, WMP_NeedsCleanup}, {
-																																				 &_XA_NET_CLIENT_LIST_STACKING,
-																																				 NULL,
-																																				 WMC_ClientList,
-																																				 WMP_NeedsCleanup},
-	{
-	 &_XA_NET_NUMBER_OF_DESKTOPS, NULL, WMC_Desktops, 0}, {
-																												 &_XA_NET_DESKTOP_GEOMETRY,
-																												 read_net_desktop_geometry,
-																												 WMC_Desktops, 0},
-	{
-	 &_XA_NET_DESKTOP_VIEWPORT, read_extwm_desk_viewport,
-	 WMC_DesktopViewport, 0}, {
-														 &_XA_NET_CURRENT_DESKTOP,
-														 read_extwm_current_desk, WMC_DesktopCurrent,
-														 0}, {
-																	&_XA_NET_DESKTOP_NAMES, NULL,
-																	WMC_DesktopNames, 0}, {
-																												 &_XA_NET_ACTIVE_WINDOW,
-																												 NULL,
-																												 WMC_ActiveWindow,
-																												 WMP_NeedsCleanup},
+	{ &_XA_NET_SUPPORTED, NULL, 0, 0},
+	{ &_XA_NET_CLIENT_LIST, NULL, WMC_ClientList, WMP_NeedsCleanup},
+	{ &_XA_NET_CLIENT_LIST_STACKING, NULL, WMC_ClientList, WMP_NeedsCleanup},
+	{ &_XA_NET_NUMBER_OF_DESKTOPS, NULL, WMC_Desktops, 0},
+	{ &_XA_NET_DESKTOP_GEOMETRY, read_net_desktop_geometry, WMC_Desktops, 0},
+	{ &_XA_NET_DESKTOP_VIEWPORT, read_extwm_desk_viewport, WMC_DesktopViewport, 0},
+	{ &_XA_NET_CURRENT_DESKTOP, read_extwm_current_desk, WMC_DesktopCurrent, 0},
+	{	&_XA_NET_DESKTOP_NAMES, NULL,	WMC_DesktopNames, 0},
+	{ &_XA_NET_ACTIVE_WINDOW, NULL, WMC_ActiveWindow, WMP_NeedsCleanup},
 	{
 	 &_XA_NET_WORKAREA, NULL, WMC_WorkArea, WMP_NeedsCleanup}, {
 																															&_XA_NET_SUPPORTING_WM_CHECK,
@@ -1285,9 +1256,9 @@ static void realloc_clients_list (ASWMProps * wmprops, int nclients)
 	} else {
 		if (wmprops->clients_num < nclients) {
 			wmprops->client_list =
-					realloc (wmprops->client_list, nclients * sizeof (Window));
+					realloc (wmprops->client_list, nclients * sizeof (CARD32));
 			wmprops->stacking_order =
-					realloc (wmprops->stacking_order, nclients * sizeof (Window));
+					realloc (wmprops->stacking_order, nclients * sizeof (CARD32));
 		}
 		wmprops->clients_num = nclients;
 	}
@@ -1301,11 +1272,13 @@ void set_clients_list (ASWMProps * wmprops, Window * list, int nclients)
 			XDeleteProperty (dpy, wmprops->scr->Root, _XA_NET_CLIENT_LIST);
 			XDeleteProperty (dpy, wmprops->scr->Root, _XA_WIN_CLIENT_LIST);
 		} else {
+			int i;
+			for (i = 0 ; i < nclients ; ++i) wmprops->client_list[i] = list[i];
+
 			set_32bit_proplist (wmprops->scr->Root, _XA_NET_CLIENT_LIST,
-													XA_WINDOW, (CARD32 *) list, nclients);
+													XA_WINDOW, wmprops->client_list, nclients);
 			set_32bit_proplist (wmprops->scr->Root, _XA_WIN_CLIENT_LIST,
-													XA_CARDINAL, (CARD32 *) list, nclients);
-			memcpy (wmprops->client_list, list, nclients * sizeof (Window));
+													XA_CARDINAL, wmprops->client_list, nclients);
 		}
 		XFlush (dpy);
 	}
@@ -1320,10 +1293,11 @@ void set_stacking_order (ASWMProps * wmprops, Window * list, int nclients)
 											 _XA_NET_CLIENT_LIST_STACKING);
 
 		else {
+			int i;
+			for (i = 0 ; i < nclients ; ++i) wmprops->stacking_order[i] = list[i];
 			set_32bit_proplist (wmprops->scr->Root,
 													_XA_NET_CLIENT_LIST_STACKING, XA_WINDOW,
-													(CARD32 *) list, nclients);
-			memcpy (wmprops->stacking_order, list, nclients * sizeof (Window));
+													wmprops->stacking_order, nclients);
 		}
 		XFlush (dpy);
 	}

@@ -203,7 +203,7 @@ ASWindow *AddWindow (Window w, Bool from_map_request)
 
 	/* we want to set event mask as soon as possible so not to miss eny configure
 	 * request that happen after we get client's geometry in collect_hints,
-	 * and the moment when we afctually setup client's decorations. 
+	 * and the moment when we afctually setup client's decorations.
 	 */
 	XSelectInput (dpy, w, AS_CLIENT_EVENT_MASK);
 
@@ -269,9 +269,9 @@ ASWindow *AddWindow (Window w, Bool from_map_request)
 	enlist_aswindow (tmp_win);
 	redecorate_window (tmp_win, False);
 	/* saving window management properties : */
-	set_client_desktop (tmp_win->w, ASWIN_DESK (tmp_win));
+	set_client_desktop (tmp_win->w, as_desk2ext_desk_safe(ASWIN_DESK (tmp_win)));
 
-	/* we have to set shape on frame window. If window has title - 
+	/* we have to set shape on frame window. If window has title -
 	 * on_window_title_changed will take care of it - otherwise we force it
 	 * by calling SetShape directly.
 	 */
@@ -587,7 +587,7 @@ void RestoreWithdrawnLocation (ASWindow * asw, Bool restart)
 				LOCAL_DEBUG_OUT ("map_too = %d", map_too);
 				if (map_too)
 					XMapWindow (dpy, asw->w);
-/*				else 
+/*				else
 					XUnmapWindow (dpy, asw->w); */
 				XSync (dpy, False);
 			}

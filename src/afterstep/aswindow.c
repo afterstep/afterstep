@@ -318,7 +318,7 @@ static void do_save_aswindow (ASWindow * asw,
 		} else
 			supports_geometry = True;
 
-		if (!ASWIN_HFLAGS (asw, AS_Handles)) {	/* we want to remove size from geometry here, 
+		if (!ASWIN_HFLAGS (asw, AS_Handles)) {	/* we want to remove size from geometry here,
 																						 * unless it was requested in original cmd-line geometry */
 			stripreplace_geometry_size (&geom, original_size);
 		}
@@ -1206,9 +1206,9 @@ static ASWindow **get_stacking_order_list (ASWindowList * list,
 	ASWindow **list = PVECTOR_HEAD(ASWindow*, Scr.Windows->stacking_order);
 	fprintf (stderr, "Stacking order of %d windows: \n", stack_len);
 	for ( i = 0 ; i < stack_len; ++i)
-		fprintf (stderr, "\t%4.4d : id = 0x%8.8lX, ptr = %p, name = \"%s\"\n", 
+		fprintf (stderr, "\t%4.4d : id = 0x%8.8lX, ptr = %p, name = \"%s\"\n",
 				 i, list[i]->w, list[i], ASWIN_NAME(list[i]));
-}	
+}
 ****/
 	return PVECTOR_HEAD (ASWindow *, Scr.Windows->stacking_order);
 }
@@ -1296,11 +1296,11 @@ void publish_aswindow_list (ASWindowList * list, Bool stacking_only)
 		ASWindow **stack = get_stacking_order_list (Scr.Windows, &stack_len);
 		ASVector *ids = get_scratch_ids_vector ();
 
-		/* we maybe called from Destroy, in which case one of the clients may be 
+		/* we maybe called from Destroy, in which case one of the clients may be
 		   delisted from main list, while still present in it's owner's transients list
-		   which is why we use +1 - This was happening for some clients who'd have 
-		   recursive transients ( transient of a transient of a transient ) 
-		   Since we added check to unroll that sequence in tie_aswindow - problem had gone away, 
+		   which is why we use +1 - This was happening for some clients who'd have
+		   recursive transients ( transient of a transient of a transient )
+		   Since we added check to unroll that sequence in tie_aswindow - problem had gone away,
 		   but lets keep on adding 1 just in case.
 		 */
 		if (!stacking_only) {
@@ -1516,7 +1516,7 @@ Bool is_window_obscured (ASWindow * above, ASWindow * below)
 			}
 		}
 	} else if (above != NULL) {		/* checking if window "above" is completely obscuring any of the
-																   windows with the same layer below it in stacking order, 
+																   windows with the same layer below it in stacking order,
 																   or any of its transients !!! */
 		register int i;
 
@@ -1670,6 +1670,15 @@ ASWindow *get_next_window (ASWindow * curr_win, char *action, int dir)
 /********************************************************************
  * hides focus for the screen.
  **********************************************************************/
+void unset_focused_window()
+{
+	if (Scr.Windows->focused) {
+		ASWIN_CLEAR_FLAGS(Scr.Windows->focused, AS_Focused);
+		set_client_state (Scr.Windows->focused->w, Scr.Windows->focused->status);
+		Scr.Windows->focused = NULL;
+	}
+}
+
 void hide_focus ()
 {
 	if (get_flags (Scr.Feel.flags, ClickToFocus)
@@ -1678,7 +1687,8 @@ void hide_focus ()
 
 	LOCAL_DEBUG_CALLER_OUT ("CHANGE Scr.Windows->focused from %p to NULL",
 													Scr.Windows->focused);
-	Scr.Windows->focused = NULL;
+
+	unset_focused_window();
 	Scr.Windows->ungrabbed = NULL;
 	XRaiseWindow (dpy, Scr.ServiceWin);
 	LOCAL_DEBUG_OUT ("XSetInputFocus(window= %lX (service_win), time = %lu)",
@@ -1744,11 +1754,11 @@ Bool focus_window (ASWindow * asw, Window w)
 									 asw->w, asw->frame, asw);
 	/* using last_Timestamp here causes problems when moving between screens */
 	/* at the same time using CurrentTime all the time seems to cause some apps to fail,
-	 * most noticeably GTK-perl 
-	 * 
+	 * most noticeably GTK-perl
+	 *
 	 * Take 2: disabled CurrentTime altogether as it screwes up focus handling
-	 * Basically if you use CurrentTime when there are still bunch of Events 
-	 * in the queue, those evens will not have any effect if you try setting 
+	 * Basically if you use CurrentTime when there are still bunch of Events
+	 * in the queue, those evens will not have any effect if you try setting
 	 * focus using their time, as X aready used its own friggin current time.
 	 * Don't ask, its a mess.
 	 * */
@@ -1866,7 +1876,11 @@ Bool focus_aswindow (ASWindow * asw, Bool suppress_autoraise)
 
 		LOCAL_DEBUG_CALLER_OUT ("CHANGE Scr.Windows->focused from %p to %p",
 														Scr.Windows->focused, asw);
+		unset_focused_window();
 		Scr.Windows->focused = asw;
+		ASWIN_SET_FLAGS(asw, AS_Focused);
+		set_client_state (asw->w, asw->status);
+
 		if (!suppress_autoraise)
 			autoraise_window (asw);
 	}
