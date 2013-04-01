@@ -2,6 +2,9 @@ CHANGELOG
 ----------------------
 
 [2013-04-01: Sasha Vasko]
+ * AfterStep 2.2.12 release
+ * updated configure script to remove old privacy notice and add install
+   instructions.
  * Added tools/git-cl.sh for ChangeLog generation and updated Makefile.in
    accordingly
 
@@ -3755,7 +3758,7 @@ CHANGELOG
  * M.-A. DARCHE: - Captured image filenames have now different prefixes,
    "capture_window",   "capture_framedwindow" and "capture_screen".
  * M.-A. DARCHE: - Renamed in the non-configurable/0_feel "Take screen shot"
-   menu entries into:   * Capture window image   * Capture framed window image 
+   menu entries into:   * Capture window image   * Capture framed window image
     * Capture screen image - The order is also changed so that it is more
    logical, from narrow (window) to   wide (screen) focus. This order should be
    more logical and thus more user   friendly.
@@ -4105,7 +4108,7 @@ CHANGELOG
  * Changed ASDocGen to not create files writeable by the world
 
 [2004-09-11: madarche]
- * - Since AS forms are not working (at least at this time), replacing  
+ * - Since AS forms are not working (at least at this time), replacing
    TakeScreenShot, TakeWindowShot and TakeFrameShot by their equivalent in
    shell   scripts using X xwd program + ImageMagick for conversion. - Made the
    xlock command really lock the screen, otherwise it wouldn't be   useful
@@ -4113,7 +4116,7 @@ CHANGELOG
    some time with no events.
  * # Commenting the following keybindings because they trap Mozilla history #
    navigation keybindings: #Key Left        A       M       Scroll -10 +0 #Key
-   Right       A       M       Scroll +10 +0 #Key Up          A       M      
+   Right       A       M       Scroll +10 +0 #Key Up          A       M
    Scroll +0  -10 #Key Down        A       M       Scroll +0  +10
 
 [2004-09-10: sasha]
@@ -4123,7 +4126,7 @@ CHANGELOG
 
 [2004-09-10: madarche]
  * Disabling those bindings since the "Alt + tab" combo does already the same
-   and it takes bindings used by Emacs. #Key Meta_L      A       A      
+   and it takes bindings used by Emacs. #Key Meta_L      A       A
    WarpFore #Key Meta_R      A       A       WarpBack
  * Those settings make a more sensible choice for most users who want an
    intuitive AfterStep right out of the box (they will be able to modify this
@@ -6245,7 +6248,7 @@ CHANGELOG
    label off alittle bit; Began implementing support for DrawMenuBorders
    setting
  * implemented root background grab when pixmap ID is not set; When Root
-   background is unavailable - instead of returning empty image - better 
+   background is unavailable - instead of returning empty image - better
    create some solid ASImage
 
 [2002-12-02: sasha]
@@ -6256,7 +6259,7 @@ CHANGELOG
    label could be aligned right or center ; debugged vertical tbars and buttons
    layout
  * implemented root background grab when pixmap ID is not set; When Root
-   background is unavailable - instead of returning empty image - better 
+   background is unavailable - instead of returning empty image - better
    create some solid ASImage
 
 [2002-11-30: sashav]
@@ -6596,17 +6599,17 @@ CHANGELOG
  *  back to hacking WinLIst2 to implement TrueType font rendering
 
 [2002-06-24: allanon]
- *  o re-ordered a bit of code so that the width and height attributes of   
+ *  o re-ordered a bit of code so that the width and height attributes of
    <scale> could use variables defined by children of the tag
 
 [2002-05-24: sashav]
  * compilation warning
 
 [2002-05-22: allanon]
- *  o added support for multi-bit-depth displays like those found on Solaris   
-   boxes: 8bpp root window, with 24bpp possible to afterstep; note that   
+ *  o added support for multi-bit-depth displays like those found on Solaris
+   boxes: 8bpp root window, with 24bpp possible to afterstep; note that
    asetroot still does not support this situation, so transparency modes    do
-   not work  o moved around audit.h includes to allow AS to be compiled with   
+   not work  o moved around audit.h includes to allow AS to be compiled with
    --enable-audit again
 
 [2002-05-20: sashav]
@@ -7227,7 +7230,7 @@ CHANGELOG
  * Fixed reversed cursor assignments while executing functions
 
 [2001-09-04: allanon]
- *  o (libAfterImage) added blur_asimage_gauss() to do a gaussian blur; this   
+ *  o (libAfterImage) added blur_asimage_gauss() to do a gaussian blur; this
    function currently only supports horizontal blurs  o (ascompose) added
    <blur> as an undocumented feature, for testing only
 
@@ -7289,7 +7292,7 @@ CHANGELOG
    TRuyeType fonts with different point size
 
 [2001-08-25: allanon]
- *  o (ascompose) fixed x,y handling for <composite>; yes, i know i still   
+ *  o (ascompose) fixed x,y handling for <composite>; yes, i know i still
    haven't documented them - they're obviously not ready yet :)
 
 [2001-08-22: sashav]
@@ -7517,7 +7520,7 @@ CHANGELOG
  * Temporarily plugged bug in layer merging descovered by allanon, when
    bottommost layer does not have any image in it.
  * Reimplemented image output to allow for flexible support for many image
-   formats - right now it could be ASImage itself, XImage, mask XImage and 
+   formats - right now it could be ASImage itself, XImage, mask XImage and
    ARGB32. Surprisingly that simplified code quite abit. Fixed ugly bug in
    create_asimage. Completed and debugged astext tutorial.
  * fixed text size calculations; fixed (almost) bevel drawing  - need to think
@@ -7746,7 +7749,7 @@ CHANGELOG
    else.
  * Created prototype for the new library structure - libAfterBase. There will
    be two more libraries : libAfterImage and libAfterStep. This is to split
-   generic and non-generic code and allow for libraries to be used separately 
+   generic and non-generic code and allow for libraries to be used separately
    - as a preparation for libAfterImage release as a stand-alone library.)
 
 [2001-05-23: allanon]

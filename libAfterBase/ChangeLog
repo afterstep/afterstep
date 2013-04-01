@@ -1,6 +1,10 @@
 CHANGELOG
 ----------------------
 
+[2013-04-01: Sasha Vasko]
+ * updated configure script to remove old privacy notice and add install
+   instructions.
+
 [2013-03-14: Sasha Vasko]
  * Fixed compile - instead of linking to glib we now link to gio - was causing
    compile problems without svg support
