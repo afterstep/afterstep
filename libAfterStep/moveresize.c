@@ -876,15 +876,15 @@ void move_func (struct ASMoveResizeData *data, int x, int y)
 
 	new_x = data->curr.x + dx;
 	new_y = data->curr.y + dy;
-	LOCAL_DEBUG_OUT ("pointer_state = %X, no_snap_mod = %X",
-									 data->pointer_state & AllModifierMask,
-									 data->feel->no_snaping_mod);
+	LOCAL_DEBUG_OUT ("pointer_state = %X, no_snap_mod = %X, nonlock_mods = %X",
+									 data->pointer_state & nonlock_mods,
+									 data->feel->no_snaping_mod, nonlock_mods);
 	LOCAL_DEBUG_OUT
 			("pos(%+d%+d)->delta(%+d%+d)->new(%+d%+d)->lag(%+d%+d)->last(%+d%+d)",
 			 x, y, dx, dy, new_x, new_y, data->lag_x, data->lag_y, data->last_x,
 			 data->last_y);
 	if (data->grid
-			&& (data->pointer_state & AllModifierMask) !=
+			&& (data->pointer_state & nonlock_mods) !=
 			data->feel->no_snaping_mod) {
 		attract_corner (data, &new_x, &new_y);
 		dx = new_x - data->curr.x;
@@ -921,7 +921,7 @@ void resize_func (struct ASMoveResizeData *data, int x, int y)
 	real_dy = dy = y - (data->last_y + data->lag_y);
 
 	if (data->grid
-			&& (data->pointer_state & AllModifierMask) !=
+			&& (data->pointer_state & nonlock_mods) !=
 			data->feel->no_snaping_mod) {
 		h_lines = data->grid->h_lines;
 		v_lines = data->grid->v_lines;
