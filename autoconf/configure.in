@@ -996,41 +996,13 @@ afterstep/start/1_Desktop/Pictures/User_Backgrounds/.include \
 
 
 echo "
-PRIVACY NOTICE
-
-As required by goverment regulations we now disclose all the illigal snooping
-activities, that AfterStep Window Manager will be performing on your
-computer(s).
-
-Being Big Brother AfterStep will keep an eye on any suspicious window movements
-on your screen, different clicking sounds made by your keyboard, detect slightest
-vibrations of your mouse/trackball, and most importantly  - it will keep track
-of what images your are displaying in the root window of your desktop.
-
-Being Good hearted Big Brother, though AfterStep will keep all this information
-in secret, and most likely will forget about it immidiately. Nothing will be
-logged, mailed, broadcast or otherwise disclosed to unauthorized parties. So
-your secrets are safe with it.
-
-The only exception is when you compile it with --enable-gdb option or
---enable-audit. In this case significant amounts of activity will be logged -
-printed into console output. Make sure you keep it safe from all the malicious
-persons out there (and from overflowing your disk)! It is your responsibility
-now.
-
-We, the developers, always like to hear from you the user, and we would
-greately appreciate if you could let us know about any questions or suggestions
-you might have. Either e-mail us at as-users at afterstep . org or come talk to us
-on #afterstep channel at freenode.net IRC network.
-
-Also you could send us an automated postcard, by using configure switch of :
---enable-send-postcard-to-developer
-
 AfterStep $version IS NOW HOPEFULLY CONFIGURED:
 
 Just run : make ; make install
 
-and enjoy your eyecandy :)
+Please consult INSTALL file for additional configuration steps
+required for your favorite desktop environment.
+
 Other make targets you may find usefull :
 
 make install.data       - installs all the images, fonts, etc.

@@ -187,7 +187,10 @@ configclean:
         done; \
 
 ChangeLog:
-	tools/cvs2cl.as.pl --hide-filenames --no-times
-	@(cd libAfterBase ; ../tools/cvs2cl.as.pl --hide-filenames --no-times); \
-        (cd libAfterImage ; ../tools/cvs2cl.as.pl --hide-filenames --no-times)
+#	tools/cvs2cl.as.pl --hide-filenames --no-times
+#	@(cd libAfterBase ; ../tools/cvs2cl.as.pl --hide-filenames --no-times); \
+#        (cd libAfterImage ; ../tools/cvs2cl.as.pl --hide-filenames --no-times)
+	tools/git-cl.sh .; \
+	tools/git-cl.sh libAfterBase ; \
+	tools/git-cl.sh libAfterImage
 
