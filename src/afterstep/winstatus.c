@@ -2231,7 +2231,7 @@ Bool activate_aswindow (ASWindow * asw, Bool force, Bool deiconify)
 	LOCAL_DEBUG_CALLER_OUT ("%p, %d, %d", asw, force, deiconify);
 	LOCAL_DEBUG_OUT ("current focused is %p, active is %p",
 									 Scr.Windows->focused, Scr.Windows->active);
-	if (asw == NULL)
+	if (asw == NULL || asw->status == NULL || ASWIN_GET_FLAGS (asw, AS_Dead))
 		return False;
 
 	if (force) {

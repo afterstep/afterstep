@@ -799,7 +799,7 @@ Bool on_dead_aswindow (Window w)
 {
 	ASWindow *asw = window2ASWindow (w);
 	if (asw) {
-		if (w == asw->w) {
+		if (w == asw->w && asw->status != NULL) {
 			ASWIN_SET_FLAGS (asw, AS_Dead);
 			show_progress
 					("marking client's window as destroyed for client \"%s\", window 0x%X",
@@ -1673,8 +1673,10 @@ ASWindow *get_next_window (ASWindow * curr_win, char *action, int dir)
 void unset_focused_window()
 {
 	if (Scr.Windows->focused) {
-		ASWIN_CLEAR_FLAGS(Scr.Windows->focused, AS_Focused);
-		set_client_state (Scr.Windows->focused->w, Scr.Windows->focused->status);
+		if (Scr.Windows->focused->status) {
+			ASWIN_CLEAR_FLAGS(Scr.Windows->focused, AS_Focused);
+			set_client_state (Scr.Windows->focused->w, Scr.Windows->focused->status);
+		}
 		Scr.Windows->focused = NULL;
 	}
 }
