@@ -1,6 +1,6 @@
 [GNOME Session]
 Name=AfterStep
-RequiredComponents=
+RequiredComponents=gnome-settings-daemon;
 RequiredProviders=windowmanager;
 DefaultProvider-windowmanager=AfterStep
 
