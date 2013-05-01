@@ -620,6 +620,37 @@ position2Volume( int x, int y )
   return adata.v;
 }
 
+typedef struct {
+	const char *name;
+	ASVolume *v;
+} ASVolumeByName;
+
+Bool volumeByName(void *data, void *aux_data) {
+  ASVolume *v = (ASVolume*)data;
+	ASVolumeByName *adata = (ASVolumeByName*) aux_data;
+	LOCAL_DEBUG_OUT ("name = \"%s\", volume_name = \"%s\"", 
+	                  adata->name, v->name); 
+  if (v->name && strcmp(v->name, adata->name) == 0) {
+		adata->v = v;
+		return False;
+	}
+  return True;
+}
+
+ASVolume* 
+name2Volume (const char *name)
+{
+	if (name) {
+		ASVolumeByName adata;
+		adata.name = name;
+		adata.v = NULL;
+
+		iterate_asbidirlist (AppState.volumes, volumeByName, &adata, NULL, False);
+  	return adata.v;
+  }
+  return NULL;
+}
+
 
 /******************************************************************************/
 /* Signal Handlers : */
@@ -647,7 +678,17 @@ static void mount_removed (GVolumeMonitor *monitor,	GMount *mount, GObject *unus
 
 static void volume_added  (GVolumeMonitor *monitor, GVolume *volume, GObject *unused)
 {
-	ASVolume *v = ASVolume_newGVolume (volume);
+	ASVolume *v;
+	char* name = g_volume_get_name (volume);
+	if (name == NULL)
+		return;
+	/* check if existing - could have been added at the initialization phase */
+	v = name2Volume (name);
+	free (name);
+	if (v != NULL)
+		return;
+
+	v = ASVolume_newGVolume (volume);
 	SHOW_CHECKPOINT;
 	if (v) {
 		show_progress ("Volume \"%s\" added", v->name);
@@ -1209,7 +1250,7 @@ void init_ASMount(ASFlagType flags, const char *cmd)
 
 	GList *tmp;
 	GList *list = g_volume_monitor_get_volumes(G_VOLUME_MONITOR(monitor));
-
+	show_activity ("Adding volumes...");
   for (tmp = list; tmp != NULL; tmp = tmp->next) {
 		ASVolume *v = ASVolume_newGVolume (tmp->data);
 		if (v)
@@ -1219,6 +1260,8 @@ void init_ASMount(ASFlagType flags, const char *cmd)
 	}
   g_list_free (list);
 
+#if 1
+	show_activity ("Adding mounts...");
   list = g_volume_monitor_get_mounts(G_VOLUME_MONITOR(monitor));
   for (tmp = list; tmp != NULL; tmp = tmp->next) {
 		ASVolume *v = ASVolume_newGMount (tmp->data);
@@ -1228,7 +1271,7 @@ void init_ASMount(ASFlagType flags, const char *cmd)
 			g_object_unref (tmp->data);
 	}
   g_list_free (list);
-
+#endif
 	AppState.volumeMonitor = monitor;	
 	
 	redecorateVolumes ();	
