@@ -1,0 +1,9 @@
+RecentSubmenuItems 0
+SmallMiniPixmap Folder-JFK
+keepname
+
+include "/usr/share/backgrounds/Propaganda" BackgroundForeign
+include "~/Pictures/Propaganda" BackgroundForeign
+
+Comment "Propaganda tiles & images. If you do not see anything here - then please download the archive from ftp://ftp.afterstep.org/backgrounds and place into ~/Pictures."
+
