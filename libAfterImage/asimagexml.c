@@ -89,7 +89,7 @@ static char* cdata_str = XML_CDATA_STR;
  * saved into the file or requested type.
  *
  * TAGS
- * 
+ *
  * Here is the list and description of possible XML tags to use in the
  * script :
  * 	img       - load image from the file.
@@ -136,7 +136,7 @@ static char* cdata_str = XML_CDATA_STR;
  *
  * Each tag is only allowed to return ONE image.
  *
-* 
+*
  *****/
 
 static ASImageManager *_as_xml_image_manager = NULL ;
@@ -154,7 +154,7 @@ void set_xml_font_manager( ASFontManager *fontman )
 
 
 
-ASImageManager *create_generic_imageman(const char *path)		
+ASImageManager *create_generic_imageman(const char *path)
 {
 	ASImageManager *my_imman = NULL ;
 	char *path2 = copy_replace_envvar( getenv( ASIMAGE_PATH_ENVVAR ) );
@@ -169,7 +169,7 @@ ASImageManager *create_generic_imageman(const char *path)
 	return my_imman;
 }
 
-ASFontManager *create_generic_fontman(Display *dpy, const char *path)		   
+ASFontManager *create_generic_fontman(Display *dpy, const char *path)
 {
 	ASFontManager  *my_fontman ;
 	char *path2 = copy_replace_envvar( getenv( ASFONT_PATH_ENVVAR ) );
@@ -212,7 +212,7 @@ compose_asimage_xml_from_doc(ASVisual *asv, ASImageManager *imman, ASFontManager
 
 	    asxml_var_init();
 #if (HAVE_AFTERBASE_FLAG==1)
-		if (verbose > 1) 
+		if (verbose > 1)
 		{
 			xml_print(doc);
 			fprintf(stderr, "\n");
@@ -220,7 +220,7 @@ compose_asimage_xml_from_doc(ASVisual *asv, ASImageManager *imman, ASFontManager
 #endif
 
 		if( my_imman == NULL )
-		{	
+		{
 			if( _as_xml_image_manager == NULL )
 			{
 				local_dir_included	  = True ;
@@ -234,13 +234,13 @@ compose_asimage_xml_from_doc(ASVisual *asv, ASImageManager *imman, ASFontManager
 			register int i = 0;
 			char **paths = my_imman->search_path ;
 			while( i < MAX_SEARCH_PATHS && paths[i] != NULL ) ++i;
-			if( i < MAX_SEARCH_PATHS ) 
-			{	
-				paths[i] = mystrdup(path) ;			
+			if( i < MAX_SEARCH_PATHS )
+			{
+				paths[i] = mystrdup(path) ;
 				paths[i+1] = NULL ;
 				my_imman_curr_dir_path_idx = i ;
 			}
-		}	 
+		}
 
 		if( my_fontman == NULL )
 		{
@@ -249,10 +249,10 @@ compose_asimage_xml_from_doc(ASVisual *asv, ASImageManager *imman, ASFontManager
 			my_fontman = _as_xml_font_manager ;
 		}
 
-		/* save old target size to be restored at the end */		
+		/* save old target size to be restored at the end */
 		old_target_width = asxml_var_get(ASXMLVAR_TargetWidth);
 		old_target_height = asxml_var_get(ASXMLVAR_TargetHeight);
-		/* set current target size */		
+		/* set current target size */
 		asxml_var_insert(ASXMLVAR_TargetWidth, target_width);
 		asxml_var_insert(ASXMLVAR_TargetHeight, target_height);
 
@@ -272,19 +272,19 @@ compose_asimage_xml_from_doc(ASVisual *asv, ASImageManager *imman, ASFontManager
 				  {
 				  	safe_asimage_destroy(im);
 					im = tmp;
-				  }						
+				  }
 			  }
 		  }
-		/* restore old target size to be restored at the end */		
+		/* restore old target size to be restored at the end */
 		asxml_var_insert(ASXMLVAR_TargetWidth, old_target_width);
 		asxml_var_insert(ASXMLVAR_TargetHeight, old_target_height);
 
 LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.8lX", im, im?im->imageman:NULL, my_imman, im?im->magic:0 );
-		
-		if( my_imman_curr_dir_path_idx < MAX_SEARCH_PATHS && my_imman->search_path[my_imman_curr_dir_path_idx]) 
+
+		if( my_imman_curr_dir_path_idx < MAX_SEARCH_PATHS && my_imman->search_path[my_imman_curr_dir_path_idx])
 		{
 			free(my_imman->search_path[my_imman_curr_dir_path_idx]);
-			my_imman->search_path[my_imman_curr_dir_path_idx] = NULL ;			
+			my_imman->search_path[my_imman_curr_dir_path_idx] = NULL ;
 		}
 
 		if( my_imman != imman && my_imman != old_as_xml_imman )
@@ -299,7 +299,7 @@ LOCAL_DEBUG_OUT( "result im = %p, im->imman	= %p, my_imman = %p, im->magic = %8.
 		/* must restore managers to its original state */
 		_as_xml_image_manager = old_as_xml_imman   ;
 		_as_xml_font_manager =  old_as_xml_fontman ;
-		
+
 	}
 	LOCAL_DEBUG_OUT( "returning im = %p, im->imman	= %p, im->magic = %8.8lX", im, im?im->imageman:NULL, im?im->magic:0 );
 	return im;
@@ -429,16 +429,16 @@ typedef struct ASImageXMLState
 
 	int verbose ;
 	Window display_win ;
-	
+
 }ASImageXMLState;
 
 
 ASImage *commit_xml_image_built( ASImageXMLState *state, char *id, ASImage *result )
-{	
-	if (state && id && result) 
+{
+	if (state && id && result)
 	{
     	char* buf = NEW_ARRAY(char, strlen(id) + 1 + 6 + 1);
-		if( state->verbose > 1 ) 
+		if( state->verbose > 1 )
 			show_progress("Storing image id [%s] with image manager %p .", id, state->imman);
     	sprintf(buf, "%s.width", id);
         asxml_var_insert(buf, result->width);
@@ -475,26 +475,26 @@ translate_tag_size(	const char *width_str, const char *height_str, ASImage *imtm
 {
 	int width_ref = 0;
 	int height_ref = 0;
-	int width = 0, height = 0 ; 
-	LOCAL_DEBUG_OUT("width_str = \"%s\", height_str = \"%s\", imtmp = %p, refimg = %p", width_str?width_str:"(null)", height_str?height_str:"(null)", imtmp, refimg ); 
-	
-	if( imtmp ) 
-	{	
+	int width = 0, height = 0 ;
+	LOCAL_DEBUG_OUT("width_str = \"%s\", height_str = \"%s\", imtmp = %p, refimg = %p", width_str?width_str:"(null)", height_str?height_str:"(null)", imtmp, refimg );
+
+	if( imtmp )
+	{
 		width_ref = width = imtmp->width ;
 		height_ref = height = imtmp->height ;
 	}
-	if (refimg) 
+	if (refimg)
 	{
 		width_ref = refimg->width;
 		height_ref = refimg->height;
 	}
-	if( width_str ) 
-	{	
+	if( width_str )
+	{
 		if( width_str[0] == '$' || isdigit( (int)width_str[0] ) )
 			width = (int)parse_math(width_str, NULL, width);
 	}
-	if( height_str ) 
-	{	
+	if( height_str )
+	{
 		if( height_str[0] == '$' || isdigit( (int)height_str[0] ) )
 			height = (int)parse_math(height_str, NULL, height);
 	}
@@ -502,12 +502,12 @@ translate_tag_size(	const char *width_str, const char *height_str, ASImage *imtm
 		width = (width_ref * height) / height_ref ;
 	else if( height_str && width_ref > 0 && mystrcasecmp(height_str,"proportional") == 0 )
 		height = (height_ref * width) / width_ref ;
-	if( width_ret ) 
+	if( width_ret )
 		*width_ret = (width==0)?(imtmp?imtmp->width:(refimg?refimg->width:0)):width;
-	if( height_ret ) 
+	if( height_ret )
 		*height_ret = (height==0)?(imtmp?imtmp->height:(refimg?refimg->height:0)):height;
 
-	LOCAL_DEBUG_OUT("width = %d, height = %d", *width_ret, *height_ret ); 
+	LOCAL_DEBUG_OUT("width = %d, height = %d", *width_ret, *height_ret );
 
 }
 
@@ -530,7 +530,7 @@ translate_tag_size(	const char *width_str, const char *height_str, ASImage *imtm
  * bgimage  Optional.  No default.  The area behind the text will be filled
  *          with this image.
  * spacing  Optional.  Default 0.  Extra pixels to place between each glyph.
- * type     Optional.  Default 0.  Valid values are from 0 to 7 and each 
+ * type     Optional.  Default 0.  Valid values are from 0 to 7 and each
  * 			represeend different 3d type.
  * NOTES
  * <text> without bgcolor, fgcolor, fgimage, or bgimage will NOT
@@ -550,7 +550,7 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	ARGB32 fgcolor = ARGB32_White, bgcolor = ARGB32_Black;
 	int point = 12, spacing = 0, type = AST_Plain;
 	unsigned int width = 0;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "font")) font_name = ptr->parm;
 		else if (!strcmp(ptr->tag, "point")) point = strtol(ptr->parm, NULL, 0);
@@ -564,26 +564,26 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	}
 	for (ptr = doc->child ; ptr && text == NULL ; ptr = ptr->next)
 		if (!strcmp(ptr->tag, cdata_str)) text = ptr->parm;
-	
-	if (text && point > 0) 
+
+	if (text && point > 0)
 	{
 		struct ASFont *font = NULL;
-		if( state->verbose > 1 ) 
+		if( state->verbose > 1 )
 			show_progress("Rendering text [%s] with font [%s] size [%d].", text, font_name, point);
 		if (state->fontman) font = get_asfont(state->fontman, font_name, 0, point, ASF_GuessWho);
-		if (font != NULL) 
+		if (font != NULL)
 		{
 		  ASTextAttributes attr = {ASTA_VERSION_INTERNAL, 0, 0, ASCT_Char, 8, 0, NULL, 0, ARGB32_White, width};
 			attr.type = type ;
-			if( IsUTF8Locale() ) 
+			if( IsUTF8Locale() )
 				attr.char_type = ASCT_UTF8 ;
 			set_asfont_glyph_spacing(font, spacing, 0);
-			if( fgcolor_str ) 
+			if( fgcolor_str )
 				parse_argb_color(fgcolor_str, &(attr.fore_color) );
-			
+
 			result = draw_fancy_text( text, font, &attr, 0, 0/*autodetect length*/ );
 			if (result && fgcolor_str) {
-#if 0			   
+#if 0
 				result->back_color = attr.fore_color ;
 #else
 				ASImage* fgimage = create_asimage(result->width, result->height, ASIMAGE_QUALITY_TOP);
@@ -597,7 +597,7 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 			if (result && fgimage_str) {
 				ASImage* fgimage = NULL;
 				fgimage = get_asimage(state->imman, fgimage_str, 0xFFFFFFFF, 100 );
-				if( state->verbose > 1 ) 
+				if( state->verbose > 1 )
 					show_progress("Using image [%s](%p) as foreground. Text size is %dx%d", fgimage_str, fgimage, result->width, result->height);
 				if (fgimage) {
 					ASImage *tmp = tile_asimage(state->asv, fgimage, 0, 0, result->width, result->height, 0, ASA_ASImage, 100, ASIMAGE_QUALITY_TOP);
@@ -641,7 +641,7 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	}
 
 	return result;
-}	
+}
 /****** libAfterImage/asimagexml/composite
  * NAME
  * composite - superimpose arbitrary number of images on top of each
@@ -668,9 +668,9 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
  *
  * ATTRIBUTES
  *  All tags surrounded by this tag may have some of the common attributes
- *  in addition to their normal ones.  Under no circumstances is there a 
+ *  in addition to their normal ones.  Under no circumstances is there a
  *  conflict with the normal child attributes:
- * 
+ *
  * crefid   Optional. An image ID defined with the "id" parameter for
  *          any previously created image. If set, percentages in "x"
  *          and "y" will be derived from the width and height of the
@@ -722,25 +722,25 @@ handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t*
 	int i ;
 	merge_scanlines_func op_func = NULL ;
 
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "op")) { pop = ptr->parm; op_func = blend_scanlines_name2func(pop); }
 		else if (!strcmp(ptr->tag, "keep-transparency")) keep_trans = strtol(ptr->parm, NULL, 0);
 		else if (!strcmp(ptr->tag, "merge") && !mystrcasecmp(ptr->parm, "clip")) merge = 1;
 	}
 	/* Find out how many subimages we have. */
-	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
+	for (ptr = doc->child ; ptr ; ptr = ptr->next)
 		if (strcmp(ptr->tag, cdata_str)) num++;
 
-	if( num == 0 ) 
+	if( num == 0 )
 	{
-		show_warning( "composite tag with no subimages to compose from specified!");	  
+		show_warning( "composite tag with no subimages to compose from specified!");
 		return NULL;
 	}
 
-	
-	if( op_func == NULL ) 
-	{	
+
+	if( op_func == NULL )
+	{
 		LOCAL_DEBUG_OUT( "defaulting to alpha-blending%s","");
 		op_func = alphablend_scanlines ;
 	}
@@ -748,7 +748,7 @@ handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t*
 	layers = create_image_layers( num );
 	align = safecalloc( num, sizeof(int));
 
-	for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next) 
+	for (num = 0, ptr = doc->child ; ptr ; ptr = ptr->next)
 	{
 		int x = 0, y = 0;
 		int clip_x = 0, clip_y = 0;
@@ -762,7 +762,7 @@ handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t*
 			clip_width = layers[num].im->width;
 			clip_height = layers[num].im->height;
 		}
-		if (sparm) 
+		if (sparm)
 		{
 			xml_elem_t* tmp;
 			const char* x_str = NULL;
@@ -879,21 +879,21 @@ handle_asxml_tag_composite( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t*
 	if (state->verbose > 1) {
 		show_progress("Compositing [%d] image(s) with op [%s].  Final geometry [%dx%d].", num, pop, width, height);
 		if (keep_trans) show_progress("  Keeping transparency.");
-	
+
 		for (i = 0 ; i < num ; i++) {
 			show_progress("  Image [%d] geometry [%dx%d+%d+%d]", i, layers[i].clip_width, layers[i].clip_height, layers[i].dst_x, layers[i].dst_y);
 			if (layers[i].tint) show_progress(" tint (#%08x)", (unsigned int)layers[i].tint);
 		}
 	}
 
-	result = merge_layers( state->asv, layers, num, width, height, 
+	result = merge_layers( state->asv, layers, num, width, height,
 							ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 	if (keep_trans && result && layers[0].im)
 		copy_asimage_channel(result, IC_ALPHA, layers[0].im, IC_ALPHA);
-	
+
 	while (--num >= 0 )
 		safe_asimage_destroy( layers[num].im );
-	
+
 	free(align);
 	free(layers);
 
@@ -919,40 +919,40 @@ handle_asxml_tag_img( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 	ASImage *result = NULL ;
 	const char* src = NULL;
 	xml_elem_t* ptr ;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "src")) src = ptr->parm;
 	}
 	if (src && !strcmp(src, "xroot:")) {
 		unsigned int width, height;
 		Pixmap rp = GetRootPixmap(None);
-		if( state->verbose > 1 ) 
+		if( state->verbose > 1 )
 			show_progress("Getting root pixmap.");
 		if (rp) {
 			get_dpy_drawable_size( state->asv->dpy, rp, &width, &height);
 			result = pixmap2asimage(state->asv, rp, 0, 0, width, height, 0xFFFFFFFF, False, 100);
-			if( dst_width == 0 ) dst_width = width ; 
-			if( dst_height == 0 ) dst_height = height ; 
-			if( dst_width != (int)width || dst_height != (int)height ) 
+			if( dst_width == 0 ) dst_width = width ;
+			if( dst_height == 0 ) dst_height = height ;
+			if( dst_width != (int)width || dst_height != (int)height )
 			{
 				ASImage *tmp = scale_asimage( NULL, result, dst_width, dst_height, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT );
-				if( tmp ) 
+				if( tmp )
 				{
 					safe_asimage_destroy( result );
 					result = tmp ;
-				}  	
-			}	
+				}
+			}
 		}
 	} else if (src) {
-		if( state->verbose > 1 ) 
+		if( state->verbose > 1 )
 			show_progress("Loading image [%s] using imman (%p) with search path \"%s\" (dst_size = %dx%d).", src, state->imman, state->imman?state->imman->search_path[0]:"", dst_width, dst_height);
-		if( dst_width != 0 || dst_height != 0 ) 
+		if( dst_width != 0 || dst_height != 0 )
 			result = get_thumbnail_asimage( state->imman, src, dst_width, dst_height, (dst_width==0||dst_height==0)?AS_THUMBNAIL_PROPORTIONAL:0 );
 		else
 			result = get_asimage( state->imman, src, 0xFFFFFFFF, 100 );
 	}
 	return result;
-}	
+}
 
 /****** libAfterImage/asimagexml/recall
  * NAME
@@ -968,32 +968,32 @@ static ASImage *
 handle_asxml_tag_recall( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 {
 	ASImage *result = NULL ;
-	xml_elem_t* ptr = parm ; 
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
-	while ( ptr && !result ) 
-	{	
+	xml_elem_t* ptr = parm ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm );
+	while ( ptr && !result )
+	{
 		if (!strcmp(ptr->tag, "srcid"))
-		{ 
-			if( state->verbose > 1 ) 
+		{
+			if( state->verbose > 1 )
 				show_progress("Recalling image id [%s] from imman %p.", ptr->parm, state->imman);
 			result = fetch_asimage(state->imman, ptr->parm );
 			if (!result)
 				show_warning("Image recall failed for id [%s].", ptr->parm);
-		}	
+		}
 		ptr = ptr->next ;
 	}
-	if( result == NULL ) 
+	if( result == NULL )
 	{
 		for( ptr = parm ; ptr && !result ; ptr = ptr->next )
 			if (!strcmp(ptr->tag, "default_src"))
-			{ 
-				if( state->verbose > 1 ) 
+			{
+				if( state->verbose > 1 )
 					show_progress("loading default image [%s] from imman %p.", ptr->parm, state->imman);
 				result = get_asimage( state->imman, ptr->parm, 0xFFFFFFFF, 100 );
 			}
 	}
 	return result;
-}	
+}
 
 /****** libAfterImage/asimagexml/release
  * NAME
@@ -1008,17 +1008,17 @@ static ASImage *
 handle_asxml_tag_release( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 {
 	xml_elem_t* ptr ;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 		if (!strcmp(ptr->tag, "srcid"))
 		{
-			if( state->verbose > 1 ) 
+			if( state->verbose > 1 )
 				show_progress("Releasing image id [%s] from imman %p.", ptr->parm, state->imman);
 			release_asimage_by_name(state->imman, (char*)ptr->parm );
 			break;
 		}
 	return NULL;
-}	
+}
 
 /****** libAfterImage/asimagexml/color
  * NAME
@@ -1031,8 +1031,8 @@ handle_asxml_tag_release( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* p
  * domain string to be used to prepend names of defined variables.
  * NOTES
  * In addition to defining symbolic name for the color this tag will define
- * 7 other variables : 	domain.sym_name.red, domain.sym_name.green, 
- * 					   	domain.sym_name.blue, domain.sym_name.alpha, 
+ * 7 other variables : 	domain.sym_name.red, domain.sym_name.green,
+ * 					   	domain.sym_name.blue, domain.sym_name.alpha,
  * 					  	domain.sym_name.hue, domain.sym_name.saturation,
  *                     	domain.sym_name.value
  ******/
@@ -1043,13 +1043,13 @@ handle_asxml_tag_color( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	char* name = NULL;
 	const char* argb_text = NULL;
 	const char* var_domain = NULL;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "name")) name = ptr->parm;
 		else if (!strcmp(ptr->tag, "argb")) argb_text = ptr->parm;
 		else if (!strcmp(ptr->tag, "domain")) var_domain = ptr->parm;
 	}
-	if (name && argb_text) 
+	if (name && argb_text)
 	{
 		ARGB32 argb = ARGB32_Black;
 		if( parse_argb_color( argb_text, &argb ) != argb_text )
@@ -1072,7 +1072,7 @@ handle_asxml_tag_color( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 
 
 #ifdef HAVE_AFTERBASE
-	   		if( state->verbose > 1 ) 
+	   		if( state->verbose > 1 )
 				show_progress("defining synonim [%s] for color value #%8.8X.", name, argb);
 	   		register_custom_color( name, argb );
 #endif
@@ -1118,36 +1118,36 @@ handle_asxml_tag_printf( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 	int val = 0 ;
 	Bool use_val = False ;
 	int arg_count = 0, i;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 	{
 		if (!strcmp(ptr->tag, "format")) format = ptr->parm;
 		else if (!strcmp(ptr->tag, "var")) { var = ptr->parm; use_val = False; }
 		else if (!strcmp(ptr->tag, "val")) { val = (int)parse_math(ptr->parm, NULL, 0); use_val = True; }
 	}
-   		
-	if( format != NULL ) 
-	{	
+
+	if( format != NULL )
+	{
 		char *interpreted_format = interpret_ctrl_codes( mystrdup(format) );
-		
+
 		for( i = 0 ; format[i] != '\0' ; ++i )
 			if( format[i] == '%' )
 			{
-				if( format[i+1] != '%' ) 
-			 		++arg_count ; 
-				else 
+				if( format[i+1] != '%' )
+			 		++arg_count ;
+				else
 					++i ;
 			}
-		
-		if( use_val && arg_count == 1) 
+
+		if( use_val && arg_count == 1)
 			printf( interpreted_format, val );
-		else if( var != NULL && arg_count == 1 ) 
-			printf( interpreted_format, asxml_var_get(var) );				
+		else if( var != NULL && arg_count == 1 )
+			printf( interpreted_format, asxml_var_get(var) );
 		else if( arg_count == 0 )
-			fputs( interpreted_format, stdout );				   
+			fputs( interpreted_format, stdout );
 		free( interpreted_format );
 	}
-		
+
 	return NULL;
 }
 /****** libAfterImage/asimagexml/set
@@ -1168,17 +1168,17 @@ handle_asxml_tag_set( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 	const char* var_domain = NULL ;
 	const char* var = NULL;
 	int val = 0 ;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 	{
 		if (!strcmp(ptr->tag, "var")) 			var = ptr->parm;
 		else if (!strcmp(ptr->tag, "domain")) 	var_domain = ptr->parm;
 		else if (!strcmp(ptr->tag, "val"))  	val = (int)parse_math(ptr->parm, NULL, 0);
 	}
-   		
-	if( var != NULL ) 
-	{	
-		char *tmp = (char*)var ; 
+
+	if( var != NULL )
+	{
+		char *tmp = (char*)var ;
 		if( var_domain && var_domain[0] != '\0' )
 		{
 			int vd_len = strlen(var_domain);
@@ -1186,15 +1186,15 @@ handle_asxml_tag_set( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 			sprintf( tmp, ( var_domain[vd_len-1] != '.' )?"%s.%s":"%s%s", var_domain, var );
 		}
 		asxml_var_insert( tmp, val );
-		if( tmp != var ) 
+		if( tmp != var )
 			free( tmp );
 	}
-		
+
 	return NULL;
 }
 /****** libAfterImage/asimagexml/if
  * NAME
- * if - evaluates logical expression and if result evaluates to not true(or false 
+ * if - evaluates logical expression and if result evaluates to not true(or false
  * if <unless> tag is used ), handles tags within.
  * SYNOPSIS
  * <if val1="expression" [op="gt|lt|ge|le|eq|ne" val2="expression"]/>
@@ -1214,19 +1214,19 @@ handle_asxml_tag_if( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 	xml_elem_t* ptr ;
 	int val1 = 0, val2 = 0 ;
 	const char *op = NULL ;
-	int res = 0 ; 
-	ASImage *im = NULL, *imtmp = NULL  ; 
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm ); 
-	
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	int res = 0 ;
+	ASImage *im = NULL, *imtmp = NULL  ;
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p", doc, parm );
+
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 	{
 		if (!strcmp(ptr->tag, "op")) 			op = ptr->parm;
 		else if (!strcmp(ptr->tag, "val1"))  	val1 = (int)parse_math(ptr->parm, NULL, 0);
 		else if (!strcmp(ptr->tag, "val2"))  	val2 = (int)parse_math(ptr->parm, NULL, 0);
 	}
-   		
-	if( op != NULL ) 
-	{	
+
+	if( op != NULL )
+	{
 		if     ( strcmp(op, "gt") == 0 ) res = (val1 > val2);
 		else if( strcmp(op, "lt") == 0 ) res = (val1 < val2);
 		else if( strcmp(op, "ge") == 0 ) res = (val1 >= val2);
@@ -1239,21 +1239,21 @@ handle_asxml_tag_if( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
 		res = !res ;
 
 	ptr = NULL ;
-	for (ptr = doc->child ; ptr ; ptr = ptr->next) 
+	for (ptr = doc->child ; ptr ; ptr = ptr->next)
 	{
 		if( strcmp(ptr->tag, res?"then":"else" ) )
 		{
 			ptr = ptr->child ;
 			break;
 		}
-		if( res && ptr->next == NULL ) 
+		if( res && ptr->next == NULL )
 			ptr = doc->child ;
 	}
-	
-	while( ptr ) 
+
+	while( ptr )
 	{
 		imtmp = build_image_from_xml(state->asv, state->imman, state->fontman, ptr, NULL, state->flags, state->verbose, state->display_win);
-		if( im && imtmp ) safe_asimage_destroy( im ); 
+		if( im && imtmp ) safe_asimage_destroy( im );
 		if( imtmp ) im = imtmp ;
 		 ptr = ptr->next ;
 	}
@@ -1264,7 +1264,7 @@ handle_asxml_tag_if( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm)
  * NAME
  * gradient - render multipoint gradient.
  * SYNOPSIS
- * <gradient id="new_id" angle="degrees" 
+ * <gradient id="new_id" angle="degrees"
  *           refid="refid" width="pixels" height="pixels"
  *           colors ="color1 color2 color3 [...]"
  *           offsets="fraction1 fraction2 fraction3 [...]"/>
@@ -1300,13 +1300,13 @@ handle_asxml_tag_gradient( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* 
 	double angle = 0;
 	char* color_str = NULL;
 	char* offset_str = NULL;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, width = %d, height = %d", doc, parm, width, height ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, width = %d, height = %d", doc, parm, width, height );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
 		else if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
 		else if (!strcmp(ptr->tag, "offsets")) offset_str = ptr->parm;
 	}
-	if ( color_str) 
+	if ( color_str)
 	{
 		ASGradient gradient;
 		int reverse = 0, npoints1 = 0, npoints2 = 0;
@@ -1395,7 +1395,7 @@ handle_asxml_tag_gradient( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* 
 				}
 			}
 			result = make_gradient(state->asv, &gradient, width, height, SCL_DO_ALL, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-			if( gradient.color ) 
+			if( gradient.color )
 				free( gradient.color );
 			if( gradient.offset )
 				free( gradient.offset );
@@ -1408,10 +1408,10 @@ handle_asxml_tag_gradient( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* 
  * NAME
  * solid - generate image of specified size and fill it with solid color.
  * SYNOPSIS
- * <solid id="new_id" color="color" opacity="opacity" 
+ * <solid id="new_id" color="color" opacity="opacity"
  * 	width="pixels" height="pixels"
  *	refid="refid" width="pixels" height="pixels"/>
- * 
+ *
  * ATTRIBUTES
  * id       Optional. Image will be given this name for future reference.
  * width    Optional.  The result will have this width.
@@ -1437,7 +1437,7 @@ handle_asxml_tag_solid( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	int opacity = 100 ;
 	ARGB32 color = ARGB32_White;
 	CARD32 a, r, g, b ;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, width = %d, height = %d", doc, parm, width, height ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, width = %d, height = %d", doc, parm, width, height );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "color")) parse_argb_color(ptr->parm, &color);
 		else if (!strcmp(ptr->tag, "opacity")) { opacity = atol(ptr->parm); opacity_set = True ; }
@@ -1452,7 +1452,7 @@ handle_asxml_tag_solid( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	g = ARGB32_GREEN8(color);
 	b = ARGB32_BLUE8(color);
 	color = MAKE_ARGB32(a,r,g,b);
-	if (result) 
+	if (result)
 		fill_asimage(state->asv, result, 0, 0, width, height, color);
 
 	return result;
@@ -1508,7 +1508,7 @@ handle_asxml_tag_save( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	int replace = 1;
 	/*<save id="" dst="" format="" compression="" delay="" replace="" opacity=""> */
 	int autoext = 0;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p", doc, parm, imtmp ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p", doc, parm, imtmp );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "dst")) dst = ptr->parm;
 		else if (!strcmp(ptr->tag, "format")) ext = ptr->parm;
@@ -1522,9 +1522,9 @@ handle_asxml_tag_save( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 		if (ext) ext++;
 		autoext = 1;
 	}
-	
+
 	result = imtmp;
-	
+
 	if ( autoext && ext )
 		show_warning("No format given.  File extension [%s] used as format.", ext);
 	if( state->verbose > 1 )
@@ -1559,7 +1559,7 @@ handle_asxml_tag_background( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t
 	ASImage *result = NULL ;
 	xml_elem_t* ptr ;
 	ARGB32 argb = ARGB32_Black;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p", doc, parm, imtmp ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p", doc, parm, imtmp );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "color")) parse_argb_color( ptr->parm, &argb );
 	}
@@ -1597,8 +1597,8 @@ handle_asxml_tag_blur( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	xml_elem_t* ptr ;
 	int horz = 0, vert = 0;
     int filter = SCL_DO_ALL;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p", doc, parm, imtmp ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p", doc, parm, imtmp );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 	{
 		if (!strcmp(ptr->tag, "horz")) horz = atoi(ptr->parm);
         else if (!strcmp(ptr->tag, "vert")) vert = atoi(ptr->parm);
@@ -1622,7 +1622,7 @@ handle_asxml_tag_blur( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
         }
 	}
     result = blur_asimage_gauss(state->asv, imtmp, horz, vert, filter, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
-	if( state->verbose > 1 )	
+	if( state->verbose > 1 )
 		show_progress("Blurrer image with radii %d, %d.", horz, vert);
 	return result;
 }
@@ -1633,7 +1633,7 @@ handle_asxml_tag_blur( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
  * NAME
  * bevel - draws solid bevel frame around the image.
  * SYNOPSIS
- * <bevel id="new_id" colors="color1 color2" 
+ * <bevel id="new_id" colors="color1 color2"
  * 		  width="pixels" height="pixels" refid="refid"
  *        border="left top right bottom" solid=0|1 outline=0|1>
  * ATTRIBUTES
@@ -1648,7 +1648,7 @@ handle_asxml_tag_blur( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
  *          right, bottom.
  * solid    Optional - default is 1. If set to 0 will draw bevel gradually
  *          fading into the image.
- * outline  Optional - default is 0. If set to 1 will draw bevel around the 
+ * outline  Optional - default is 0. If set to 1 will draw bevel around the
  * 			image vs. inside the image.
  * width    Optional. The result will have this width.
  * height   Optional. The result will have this height.
@@ -1668,14 +1668,14 @@ handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	char* color_str = NULL;
 	char* border_str = NULL;
 	int solid = 1, outline = 0 ;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "colors")) color_str = ptr->parm;
 		else if (!strcmp(ptr->tag, "border")) border_str = ptr->parm;
 		else if (!strcmp(ptr->tag, "solid")) solid = atoi(ptr->parm);
 		else if (!strcmp(ptr->tag, "outline")) outline = atoi(ptr->parm);
 	}
-	if (imtmp) 
+	if (imtmp)
 	{
 		ASImageBevel bevel;
 		ASImageLayer layer;
@@ -1684,7 +1684,7 @@ handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 			bevel.type = BEVEL_SOLID_INLINE;
 		bevel.hi_color = 0xffdddddd;
 		bevel.lo_color = 0xff555555;
-		if( outline ) 
+		if( outline )
 			bevel.top_outline = bevel.left_outline = bevel.right_outline = bevel.bottom_outline = 10;
 		else
 			bevel.top_inline = bevel.left_inline = bevel.right_inline = bevel.bottom_inline = 10;
@@ -1704,7 +1704,7 @@ handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 				bevel.right_outline = (unsigned short)parse_math(p, &p, width);
 				bevel.bottom_outline = (unsigned short)parse_math(p, &p, height);
 			}else
-			{			  
+			{
 				bevel.left_inline = (unsigned short)parse_math(p, &p, width);
 				bevel.top_inline = (unsigned short)parse_math(p, &p, height);
 				bevel.right_inline = (unsigned short)parse_math(p, &p, width);
@@ -1727,7 +1727,7 @@ handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 		else
 			layer.clip_height = height-(bevel.top_outline+bevel.bottom_outline);
 		layer.bevel = &bevel;
-		result = merge_layers(state->asv, &layer, 1, 
+		result = merge_layers(state->asv, &layer, 1,
 							  width, height, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 	}
 	return result;
@@ -1737,7 +1737,7 @@ handle_asxml_tag_bevel( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
  * NAME
  * mirror - create new image as mirror copy of an old one.
  * SYNOPSIS
- *  <mirror id="new_id" dir="direction" 
+ *  <mirror id="new_id" dir="direction"
  * 			width="pixels" height="pixels" refid="refid">
  * ATTRIBUTES
  * id       Optional. Image will be given this name for future reference.
@@ -1760,12 +1760,12 @@ handle_asxml_tag_mirror( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 	ASImage *result = NULL ;
 	xml_elem_t* ptr ;
 	int dir = 0;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "dir")) dir = !mystrcasecmp(ptr->parm, "vertical");
 	}
 	result = mirror_asimage(state->asv, imtmp, 0, 0, width, height, dir,
-							ASA_ASImage, 
+							ASA_ASImage,
 							0, ASIMAGE_QUALITY_DEFAULT);
 	if( state->verbose > 1 )
 		show_progress("Mirroring image [%sally].", dir ? "horizont" : "vertic");
@@ -1800,10 +1800,10 @@ handle_asxml_tag_rotate( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 	xml_elem_t* ptr ;
 	double angle = 0;
 	int dir = 0;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 		if (!strcmp(ptr->tag, "angle")) angle = strtod(ptr->parm, NULL);
-	
+
 	angle = fmod(angle, 2 * PI);
 	if (angle > 2 * PI * 7 / 8 || angle < 2 * PI * 1 / 8)
 		dir = 0;
@@ -1811,20 +1811,20 @@ handle_asxml_tag_rotate( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
 		dir = FLIP_VERTICAL;
 	else if (angle < 2 * PI * 5 / 8)
 		dir = FLIP_UPSIDEDOWN;
-	else 
+	else
 		dir = FLIP_VERTICAL | FLIP_UPSIDEDOWN;
-	if (dir) 
+	if (dir)
 	{
 		if( get_flags(dir, FLIP_VERTICAL))
 		{
 			int tmp = width ;
 			width = height ;
-			height = tmp ;	
-		}	 
+			height = tmp ;
+		}
 		result = flip_asimage(state->asv, imtmp, 0, 0, width, height, dir, ASA_ASImage, 0, ASIMAGE_QUALITY_DEFAULT);
 		if( state->verbose > 1 )
 			show_progress("Rotating image [%f degrees].", angle);
-	} else 
+	} else
 		result = imtmp;
 
 	return result;
@@ -1834,8 +1834,8 @@ handle_asxml_tag_rotate( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
  * NAME
  * scale - scale image to arbitrary size
  * SYNOPSIS
- * <scale id="new_id" refid="other_imag" src_x="pixels"  src_y="pixels" 
- *        src_width="pixels" src_height="pixels" 
+ * <scale id="new_id" refid="other_imag" src_x="pixels"  src_y="pixels"
+ *        src_width="pixels" src_height="pixels"
  *        width="pixels" height="pixels">
  * ATTRIBUTES
  * id       Optional. Image will be given this name for future reference.
@@ -1861,7 +1861,7 @@ handle_asxml_tag_rotate( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* pa
  * This tag applies to the first image contained within the tag.  Any
  * further images will be discarded.
  * If you want to keep image proportions while scaling - use "proportional"
- * instead of specific size for particular dimention.
+ * instead of specific size for particular dimension.
  ******/
 static ASImage *
 handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm, ASImage *imtmp, int width, int height)
@@ -1870,19 +1870,19 @@ handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	xml_elem_t* ptr;
 	int src_x = 0, src_y = 0 ;
 	int src_width = 0, src_height = 0 ;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 	{
 		if (!strcmp(ptr->tag, "src_x")) 		src_x = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "src_y")) 	src_y = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "src_width")) 	src_width = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "src_height")) 	src_height = (int)parse_math(ptr->parm, NULL, width);
-	}	
+	}
 	if( state->verbose > 1 )
 		show_progress("Scaling image to [%dx%d].", width, height);
-	result = scale_asimage2( state->asv, imtmp, 
+	result = scale_asimage2( state->asv, imtmp,
 							src_x, src_y, src_width, src_height,
-							width, height, 
+							width, height,
 							ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 	return result;
 }
@@ -1902,23 +1902,23 @@ handle_asxml_tag_scale( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
  *          refid image.
  * width    Required.  The image will be scaled to this width.
  * height   Required.  The image will be scaled to this height.
- * x_start  Optional. Position at which vertical image slicing begins. 
+ * x_start  Optional. Position at which vertical image slicing begins.
  * 			Corresponds to the right side of the left corners.
  * x_end    Optional. Position at which vertical image slicing end.
  * 			Corresponds to the left side of the right corners.
- * y_start  Optional. Position at which horisontal image slicing begins. 
+ * y_start  Optional. Position at which horisontal image slicing begins.
  *          Corresponds to the bottom side of the top corners.
  * y_end    Optional. Position at which horisontal image slicing end.
  * 			Corresponds to the top side of the bottom corners.
- * scale    Optional. If set to 1 will cause middle portion of the 
+ * scale    Optional. If set to 1 will cause middle portion of the
  * 			image to be scaled instead of tiled.
  * NOTES
  * This tag applies to the first image contained within the tag.  Any
  * further images will be discarded.
- * Contents of the image between x_start and x_end will be tiled 
- * horizontally. Contents of the image between y_start and y_end will be 
+ * Contents of the image between x_start and x_end will be tiled
+ * horizontally. Contents of the image between y_start and y_end will be
  * tiled vertically. This is useful to get background images to fit the
- * size of the text or a widget, while preserving its borders undistorted, 
+ * size of the text or a widget, while preserving its borders undistorted,
  * which is the usuall result of simple scaling.
  * If you want to keep image proportions while resizing-use "proportional"
  * instead of specific size for particular dimention.
@@ -1931,8 +1931,8 @@ handle_asxml_tag_slice( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 	int x_start = 0, x_end = 0 ;
 	int y_start = 0, y_end = 0 ;
 	Bool scale = False ;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 	{
 		if (!strcmp(ptr->tag, "x_start")) 		x_start = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "x_end")) 	x_end = (int)parse_math(ptr->parm, NULL, width);
@@ -1943,7 +1943,7 @@ handle_asxml_tag_slice( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* par
 
 	if( state->verbose > 1 )
 		show_progress("Slicing image to [%dx%d].", width, height);
-	result = slice_asimage2( state->asv, imtmp, x_start, x_end, y_start, y_end, width, height, 
+	result = slice_asimage2( state->asv, imtmp, x_start, x_end, y_start, y_end, width, height,
 							 scale, ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 	return result;
 }
@@ -1980,8 +1980,8 @@ handle_asxml_tag_pixelize( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* 
 	xml_elem_t* ptr;
 	int clip_x = 0, clip_y = 0 ;
 	int pixel_width = 1, pixel_height = 1 ;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 	{
 		if (!strcmp(ptr->tag, "clip_x")) 		clip_x = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "clip_y")) 	clip_y = (int)parse_math(ptr->parm, NULL, height);
@@ -1990,7 +1990,7 @@ handle_asxml_tag_pixelize( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* 
 	}
 
 	if( state->verbose > 1 )
-		show_progress("Pixelizing image to [%dx%d] using pixel size %dx%d.", 
+		show_progress("Pixelizing image to [%dx%d] using pixel size %dx%d.",
 						width, height, pixel_width, pixel_height);
 	result = pixelize_asimage (state->asv, imtmp, clip_x, clip_y, width, height,
 							   pixel_width, pixel_height,
@@ -2029,8 +2029,8 @@ handle_asxml_tag_color2alpha( ASImageXMLState *state, xml_elem_t* doc, xml_elem_
 	xml_elem_t* ptr;
 	int clip_x = 0, clip_y = 0 ;
 	ARGB32 color;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 	{
 		if (!strcmp(ptr->tag, "clip_x")) 		clip_x = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "clip_y")) 	clip_y = (int)parse_math(ptr->parm, NULL, height);
@@ -2076,7 +2076,7 @@ handle_asxml_tag_crop( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	xml_elem_t* ptr;
 	ARGB32 tint = 0 ;
 	int srcx = 0, srcy = 0;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "srcx")) srcx = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "srcy")) srcy = (int)parse_math(ptr->parm, NULL, height);
@@ -2129,7 +2129,7 @@ handle_asxml_tag_tile( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 	int xorig = 0, yorig = 0;
 	ARGB32 tint = 0 ;
 	char *complement_str = NULL ;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "x_origin")) xorig = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "y_origin")) yorig = (int)parse_math(ptr->parm, NULL, height);
@@ -2223,8 +2223,8 @@ handle_asxml_tag_hsv( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 	int affected_hue = 0, affected_radius = 360 ;
 	int hue_offset = 0, saturation_offset = 0, value_offset = 0 ;
 	int xorig = 0, yorig = 0;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
-	for (ptr = parm ; ptr ; ptr = ptr->next) 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
+	for (ptr = parm ; ptr ; ptr = ptr->next)
 	{
 		if (!strcmp(ptr->tag, "x_origin")) xorig = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "y_origin")) yorig = (int)parse_math(ptr->parm, NULL, height);
@@ -2249,12 +2249,12 @@ handle_asxml_tag_hsv( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 		else if (!strcmp(ptr->tag, "saturation_offset"))saturation_offset = (int)parse_math(ptr->parm, NULL, 100);
 		else if (!strcmp(ptr->tag, "value_offset")) 	value_offset = (int)parse_math(ptr->parm, NULL, 100);
 	}
-	if( hue_offset == -1 && saturation_offset == -1 ) 
+	if( hue_offset == -1 && saturation_offset == -1 )
 	{
-		hue_offset = 0 ; 
+		hue_offset = 0 ;
 		saturation_offset = -99 ;
 	}
-	if (hue_offset!=0 || saturation_offset != 0 || value_offset != 0 ) 
+	if (hue_offset!=0 || saturation_offset != 0 || value_offset != 0 )
 	{
 		result = adjust_asimage_hsv(state->asv, imtmp, xorig, yorig, width, height,
 				                    affected_hue, affected_radius,
@@ -2298,7 +2298,7 @@ handle_asxml_tag_pad( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm,
 	xml_elem_t* ptr;
 	ARGB32 color  = ARGB32_Black;
 	int left = 0, top = 0, right = 0, bottom = 0;
-	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height ); 
+	LOCAL_DEBUG_OUT("doc = %p, parm = %p, imtmp = %p, width = %d, height = %d", doc, parm, imtmp, width, height );
 	for (ptr = parm ; ptr ; ptr = ptr->next) {
 		if (!strcmp(ptr->tag, "left"))   left = (int)parse_math(ptr->parm, NULL, width);
 		else if (!strcmp(ptr->tag, "top"))    top = (int)parse_math(ptr->parm, NULL, height);
@@ -2323,100 +2323,100 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 	xml_elem_t* ptr;
 	char* id = NULL;
 	ASImage* result = NULL;
-	ASImageXMLState state ; 
+	ASImageXMLState state ;
 
 	if( IsCDATA(doc) )  return NULL ;
 
 	memset( &state, 0x00, sizeof(state));
 	state.flags = flags ;
-	state.asv = asv ; 
-	state.imman = imman ; 
-	state.fontman = fontman ; 
+	state.asv = asv ;
+	state.imman = imman ;
+	state.fontman = fontman ;
 	state.verbose = verbose ;
 	state.display_win = display_win ;
 
-	if( doc ) 
-	{		 
+	if( doc )
+	{
 		xml_elem_t* parm = xml_parse_parm(doc->parm, NULL);
 		xml_elem_t* ptr ;
 		char* refid = NULL;
 		char* width_str = NULL;
 		char* height_str = NULL;
-		ASImage *refimg = NULL ; 
+		ASImage *refimg = NULL ;
 		int width = 0, height = 0 ;
 		LOCAL_DEBUG_OUT("parm = %p", parm);
 
 		for (ptr = parm ; ptr ; ptr = ptr->next)
-		{	
+		{
 			if (ptr->tag[0] == 'i' && ptr->tag[1] == 'd' && ptr->tag[2] == '\0')
 				REPLACE_STRING(id,mystrdup(ptr->parm));
 			else if (strcmp(ptr->tag, "refid") == 0 ) 	refid = ptr->parm ;
 			else if (strcmp(ptr->tag, "width") == 0 ) 	width_str = ptr->parm ;
 			else if (strcmp(ptr->tag, "height") == 0 ) 	height_str = ptr->parm ;
-		}		
+		}
 
-		if( id ) 
-			if( (result = fetch_asimage( imman, id)) != NULL ) 
+		if( id )
+			if( (result = fetch_asimage( imman, id)) != NULL )
 			{
 				free( id );
 				xml_elem_delete(NULL, parm);
-				return result ; 
+				return result ;
 			}
 
-		if( refid ) 
+		if( refid )
 			refimg = fetch_asimage( imman, refid);
 
-		if (!strcmp(doc->tag, "composite")) 
-			result = handle_asxml_tag_composite( &state, doc, parm );  	
-		else if (!strcmp(doc->tag, "text")) 
-			result = handle_asxml_tag_text( &state, doc, parm );  	
-		else if (!strcmp(doc->tag, "img")) 
+		if (!strcmp(doc->tag, "composite"))
+			result = handle_asxml_tag_composite( &state, doc, parm );
+		else if (!strcmp(doc->tag, "text"))
+			result = handle_asxml_tag_text( &state, doc, parm );
+		else if (!strcmp(doc->tag, "img"))
 		{
-			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );  
+			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );
 			result = handle_asxml_tag_img( &state, doc, parm, width, height );
-		}else if (!strcmp(doc->tag, "recall")) 
+		}else if (!strcmp(doc->tag, "recall"))
 			result = handle_asxml_tag_recall( &state, doc, parm );
 		else if (!strcmp(doc->tag, "release"))
 			result = handle_asxml_tag_release( &state, doc, parm );
 		else if (!strcmp(doc->tag, "color"))
-			result = handle_asxml_tag_color( &state, doc, parm ); 
+			result = handle_asxml_tag_color( &state, doc, parm );
 		else if (!strcmp(doc->tag, "printf"))
-			result = handle_asxml_tag_printf( &state, doc, parm ); 
+			result = handle_asxml_tag_printf( &state, doc, parm );
 		else if (!strcmp(doc->tag, "set"))
-			result = handle_asxml_tag_set( &state, doc, parm ); 
+			result = handle_asxml_tag_set( &state, doc, parm );
 		else if (!strcmp(doc->tag, "if") || !strcmp(doc->tag, "unless") )
-			result = handle_asxml_tag_if( &state, doc, parm ); 
+			result = handle_asxml_tag_if( &state, doc, parm );
 		else if ( !strcmp(doc->tag, "gradient") )
-		{	
-			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );  
+		{
+			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );
 			if( width > 0 && height > 0 )
-				result = handle_asxml_tag_gradient( &state, doc, parm, width, height ); 	   
+				result = handle_asxml_tag_gradient( &state, doc, parm, width, height );
 		}else if (!strcmp(doc->tag, "solid"))
-		{	
-			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );  
+		{
+			translate_tag_size(	width_str, height_str, NULL, refimg, &width, &height );
 			if( width > 0 && height > 0 )
 				result = handle_asxml_tag_solid( &state, doc, parm, width, height);
 		}else
-		{	
-			ASImage *imtmp = NULL ; 
+		{
+			ASImage *imtmp = NULL ;
 
-			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next) 
+			for (ptr = doc->child ; ptr && !imtmp ; ptr = ptr->next)
 				imtmp = build_image_from_xml(asv, imman, fontman, ptr, NULL, flags, verbose, display_win);
 
-			if( imtmp ) 
-			{	
-				if (imtmp && !strcmp(doc->tag, "save")) 
-					result = handle_asxml_tag_save( &state, doc, parm, imtmp ); 	
-				else if (imtmp && !strcmp(doc->tag, "background")) 
-					result = handle_asxml_tag_background( &state, doc, parm, imtmp ); 	
-				else if (imtmp && !strcmp(doc->tag, "blur")) 
-					result = handle_asxml_tag_blur( &state, doc, parm, imtmp ); 	
-				else 
-				{	
-					translate_tag_size(	width_str, height_str, imtmp, refimg, &width, &height );   
-		
+			if( imtmp )
+			{
+				if (imtmp && !strcmp(doc->tag, "save"))
+					result = handle_asxml_tag_save( &state, doc, parm, imtmp );
+				else if (imtmp && !strcmp(doc->tag, "background"))
+					result = handle_asxml_tag_background( &state, doc, parm, imtmp );
+				else if (imtmp && !strcmp(doc->tag, "blur"))
+					result = handle_asxml_tag_blur( &state, doc, parm, imtmp );
+				else
+				{
+					translate_tag_size(	width_str, height_str, imtmp, refimg, &width, &height );
+
 					if ( width > 0 && height > 0 )
-					{ 
+					{
 #define HANDLE_SIZED_TAG(ttag) \
 		else if( !strcmp(doc->tag, #ttag) )	result = handle_asxml_tag_##ttag( &state, doc, parm, imtmp, width, height )
 						if (0){}
@@ -2431,19 +2431,19 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 						HANDLE_SIZED_TAG(pad);
 						HANDLE_SIZED_TAG(pixelize);
 						HANDLE_SIZED_TAG(color2alpha);
-#undef HANDLE_SIZED_TAG						
-					}		
+#undef HANDLE_SIZED_TAG
+					}
 				}
-				
-				if( result != imtmp ) 
+
+				if( result != imtmp )
 					safe_asimage_destroy(imtmp);
 			}
 		}
-		
-		if( refimg ) 
+
+		if( refimg )
 			release_asimage( refimg );
-		
-		if (rparm) *rparm = parm; 
+
+		if (rparm) *rparm = parm;
 		else xml_elem_delete(NULL, parm);
 	}
 	LOCAL_DEBUG_OUT("result = %p, id = \"%s\"", result, id?id:"(null)" );
@@ -2451,37 +2451,37 @@ build_image_from_xml( ASVisual *asv, ASImageManager *imman, ASFontManager *fontm
 
 
 	/* No match so far... see if one of our children can do any better.*/
-	if (!result  && doc ) 
+	if (!result  && doc )
 	{
 		xml_elem_t* tparm = NULL;
-		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next) 
+		for (ptr = doc->child ; ptr && !result ; ptr = ptr->next)
 		{
 			xml_elem_t* sparm = NULL;
 			result = build_image_from_xml(asv, imman, fontman, ptr, &sparm, flags, verbose, display_win);
-			if (result) 
+			if (result)
 			{
 				if (tparm) xml_elem_delete(NULL, tparm);
-				tparm = sparm; 
-			}else 
+				tparm = sparm;
+			}else
 				if (sparm) xml_elem_delete(NULL, sparm);
 
 		}
-		if (rparm) 
-		{ 
-			if( *rparm ) xml_elem_delete(NULL, *rparm); *rparm = tparm; 
-		}else 
+		if (rparm)
+		{
+			if( *rparm ) xml_elem_delete(NULL, *rparm); *rparm = tparm;
+		}else
 			xml_elem_delete(NULL, tparm);
 	}
 
 	LOCAL_DEBUG_OUT("result = %p", result );
 	result = commit_xml_image_built( &state, id, result );
-	if( id ) 
+	if( id )
 		free( id );
 	LOCAL_DEBUG_OUT("result = %p", result );
 	if( result )
 	{
-		LOCAL_DEBUG_OUT("result's size = %dx%d", result->width, result->height );	
-	}	 
+		LOCAL_DEBUG_OUT("result's size = %dx%d", result->width, result->height );
+	}
 	return result;
 }
 

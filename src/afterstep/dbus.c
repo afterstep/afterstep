@@ -308,7 +308,7 @@ void asdbus_process_messages ()
 					CloseSessionClients (False);
 					/* we want to end to the very end */
 				} else if (strcmp (member, "Stop") == 0) {
-					asdbus_Notify ("Session is over.", "Buy-buy!", 0);
+					asdbus_Notify ("Session is over.", "Bye-bye!", 0);
 					dbus_connection_read_write (ASDBus.session_conn, 0);
 					Done (False, NULL);
 				}

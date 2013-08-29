@@ -639,7 +639,7 @@ InitMyApp (const char *app_class, int argc, char **argv,
 	as_app_args.verbosity_level = OUTPUT_DEFAULT_THRESHOLD;
 #endif
 
-/* Uncomment this to enable cmd line args tracing/debugging :    
+/* Uncomment this to enable cmd line args tracing/debugging :
  * set_output_threshold(20); */
 
 	ASDefaultScr = safecalloc (1, sizeof (ScreenInfo));
@@ -1381,7 +1381,7 @@ spawn_child (const char *cmd, int singleton_id, int screen,
 			int dst = 0;
 
 			for (env_s = 0; envvars[env_s] != NULL; ++env_s) {
-				/* don't want to path DESKTOP_AUTOSTART_ID to our children - 
+				/* don't want to path DESKTOP_AUTOSTART_ID to our children -
 				   its set by gnome-session for AfterStep proper specifically,
 				   otherwise children will attempt to re-use it for SessionManagement registration, failing miserably */
 				if (strlen (envvars[env_s]) < sizeof (SESSION_ID_ENVVAR)
@@ -1426,21 +1426,24 @@ spawn_child (const char *cmd, int singleton_id, int screen,
 
 		len = strlen ((char *)cmd);
 		if (pass_args) {
-			register int i = 0;
-
-			while (display[i])
-				++i;
-
-			while (i > 0 && isdigit (display[--i])) ;
-			if (display[i] == '.')
-				display[i + 1] = '\0';
 /*
 			This bit of code seems to break AS restarting
 			on Fedora 8. causing DISPLAY=":0.0" to
 			become DISPLAY=":0.".  -- Jeremy
+			Fixed by moving code under if(screen_str) -- Sasha Vasko
 */
 			if (screen >= 0)
 				screen_str = string_from_int (screen);
+
+			if (screen_str) {
+				register int i = 0;
+
+				while (display[i])	++i;
+				while (i > 0 && isdigit (display[--i])) ;
+				if (display[i] == '.')
+					display[i] = '\0';
+			}
+
 			if (w != None)
 				w_str = string_from_int (w);
 			if (context != C_NO_CONTEXT)
