@@ -207,7 +207,7 @@ int main (int argc, char **argv, char **envp)
 		show_progress ("AfterStep v.%s is starting up ...", VERSION);
 		display_progress (True, "AfterStep v.%s is starting up ...", VERSION);
 	}
-
+//sleep_a_millisec(1000);
 	if (ASDBus_fd >= 0) {
 		show_progress ("Successfuly accured Session DBus connection.");
 		GnomeSessionClientID = asdbus_RegisterSMClient (SMClientID_string);

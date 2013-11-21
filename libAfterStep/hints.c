@@ -2981,9 +2981,9 @@ void print_clean_hints (stream_func func, void *stream, ASHints * clean)
 	if (clean->client_host)
 		func (stream, "CLEAN.client_host = \"%s\";\n", clean->client_host);
 	if (clean->client_cmd)
-		func (stream, "CLEAN.client_cmd = \"%s\";\n", clean->client_cmd);
+		func (stream, "CLEAN.client_cmd = \"%s\";\n", clean->client_cmd);	
 
-	func (stream, "CLEAN.extwm_window_type = \"%s\";\n", clean->extwm_window_type);
+    func (stream, "CLEAN.extwm_window_type = \"0x%lX\";\n", clean->extwm_window_type);
 }
 
 void
