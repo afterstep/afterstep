@@ -107,13 +107,13 @@ static ASDBusOjectDescr dbusUPower = {"Power Management Daemon", True, UPOWER_NA
 typedef struct ASDBusContext {
 	DBusConnection *system_conn;
 	DBusConnection *session_conn;
-	int watch_fd;
+	ASVector *watchFds;  // vector of ASDBusFds
 	char *gnomeSessionPath;
 	Bool sessionManagerCanShutdown;
 	int kdeSessionVersion;
 } ASDBusContext;
 
-static ASDBusContext ASDBus = { NULL, NULL, -1, NULL, False, 0 };
+static ASDBusContext ASDBus = { NULL, NULL, NULL, NULL, False, 0 };
 
 static DBusHandlerResult asdbus_handle_message (DBusConnection *,
 																								DBusMessage *, void *);
@@ -203,24 +203,88 @@ _asdbus_get_system_connection()
 }
 
 /******************************************************************************/
+/* Watch functions */
+/******************************************************************************/
+static dbus_bool_t add_watch(DBusWatch *w, void *data)
+{
+    	if (!dbus_watch_get_enabled(w))
+      		return TRUE;
+
+	ASDBusFd *fd = safecalloc (1, sizeof(ASDBusFd));
+	fd->fd =  dbus_watch_get_unix_fd(w);
+	unsigned int flags = dbus_watch_get_flags(w);
+	if (get_flags(flags, DBUS_WATCH_READABLE))
+		fd->readable = True;
+    /*short cond = EV_PERSIST;
+    if (flags & DBUS_WATCH_READABLE)
+        cond |= EV_READ;
+    if (flags & DBUS_WATCH_WRITABLE)
+        cond |= EV_WRITE; */
+
+      // TODO add to the list of FDs
+	dbus_watch_set_data(w, fd, NULL);
+	if (ASDBus.watchFds == NULL)
+		ASDBus.watchFds = create_asvector (sizeof(ASDBusFd*));
+
+	append_vector(ASDBus.watchFds, fd, 1);
+
+	show_progress("added dbus watch fd=%d watch=%p readable =%d\n", fd->fd, w, fd->readable);
+	return TRUE;
+}
+
+static void remove_watch(DBusWatch *w, void *data)
+{
+    ASDBusFd* fd = dbus_watch_get_data(w);
+
+    vector_remove_elem (ASDBus.watchFds, fd);
+    dbus_watch_set_data(w, NULL, NULL);
+    show_progress("removed dbus watch watch=%p\n", w);
+}
+
+static void toggle_watch(DBusWatch *w, void *data)
+{
+    show_progress("toggling dbus watch watch=%p\n", w);
+    if (dbus_watch_get_enabled(w))
+        add_watch(w, data);
+    else
+        remove_watch(w, data);
+}
+
+
+/******************************************************************************/
 /* External interfaces : */
 /******************************************************************************/
-int asdbus_init ()
+Bool asdbus_init ()
 {																/* return connection unix fd */
 	char *tmp;
-	if (!ASDBus.session_conn)
+	if (!ASDBus.session_conn) {
 		ASDBus.session_conn = _asdbus_get_session_connection();
+		if (!dbus_connection_set_watch_functions(ASDBus.session_conn, add_watch, remove_watch,  toggle_watch, ASDBus.session_conn, NULL)) {
+		 	show_error("dbus_connection_set_watch_functions() failed");
+		}
 
-	if (!ASDBus.system_conn)
+	}
+
+	if (!ASDBus.system_conn){
 		ASDBus.system_conn = _asdbus_get_system_connection();
+		/*if (!dbus_connection_set_watch_functions(ASDBus.system_conn, add_watch, remove_watch,  toggle_watch, ASDBus.system_conn, NULL)) {
+		 	show_error("dbus_connection_set_watch_functions() failed");
+		}*/
+	}
 
-	if (ASDBus.session_conn && ASDBus.watch_fd < 0)
-		dbus_connection_get_unix_fd (ASDBus.session_conn, &(ASDBus.watch_fd));
+	/*if (ASDBus.session_conn && ASDBus.watchFds == NULL){
+		//dbus_connection_get_unix_fd (ASDBus.session_conn, &(ASDBus.watch_fd));
+		//dbus_whatch_get_unix_fd (ASDBus.session_conn, &(ASDBus.watch_fd));
+	}*/
 
 	if ((tmp = getenv ("KDE_SESSION_VERSION")) != NULL)
 		ASDBus.kdeSessionVersion = atoi(tmp);
 
-	return ASDBus.watch_fd;
+	return (ASDBus.session_conn != NULL);
+}
+
+ASVector* asdbus_getFds() {
+	return ASDBus.watchFds;
 }
 
 void asdbus_shutdown ()
@@ -263,9 +327,9 @@ Bool get_gnome_autosave ()
 void asdbus_EndSessionOk ();
 
 
-void asdbus_process_messages ()
+void asdbus_process_messages (ASDBusFd* fd)
 {
-/*	show_progress ("checking Dbus messages"); */
+	show_progress ("checking Dbus messages for fd = %d", fd->fd);
 #if 1
 	while (ASDBus.session_conn) {
 		DBusMessage *msg;

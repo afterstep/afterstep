@@ -1,7 +1,7 @@
 [GNOME Session]
 Name=AfterStep
-RequiredComponents=gnome-settings-daemon;
-RequiredProviders=windowmanager;
+RequiredComponents=gnome-settings-daemon;AfterStep
+#RequiredProviders=windowmanager;
 DefaultProvider-windowmanager=AfterStep
 #Please change to your preference. Supported names are:
 #GNOME;Unity;KDE;LXDE;MATE;Razor;ROX;TDE;XFCE;Old

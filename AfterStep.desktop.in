@@ -1,5 +1,5 @@
-[Window Manager]
-SessionManaged=true
+#[Window Manager]
+#SessionManaged=true
 
 [Desktop Entry]
 Name=AfterStep
@@ -7,7 +7,7 @@ Type=Application
 Comment=AfterStep is feature rich NeXTish window manager.
 # name we put on the WM spec check window
 X-GNOME-WMName=AfterStep
-# back compat only 
+# back compat only
 X-GNOME-Autostart-Phase=WindowManager
 X-GNOME-Provides=windowmanager
 X-GNOME-Autostart-Notify=true
