@@ -1782,14 +1782,21 @@ void afterstep_wait_pipes_input (int timeout_sec)
 #define AS_FD_SET(fd,fdset) \
 	do{ if (fd>=0) { FD_SET((fd),(fdset)); if ((fd)>max_fd) max_fd = (fd);}}while(0)
 
+	LOCAL_DEBUG_OUT ("asdbus_fds = %p", asdbus_fds);
 	if (asdbus_fds != NULL) {
 		register int i;
+		LOCAL_DEBUG_OUT ("asdbus_fds->used = %d", asdbus_fds->used);
 		for ( i = 0 ; i < asdbus_fds->used; ++i) {
 			ASDBusFd* fd = PVECTOR_HEAD(ASDBusFd*,asdbus_fds)[i];
-			if (fd->readable)
+			LOCAL_DEBUG_OUT ("asdbus_fds[%d] = %p", i, fd);
+			if (fd && fd->readable){
+				LOCAL_DEBUG_OUT ("asdbus_fds[%d].fd = %d", i, fd->fd);
 				AS_FD_SET (fd->fd, &in_fdset);
+			}
 		}
 	}
+	LOCAL_DEBUG_OUT ("done with asdbus_fds", "");
+
 	AS_FD_SET (Module_fd, &in_fdset);
 
 	if (Modules != NULL) {				/* adding all the modules pipes to our wait list */
@@ -1844,8 +1851,10 @@ void afterstep_wait_pipes_input (int timeout_sec)
 			register int i;
 			for ( i = 0 ; i < asdbus_fds->used; ++i) {
 				ASDBusFd* fd = PVECTOR_HEAD(ASDBusFd*,asdbus_fds)[i];
-				if (FD_ISSET (fd->fd, &in_fdset))
+				if (fd && FD_ISSET (fd->fd, &in_fdset)){
 					asdbus_process_messages (fd);
+					break;
+				}
 			}
 		}
 	}

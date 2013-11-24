@@ -226,7 +226,7 @@ static dbus_bool_t add_watch(DBusWatch *w, void *data)
 	if (ASDBus.watchFds == NULL)
 		ASDBus.watchFds = create_asvector (sizeof(ASDBusFd*));
 
-	append_vector(ASDBus.watchFds, fd, 1);
+	append_vector(ASDBus.watchFds, &fd, 1);
 
 	show_progress("added dbus watch fd=%d watch=%p readable =%d\n", fd->fd, w, fd->readable);
 	return TRUE;
@@ -236,7 +236,7 @@ static void remove_watch(DBusWatch *w, void *data)
 {
     ASDBusFd* fd = dbus_watch_get_data(w);
 
-    vector_remove_elem (ASDBus.watchFds, fd);
+    vector_remove_elem (ASDBus.watchFds, &fd);
     dbus_watch_set_data(w, NULL, NULL);
     show_progress("removed dbus watch watch=%p\n", w);
 }
