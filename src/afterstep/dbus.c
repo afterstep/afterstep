@@ -254,6 +254,18 @@ static void toggle_watch(DBusWatch *w, void *data)
 /******************************************************************************/
 /* External interfaces : */
 /******************************************************************************/
+static _asdbus_add_match (DBusConnection *conn, const char* iface, const char* member) {
+	char match[256];
+	sprintf(match,	"type='signal',interface='%s',member='%s'", iface, member);
+    	DBusError error;
+    	dbus_error_init(&error);
+    	dbus_bus_add_match(conn, match, &error);
+    	if (dbus_error_is_set(&error)) {
+      		show_error("dbus_bus_add_match() %s failed: %s\n",   member, error.message);
+      		dbus_error_free(&error);
+	}
+}
+
 Bool asdbus_init ()
 {																/* return connection unix fd */
 	char *tmp;
@@ -262,7 +274,9 @@ Bool asdbus_init ()
 		if (!dbus_connection_set_watch_functions(ASDBus.session_conn, add_watch, remove_watch,  toggle_watch, ASDBus.session_conn, NULL)) {
 		 	show_error("dbus_connection_set_watch_functions() failed");
 		}
-
+		_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "QueryEndSession");
+		_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "EndSession");
+		_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "Stop");
 	}
 
 	if (!ASDBus.system_conn){
