@@ -43,6 +43,8 @@
 #  define AFTERSTEP_APP_ID			            "afterstep-test"
 # endif
 
+#undef ASDBUS_DISPATCH
+
 #define AFTERSTEP_DBUS_SERVICE_NAME	      "org.afterstep." AFTERSTEP_APP_ID
 #define AFTERSTEP_DBUS_INTERFACE			    "org.afterstep." AFTERSTEP_APP_ID
 #define AFTERSTEP_DBUS_ROOT_PATH			    "/org/afterstep/" AFTERSTEP_APP_ID
@@ -229,7 +231,7 @@ static dbus_bool_t add_watch(DBusWatch *w, void *data)
 
 	append_vector(ASDBus.watchFds, &fd, 1);
 
-	show_progress("added dbus watch fd=%d watch=%p readable =%d\n", fd->fd, w, fd->readable);
+	show_debug(__FILE__,__FUNCTION__,__LINE__,"added dbus watch fd=%d watch=%p readable =%d\n", fd->fd, w, fd->readable);
 	return TRUE;
 }
 
@@ -239,25 +241,39 @@ static void remove_watch(DBusWatch *w, void *data)
 
     vector_remove_elem (ASDBus.watchFds, &fd);
     dbus_watch_set_data(w, NULL, NULL);
-    show_progress("removed dbus watch watch=%p\n", w);
+    show_debug(__FILE__,__FUNCTION__,__LINE__,"removed dbus watch watch=%p\n", w);
 }
 
 static void toggle_watch(DBusWatch *w, void *data)
 {
-    show_progress("toggling dbus watch watch=%p\n", w);
+    show_debug(__FILE__,__FUNCTION__,__LINE__,"toggling dbus watch watch=%p\n", w);
     if (dbus_watch_get_enabled(w))
         add_watch(w, data);
     else
         remove_watch(w, data);
 }
+#ifdef ASDBUS_DISPATCH
+typedef struct ASDBusDispatch {
+	DBusConnection *connection;
+	void *data;
+}ASDBusDispatch;
+
+static ASDBusDispatch *asdbus_create_dispatch(DBusConnection *connection, void *data){
+    ASDBusDispatch *d = safecalloc (1, sizeof(ASDBusDispatch));
+    d->data = data;
+    d->connection = connection;
+    return d;
+}
 
 static void queue_dispatch(DBusConnection *connection, DBusDispatchStatus new_status, void *data){
 	if (new_status == DBUS_DISPATCH_DATA_REMAINS){
-		append_bidirelem (ASDBus.dispatches, data);
+	        show_debug(__FILE__,__FUNCTION__,__LINE__,"ADDED dbus dispatch=%p\n", data);
+		append_bidirelem (ASDBus.dispatches, asdbus_create_dispatch(connection, data));
 	}
 }
-
+#endif
 static void  asdbus_handle_timer (void *vdata) {
+	show_debug(__FILE__,__FUNCTION__,__LINE__,"dbus_timeout_handle data=%p\n", vdata);
 	dbus_timeout_handle (vdata);
 }
 
@@ -265,6 +281,7 @@ static void asdbus_set_dbus_timer (struct timeval *expires, DBusTimeout *timeout
 	int interval = dbus_timeout_get_interval(timeout);
 	gettimeofday (expires, NULL);
 	tv_add_ms(expires, interval);
+	show_debug(__FILE__,__FUNCTION__,__LINE__,"adding dbus timeout data=%p, interval = %d\n", timeout, interval);
 	timer_new (interval, asdbus_handle_timer, timeout);
 }
 
@@ -288,20 +305,22 @@ static void toggle_timeout(DBusTimeout *timeout, void *data){
 }
 
 static void remove_timeout(DBusTimeout *timeout, void *data){
+	show_debug(__FILE__,__FUNCTION__,__LINE__,"removing dbus timeout =%p\n", timeout);
 	timer_remove_by_data (timeout);
 }
+#ifdef ASDBUS_DISPATCH
 
 void asdbus_dispatch_destroy (void *data) {
-
-
+    free (data);
 }
-
+#endif
 static _asdbus_add_match (DBusConnection *conn, const char* iface, const char* member) {
 	char match[256];
-	sprintf(match,	"type='signal',interface='%s',member='%s'", iface, member);
+	sprintf(match,	member?"type='signal',interface='%s',member='%s'":"type='signal',interface='%s'", iface, member);
     	DBusError error;
     	dbus_error_init(&error);
     	dbus_bus_add_match(conn, match, &error);
+	show_debug(__FILE__,__FUNCTION__,__LINE__, "added match :[%s]", match);
     	if (dbus_error_is_set(&error)) {
       		show_error("dbus_bus_add_match() %s failed: %s\n",   member, error.message);
       		dbus_error_free(&error);
@@ -314,20 +333,24 @@ static _asdbus_add_match (DBusConnection *conn, const char* iface, const char* m
 Bool asdbus_init ()
 {																/* return connection unix fd */
 	char *tmp;
+#ifdef ASDBUS_DISPATCH
 	if (!ASDBus.dispatches)
 		ASDBus.dispatches = create_asbidirlist(asdbus_dispatch_destroy);
-
+#endif
 	if (!ASDBus.session_conn) {
 		ASDBus.session_conn = _asdbus_get_session_connection();
 		if (!dbus_connection_set_watch_functions(ASDBus.session_conn, add_watch, remove_watch,  toggle_watch, ASDBus.session_conn, NULL)) {
 		 	show_error("dbus_connection_set_watch_functions() failed");
 		}
-		_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "QueryEndSession");
-		_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "EndSession");
-		_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "Stop");
+		_asdbus_add_match (ASDBus.session_conn,  SESSIONMANAGER_INTERFACE, NULL);
+		//_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "QueryEndSession");
+		//_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "EndSession");
+		//_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "Stop");
 		dbus_connection_set_timeout_functions(ASDBus.session_conn, add_timeout, remove_timeout, toggle_timeout, NULL, NULL);
+#ifdef ASDBUS_DISPATCH
 		dbus_connection_set_dispatch_status_function(ASDBus.session_conn, queue_dispatch, NULL, NULL);
-		//queue_dispatch(ASDBus.session_conn, dbus_connection_get_dispatch_status(ASDBus.session_conn), NULL);
+		queue_dispatch(ASDBus.session_conn, dbus_connection_get_dispatch_status(ASDBus.session_conn), NULL);
+#endif
 	}
 
 	if (!ASDBus.system_conn){
@@ -353,12 +376,17 @@ ASVector* asdbus_getFds() {
 }
 
 void asdbus_handleDispatches (){
+#ifdef ASDBUS_DISPATCH
 	void *data;
 	while ((data = extract_first_bidirelem (ASDBus.dispatches)) != NULL){
-		while (dbus_connection_get_dispatch_status(data) == DBUS_DISPATCH_DATA_REMAINS){
-			dbus_connection_dispatch(data);
+		ASDBusDispatch *d = (ASDBusDispatch*)data;
+		while (dbus_connection_get_dispatch_status(d->data) == DBUS_DISPATCH_DATA_REMAINS){
+			dbus_connection_dispatch(d->data);
+			show_debug(__FILE__,__FUNCTION__,__LINE__,"dispatching dbus  data=%p\n", d->data);
 		}
+		free (d);
 	}
+#endif
 }
 
 void asdbus_shutdown ()
@@ -405,31 +433,31 @@ void asdbus_EndSessionOk ();
 
 void asdbus_process_messages (ASDBusFd* fd)
 {
-	show_progress ("checking Dbus messages for fd = %d", fd->fd);
-#if 1
+	show_progress ("checking dbus messages for fd = %d", fd->fd);
+#ifndef ASDBUS_DISPATCH
 	while (ASDBus.session_conn) {
 		DBusMessage *msg;
 		const char *interface, *member;
 		/* non blocking read of the next available message */
-		dbus_connection_read_write (ASDBus.session_conn, 300);
+		dbus_connection_read_write (ASDBus.session_conn, 200);
 		msg = dbus_connection_pop_message (ASDBus.session_conn);
 
 		if (NULL == msg) {
 			/* show_progress ("no more Dbus messages..."); */
 			show_progress
-					("time(%ld):Dbus message not received during the timeout - sleeping...",
+					("time(%ld):dbus message not received during the timeout - sleeping...",
 					 time (NULL));
 			return;
 		}
 		interface = dbus_message_get_interface (msg);
 		member = dbus_message_get_member (msg);
-
+		show_debug(__FILE__,__FUNCTION__, __LINE__, "dbus msg iface = \"%s\", member = \"%s\"", interface?interface:"(nil)", member?member:"(nil)");
 		if (interface == NULL || member == NULL) {
-			show_progress ("time(%ld):Dbus message cannot be parsed...",
+			show_progress ("time(%ld):dbus message cannot be parsed...",
 										 time (NULL));
 		} else {
 			show_progress
-					("time(%ld):Dbus message received from \"%s\", member \"%s\"",
+					("time(%ld):dbus message received from \"%s\", member \"%s\"",
 					 time (NULL), interface, member);
 			if (strcmp (interface, IFACE_SESSION_PRIVATE) == 0) {
 				if (strcmp (member, "QueryEndSession") == 0) {	/* must replay yes  within 10 seconds */

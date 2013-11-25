@@ -1790,8 +1790,8 @@ void afterstep_wait_pipes_input (int timeout_sec)
 			ASDBusFd* fd = PVECTOR_HEAD(ASDBusFd*,asdbus_fds)[i];
 			LOCAL_DEBUG_OUT ("asdbus_fds[%d] = %p", i, fd);
 			if (fd && fd->readable){
-				LOCAL_DEBUG_OUT ("asdbus_fds[%d].fd = %d", i, fd->fd);
 				AS_FD_SET (fd->fd, &in_fdset);
+				LOCAL_DEBUG_OUT ("adding asdbus_fds[%d].fd = %d", i, fd->fd);
 			}
 		}
 	}
@@ -1822,7 +1822,7 @@ void afterstep_wait_pipes_input (int timeout_sec)
 		tv.tv_usec = 0;
 	}
 
-	LOCAL_DEBUG_OUT ("selecting ... ");
+	show_debug (__FILE__, __FUNCTION__, __LINE__,"selecting ... max_fd = %d, timeout : sec = %d, usec = %d", max_fd, t?t->tv_sec:-1, t?t->tv_usec:-1);
 	retval =
 			PORTABLE_SELECT (min (max_fd + 1, fd_width), &in_fdset, &out_fdset,
 											 NULL, t);
@@ -1851,15 +1851,17 @@ void afterstep_wait_pipes_input (int timeout_sec)
 			register int i;
 			for ( i = 0 ; i < asdbus_fds->used; ++i) {
 				ASDBusFd* fd = PVECTOR_HEAD(ASDBusFd*,asdbus_fds)[i];
+				show_debug(__FILE__,__FUNCTION__,__LINE__, "dbus fd = %d, isset = %d", fd->fd, FD_ISSET (fd->fd, &in_fdset));
 				if (fd && FD_ISSET (fd->fd, &in_fdset)){
 					asdbus_process_messages (fd);
 					break;
 				}
 			}
-			asdbus_handleDispatches ();
 		}
 	}
 
 	/* handle timeout events */
 	timer_handle ();
+	asdbus_handleDispatches ();
+
 }
