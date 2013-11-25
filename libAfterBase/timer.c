@@ -121,6 +121,15 @@ timer_subtract_times (time_t * sec1, time_t * usec1, time_t sec2, time_t usec2)
 	*sec1 = sec;
 }
 
+void tv_add_ms(struct timeval *tv, time_t ms) {
+	tv->tv_sec += ms/1000;
+	tv->tv_usec += 1000*(ms%1000);
+	if (tv->tv_usec > 1000000L){
+		tv->tv_usec -= 1000000L;
+		tv->tv_sec += 1;
+	}
+}
+
 Bool timer_delay_till_next_alarm (time_t * sec, time_t * usec)
 {
 	Timer        *timer;
@@ -142,12 +151,12 @@ Bool timer_delay_till_next_alarm (time_t * sec, time_t * usec)
 	LOCAL_DEBUG_OUT( "next :  sec = %ld, usec = %ld( curr %ld, %ld)", tsec, tusec, *sec, *usec );
 	timer_subtract_times (&tsec, &tusec, *sec, *usec);
 	LOCAL_DEBUG_OUT( "waiting for sec = %ld, usec = %ld( curr %ld, %ld)", tsec, tusec, *sec, *usec );
-	
+
 	*sec = tsec;
 	*usec = tusec;
 	if (tsec < 0 || tusec < 0)
-	{	
-		*sec = 0 ; 
+	{
+		*sec = 0 ;
 		*usec = 1;
 	}
 	return True;
@@ -163,9 +172,9 @@ Bool timer_handle (void)
 	for (timer = timer_first; timer != NULL; timer = timer->next)
 		if (timer->sec < sec || (timer->sec == sec && timer->usec <= usec))
 		{  /* oldest event gets executed first ! */
-			if( good_timer != NULL ) 
+			if( good_timer != NULL )
 				if( good_timer->sec < timer->sec || (timer->sec == good_timer->sec && timer->usec > good_timer->usec ))
-					continue;	   
+					continue;
 			good_timer = timer ;
 		}
 	if (good_timer != NULL)
@@ -195,7 +204,7 @@ Bool timer_remove_by_data (void *data)
 	return success;
 }
 
-void 
+void
 timer_remove_all ()
 {
 	while(timer_first != NULL)

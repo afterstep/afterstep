@@ -1856,6 +1856,7 @@ void afterstep_wait_pipes_input (int timeout_sec)
 					break;
 				}
 			}
+			asdbus_handleDispatches ();
 		}
 	}
 

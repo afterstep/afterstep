@@ -111,9 +111,10 @@ typedef struct ASDBusContext {
 	char *gnomeSessionPath;
 	Bool sessionManagerCanShutdown;
 	int kdeSessionVersion;
+	ASBiDirList *dispatches;
 } ASDBusContext;
 
-static ASDBusContext ASDBus = { NULL, NULL, NULL, NULL, False, 0 };
+static ASDBusContext ASDBus = { NULL, NULL, NULL, NULL, False, 0, NULL };
 
 static DBusHandlerResult asdbus_handle_message (DBusConnection *,
 																								DBusMessage *, void *);
@@ -250,10 +251,51 @@ static void toggle_watch(DBusWatch *w, void *data)
         remove_watch(w, data);
 }
 
+static void queue_dispatch(DBusConnection *connection, DBusDispatchStatus new_status, void *data){
+	if (new_status == DBUS_DISPATCH_DATA_REMAINS){
+		append_bidirelem (ASDBus.dispatches, data);
+	}
+}
 
-/******************************************************************************/
-/* External interfaces : */
-/******************************************************************************/
+static void  asdbus_handle_timer (void *vdata) {
+	dbus_timeout_handle (vdata);
+}
+
+static void asdbus_set_dbus_timer (struct timeval *expires, DBusTimeout *timeout) {
+	int interval = dbus_timeout_get_interval(timeout);
+	gettimeofday (expires, NULL);
+	tv_add_ms(expires, interval);
+	timer_new (interval, asdbus_handle_timer, timeout);
+}
+
+static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data){
+	/* add expiration data to timeout */
+	struct timeval *expires = dbus_malloc(sizeof(struct timeval));
+	if (!expires)
+		return FALSE;
+	dbus_timeout_set_data(timeout, expires, dbus_free);
+
+	asdbus_set_dbus_timer (expires, timeout);
+	return TRUE;
+}
+
+static void toggle_timeout(DBusTimeout *timeout, void *data){
+	/* reset expiration data */
+	struct timeval *expires = dbus_timeout_get_data(timeout);
+	timer_remove_by_data (timeout);
+
+	asdbus_set_dbus_timer (expires, timeout);
+}
+
+static void remove_timeout(DBusTimeout *timeout, void *data){
+	timer_remove_by_data (timeout);
+}
+
+void asdbus_dispatch_destroy (void *data) {
+
+
+}
+
 static _asdbus_add_match (DBusConnection *conn, const char* iface, const char* member) {
 	char match[256];
 	sprintf(match,	"type='signal',interface='%s',member='%s'", iface, member);
@@ -266,9 +308,15 @@ static _asdbus_add_match (DBusConnection *conn, const char* iface, const char* m
 	}
 }
 
+/******************************************************************************/
+/* External interfaces : */
+/******************************************************************************/
 Bool asdbus_init ()
 {																/* return connection unix fd */
 	char *tmp;
+	if (!ASDBus.dispatches)
+		ASDBus.dispatches = create_asbidirlist(asdbus_dispatch_destroy);
+
 	if (!ASDBus.session_conn) {
 		ASDBus.session_conn = _asdbus_get_session_connection();
 		if (!dbus_connection_set_watch_functions(ASDBus.session_conn, add_watch, remove_watch,  toggle_watch, ASDBus.session_conn, NULL)) {
@@ -277,6 +325,9 @@ Bool asdbus_init ()
 		_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "QueryEndSession");
 		_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "EndSession");
 		_asdbus_add_match (ASDBus.session_conn,  IFACE_SESSION_PRIVATE, "Stop");
+		dbus_connection_set_timeout_functions(ASDBus.session_conn, add_timeout, remove_timeout, toggle_timeout, NULL, NULL);
+		dbus_connection_set_dispatch_status_function(ASDBus.session_conn, queue_dispatch, NULL, NULL);
+		//queue_dispatch(ASDBus.session_conn, dbus_connection_get_dispatch_status(ASDBus.session_conn), NULL);
 	}
 
 	if (!ASDBus.system_conn){
@@ -301,6 +352,15 @@ ASVector* asdbus_getFds() {
 	return ASDBus.watchFds;
 }
 
+void asdbus_handleDispatches (){
+	void *data;
+	while ((data = extract_first_bidirelem (ASDBus.dispatches)) != NULL){
+		while (dbus_connection_get_dispatch_status(data) == DBUS_DISPATCH_DATA_REMAINS){
+			dbus_connection_dispatch(data);
+		}
+	}
+}
+
 void asdbus_shutdown ()
 {
 	if (ASDBus.session_conn)
@@ -320,7 +380,9 @@ Bool get_gnome_autosave ()
 #ifdef HAVE_GIOLIB
 	static Bool g_types_inited = False;
 	if (!g_types_inited) {
-		g_type_init();
+#if (GLIB_MAJOR_VERSION <= 2 && GLIB_MINOR_VERSION <= 35 && GLIB_MICRO_VERSION <= 0)
+		g_type_init ();
+#endif
 		g_types_inited = True;
 	}
 	if (ASDBus.gnomeSessionPath) {

@@ -577,6 +577,7 @@ typedef struct 	ASDBusFd  {
 
 int asdbus_init();
 ASVector* asdbus_getFds();
+void asdbus_handleDispatches ();
 void asdbus_shutdown();
 void asdbus_process_messages (ASDBusFd*);
 

@@ -46,6 +46,7 @@ Bool timer_handle (void);
 Bool timer_remove_by_data (void *data);
 void timer_remove_all ();
 Bool timer_find_by_data (void *data);
+void tv_add_ms(struct timeval *tv, time_t msec);
 
 #ifdef __cplusplus
 }
