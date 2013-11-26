@@ -73,6 +73,7 @@ _exec_while_x_pending ()
 			DispatchEvent (&event, False);
 			++handled_count;
 		}
+		asdbus_process_messages (0);
 		ASSync (False);
 		/* before we exec any function - we ought to process any Unmap and Destroy
 		 * events to handle all the pending window destroys : */
@@ -83,6 +84,7 @@ _exec_while_x_pending ()
 			DispatchEvent (&event, False);
 			++handled_count;
 		}
+		asdbus_process_messages (0);
 		ExecutePendingFunctions ();
 	}
 	return handled_count;

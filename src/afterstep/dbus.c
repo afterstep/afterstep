@@ -281,7 +281,7 @@ static void asdbus_set_dbus_timer (struct timeval *expires, DBusTimeout *timeout
 	int interval = dbus_timeout_get_interval(timeout);
 	gettimeofday (expires, NULL);
 	tv_add_ms(expires, interval);
-	show_debug(__FILE__,__FUNCTION__,__LINE__,"adding dbus timeout data=%p, interval = %d\n", timeout, interval);
+	show_debug(__FILE__,__FUNCTION__,__LINE__,"time = %d, adding dbus timeout data=%p, interval = %d\n", time(NULL), timeout, interval);
 	timer_new (interval, asdbus_handle_timer, timeout);
 }
 
@@ -433,20 +433,18 @@ void asdbus_EndSessionOk ();
 
 void asdbus_process_messages (ASDBusFd* fd)
 {
-	show_progress ("checking dbus messages for fd = %d", fd->fd);
+	//show_progress ("checking dbus messages for fd = %d", fd->fd);
 #ifndef ASDBUS_DISPATCH
 	while (ASDBus.session_conn) {
 		DBusMessage *msg;
 		const char *interface, *member;
 		/* non blocking read of the next available message */
-		dbus_connection_read_write (ASDBus.session_conn, 200);
+		dbus_connection_read_write (ASDBus.session_conn, 0);
 		msg = dbus_connection_pop_message (ASDBus.session_conn);
 
 		if (NULL == msg) {
 			/* show_progress ("no more Dbus messages..."); */
-			show_progress
-					("time(%ld):dbus message not received during the timeout - sleeping...",
-					 time (NULL));
+			//show_progress("time(%ld):dbus message not received during the timeout - sleeping...", time (NULL));
 			return;
 		}
 		interface = dbus_message_get_interface (msg);
@@ -671,6 +669,7 @@ void asdbus_UnregisterSMClient (const char *sm_client_path)
 
 void asdbus_EndSessionOk ()
 {
+		show_debug(__FILE__, __FUNCTION__, __LINE__, "dbus EndSessionOk");
 #ifdef HAVE_DBUS_CONTEXT
 	if (ASDBus.session_conn) {
 		DBusMessage *message =
@@ -678,6 +677,8 @@ void asdbus_EndSessionOk ()
 																			ASDBus.gnomeSessionPath,	/*"/org/gnome/SessionManager", */
 																			IFACE_SESSION_PRIVATE,
 																			"EndSessionResponse");
+		show_debug(__FILE__, __FUNCTION__, __LINE__, "dbus EndSessionResponse to iface = \"%s\", path = \"%s\", manager = \"%s\"", 
+			    IFACE_SESSION_PRIVATE, ASDBus.gnomeSessionPath, SESSIONMANAGER_NAME);
 		if (message) {
 			DBusMessageIter iter;
 			char *reason = "";
