@@ -406,7 +406,7 @@ $(LIB_SHARED).$(LIBVERMAJOR): $(LIB_SHARED).$(LIBVER)
 
 $(LIB_SHARED).$(LIBVER): show_flags_cc $(LIB_OBJS) $(LIB_INCS) config.h Makefile
 	$(CC) -shared $(LDFLAGS) -Wl,-soname,$(LIB_SHARED).$(LIBVERMAJOR) -o $(LIB_SHARED).$(LIBVER) \
-	 $(LIB_OBJS)
+	 $(LIB_OBJS) $(LIBS_AFTERIMAGE)
 
 install.man:
 		@if [ -d doc/man ] ; then \
