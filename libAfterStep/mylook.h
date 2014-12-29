@@ -112,9 +112,10 @@ typedef struct MyBackground
 	ARGB32     tint;
 	ARGB32     pad_color;
 	ASFlagType align_flags;
+	int 			 mirror;
 
 	int        ref_count ;
-	
+
 	char *loaded_im_name ;
 	Pixmap loaded_pixmap ;
 }MyBackground;
@@ -142,13 +143,13 @@ typedef struct MyDesktopConfig
 #define MYFRAME_TITLE_BACK_SPACER			1
 #define MYFRAME_TITLE_BACK_TITLE_SPACER		2
 #define MYFRAME_TITLE_BACK_INVALID			3
-#define MYFRAME_TITLE_SIDE_MASK				0x03  /* ORed values of everything above */  
-#define MYFRAME_TITLE_SIDE_BITS				2     /* number of set bits in above mask */		
+#define MYFRAME_TITLE_SIDE_MASK				0x03  /* ORed values of everything above */
+#define MYFRAME_TITLE_SIDE_BITS				2     /* number of set bits in above mask */
 #define MYFRAME_GetTbarLayoutElem(layout,i)    (((layout)>>((i)*MYFRAME_TITLE_SIDE_BITS))&MYFRAME_TITLE_SIDE_MASK)
 #define MYFRAME_SetTbarLayoutElem(layout,i,elem)    (layout = (((layout)&(~(MYFRAME_TITLE_SIDE_MASK<<((i)*MYFRAME_TITLE_SIDE_BITS))))|(((elem)&MYFRAME_TITLE_SIDE_MASK)<<((i)*MYFRAME_TITLE_SIDE_BITS))))
 
-#define MYFRAME_TITLE_SIDE_ELEMS			3     /* number of set bits in above mask */		   
-			   
+#define MYFRAME_TITLE_SIDE_ELEMS			3     /* number of set bits in above mask */
+
 #define MYFRAME_TITLE_BACK_TITLE_LABEL		MYFRAME_TITLE_SIDE_ELEMS
 
 
@@ -200,9 +201,9 @@ typedef struct MyFrame
 	ASFlagType   set_part_align ;
 	ASFlagType   part_align[FRAME_PARTS];
 	ASFlagType   set_title_attr ;
-	
+
 	ASGeometry   part_slicing[FRAME_SIDES];
-	
+
 #define MYFRAME_TitleFBevelSet      (0x01<<1)
 #define MYFRAME_TitleUBevelSet      (0x01<<2)
 #define MYFRAME_TitleSBevelSet      (0x01<<3)
@@ -243,7 +244,7 @@ typedef struct MyFrame
 
 	ASFlagType   title_fbevel, title_ubevel, title_sbevel;
 	unsigned int title_fcm, title_ucm, title_scm ;
-	int 		 title_fhue, title_uhue, title_shue; 
+	int 		 title_fhue, title_uhue, title_shue;
 	unsigned int title_fsat, title_usat, title_ssat;
 	ASFlagType   title_align, title_backs_align[MYFRAME_TITLE_BACKS];
 	ASGeometry   title_backs_slicing[MYFRAME_TITLE_BACKS];

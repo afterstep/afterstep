@@ -18,7 +18,7 @@
  */
 
 
-/* #define LOCAL_DEBUG */
+/*#define LOCAL_DEBUG */
 /*#define DO_CLOCKING */
 
 #include "../configure.h"
@@ -341,6 +341,9 @@ parse_desktop_entry_list (const char *fullfilename,
 	if (fp) {
 		static char rb[MAXLINELENGTH + 1];
 
+#define FIX_DE do {if (de) {fix_desktop_entry (de, default_category, icon_path, fullfilename, applnk); \
+										append_bidirelem (entry_list, de); de = NULL;} } while(0)
+
 		while (fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL) {
 			/*LOCAL_DEBUG_OUT( "rb = \"%s\", de = %p", &(rb[0]), de ); */
 			if (rb[0] == '[') {
@@ -350,27 +353,15 @@ parse_desktop_entry_list (const char *fullfilename,
 						|| (rb[1] == 'K'
 								&& mystrncasecmp (&(rb[2]), "DE Desktop Entry]",
 																	17) == 0)) {
-					if (de) {
-						fix_desktop_entry (de, default_category, icon_path,
-															 fullfilename, applnk);
-						append_bidirelem (entry_list, de);
-					}
+					FIX_DE;
 					de = create_desktop_entry (default_type);
 					++count;
-				} else if (de) {
-					fix_desktop_entry (de, default_category, icon_path, fullfilename,
-														 applnk);
-					append_bidirelem (entry_list, de);
-					de = NULL;
-				}
+				} else
+					FIX_DE;
 			} else if (de)
 				parse_desktop_entry_line (de, &(rb[0]));
 		}
-		if (de) {
-			fix_desktop_entry (de, default_category, icon_path, fullfilename,
-												 applnk);
-			append_bidirelem (entry_list, de);
-		}
+		FIX_DE;
 		fclose (fp);
 	}
 	return count;
@@ -467,6 +458,13 @@ static Bool register_desktop_entry_list_item (void *data, void *aux_data)
 /* public methods : 													 */
 /*************************************************************************/
 
+int compareDesktopEntry (void *data1, void *data2) {
+	ASDesktopEntry *de1 = (ASDesktopEntry*)data1;
+	ASDesktopEntry *de2 = (ASDesktopEntry*)data2;
+	return (de1->type == ASDE_TypeApplication &&
+	        de2->type == ASDE_TypeApplication)? mystrcasecmp(de1->Name, de2->Name) : 1;
+}
+
 Bool load_category_tree (ASCategoryTree * ct)
 {
 	if (ct && ct->dir_list) {
@@ -478,7 +476,7 @@ Bool load_category_tree (ASCategoryTree * ct)
 			Bool applnk = (strstr (ct->dir_list[i], "/applnk") != NULL);
 
 			if (CheckDir (ct->dir_list[i]) == 0) {
-/*				fprintf( stderr, "location : \"%s\", applnk == %d\n", ct->dir_list[i], applnk ); 
+/*				fprintf( stderr, "location : \"%s\", applnk == %d\n", ct->dir_list[i], applnk );
 */
 				parse_desktop_entry_tree (ct->dir_list[i], NULL, entry_list, NULL,
 																	ct->icon_path, ct->name, applnk);
@@ -487,7 +485,9 @@ Bool load_category_tree (ASCategoryTree * ct)
 																	ASDE_TypeDirectory, ct->icon_path,
 																	applnk);
 		}
-		LOCAL_DEBUG_OUT ("Done parsing for tree %s", ct->name);
+		LOCAL_DEBUG_OUT ("Done parsing for tree %s, total entris %d", ct->name, entry_list->count);
+		dedup_asbidirlist(entry_list, compareDesktopEntry);
+		LOCAL_DEBUG_OUT ("Done deduping for tree %s, total entris %d", ct->name, entry_list->count);
 		iterate_asbidirlist (entry_list, register_desktop_entry_list_item, ct,
 												 NULL, False);
 		destroy_asbidirlist (&entry_list);
@@ -716,15 +716,15 @@ int main (int argc, char **argv)
 #define REDHAT_APPLNK	"/etc/X11/applnk"
 #define DEBIAN_APPLNK	"/usr/share/applications"
 
-/* 
- * From e-mail : 
+/*
+ * From e-mail :
  * The paths to the directories should be given by the DESKTOP_FILE_PATH
  * enviromental variable if other directories then /usr/share/applications/ are
  * needed.  This environment variable has the same format as the PATH
  * evironment variable, ':'separating entries.  If DESKTOP_FILE_PATH is present,
  * /usr/share/applications is not checked by default, and thus shoul dbe included
  * in the path.
- * 
+ *
  * see: https://listman.redhat.com/archives/xdg-list/2002-July/msg00049.html
  * 		http://standards.freedesktop.org/menu-spec/menu-spec-0.9.html#paths
  * 		http://www.freedesktop.org/Standards/desktop-entry-spec

@@ -43,6 +43,7 @@ void iterate_asbidirlist( ASBiDirList *l, iter_list_data_handler iter_func, void
                           void *start_from, Bool reverse);
 
 void bubblesort_asbidirlist( ASBiDirList *l, compare_data_handler compare_func );
+void dedup_asbidirlist( ASBiDirList *l, compare_data_handler compare_func );
 
 void *append_bidirelem( ASBiDirList *l, void *data );
 void *prepend_bidirelem( ASBiDirList *l, void *data );

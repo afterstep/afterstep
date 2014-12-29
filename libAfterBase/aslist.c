@@ -300,7 +300,7 @@ extract_last_bidirelem( ASBiDirList *l)
 	return data;
 }
 
-void 
+void
 bubblesort_asbidirlist( ASBiDirList *l, compare_data_handler compare_func )
 {
     if( l && compare_func )
@@ -308,31 +308,48 @@ bubblesort_asbidirlist( ASBiDirList *l, compare_data_handler compare_func )
 		int swaps;
 
 		do
-		{	
+		{
 	        ASBiDirElem *curr = l->head;
 			swaps = 0;
         	while( curr != NULL && curr->next != NULL )
         	{
 				ASBiDirElem *next = curr->next ;
-				if( compare_func( curr->data, next->data ) > 0 ) 
+				if( compare_func( curr->data, next->data ) > 0 )
 				{	               /* swapping elements  */
-					ASBiDirElem *prev = curr->prev ; 
-					next->prev = prev ; 
-					curr->next = next->next ; 
-					curr->prev = next ; 
-					next->next = curr ; 
-					if( prev == NULL ) 
-						l->head = next ; 
+					ASBiDirElem *prev = curr->prev ;
+					next->prev = prev ;
+					curr->next = next->next ;
+					curr->prev = next ;
+					next->next = curr ;
+					if( prev == NULL )
+						l->head = next ;
 					else
-						prev->next = next ; 
+						prev->next = next ;
 					if( l->tail == next )
 						l->tail = curr ;
 					++swaps ;
 				}else
-					curr = next ;	 
+					curr = next ;
         	}
 		}while( swaps > 0 );
     }
 }
-	
+
+void
+dedup_asbidirlist( ASBiDirList *l, compare_data_handler compare_func )
+{
+	if( l && compare_func ) {
+		ASBiDirElem *curr;
+	  for (curr = l->head; curr != NULL ; curr = curr->next) {
+	  	ASBiDirElem *maybeDup = curr->next;
+	  	while (maybeDup != NULL) {
+  			ASBiDirElem *next = maybeDup->next;
+	  		if (compare_func (curr->data, maybeDup->data) == 0){
+	  			destroy_bidirelem (l, maybeDup);
+	  		}
+  			maybeDup = next;
+  		}
+  	}
+  }
+}
 

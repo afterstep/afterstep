@@ -49,10 +49,9 @@ TermDef MyBackgroundTerms[] = {
 	,
 	{TF_NO_MYNAME_PREPENDING, "Scale", 5, TT_GEOMETRY, BGR_SCALE, NULL}
 	,
-	{TF_NO_MYNAME_PREPENDING, "Align", 5, TT_INTEGER, BGR_ALIGN, NULL}
-	,
-	{TF_NO_MYNAME_PREPENDING | TF_INDEXED, "Pad", 3, TT_COLOR, BGR_PAD, NULL}
-	,
+	{TF_NO_MYNAME_PREPENDING, "Align", 5, TT_INTEGER, BGR_ALIGN, NULL},
+	{TF_NO_MYNAME_PREPENDING, "Mirror", 6, TT_INTEGER, BGR_MIRROR, NULL},
+	{TF_NO_MYNAME_PREPENDING | TF_INDEXED, "Pad", 3, TT_COLOR, BGR_PAD, NULL},
 	{TF_NO_MYNAME_PREPENDING | TF_SYNTAX_TERMINATOR, "~MyBackground", 13,
 	 TT_FLAG, BGR_MYBACKGROUND_END, NULL}
 	,
@@ -253,6 +252,10 @@ MyBackgroundConfig *ParseMyBackgroundOptions (FreeStorageElem * Storage,
 		case BGR_SCALE:
 			config->scale = item.data.geometry;
 			config->flags |= BGFLAG_SCALE;
+			break;
+		case BGR_MIRROR:
+			config->mirror = item.data.integer;
+			config->flags |= BGFLAG_MIRROR;
 			break;
 		case BGR_ALIGN:
 			config->flags &=
@@ -486,6 +489,10 @@ void myback_parse (char *tline, FILE * fd, char **myname, int *mylook)
 			myback->align_flags = ALIGN_HCENTER;
 		else
 			myback->align_flags = ALIGN_LEFT;
+	}
+	myback->mirror = 0;
+	if (get_flags (back_config->flags, BGFLAG_MIRROR)) {
+			myback->mirror = back_config->mirror;
 	}
 	if (get_flags (back_config->flags, BGFLAG_PAD_VERT)) {
 		if (get_flags (back_config->flags, BGFLAG_ALIGN_BOTTOM))

@@ -1,18 +1,18 @@
 OBJS		=
 
-PROG		= Banner
+PROG		=
 SCRIPTS		= Banner
 
-LIBS_PRIVATE    = 
-LIBS_DEPEND     = 
+LIBS_PRIVATE    =
+LIBS_DEPEND     =
 
-Banner: 	
+Banner:
 		$(CP) Banner.sh Banner
 
 @MAKEFILECOMMON@
 
 module.clean:
-		
-install:	$(PROG) install.script
+
+install:	Banner install.script
 
 uninstall:	uninstall.script

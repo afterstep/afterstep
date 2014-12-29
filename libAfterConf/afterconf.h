@@ -46,7 +46,7 @@ extern struct SyntaxDef      AlignSyntax;
 extern struct SyntaxDef     *BevelSyntaxPtr;
 
 /* All top level syntax definitions are listed below : */
-extern struct SyntaxDef      ArrangeSyntax;  /* really is an empty syntax */  
+extern struct SyntaxDef      ArrangeSyntax;  /* really is an empty syntax */
 extern struct SyntaxDef      AnimateSyntax;
 extern struct SyntaxDef      SoundSyntax;
 extern struct SyntaxDef      BaseSyntax;
@@ -82,12 +82,12 @@ extern struct SyntaxDef      PagerSyntax;
 extern struct SyntaxDef      PagerPrivateSyntax;
 extern struct SyntaxDef      PagerLookSyntax;
 extern struct SyntaxDef      PagerFeelSyntax;
-extern struct SyntaxDef		 WharfFeelSyntax; 
+extern struct SyntaxDef		 WharfFeelSyntax;
 extern struct SyntaxDef		 WharfLookSyntax;
 extern struct SyntaxDef		 WharfPrivateSyntax;
 extern struct SyntaxDef 	 WharfFolderSyntax;
 extern struct SyntaxDef 	 WharfSyntax;
-extern struct SyntaxDef      WinCommandSyntax; 
+extern struct SyntaxDef      WinCommandSyntax;
 extern struct SyntaxDef      WinListSyntax;
 extern struct SyntaxDef      WinListPrivateSyntax;
 extern struct SyntaxDef      WinListLookSyntax;
@@ -253,13 +253,13 @@ typedef struct ASModuleConfig
 {
 	int type ; /* any of the CONFIG_ values above */
 	struct ASModuleConfigClass *class ;
-	
+
 	struct MyStyleDefinition *style_defs ;
-	
+
     struct balloonConfig	**balloon_configs; /* in the same order as class->balloon_types */
 
     struct FreeStorageElem   *more_stuff;
-	
+
 }ASModuleConfig;
 
 #define AS_MODULE_CONFIG(p) ((ASModuleConfig*)(p))
@@ -269,28 +269,28 @@ typedef struct ASModuleConfig
 
 
 
-void init_asmodule_config( ASModuleConfig *config, Bool free_resources ); 
+void init_asmodule_config( ASModuleConfig *config, Bool free_resources );
 struct flag_options_xref;
 
 typedef struct ASModuleConfigClass
 {
-	
+
 	int        type ; /* any of the CONFIG_ values */
-#define ASMC_HandlePublicLookOptions 	(0x01<<0)	
-#define ASMC_HandlePublicFeelOptions 	(0x01<<1)	
-#define ASMC_HandleLookMyStyles			(0x01<<2)	
+#define ASMC_HandlePublicLookOptions 	(0x01<<0)
+#define ASMC_HandlePublicFeelOptions 	(0x01<<1)
+#define ASMC_HandleLookMyStyles			(0x01<<2)
 	ASFlagType flags ;
 	int 	   config_struct_size ; /* sizeof(ConfigType) */
-	
+
 	char *private_config_file ;
-	
+
 	void  (*init_config_func)( ASModuleConfig *config, Bool free_resources);
 	void  (*free_storage2config_func)(ASModuleConfig *config, struct FreeStorageElem *storage);
 	void  (*merge_config_func)( ASModuleConfig *to, ASModuleConfig *from);
-	
-	struct SyntaxDef *module_syntax ; 
-	struct SyntaxDef *look_syntax ; 
-	struct SyntaxDef *feel_syntax ; 
+
+	struct SyntaxDef *module_syntax ;
+	struct SyntaxDef *look_syntax ;
+	struct SyntaxDef *feel_syntax ;
 
 	struct flag_options_xref *flags_xref ;
 	ptrdiff_t 		   set_flags_field_offset ;
@@ -341,12 +341,12 @@ struct FreeStorageElem *MyStyleDefinitionsList2free_storage (struct MyStyleDefin
 
 typedef struct
 {
-#define BASE_NO_SHARED_MEMORY			(0x01<<0)	
-#define BASE_NO_KDEGLOBALS_THEMING		(0x01<<1)	  
-#define BASE_DESKTOP_SIZE_SET			(0x01<<16)	  
-#define BASE_DESKTOP_SCALE_SET			(0x01<<17)	  
+#define BASE_NO_SHARED_MEMORY			(0x01<<0)
+#define BASE_NO_KDEGLOBALS_THEMING		(0x01<<1)
+#define BASE_DESKTOP_SIZE_SET			(0x01<<16)
+#define BASE_DESKTOP_SCALE_SET			(0x01<<17)
 #define BASE_NoModuleNameCollisions_SET	(0x01<<18)
-	ASFlagType flags, set_flags ; 
+	ASFlagType flags, set_flags ;
     char *module_path;
     char *sound_path;
     char *icon_path;
@@ -358,11 +358,11 @@ typedef struct
     char *gtkrc20_path;
     ASGeometry desktop_size;
     int desktop_scale;
-	int NoModuleNameCollisions;	
+	int NoModuleNameCollisions;
 #define MAX_TOOL_COMMANDS	8
-	char *term_command[MAX_TOOL_COMMANDS] ; 
-	char *browser_command[MAX_TOOL_COMMANDS] ; 
-	char *editor_command[MAX_TOOL_COMMANDS] ; 
+	char *term_command[MAX_TOOL_COMMANDS] ;
+	char *browser_command[MAX_TOOL_COMMANDS] ;
+	char *editor_command[MAX_TOOL_COMMANDS] ;
     char *IconTheme;
     char *IconThemePath;
     char *IconThemeFallback;
@@ -384,7 +384,7 @@ void ExtractPath (BaseConfig * config,
 
 void BaseConfig2ASEnvironment( register BaseConfig *config, ASEnvironment **penv );
 void ReloadASImageManager( ASImageManager **old_imageman );
-Bool ReloadASEnvironment( struct ASImageManager **old_imageman, struct ASFontManager **old_fontman, BaseConfig **config_return, 
+Bool ReloadASEnvironment( struct ASImageManager **old_imageman, struct ASFontManager **old_fontman, BaseConfig **config_return,
 						  Bool flush_images, Bool support_shared_images );
 
 /*
@@ -474,7 +474,7 @@ typedef struct MyStyleDefinition
 
 	char   *Name;
 	char   *Comment;
-	
+
 	char   *Font;
     char   *ForeColor, *BackColor;
     int 	TextStyle;
@@ -619,17 +619,17 @@ struct FreeStorageElem *MyStyleSpecialTerms2FreeStorage (MyStyleDefinition *msd,
 #define MYFRAME_TitleBackgroundAlign_ID_END     (MYFRAME_TitleBackgroundAlign_ID_START+MYFRAME_TITLE_BACKS)
 
 
-#define MYFRAME_CondenseTitlebar_ID             (MYFRAME_TitleBackgroundAlign_ID_END+1) 
+#define MYFRAME_CondenseTitlebar_ID             (MYFRAME_TitleBackgroundAlign_ID_END+1)
 #define MYFRAME_LeftTitlebarLayout_ID			(MYFRAME_TitleBackgroundAlign_ID_END+2)
 #define MYFRAME_RightTitlebarLayout_ID			(MYFRAME_TitleBackgroundAlign_ID_END+3)
 
 #define MYFRAME_LeftBtnAlign_ID					(MYFRAME_TitleBackgroundAlign_ID_END+4)
 #define MYFRAME_RightBtnAlign_ID				(MYFRAME_TitleBackgroundAlign_ID_END+5)
 
-#define MYFRAME_NoBorder_ID             		(MYFRAME_TitleBackgroundAlign_ID_END+6) 
-#define MYFRAME_AllowBorder_ID             		(MYFRAME_NoBorder_ID+1) 
+#define MYFRAME_NoBorder_ID             		(MYFRAME_TitleBackgroundAlign_ID_END+6)
+#define MYFRAME_AllowBorder_ID             		(MYFRAME_NoBorder_ID+1)
 
-#define MYFRAME_SideSlicing_ID             		(MYFRAME_AllowBorder_ID+1) 
+#define MYFRAME_SideSlicing_ID             		(MYFRAME_AllowBorder_ID+1)
 
 #define MYFRAME_TitleBackSlicing_ID_START	(MYFRAME_SideSlicing_ID+1)
 #define MYFRAME_LeftBtnBackSlicing_ID		(MYFRAME_TitleBackSlicing_ID_START+MYFRAME_TITLE_BACK_LBTN	)
@@ -734,8 +734,8 @@ struct FreeStorageElem *MyStyleSpecialTerms2FreeStorage (MyStyleDefinition *msd,
  *     [TitleUnfocusedCompositionMethod   testure_type]
  *     [TitleStickyCompositionMethod      testure_type]
  * 	   [CondenseTitlebar]
- * 	   [LeftTitlebarLayout		Buttons,Spacer,TitleSpacer]			  
- * 	   [RightTitlebarLayout		Buttons,Spacer,TitleSpacer]			  
+ * 	   [LeftTitlebarLayout		Buttons,Spacer,TitleSpacer]
+ * 	   [RightTitlebarLayout		Buttons,Spacer,TitleSpacer]
  * ~MyFrame
  */
 
@@ -770,7 +770,7 @@ typedef struct MyFrameDefinition
 	ASFlagType   title_backs_align[MYFRAME_TITLE_BACKS];
 	ASGeometry   title_backs_slicing[MYFRAME_TITLE_BACKS];
     int          title_fcm, title_ucm, title_scm;
-	char 		*title_fhue, *title_uhue, *title_shue; 
+	char 		*title_fhue, *title_uhue, *title_shue;
 	int          title_fsat, title_usat, title_ssat;
 	int          title_h_spacing, title_v_spacing;
     ASFlagType   condense_titlebar ;
@@ -885,7 +885,7 @@ void myframe_parse (char *tline, FILE * fd, char **myname, int *myframe_list);
 
 extern int ASDefaultBalloonTypes[];
 
-/* this flags aren't really part of ballon config, and could be used by different 
+/* this flags aren't really part of ballon config, and could be used by different
    modules in their own ways */
 #define BALLOON_SHOW_Name			(0x01<<BALLOON_SHOW_Name_OFFSET)
 #define BALLOON_SHOW_IconName		(0x01<<BALLOON_SHOW_IconName_OFFSET)
@@ -901,7 +901,7 @@ typedef struct balloonConfig
 	int type ; /* == CONFIG_Balloons_ID */
 
   unsigned long set_flags;	/* identifyes what option is set */
-  unsigned long flags;	
+  unsigned long flags;
 #define BALLOON_Balloons			(0x01<<0)
 #define BALLOON_USED 				BALLOON_Balloons
 #define BALLOON_BorderHilite        (0x01<<1)
@@ -917,13 +917,13 @@ typedef struct balloonConfig
   unsigned int Delay, CloseDelay;
   char *Style ;
   int TextPaddingX, TextPaddingY;
-  
+
   struct balloonConfig *next ; /* we may have different kinds of balloons */
 }balloonConfig;
 
 balloonConfig *Create_balloonConfig ();
 void Destroy_balloonConfig (balloonConfig * config);
-balloonConfig *Process_balloonOptions (	struct FreeStorageElem * options, 
+balloonConfig *Process_balloonOptions (	struct FreeStorageElem * options,
 										balloonConfig *config, int id_base );
 
 void Print_balloonConfig (balloonConfig * config);
@@ -1072,9 +1072,10 @@ void DestroyPagerConfig (PagerConfig * config);
 #define BGR_SCALE	        BGR_ID_START+4
 #define BGR_ALIGN		BGR_ID_START+5
 #define BGR_PAD		        BGR_ID_START+6
-#define BGR_MYBACKGROUND_END    BGR_ID_START+7
+#define BGR_MIRROR		BGR_ID_START+7
+#define BGR_MYBACKGROUND_END    BGR_ID_START+8
 
-#define BGR_DESK_BACK     	BGR_ID_START+8
+#define BGR_DESK_BACK     	BGR_ID_START+9
 #define BGR_ID_END        	BGR_ID_START+20
 
 typedef struct my_background_config
@@ -1087,6 +1088,7 @@ typedef struct my_background_config
     char *tint;
     ASGeometry scale;
     char *pad;
+    int mirror;
     struct my_background_config *next;
   }
 MyBackgroundConfig;
@@ -1256,7 +1258,7 @@ typedef struct WinListConfig
 #define WINLIST_ScaleIconToTextHeight (0x01<<24)
 #define WINLIST_NoCollidesSpacing	  (0x01<<25)
 #define WINLIST_ShowHints		(0x01<<26)
-	   
+
 
 #define 	ASWL_RowsFirst 				WINLIST_FillRowsFirst
 #define 	ASWL_UseSkipList			WINLIST_UseSkipList
@@ -1267,7 +1269,7 @@ typedef struct WinListConfig
 
 	ASFlagType	flags ;
 	ASFlagType	set_flags ;
-	
+
     ASGeometry 	Geometry ;
     ASGeometry	   	MinSize ;
 	ASGeometry		MaxSize ;
@@ -1295,7 +1297,7 @@ typedef struct WinListConfig
 	ASGeometry	 	IconSize ;
 
     char **Action[MAX_MOUSE_BUTTONS];
-	
+
 	char **NoCollides ;
 	int  NoCollides_nitems ;
 	char **AllowCollides ;
@@ -1324,7 +1326,7 @@ int WriteWinListOptions (const char *filename, char *myname, WinListConfig * con
 WinListConfig *ParseWinListOptions (const char *filename, char *myname);
 void MergeWinListOptions ( ASModuleConfig *to, ASModuleConfig *from);
 ASFlagType DigestWinListAlign( WinListConfig *Config, ASFlagType align );
-void CheckWinListConfigSanity(WinListConfig *Config, 
+void CheckWinListConfigSanity(WinListConfig *Config,
 							  ASGeometry *default_geometry, int default_gravity,
 							  int max_columns_override, int max_rows_override );
 
@@ -1334,7 +1336,7 @@ void CheckWinListConfigSanity(WinListConfig *Config,
 /* ASMount config :
  *
  *	*ASMountTileSize		WxH
- *  *ASMountVertical 
+ *  *ASMountVertical
  *  *ASMountUnmountedStyle 	"style"
  *  *ASMountMountedStyle 	"style"
  *  *ASMountAlign           Left,Right,Top,Bottom
@@ -1377,7 +1379,7 @@ typedef struct ASMountConfig
 
 	ASFlagType	flags ;
 	ASFlagType	set_flags ;
-	
+
   ASGeometry 	TileSize;
 
 /* phony flags */
@@ -1706,7 +1708,7 @@ typedef struct
 #define WHARF_SHOW_HINT_GenericName		BALLOON_SHOW_GenericName
 #define WHARF_DEFAULT_ShowHints	(WHARF_SHOW_HINT_Name|WHARF_SHOW_HINT_Comment|WHARF_SHOW_HINT_Exec)
 	ASFlagType   ShowHints ;
-	
+
     balloonConfig *balloon_conf;
     MyStyleDefinition *style_defs;
 
@@ -1805,27 +1807,27 @@ int WriteWharfOptions (const char *filename, char *myname,
 /* non depreciated options : */
 #define LOOK_SUPPORTED_ID_START		(LOOK_DEPRECIATED_ID_END)
 
-#define LOOK_IconBox_ID							(LOOK_SUPPORTED_ID_START+1)							  
-#define LOOK_MyStyle_ID							(LOOK_SUPPORTED_ID_START+3)						  
+#define LOOK_IconBox_ID							(LOOK_SUPPORTED_ID_START+1)
+#define LOOK_MyStyle_ID							(LOOK_SUPPORTED_ID_START+3)
 #define LOOK_MyBackground_ID					(LOOK_SUPPORTED_ID_START+4)
-#define LOOK_DeskBack_ID						(LOOK_SUPPORTED_ID_START+5)				  
+#define LOOK_DeskBack_ID						(LOOK_SUPPORTED_ID_START+5)
 #define LOOK_asetrootDeskBack_ID				(LOOK_SUPPORTED_ID_START+6)
-#define LOOK_MyFrame_ID							(LOOK_SUPPORTED_ID_START+7)						  
-#define LOOK_DefaultFrame_ID					(LOOK_SUPPORTED_ID_START+8)				  
+#define LOOK_MyFrame_ID							(LOOK_SUPPORTED_ID_START+7)
+#define LOOK_DefaultFrame_ID					(LOOK_SUPPORTED_ID_START+8)
 #define LOOK_DontDrawBackground_ID				(LOOK_SUPPORTED_ID_START+9)
 #define LOOK_CustomCursor_ID					(LOOK_SUPPORTED_ID_START+10)
-#define LOOK_CursorFore_ID						(LOOK_SUPPORTED_ID_START+11)						  
+#define LOOK_CursorFore_ID						(LOOK_SUPPORTED_ID_START+11)
 #define LOOK_CursorBack_ID						(LOOK_SUPPORTED_ID_START+12)
-#define LOOK_Cursor_ID							(LOOK_SUPPORTED_ID_START+13)					  
-#define LOOK_MenuPinOn_ID						(LOOK_SUPPORTED_ID_START+14)					  
-#define LOOK_MArrowPixmap_ID					(LOOK_SUPPORTED_ID_START+15)					  
-#define LOOK_TitlebarNoPush_ID					(LOOK_SUPPORTED_ID_START+16)	  
+#define LOOK_Cursor_ID							(LOOK_SUPPORTED_ID_START+13)
+#define LOOK_MenuPinOn_ID						(LOOK_SUPPORTED_ID_START+14)
+#define LOOK_MArrowPixmap_ID					(LOOK_SUPPORTED_ID_START+15)
+#define LOOK_TitlebarNoPush_ID					(LOOK_SUPPORTED_ID_START+16)
 #define LOOK_TextureMenuItemsIndividually_ID	(LOOK_SUPPORTED_ID_START+17)
 #define LOOK_MenuMiniPixmaps_ID					(LOOK_SUPPORTED_ID_START+18)
 #define LOOK_TitleTextAlign_ID					(LOOK_SUPPORTED_ID_START+19)
 #define LOOK_TitleButtonSpacingLeft_ID			(LOOK_SUPPORTED_ID_START+20)
 #define LOOK_TitleButtonSpacingRight_ID			(LOOK_SUPPORTED_ID_START+21)
-#define LOOK_TitleButtonSpacing_ID				(LOOK_SUPPORTED_ID_START+22)		  
+#define LOOK_TitleButtonSpacing_ID				(LOOK_SUPPORTED_ID_START+22)
 #define LOOK_TitleButtonXOffsetLeft_ID			(LOOK_SUPPORTED_ID_START+23)
 #define LOOK_TitleButtonXOffsetRight_ID			(LOOK_SUPPORTED_ID_START+24)
 #define LOOK_TitleButtonXOffset_ID				(LOOK_SUPPORTED_ID_START+25)
@@ -1837,46 +1839,46 @@ int WriteWharfOptions (const char *filename, char *myname,
 #define LOOK_ResizeMoveGeometry_ID				(LOOK_SUPPORTED_ID_START+31)
 #define LOOK_StartMenuSortMode_ID				(LOOK_SUPPORTED_ID_START+32)
 #define LOOK_DrawMenuBorders_ID					(LOOK_SUPPORTED_ID_START+33)
-#define LOOK_ButtonSize_ID						(LOOK_SUPPORTED_ID_START+34)			  
-#define LOOK_ButtonIconSpacing_ID			 	(LOOK_SUPPORTED_ID_START+35)			  
-#define LOOK_ButtonBevel_ID					 	(LOOK_SUPPORTED_ID_START+36)			  
-#define LOOK_ButtonAlign_ID					 	(LOOK_SUPPORTED_ID_START+37)			  
+#define LOOK_ButtonSize_ID						(LOOK_SUPPORTED_ID_START+34)
+#define LOOK_ButtonIconSpacing_ID			 	(LOOK_SUPPORTED_ID_START+35)
+#define LOOK_ButtonBevel_ID					 	(LOOK_SUPPORTED_ID_START+36)
+#define LOOK_ButtonAlign_ID					 	(LOOK_SUPPORTED_ID_START+37)
 #define LOOK_SeparateButtonTitle_ID				(LOOK_SUPPORTED_ID_START+38)
-#define LOOK_RubberBand_ID						(LOOK_SUPPORTED_ID_START+39)					  
+#define LOOK_RubberBand_ID						(LOOK_SUPPORTED_ID_START+39)
 #define LOOK_WindowStyle_ID_START				(LOOK_SUPPORTED_ID_START+40)
 
 #define LOOK_IconsGrowVertically_ID                             (LOOK_SUPPORTED_ID_START+41)
 
-#define LOOK_DefaultStyle_ID					LOOK_WindowStyle_ID_START						  
-#define LOOK_FWindowStyle_ID					(LOOK_WindowStyle_ID_START+1)						  
-#define LOOK_UWindowStyle_ID					(LOOK_WindowStyle_ID_START+2)						  
-#define LOOK_SWindowStyle_ID					(LOOK_WindowStyle_ID_START+3)						  
+#define LOOK_DefaultStyle_ID					LOOK_WindowStyle_ID_START
+#define LOOK_FWindowStyle_ID					(LOOK_WindowStyle_ID_START+1)
+#define LOOK_UWindowStyle_ID					(LOOK_WindowStyle_ID_START+2)
+#define LOOK_SWindowStyle_ID					(LOOK_WindowStyle_ID_START+3)
 #define LOOK_WindowStyle_ID_END					(LOOK_WindowStyle_ID_START+3)
 #define LOOK_MenuStyle_ID_START					(LOOK_WindowStyle_ID_END+1)
-#define LOOK_MenuItemStyle_ID					(LOOK_MenuStyle_ID_START)					  
-#define LOOK_MenuTitleStyle_ID					(LOOK_MenuStyle_ID_START+1)					  
-#define LOOK_MenuHiliteStyle_ID					(LOOK_MenuStyle_ID_START+2)					  
-#define LOOK_MenuStippleStyle_ID				(LOOK_MenuStyle_ID_START+3)					  
-#define LOOK_MenuSubItemStyle_ID				(LOOK_MenuStyle_ID_START+4)					  
+#define LOOK_MenuItemStyle_ID					(LOOK_MenuStyle_ID_START)
+#define LOOK_MenuTitleStyle_ID					(LOOK_MenuStyle_ID_START+1)
+#define LOOK_MenuHiliteStyle_ID					(LOOK_MenuStyle_ID_START+2)
+#define LOOK_MenuStippleStyle_ID				(LOOK_MenuStyle_ID_START+3)
+#define LOOK_MenuSubItemStyle_ID				(LOOK_MenuStyle_ID_START+4)
 #define LOOK_MenuHiTitleStyle_ID				(LOOK_MenuStyle_ID_START+6)
-#define LOOK_MenuStyle_ID_END					(LOOK_MenuStyle_ID_START+6)		  
-#define LOOK_MenuItemCompositionMethod_ID		(LOOK_MenuStyle_ID_END+1)	  
+#define LOOK_MenuStyle_ID_END					(LOOK_MenuStyle_ID_START+6)
+#define LOOK_MenuItemCompositionMethod_ID		(LOOK_MenuStyle_ID_END+1)
 #define LOOK_MenuHiliteCompositionMethod_ID		(LOOK_MenuStyle_ID_END+2)
 #define LOOK_MenuStippleCompositionMethod_ID	(LOOK_MenuStyle_ID_END+3)
-#define LOOK_ShadeAnimationSteps_ID				(LOOK_MenuStyle_ID_END+4)	  
+#define LOOK_ShadeAnimationSteps_ID				(LOOK_MenuStyle_ID_END+4)
 #define LOOK_TitleButtonBalloonBorderHilite_ID	(LOOK_MenuStyle_ID_END+5)
 #define LOOK_TitleButtonBalloonXOffset_ID		(LOOK_MenuStyle_ID_END+6)
 #define LOOK_TitleButtonBalloonYOffset_ID		(LOOK_MenuStyle_ID_END+7)
-#define LOOK_TitleButtonBalloonDelay_ID			(LOOK_MenuStyle_ID_END+8)		  
+#define LOOK_TitleButtonBalloonDelay_ID			(LOOK_MenuStyle_ID_END+8)
 #define LOOK_TitleButtonBalloonCloseDelay_ID	(LOOK_MenuStyle_ID_END+9)
 #define LOOK_TitleButtonBalloonStyle_ID			(LOOK_MenuStyle_ID_END+10)
 #define LOOK_TitleButtonBalloons_ID				(LOOK_MenuStyle_ID_END+11)
 #define LOOK_TitleButton_ID						(LOOK_MenuStyle_ID_END+12)
 #define LOOK_KillBackgroundThreshold_ID			(LOOK_MenuStyle_ID_END+13)
 #define LOOK_DontAnimateBackground_ID			(LOOK_MenuStyle_ID_END+14)
-#define LOOK_CoverAnimationSteps_ID				(LOOK_MenuStyle_ID_END+15)				  
+#define LOOK_CoverAnimationSteps_ID				(LOOK_MenuStyle_ID_END+15)
 #define LOOK_CoverAnimationType_ID				(LOOK_MenuStyle_ID_END+16)
-#define LOOK_SupportedHints_ID  				(LOOK_MenuStyle_ID_END+17)							  
+#define LOOK_SupportedHints_ID  				(LOOK_MenuStyle_ID_END+17)
 #define LOOK_MinipixmapSize_ID					(LOOK_MenuStyle_ID_END+18)
 
 #define LOOK_SUPPORTED_ID_END		(LOOK_MenuStyle_ID_END+32)
@@ -1990,16 +1992,16 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 /***************************************************************************/
 
 #define INCLUDE_ID_START              (LOOK_ID_END+1)
-#define INCLUDE_include_ID            (INCLUDE_ID_START)	
-#define INCLUDE_keepname_ID           (INCLUDE_ID_START+1)	
-#define INCLUDE_extension_ID          (INCLUDE_ID_START+2) 
+#define INCLUDE_include_ID            (INCLUDE_ID_START)
+#define INCLUDE_keepname_ID           (INCLUDE_ID_START+1)
+#define INCLUDE_extension_ID          (INCLUDE_ID_START+2)
 #define INCLUDE_miniextension_ID      (INCLUDE_ID_START+3)
 #define INCLUDE_minipixmap_ID         (INCLUDE_ID_START+4)
-#define INCLUDE_command_ID            (INCLUDE_ID_START+5)	
+#define INCLUDE_command_ID            (INCLUDE_ID_START+5)
 #define INCLUDE_order_ID       		  (INCLUDE_ID_START+6)
 #define INCLUDE_RecentSubmenuItems_ID (INCLUDE_ID_START+7)
-#define INCLUDE_name_ID          	  (INCLUDE_ID_START+8)	
-#define INCLUDE_ID_END                (INCLUDE_ID_START+9)     
+#define INCLUDE_name_ID          	  (INCLUDE_ID_START+8)
+#define INCLUDE_ID_END                (INCLUDE_ID_START+9)
 
 #define FEEL_ID_START                 (INCLUDE_ID_END+1)
 
@@ -2012,7 +2014,7 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define FEEL_DontMoveOff_ID           (FEEL_ID_START+4)
 #define FEEL_NoPPosition_ID           (FEEL_ID_START+5)
 #define FEEL_StubbornPlacement_ID     (FEEL_ID_START+6)
-    
+
 #define FEEL_MenusHigh_ID             (FEEL_ID_START+9)
 #define FEEL_CenterOnCirculate_ID     (FEEL_ID_START+10)
 
@@ -2065,7 +2067,7 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define FEEL_RecentSubmenuItems_ID	 	(FEEL_ID_START+53)
 #define FEEL_WinListSortOrder_ID	   	(FEEL_ID_START+54)
 #define FEEL_WinListHideIcons_ID	   	(FEEL_ID_START+55)
-#define FEEL_AnimateDeskChange_ID		(FEEL_ID_START+56)	   
+#define FEEL_AnimateDeskChange_ID		(FEEL_ID_START+56)
 
 /* obsolete stuff : */
 #define FEEL_MWMFunctionHints_ID      	(FEEL_ID_START+45)
@@ -2075,10 +2077,10 @@ struct FreeStorageElem **ComplexFunction2FreeStorage( struct SyntaxDef *syntax, 
 #define FEEL_PLACEMENT_START_ID        	(FEEL_ID_START+48)
 #define FEEL_SmartPlacement_ID        	(FEEL_PLACEMENT_START_ID+0)
 #define FEEL_RandomPlacement_ID       	(FEEL_PLACEMENT_START_ID+1)
-#define FEEL_Tile_ID				  	(FEEL_PLACEMENT_START_ID+2)	
-#define FEEL_Cascade_ID				  	(FEEL_PLACEMENT_START_ID+3)	
-#define FEEL_UnderPointer_ID	  	(FEEL_PLACEMENT_START_ID+4)	
-#define FEEL_WarpPointer_ID	  	(FEEL_PLACEMENT_START_ID+5)	
+#define FEEL_Tile_ID				  	(FEEL_PLACEMENT_START_ID+2)
+#define FEEL_Cascade_ID				  	(FEEL_PLACEMENT_START_ID+3)
+#define FEEL_UnderPointer_ID	  	(FEEL_PLACEMENT_START_ID+4)
+#define FEEL_WarpPointer_ID	  	(FEEL_PLACEMENT_START_ID+5)
 #define FEEL_Manual_ID				  	(FEEL_PLACEMENT_START_ID+6)
 
 #define FEEL_ID_END                   	(FEEL_PLACEMENT_START_ID+11)
@@ -2397,7 +2399,7 @@ typedef struct WinTabsConfig
     int             ucm, fcm, scm;             /* composition methods */
     unsigned int    h_spacing, v_spacing ;
 	char 		   *title, *icon_title ;
-	
+
 	char 		*GroupNameSeparator;
 
     balloonConfig *balloon_conf;
@@ -2457,11 +2459,11 @@ typedef enum {
 
 typedef struct
 {
-#define ANIMATE_SET_DELAY		(0x01<<0)	
-#define ANIMATE_SET_ITERATIONS	(0x01<<1)	  
-#define ANIMATE_SET_TWIST		(0x01<<2)	  
-#define ANIMATE_SET_WIDTH		(0x01<<3)	  
-#define ANIMATE_SET_RESIZE		(0x01<<4)	  
+#define ANIMATE_SET_DELAY		(0x01<<0)
+#define ANIMATE_SET_ITERATIONS	(0x01<<1)
+#define ANIMATE_SET_TWIST		(0x01<<2)
+#define ANIMATE_SET_WIDTH		(0x01<<3)
+#define ANIMATE_SET_RESIZE		(0x01<<4)
 	ASFlagType set_flags ;
 	char *color;
 
@@ -2532,7 +2534,7 @@ void DestroyCleanConfig (CleanConfig * config);
 #define	EVENT_WindowDeiconified		6
 #define	EVENT_WindowShaded		7
 #define	EVENT_WindowUnshaded		8
-#define	EVENT_WindowStuck		9 
+#define	EVENT_WindowStuck		9
 #define	EVENT_WindowUnstuck		10
 #define	EVENT_WindowMaximized		11
 #define	EVENT_WindowRestored		12
@@ -2549,9 +2551,9 @@ void DestroyCleanConfig (CleanConfig * config);
 #define EVENT_ID_START          		(CLEAN_ID_END+1)
 
 #define EVENT_WindowAdded_ID            (EVENT_ID_START+EVENT_WindowAdded)
-#define EVENT_WindowNames_ID            (EVENT_ID_START+EVENT_WindowNames)    		
+#define EVENT_WindowNames_ID            (EVENT_ID_START+EVENT_WindowNames)
 #define EVENT_WindowDestroyed_ID        (EVENT_ID_START+EVENT_WindowDestroyed)
-#define EVENT_WindowActivated_ID        (EVENT_ID_START+EVENT_WindowActivated)		
+#define EVENT_WindowActivated_ID        (EVENT_ID_START+EVENT_WindowActivated)
 #define EVENT_WindowRaised_ID           (EVENT_ID_START+EVENT_WindowRaised)
 #define EVENT_WindowIconified_ID        (EVENT_ID_START+EVENT_WindowIconified)
 #define EVENT_WindowDeiconified_ID      (EVENT_ID_START+EVENT_WindowDeiconified)
@@ -2564,13 +2566,13 @@ void DestroyCleanConfig (CleanConfig * config);
 #define EVENT_BackgroundChanged_ID      (EVENT_ID_START+EVENT_BackgroundChanged)
 #define EVENT_DeskViewportChanged_ID    (EVENT_ID_START+EVENT_DeskViewportChanged)
 #define EVENT_Startup_ID                (EVENT_ID_START+EVENT_Startup)
-#define EVENT_Shutdown_ID               (EVENT_ID_START+EVENT_Shutdown)				
-#define EVENT_Config_ID               	(EVENT_ID_START+EVENT_Config)				   
-#define EVENT_ModuleConfig_ID          	(EVENT_ID_START+EVENT_ModuleConfig)				   
+#define EVENT_Shutdown_ID               (EVENT_ID_START+EVENT_Shutdown)
+#define EVENT_Config_ID               	(EVENT_ID_START+EVENT_Config)
+#define EVENT_ModuleConfig_ID          	(EVENT_ID_START+EVENT_ModuleConfig)
 
 #define EVENT_ID_END          			(EVENT_ID_START+AFTERSTEP_EVENTS_NUM)
 
-#define SOUND_ID_START        	(EVENT_ID_END+1)	
+#define SOUND_ID_START        	(EVENT_ID_END+1)
 #define SOUND_PCMDEVICE_ID      (SOUND_ID_START+1)
 #define SOUND_DELAY_ID          (SOUND_ID_START+2)
 #define SOUND_RPLAY_HOST_ID     (SOUND_ID_START+3)
@@ -2594,7 +2596,7 @@ typedef struct
 #define SOUND_SET_RPLAY_HOST		(0x01<<1)
 #define SOUND_SET_RPLAY_PRIORITY  	(0x01<<2)
 #define SOUND_SET_RPLAY_VOLUME  	(0x01<<3)
-*/  
+*/
 	ASFlagType set_flags ;
 
 	int delay;
@@ -2630,9 +2632,9 @@ typedef struct
 {
 #define IDENT_SET_GEOMETRY  (0x01<<0)
 	ASFlagType set_flags ;
-		   
+
 	ASGeometry geometry;
-	
+
 	MyStyleDefinition *style_defs;
 	struct FreeStorageElem *more_stuff;
 

@@ -17,6 +17,7 @@ extern "C" {
 #define   	BGFLAG_PAD	(1<<10)
 #define 	BGFLAG_PAD_VERT (1<<11)
 #define 	BGFLAG_PAD_HOR	(1<<12)
+#define   BGFLAG_MIRROR	(1<<13)
 #define 	BGFLAG_BAD	(1<<14)
 #define 	BGFLAG_COMPLETE	(1<<15)
 

@@ -712,6 +712,12 @@ void DispatchEvent (ASEvent * event, Bool deffered)
 					 event->x.xconfigure.width, event->x.xconfigure.height,
 					 event->x.xconfigure.x, event->x.xconfigure.y);
 			on_window_moveresize (event->client, event->w);
+		}else if (event->w == Scr.Root) {
+					("ConfigureNotify:(RootWindow,%dx%d)",
+					 event->x.xconfigure.width, event->x.xconfigure.height);
+			setupScreenSize(&Scr);
+			//Scr.MyDisplayWidth = event->x.xconfigure.width;
+			//Scr.MyDisplayHeight = event->x.xconfigure.height;
 		}
 		break;
 	case ConfigureRequest:
