@@ -134,7 +134,6 @@ void WinList_usage (void)
 void retrieve_winlist_astbar_props();
 void SetWinListLook();
 void GetBaseOptions (const char *filename);
-void GetOptions (const char *filename);
 void HandleEvents();
 void process_message (send_data_type type, send_data_type *body);
 void DispatchEvent (ASEvent * Event);
@@ -323,10 +322,6 @@ void SetWinListLook()
 void GetBaseOptions (const char *filename)
 {
     ReloadASEnvironment( NULL, NULL, NULL, False, True );
-}
-
-void GetOptions (const char *filename)
-{
 }
 
 Bool match_NoCollides( char *name )
