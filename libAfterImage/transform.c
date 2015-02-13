@@ -392,7 +392,7 @@ start_component_interpolation( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, r
 	}
 }
 
-static inline void
+static void
 component_interpolation_hardcoded( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c4, register CARD32 *T, CARD32 *unused, CARD16 kind, int len)
 {
 	register int i;
@@ -400,17 +400,9 @@ component_interpolation_hardcoded( CARD32 *c1, CARD32 *c2, CARD32 *c3, CARD32 *c
 	{
 		for( i = 0 ; i < len ; i++ )
 		{
-#if 1
 			/* its seems that this simple formula is completely sufficient
-			   and even better then more complicated one : */
+			   and even better than more complicated one : */
 			T[i] = (c2[i]+c3[i])>>1 ;
-#else
-    		register int minus = c1[i]+c4[i] ;
-			register int plus  = (c2[i]<<1)+c2[i]+(c3[i]<<1)+c3[i];
-
-			T[i] = ( (plus>>1) < minus )?(c2[i]+c3[i])>>1 :
-								   		 (plus-minus)>>2;
-#endif
 		}
 	}else if( kind == 2 )
 	{
