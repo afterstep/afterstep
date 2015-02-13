@@ -1,20 +1,20 @@
-# Defaults could be overriden by anything in look or feel file, 
-# which in turn could get overriden by anything in this file outside Defaults section.
-# This is for beterr themability. Theme should consist of look and feel file, 
-# which, by overriding this defaults will theme the module, But if there is anything 
-# that you might not want to be ever changed by theme - you can pout it outside 
-# the defaults section, and it will override the theme.
+# Defaults could be overridden by anything in look or feel file, which in turn
+# could get overridden by anything in this file outside the Defaults section.
+# This is for better themability. Theme should consist of look and feel file,
+# which, by overriding this defaults will theme the module, but if there is
+# anything that you might not want to be ever changed by theme - you can put
+# it outside the defaults section, and it will override the theme.
 
 
 *WinListDefaults
 	Geometry        +0+0
-	MinSize         10000    #will be truncated to thescreen size
+	MinSize         10000    #will be truncated to the screen size
 	MaxRows         1
 	FillRowsFirst
 	UseSkipList
 	
 	# MyStyles to be used - feel free to override :
-	# if none of the above is available then defaults MyStyles are used instead : 
+	# if none of the above are available then defaults MyStyles are used instead : 
 	# Defaults are :   "unfocused_window_style" "focused_window_style" "sticky_window_style" 
 	#               or "*WinList" 
 	#      last choice "default"
@@ -40,7 +40,7 @@
 	BalloonStyle		"*WinListBalloon"
 	BalloonBorderHilite	Right,Bottom
 
-	# following determines what info to show in balloons : 
+	# The following determines what info to show in balloons : 
 	ShowHints		Name,ResClass,ResName
 	
 	NoCollidesSpacing 3
@@ -54,8 +54,8 @@
 # then keys 1 to 9 will represent icon's position, while 0 is the default.
 #*WinListIconLocation 0
 #*WinListIconSize   32x32
-# This is another flag for convinience - it is always overriden by IconSize
-# note that its On by default.
+# This is another flag for convenience - it is always overridden by IconSize
+# note that it's on by default.
 #*WinListScaleIconToTextHeight 
 
 #*WinListMaxSize         400
@@ -67,13 +67,11 @@
 #*WinListAlign           Left,Right,Bottom,Top
 
 
-# the following are options to get WinList to automatically resize itself, 
+# the following are options to get WinList to automatically resize itself 
 # so that it does not collide with any window that matches 
-# pattern in NoCollides setting. AllowCollides - ovrerwrites the NoCollides, 
-# and NoCollidesSpacing sets the spacing between NoCollides window and WinList.
+# pattern in NoCollides setting. AllowCollides - overwrites the NoCollides, and
+# NoCollidesSpacing sets the spacing between the NoCollides window and WinList.
 # By default WinList will avoid collision with Pager and Wharf
 #*WinListNoCollides "Nedit*"
 #*WinListAllowCollides "Pager*"
 #*WinListNoCollidesSpacing 5
-
-
