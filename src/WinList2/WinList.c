@@ -19,7 +19,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/*#define DO_CLOCKING      */
 #define LOCAL_DEBUG
 #define EVENT_TRACE
 
@@ -108,14 +107,8 @@ ASWinListState WinListState;
 #define WINLIST_BACK_URGENT     BACK_DEFAULT
 
 /**********************************************************************/
-/**********************************************************************/
 /* Our configuration options :                                        */
 /**********************************************************************/
-/*char *default_unfocused_style = "unfocused_window_style";
- char *default_focused_style = "focused_window_style";
- char *default_sticky_style = "sticky_window_style";
- */
-
 WinListConfig *Config = NULL ;
 int MaxRows_override = 0 ;
 int MaxColumns_override = 0 ;
@@ -127,8 +120,7 @@ CommandLineOpts WinList_cmdl_options[3] =
     {NULL, NULL, NULL, NULL, NULL, NULL, 0 }
 };
 
-void
-WinList_usage (void)
+void WinList_usage (void)
 {
     printf (OPTION_USAGE_FORMAT " [--rows rows] [--cols cols] n m\n", MyName );
     print_command_line_opt("standard_options are ", as_standard_cmdl_options, ASS_Restarting);
@@ -159,8 +151,7 @@ void DeadPipe(int);
 void switch_deskviewport( int new_desk, int new_vx, int new_vy );
 Bool check_avoid_collision();
 
-int
-main( int argc, char **argv )
+int main( int argc, char **argv )
 {
     int i ;
 
@@ -245,8 +236,7 @@ void HandleEvents()
     }
 }
 
-void
-DeadPipe (int nonsense)
+void DeadPipe (int nonsense)
 {
     static int already_dead = False ; 
     if( already_dead ) 
@@ -280,8 +270,7 @@ DeadPipe (int nonsense)
     exit (0);
 }
 
-void
-retrieve_winlist_astbar_props()
+void retrieve_winlist_astbar_props()
 {
     destroy_astbar_props( &(WinListState.tbar_props) );
     
@@ -289,8 +278,7 @@ retrieve_winlist_astbar_props()
 }    
 
 
-void
-SetWinListLook()
+void SetWinListLook()
 {
     int i ;
     char *default_winlist_style = safemalloc( 1+strlen(MyName)+1);
@@ -332,20 +320,16 @@ SetWinListLook()
 
 }
 
-
-void
-GetBaseOptions (const char *filename)
+void GetBaseOptions (const char *filename)
 {
     ReloadASEnvironment( NULL, NULL, NULL, False, True );
 }
 
-void
-GetOptions (const char *filename)
+void GetOptions (const char *filename)
 {
 }
 
-Bool 
-match_NoCollides( char *name )
+Bool match_NoCollides( char *name )
 {
     int i ; 
     Bool no_collides = False ;
@@ -374,8 +358,7 @@ match_NoCollides( char *name )
 /****************************************************************************/
 /* PROCESSING OF AFTERSTEP MESSAGES :                                       */
 /****************************************************************************/
-void
-process_message (send_data_type type, send_data_type *body)
+void process_message (send_data_type type, send_data_type *body)
 {
     LOCAL_DEBUG_OUT( "received message %lX", type );
     WinListState.last_message_time = time(NULL) ;
@@ -459,8 +442,7 @@ process_message (send_data_type type, send_data_type *body)
     }
 }
 
-void
-DispatchEvent (ASEvent * event)
+void DispatchEvent (ASEvent * event)
 {
     ASWindowData *pointer_wd = NULL ;
     static Bool root_pointer_moved = True ;
@@ -600,8 +582,7 @@ DispatchEvent (ASEvent * event)
 /********************************************************************/
 /* showing our main window :                                        */
 /********************************************************************/
-Window
-make_winlist_window()
+Window make_winlist_window()
 {
     Window        w;
     XSizeHints    shints;
@@ -673,13 +654,13 @@ LOCAL_DEBUG_OUT( "gravity = %d", Config->gravity );
 
     return w ;
 }
+
 /********************************************************************/
 /* WinList buttons handling :                                       */
 /********************************************************************/
 /* Private stuff : **************************************************/
 
-static Bool
-render_winlist_button( ASTBarData *tbar )
+static Bool render_winlist_button( ASTBarData *tbar )
 {
     LOCAL_DEBUG_CALLER_OUT("tbar %p", tbar );
     if( render_astbar( tbar, WinListState.main_canvas ) )
@@ -691,14 +672,12 @@ render_winlist_button( ASTBarData *tbar )
     return False ;
 }
 
-/* collision avoidance code  (*WinListNoCollides): */
-/*************************************************************************/
-/* here we build vector of rectangles, representing one available
- * space each :
- */
-/*************************************************************************/
-Bool
-winlist_get_free_rectangles_iter_func(void *data, void *aux_data)
+/* collision avoidance code  (*WinListNoCollides):                */
+/******************************************************************/
+/* here we build vector of rectangles, representing one available */       
+/* space each :                                                   */
+/******************************************************************/
+Bool winlist_get_free_rectangles_iter_func(void *data, void *aux_data)
 {
     ASVector *list = (ASVector*)aux_data ;
     ASWindowData *wd = (ASWindowData*)data ;
@@ -735,8 +714,7 @@ winlist_get_free_rectangles_iter_func(void *data, void *aux_data)
     return True;
 }
 
-static ASVector *
-winlist_build_free_space_list()
+static ASVector * winlist_build_free_space_list()
 {
     ASVector *list = create_asvector( sizeof(XRectangle) );
     XRectangle seed_rect ;
@@ -879,8 +857,7 @@ winlist_avoid_collision_trace( const char *caller, int line, int *px, int *py, u
 #define winlist_avoid_collision(px,py,pmax_width,pmax_height,min_width,min_height ) \
     winlist_avoid_collision_trace( __FUNCTION__, __LINE__, px, py, pmax_width, pmax_height, min_width, min_height ) 
 
-Bool
-check_avoid_collision()
+Bool check_avoid_collision()
 {
     int x = WinListState.main_canvas->root_x, y = WinListState.main_canvas->root_y ; 
     unsigned int w = (Config->MaxSize.width==0)?Scr.MyDisplayWidth:Config->MaxSize.width ;
@@ -903,10 +880,7 @@ check_avoid_collision()
              h != WinListState.main_canvas->height ); 
 }
 
-
-
-Bool
-moveresize_main_canvas( int width, int height )
+Bool moveresize_main_canvas( int width, int height )
 {
     unsigned int tmp_height = height, tmp_width = width ; 
     int curr_x = WinListState.main_canvas->root_x;
@@ -968,20 +942,18 @@ moveresize_main_canvas( int width, int height )
     ASSync( False );
     return (changes & CANVAS_RESIZED);
 }
-/* WE do redrawing in two steps :
+/* We do redrawing in two steps :
   1) we need to determine the desired window size and resize it accordingly
-  2) when we get StructureNotify event - we need to reposition and redraw
+  2) when we get a StructureNotify event - we need to reposition and redraw
      everything accordingly
  */
-void
-postponed_rearrange_winlist( void *vdata )
+void postponed_rearrange_winlist( void *vdata )
 {
     Bool dont_resize_main_canvas  = (Bool)vdata ;   
     rearrange_winlist_window( dont_resize_main_canvas );    
 }
 
-Bool
-rearrange_winlist_window( Bool dont_resize_main_canvas )
+Bool rearrange_winlist_window( Bool dont_resize_main_canvas )
 {
     int i, j ;
     unsigned int allowed_max_width = (Config->MaxSize.width==0)?Scr.MyDisplayWidth:Config->MaxSize.width ;
@@ -1259,8 +1231,7 @@ rearrange_winlist_window( Bool dont_resize_main_canvas )
     return True ;
 }
 
-unsigned int
-find_window_index( ASWindowData *wd )
+unsigned int find_window_index( ASWindowData *wd )
 {
     int i = 0;
     while( i < WinListState.windows_num )
@@ -1271,8 +1242,7 @@ find_window_index( ASWindowData *wd )
     return i;
 }
 
-unsigned int
-find_button_by_position( int x, int y )
+unsigned int find_button_by_position( int x, int y )
 {
     int i  = WinListState.windows_num;
     while( --i >= 0 )
@@ -1288,8 +1258,7 @@ find_button_by_position( int x, int y )
 }
 
 /* Public stuff : ***************************************************/
-void 
-configure_tbar_icon( ASTBarData *tbar, ASWindowData *wd )
+void configure_tbar_icon( ASTBarData *tbar, ASWindowData *wd )
 {
     ASRawHints    raw;
     ASHints       clean;
@@ -1357,16 +1326,14 @@ configure_tbar_icon( ASTBarData *tbar, ASWindowData *wd )
     }    
 }
 
-void
-do_blink_urgent_bar( void *vdata )
+void do_blink_urgent_bar( void *vdata )
 {
     ASTBarData *tbar = (ASTBarData *)vdata ;
     set_astbar_focused( tbar, WinListState.main_canvas, !IsASTBarFocused(tbar) );
     timer_new (500, do_blink_urgent_bar, tbar); 
 }
 
-static void 
-focus_winlist_button( ASWindowData *wd )
+static void focus_winlist_button( ASWindowData *wd )
 {
     timer_remove_by_data( wd->bar );  /* just in case */ 
 
@@ -1394,8 +1361,7 @@ focus_winlist_button( ASWindowData *wd )
         render_astbar( wd->bar, WinListState.main_canvas );     
 }
 
-void 
-build_winlist_button_comment( ASTBarData *tbar, ASWindowData *wd )
+void build_winlist_button_comment( ASTBarData *tbar, ASWindowData *wd )
 {
     char *hint = NULL ; 
     int hint_len = 0 ; 
@@ -1542,8 +1508,7 @@ configure_tbar_props( ASTBarData *tbar, ASWindowData *wd, Bool focus_only )
     focus_winlist_button( wd );
 }
 
-void
-add_winlist_button( ASTBarData *tbar, ASWindowData *wd )
+void add_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
     tbar = create_astbar();
 LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
@@ -1592,8 +1557,7 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
     return False ;
 }
 
-void
-delete_winlist_button( ASTBarData *tbar, ASWindowData *wd )
+void delete_winlist_button( ASTBarData *tbar, ASWindowData *wd )
 {
     int i = find_window_index( wd ) ;
 
@@ -1619,8 +1583,7 @@ LOCAL_DEBUG_OUT("tbar = %p, wd = %p", tbar, wd );
 /*************************************************************************/
 /* pressing and depressing actions :                                     */
 /*************************************************************************/
-void
-press_winlist_button( ASWindowData *wd )
+void press_winlist_button( ASWindowData *wd )
 {
     if( wd != NULL && wd->bar != NULL )
     {
@@ -1638,8 +1601,7 @@ press_winlist_button( ASWindowData *wd )
     }
 }
 
-void
-release_winlist_button( ASWindowData *wd, int button )
+void release_winlist_button( ASWindowData *wd, int button )
 {
     if( wd != NULL && wd->bar != NULL )
     {
@@ -1669,9 +1631,7 @@ release_winlist_button( ASWindowData *wd, int button )
     }
 }
 
-
-void
-update_winlist_styles()
+void update_winlist_styles()
 {
     int i  = WinListState.windows_num;
 
@@ -1689,8 +1649,7 @@ update_winlist_styles()
 }
 
 
-void
-switch_deskviewport( int new_desk, int new_vx, int new_vy )
+void switch_deskviewport( int new_desk, int new_vx, int new_vy )
 {
     Bool view_changed = (new_vx != Scr.Vx || new_vy != Scr.Vy) ;
     Bool desk_changed = (new_desk != Scr.CurrentDesk) ;
@@ -1705,5 +1664,3 @@ switch_deskviewport( int new_desk, int new_vx, int new_vy )
     if( check_avoid_collision() )
         rearrange_winlist_window( False );
 }
-
-
