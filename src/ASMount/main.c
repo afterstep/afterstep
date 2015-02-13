@@ -1238,7 +1238,9 @@ void init_ASMount(ASFlagType flags, const char *cmd)
 	reloadButtons();
 	AppState.volumes = create_asbidirlist (ASVolume_destroy);
 
+#ifndef GLIB_VERSION_2_36
 	g_type_init();
+#endif
 	GVolumeMonitor * monitor  = g_volume_monitor_get();
 
 	g_signal_connect_object (monitor, "mount-added",    G_CALLBACK (mount_added), NULL, 0);
@@ -1477,12 +1479,10 @@ main (int argc, char *argv[])
  	LinkAfterStepConfig();
  	InitSession();
 
+#ifndef GLIB_VERSION_2_36
 	g_type_init();
-#if 0
-	ConnectXDisplay (gdk_x11_display_get_xdisplay(gdk_display_open(NULL)), NULL, False);
-#else	
-	ConnectX( ASDefaultScr, EnterWindowMask|PropertyChangeMask );
 #endif
+	ConnectX( ASDefaultScr, EnterWindowMask|PropertyChangeMask );
 	
 	ReloadASEnvironment( NULL, NULL, NULL, False, True );
 

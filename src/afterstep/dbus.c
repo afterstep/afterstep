@@ -408,7 +408,7 @@ Bool get_gnome_autosave ()
 #ifdef HAVE_GIOLIB
 	static Bool g_types_inited = False;
 	if (!g_types_inited) {
-#if (GLIB_MAJOR_VERSION <= 2 && GLIB_MINOR_VERSION <= 35 && GLIB_MICRO_VERSION <= 0)
+#ifndef GLIB_VERSION_2_36
 		g_type_init ();
 #endif
 		g_types_inited = True;

@@ -2535,7 +2535,9 @@ svg2ASImage( const char * path, ASImageImportParams *params )
 	   several times or do we bork then? */
 	if (gType_inited == 0) 
 	{
+#ifndef GLIB_VERSION_2_36
 	   g_type_init();
+#endif
 	   gType_inited = 1;
 	}
  
