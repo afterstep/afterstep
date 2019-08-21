@@ -205,8 +205,8 @@ Name[pl]=AfterWiki - wskazówki, informacje
 [Desktop Entry]
 Name=Report bugs and issues
 GenericName=URL Link
-Comment=AfterStep SourceForge Bug Tracker
-Exec=ASRun --immediate --cmd http://sourceforge.net/tracker/?group_id=30&atid=100030
+Comment=AfterStep Bug Tracker
+Exec=ASRun --immediate --cmd https://github.com/afterstep/afterstep/issues
 Icon=normal/Bug
 Terminal=false
 Type=Application
