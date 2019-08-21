@@ -82,8 +82,8 @@ void show_usage (Bool short_form)
 	printf( "AfterShow - AfterImage XML processing and display daemon.\n"
 			"Usage: aftershow [-h|--help] [-f] [-s] [-d|--display <display_string>]\n"
 			"  -h --help      - display this message;\n"
-			"  -f             - fork - go in background immidiately on startup;\n"
-			"  -s             - single screen mode - sirvice only the first screen of display;\n"
+			"  -f             - fork - go in background immediately on startup;\n"
+			"  -s             - single screen mode - service only the first screen of display;\n"
 			"  -d --display <display_string> - connect to X display specified by display_string;\n"
 			"  -V <level>     - set output verbosity level - 0 for no output;\n" );
 }

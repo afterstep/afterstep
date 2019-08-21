@@ -1861,7 +1861,7 @@ do_swallow_window( ASWindowData *wd )
 	}
 
 	/* if the window was previously unswallowed by us - we may get UnMapNotify
-	   after reparenting, which will make us immidiately unswallow this client.
+	   after reparenting, which will make us immediately unswallow this client.
 	   To prevent this :  */
     XSelectInput (dpy, wd->client, NoEventMask);
 

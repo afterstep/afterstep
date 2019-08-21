@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
  *                        tint_color );
  * NOTES
  * On success parse_argb_color returns pointer to the character
- * immidiately following color specification in original string.
+ * immediately following color specification in original string.
  * Therefore test for returned value to be equal to original string will
  * can be used to detect error.
  * SEE ALSO

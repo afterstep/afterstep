@@ -917,7 +917,7 @@ CHANGELOG
    don't rely on cached parent's geometry
  * Corrected problems with too many or too few syntetic configure notifes set
    to the clients, especially on initial map and and move/resize
- * fixed an issue with re-swallowed clients being immidiately unswallowed again
+ * fixed an issue with re-swallowed clients being immediately unswallowed again
 
 [2007-08-15: sasha]
  * implemented proper handling of border fill for nasty terms who set parent's
@@ -2869,7 +2869,7 @@ CHANGELOG
  * implemented XML validation button and selection rendering button in XML
    editor; Fixed main window destruction to not loose any unsaved XML in XML
    editor if its open
- * Fixed WinTabs to not immidiately reswallow windows that were explicitely
+ * Fixed WinTabs to not immediately reswallow windows that were explicitely
    unswallowed, even if they match the pattern
  * made image view more flexible allowing for selectrive tilng/scaling to
    aspect or to view

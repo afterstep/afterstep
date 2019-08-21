@@ -2,7 +2,7 @@
 Name=AfterStep Home Page
 GenericName=URL Link
 Comment=http://www.afterstep.org/
-Exec=ASRun --immidiate --cmd http://www.afterstep.org/index.php
+Exec=ASRun --immediate --cmd http://www.afterstep.org/index.php
 Icon=logos/AfterStep
 Terminal=false
 Type=Application
@@ -15,7 +15,7 @@ Name[pl]=Strona domowa AfterStepa
 Name=New in this version
 GenericName=URL Link
 Comment=http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD
-Exec=ASRun --immidiate --cmd http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD
+Exec=ASRun --immediate --cmd http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD
 Icon=logos/AfterStep
 Terminal=false
 Type=Application
@@ -28,7 +28,7 @@ Name[pl]=Nowości w tej wersji
 Name=Supported standards
 GenericName=URL Link
 Comment=http://standards.freedesktop.org/wm-spec/latest/
-Exec=ASRun --immidiate --cmd http://standards.freedesktop.org/wm-spec/latest/
+Exec=ASRun --immediate --cmd http://standards.freedesktop.org/wm-spec/latest/
 Icon=normal/Info
 Terminal=false
 Type=Application
@@ -41,7 +41,7 @@ Name[pl]=Obsługiwane standardy
 Name=libAfterImage
 GenericName=URL Link
 Comment=http://www.afterstep.org/afterimage/
-Exec=ASRun --immidiate --cmd http://www.afterstep.org/afterimage/
+Exec=ASRun --immediate --cmd http://www.afterstep.org/afterimage/
 Icon=logos/AfterStep
 Terminal=false
 Type=Application
@@ -180,7 +180,7 @@ TryExec=afterstepdoc
 Name=AfterStep Wikipedia entry
 GenericName=URL Link
 Comment=http://en.wikipedia.org/wiki/Afterstep
-Exec=ASRun --immidiate --cmd http://en.wikipedia.org/wiki/Afterstep
+Exec=ASRun --immediate --cmd http://en.wikipedia.org/wiki/Afterstep
 Icon=normal/Info
 Terminal=false
 Type=Application
@@ -193,7 +193,7 @@ Name[pl]=Wpis w Wikipedii
 Name=AfterWiki - User tips, info
 GenericName=URL Link
 Comment=http://wiki.afterstep.org/
-Exec=ASRun --immidiate --cmd http://wiki.afterstep.org/
+Exec=ASRun --immediate --cmd http://wiki.afterstep.org/
 Icon=normal/Info
 Terminal=false
 Type=Application
@@ -206,7 +206,7 @@ Name[pl]=AfterWiki - wskazówki, informacje
 Name=Report bugs and issues
 GenericName=URL Link
 Comment=AfterStep SourceForge Bug Tracker
-Exec=ASRun --immidiate --cmd http://sourceforge.net/tracker/?group_id=30&atid=100030
+Exec=ASRun --immediate --cmd http://sourceforge.net/tracker/?group_id=30&atid=100030
 Icon=normal/Bug
 Terminal=false
 Type=Application

@@ -2198,14 +2198,14 @@ void exec_moveresize_req (void *data)
 void
 schedule_moveresize_req (FunctionCode func, send_signed_data_type val1,
 												 send_signed_data_type val2, Window client,
-												 Bool immidiate)
+												 Bool immediate)
 {
 	if (PagerMoveResizeReq.pending) {
 		if (PagerMoveResizeReq.client != client
 				|| PagerMoveResizeReq.func != func) {
 			timer_remove_by_data (&PagerMoveResizeReq);
 			exec_moveresize_req (&PagerMoveResizeReq);
-		} else if (immidiate) {
+		} else if (immediate) {
 			timer_remove_by_data (&PagerMoveResizeReq);
 			PagerMoveResizeReq.pending = False;
 		}
@@ -2214,7 +2214,7 @@ schedule_moveresize_req (FunctionCode func, send_signed_data_type val1,
 	PagerMoveResizeReq.func_val[0] = val1;
 	PagerMoveResizeReq.func_val[1] = val2;
 	PagerMoveResizeReq.client = client;
-	if (immidiate)
+	if (immediate)
 		exec_moveresize_req (&PagerMoveResizeReq);
 	else if (!PagerMoveResizeReq.pending) {
 		PagerMoveResizeReq.pending = True;

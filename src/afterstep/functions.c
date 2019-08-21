@@ -679,7 +679,7 @@ void ExecuteComplexFunction (ASEvent * event, char *name)
 			return;
 
 	LOCAL_DEBUG_OUT
-			("function data found  %p ...\n   proceeding to execution of immidiate items...",
+			("function data found  %p ...\n   proceeding to execution of immediate items...",
 			 func);
 	if (event->w == None && event->client != NULL)
 		event->w = get_window_frame (event->client);
@@ -700,7 +700,7 @@ void ExecuteComplexFunction (ASEvent * event, char *name)
 						}
 				if (skip) {
 					/* since function names in complex functions have i or I as the first
-					 * character to signify that they are immidiate items - we allow semicolon
+					 * character to signify that they are immediate items - we allow semicolon
 					 * to separate that special character from the actuall window's name for
 					 * readability sake
 					 */
@@ -718,7 +718,7 @@ void ExecuteComplexFunction (ASEvent * event, char *name)
 		}
 	}
 	/* now lets count clicks : */
-	LOCAL_DEBUG_OUT ("done with immidiate items - persisting ?: %s",
+	LOCAL_DEBUG_OUT ("done with immediate items - persisting ?: %s",
 									 persist ? "True" : "False");
 	if (!persist)
 		return;
@@ -819,7 +819,7 @@ Bool desktop_category2complex_function (const char *name,
 
 		++(func->items_num);
 		init_func_data (fdata);
-		fdata->name = mystrdup ("I");	/* for immidiate execution */
+		fdata->name = mystrdup ("I");	/* for immediate execution */
 		fdata->func = desktop_entry2function_code (de);
 		if (de->clean_exec)
 			fdata->text = mystrdup (de->clean_exec);

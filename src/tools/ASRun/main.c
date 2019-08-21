@@ -47,7 +47,7 @@ typedef enum ASRunTool
 typedef struct ASRunState
 {
 #define ASRUN_Persist 			(0x01<<1)
-#define ASRUN_Immidiate			(0x01<<2)
+#define ASRUN_Immediate			(0x01<<2)
 #define ASRUN_UseCWD			(0x01<<3)
 	ASFlagType flags ;
 	
@@ -402,7 +402,7 @@ main (int argc, char *argv[])
     ConnectX( ASDefaultScr, 0 );
 	LoadColorScheme();
 	ReloadASEnvironment( NULL, NULL, NULL, False, True );
-	set_flags( flags, ASRUN_Immidiate );
+	set_flags( flags, ASRUN_Immediate );
 #endif	
 	
 	for( i = 1 ; i < argc ; ++i ) 
@@ -423,7 +423,7 @@ main (int argc, char *argv[])
 			{
 				initial_command = mystrdup(argv[i]);
 				tool = ASRTool_KDEScreenSaver;
-				set_flags( flags, ASRUN_Immidiate );
+				set_flags( flags, ASRUN_Immediate );
 			}
 		}else if( mystrcasecmp( argv[i], "--afterstep-config" ) == 0 )
 		{
@@ -432,12 +432,12 @@ main (int argc, char *argv[])
 			{
 				initial_command = mystrdup(argv[i]);
 				tool = ASRTool_ASConfigFile;
-				set_flags( flags, ASRUN_Immidiate );
+				set_flags( flags, ASRUN_Immediate );
 			}
 		}else if( mystrcasecmp( argv[i], "--persist" ) == 0 )
 			set_flags( flags, ASRUN_Persist );
-		else if( mystrcasecmp( argv[i], "--immidiate" ) == 0 )
-			set_flags( flags, ASRUN_Immidiate );
+		else if( mystrcasecmp( argv[i], "--immediate" ) == 0 )
+			set_flags( flags, ASRUN_Immediate );
 		else if( mystrcasecmp( argv[i], "--cwd" ) == 0 )
 			set_flags( flags, ASRUN_UseCWD );
 		else if( mystrcasecmp( argv[i], "--cmd" ) == 0 && argv[i+1] != NULL )
@@ -449,7 +449,7 @@ main (int argc, char *argv[])
 	
 	ConnectAfterStep(0,0);
 	
-	if( get_flags( flags, ASRUN_Immidiate ) && initial_command != NULL )
+	if( get_flags( flags, ASRUN_Immediate ) && initial_command != NULL )
 	{
 		memset( &AppState, 0x00, sizeof(AppState));
 		AppState.flags = flags ;
