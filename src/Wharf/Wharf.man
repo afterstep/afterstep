@@ -69,7 +69,7 @@ If the \fBWharf\fP executable is linked to another name, ie ln -s \fBWharf\fP
 with a completely different set of configurations than \fBWharf\fP, simply by
 adding configuration options with the keywords \fI*OtherWharf\fP.
 This way multiple \fBWharf\fP programs can be used.  Note that the symlinked
-module can not be called Wharf<something>, as aftrestep will pressume
+module can not be called Wharf<something>, as afterstep will pressume
 the standard Wharf binary.
 
 .SH INVOCATION

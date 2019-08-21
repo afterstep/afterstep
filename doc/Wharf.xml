@@ -80,7 +80,7 @@ will be used.</para>
 with a completely different set of configurations than <command>Wharf</command>, simply by
 adding configuration options with the keywords <emphasis remap='I'>*OtherWharf</emphasis>.
 This way multiple <command>Wharf</command> programs can be used.  Note that the symlinked
-module can not be called Wharf&lt;something&gt;, as aftrestep will pressume
+module can not be called Wharf&lt;something&gt;, as afterstep will pressume
 the standard Wharf binary.</para>
 
 </refsect1>

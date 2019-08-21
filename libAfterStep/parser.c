@@ -814,7 +814,7 @@ int config2tree_storage (ConfigDef * config, ASTreeStorageModel ** tail)
 			}
 			if (get_flags (pterm->flags, TF_OBSOLETE))
 				config_error (config,
-											"Heh, It seems that I've encountered obsolete config option. I'll ignore it for now, Ok ?!");
+											"Heh, it seems that I've encountered an obsolete config option. I'll ignore it for now, OK ?!");
 			if (get_flags (pterm->flags, TF_PHONY))
 				set_flags (config->flags, CF_PHONY_OPTION);
 			if (get_flags (pterm->flags, TF_SPECIAL_PROCESSING)) {
