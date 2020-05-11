@@ -788,7 +788,7 @@ void check_mybacks_list (MyLook * look)
 	}
 }
 
-inline MyBackground *add_myback_to_list (ASHashTable * list,
+MyBackground *add_myback_to_list (ASHashTable * list,
 																				 MyBackground * back,
 																				 ASImageManager * imman)
 {
@@ -807,12 +807,12 @@ MyBackground *add_myback (MyLook * look, MyBackground * back)
 }
 
 
-inline void init_deskconfigs_list (MyLook * look)
+void init_deskconfigs_list (MyLook * look)
 {
 	look->desk_configs = create_ashash (5, NULL, NULL, myobj_destroy);
 }
 
-inline MyDesktopConfig *add_deskconfig_to_list (ASHashTable * list,
+MyDesktopConfig *add_deskconfig_to_list (ASHashTable * list,
 																								MyDesktopConfig * dc)
 {
 	dc->magic = MAGIC_MYDESKTOPCONFIG;
@@ -843,7 +843,7 @@ MyStyle *mylook_get_style (MyLook * look, const char *name)
 	return NULL;
 }
 
-inline MyDesktopConfig *mylook_get_desk_config (MyLook * look, long desk)
+MyDesktopConfig *mylook_get_desk_config (MyLook * look, long desk)
 {
 	if (look) {
 		ASHashData hdata = { 0 };
@@ -856,7 +856,7 @@ inline MyDesktopConfig *mylook_get_desk_config (MyLook * look, long desk)
 }
 
 
-inline MyBackground *mylook_get_desk_back (MyLook * look, long desk)
+MyBackground *mylook_get_desk_back (MyLook * look, long desk)
 {
 	MyBackground *myback = NULL;
 
@@ -888,7 +888,7 @@ inline MyBackground *mylook_get_desk_back (MyLook * look, long desk)
 }
 
 
-inline MyBackground *mylook_get_back (MyLook * look, char *name)
+MyBackground *mylook_get_back (MyLook * look, char *name)
 {
 	ASHashData hdata = { 0 };
 	if (look && name)

@@ -49,7 +49,7 @@ void 	   destroy_assession (ASSession * session);
 void       update_default_session ( ASSession *session, int func);
 
 void 	   set_session_override(ASSession * session, const char *overriding_file, int function );
-inline const char *get_session_override(ASSession * session, int function );
+const char *get_session_override(ASSession * session, int function );
 
 void 	   change_default_session (ASSession * session, const char *new_val, int function);
 void 	   change_desk_session (ASSession * session, int desk, const char *new_val, int function);

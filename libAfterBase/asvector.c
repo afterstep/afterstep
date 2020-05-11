@@ -124,9 +124,9 @@ LOCAL_DEBUG_CALLER_OUT("0x%lX, 0x%lX, %lu", (unsigned long)v, (unsigned long)dat
     return v;
 }
 
-/* finds index of the first element in the vector that is exactly matching specifyed
+/* finds index of the first element in the vector that is exactly matching specified
  * data */
-inline size_t vector_find_data( ASVector *v, void *data )
+size_t vector_find_data( ASVector *v, void *data )
 {
     register int i ;
     /* word copying is usually faster then raw memory copying */

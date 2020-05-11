@@ -183,7 +183,7 @@ typedef struct MyFrame
 	unsigned int part_width[FRAME_PARTS];
 	unsigned int part_length[FRAME_PARTS];
 	ASFlagType   set_part_bevel ;
-/* this must not be inline functions !!!! */
+
 #define SetPartFBevelMask(frame,mask)  ((frame)->set_part_bevel |= (mask))
 #define SetPartUBevelMask(frame,mask)  ((frame)->set_part_bevel |= ((mask)<<FRAME_PARTS))
 #define SetPartSBevelMask(frame,mask)  ((frame)->set_part_bevel |= ((mask)<<(FRAME_PARTS+FRAME_PARTS)))
@@ -398,7 +398,7 @@ void myback_delete( MyBackground **myback, ASImageManager *imman );
 MyDesktopConfig *create_mydeskconfig( int desk, char *data );
 void init_deskconfigs_list( MyLook *look );
 void mydeskconfig_delete( MyDesktopConfig **dc );
-inline MyDesktopConfig *add_deskconfig_to_list( ASHashTable *list, MyDesktopConfig *dc );
+MyDesktopConfig *add_deskconfig_to_list( ASHashTable *list, MyDesktopConfig *dc );
 MyDesktopConfig *add_deskconfig( MyLook *look, MyDesktopConfig *dc );
 
 ARGB32 get_random_tint_color();
@@ -412,9 +412,9 @@ void mylook_set_font_size_var (MyLook * look);
 
 
 struct MyStyle *mylook_get_style(MyLook *look, const char *name);
-inline MyBackground  *mylook_get_desk_back(MyLook *look, long desk);
-inline MyBackground  *mylook_get_back(MyLook *look, char *name);
-inline MyDesktopConfig *mylook_get_desk_config(MyLook *look, long desk);
+MyBackground  *mylook_get_desk_back(MyLook *look, long desk);
+MyBackground  *mylook_get_back(MyLook *look, char *name);
+MyDesktopConfig *mylook_get_desk_config(MyLook *look, long desk);
 
 
 

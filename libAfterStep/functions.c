@@ -18,8 +18,6 @@
  *
  */
 
-/*#define DO_CLOCKING      */
-
 #define LOCAL_DEBUG
 #include "../configure.h"
 #include "asapp.h"
@@ -307,7 +305,7 @@ void dup_func_data (FunctionData * dst, FunctionData * src)
 	}
 }
 
-inline FunctionData *create_named_function (int func, char *name)
+extern FunctionData *create_named_function (int func, char *name)
 {
 	FunctionData *fdata = safecalloc (1, sizeof (FunctionData));
 

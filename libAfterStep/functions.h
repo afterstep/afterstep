@@ -314,7 +314,7 @@ FunctionCode change_func_code (const char *func_name, FunctionCode new_code);
 void init_func_data (FunctionData * data);
 void copy_func_data (FunctionData * dst, FunctionData * src);
 void dup_func_data (FunctionData * dst, FunctionData * src);
-inline FunctionData *create_named_function( int func, char *name);
+extern FunctionData *create_named_function( int func, char *name);
 void set_func_val (FunctionData * data, int arg, int value);
 int free_func_data (FunctionData * data);
 void destroy_func_data( FunctionData **pdata );

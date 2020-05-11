@@ -32,13 +32,13 @@
 /****************************************************************************/
 /* window management specifics - button ungrabbing convinience functions:   */
 /****************************************************************************/
-inline void ungrab_window_buttons (Window w)
+void ungrab_window_buttons (Window w)
 {
 	LOCAL_DEBUG_OUT ("w = %lX", w);
 	XUngrabButton (dpy, AnyButton, AnyModifier, w);
 }
 
-inline void ungrab_window_keys (Window w)
+void ungrab_window_keys (Window w)
 {
 	XUngrabKey (dpy, AnyKey, AnyModifier, w);
 }

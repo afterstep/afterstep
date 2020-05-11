@@ -1027,7 +1027,7 @@ parse_geometry (register char *tline,
 
 static char _as_hex_to_char_table[] = "0123456789ABCDEF";
 
-inline int
+int
 unsigned_int2buffer_end (char *buffer, int buffer_size, unsigned int val)
 {
 	int i = buffer_size-1 ; 

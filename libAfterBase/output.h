@@ -56,17 +56,14 @@ Bool show_debug( const char *file, const char *func, int line, const char *msg_f
 
 
 void nonGNUC_debugout( const char *format, ...);
-inline void nonGNUC_debugout_stub( const char *format, ...);
-/* may be used below in case compilation problems occur.
- * Please submit a bug report if usage of any of the following generates errors on
- * your compiler . Thanks!!! */
+void nonGNUC_debugout_stub( const char *format, ...);
 
 void debugout_print_linestamp(const char *file, const char *func, int line );
 
 
 const char *get_caller_func();/* required by below */
 
-/* Some usefull debugging macros : */
+/* Some useful debugging macros : */
 #ifdef __GNUC__
 
 #if (!defined(NO_DEBUG_OUTPUT))&&(defined(LOCAL_DEBUG)||defined(DEBUG)||defined(DEBUG_ALL))

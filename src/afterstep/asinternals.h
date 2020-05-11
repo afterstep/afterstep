@@ -696,8 +696,8 @@ void ParsePopupEntry (char *tline, FILE * fd, char **junk, int *junk2);
 
 
 /*************************** misc.c *********************************/
-inline void ungrab_window_buttons( Window w );
-inline void ungrab_window_keys (Window w );
+void ungrab_window_buttons( Window w );
+void ungrab_window_keys (Window w );
 void MyXGrabButton ( unsigned button, unsigned modifiers,
 				Window grab_window, Bool owner_events, unsigned event_mask,
 				int pointer_mode, int keyboard_mode, Window confine_to, Cursor cursor);
