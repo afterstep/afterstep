@@ -133,7 +133,7 @@ typedef unsigned char boolean;
 #undef I18N
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "as-bugs@afterstep.org"
+#define PACKAGE_BUGREPORT "https://github.com/afterstep/afterstep/issues"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "libAfterImage"

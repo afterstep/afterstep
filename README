@@ -73,8 +73,9 @@ with the releases.
 +----+
 
 The "bughint" file can be run when finding and reporting bugs.  Please then
-mail this plus any other relevant info (not a complete core file, please!) to
-as-users@afterstep.org, after subscribing to this list first .
+open an issue on github ( https://github.com/afterstep/afterstep/issues ) and
+upload this file plus any other relevant info (not a complete core file,
+please!).
 
 Both "makeasclean" and "makeaspatch" are used to clean out the source tree and
 making patches to the distribution (in a proper format).
@@ -90,12 +91,12 @@ AfterStepDoc from the menu.
 +------+
 
 Further information	:	www.afterstep.org
-New development versions:	https://github.com/sashavasko/afterstep-devel
+New development versions:	https://github.com/afterstep/afterstep
 Help			:	mail as-users@lists.afterstep.org
        after subscribing:	mail as-users-request@lists.afterstep.org
 				subject: subscribe
        or visit http://lists.afterstep.org/listinfo.cgi/as-users-afterstep.org
-Bugs			:	mail as-bugs@afterstep.org
+Bugs			:	https://github.com/afterstep/afterstep/issues
 Chat			:	#afterstep on FreeNode
 Accessing FreeNode can be done by connecting to a random FreeNode irc server:
 	irc.freenode.net or pick one from http://freenode.net/irc_servers.shtml

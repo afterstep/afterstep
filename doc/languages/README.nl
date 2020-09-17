@@ -85,7 +85,8 @@ het bestand.
 +----+
 
 Het programma "bughint" kan gebruikt worden voor het melden voor bugs.
-stuur de output wat "bughint" produceert naar as-bugs@afterstep.org.
+Open een issue op https://github.com/afterstep/afterstep/issues en
+voeg de output wat "bughint" produceert bij.
 
  FAQ
 +----+
@@ -108,7 +109,7 @@ Nieuwe versies		:		ftp.afterstep.org
 Help			:		http://mail.afterstep.org/mailman/listinfo/as-users
 Coders			:		mail majordomo@crystaltokyo.com
 					Body: subscribe as-devel <email>
-Bugs			:		mail as-bugs@afterstep.org
+Bugs			:		https://github.com/afterstep/afterstep/issues
 Chat			:		#afterstep op OpenProjects
 					Server: irc.openprojects.net
 
