@@ -139,7 +139,7 @@ typedef unsigned char boolean;
 #define PACKAGE_NAME "libAfterImage"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "libAfterImage 0.99"
+#define PACKAGE_STRING "libAfterImage 1.21"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "libAfterImage.tar"
