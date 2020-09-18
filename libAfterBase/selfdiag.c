@@ -141,12 +141,12 @@ print_elf_data (proc_tables * ptabs)
 {
 #if 0
 	fprintf (stderr, "found data structures :\n");
-	fprintf (stderr, "   Symbols       at 0x%8.8X (%d)\n", ptabs->symbols);
+	fprintf (stderr, "   Symbols at 0x%8.8X (%d)\n", ptabs->symbols);
 	fprintf (stderr, "   Symbol's hash at 0x%8.8X\n", ptabs->sym_hash);
-	fprintf (stderr, "    Symbol entry size = %d, entries = %d\n", ptabs->sym_ent_size, ptabs->sym_ent_num);
-	fprintf (stderr, "   Strings 	at 0x%8.8X (%d), size: %d\n", ptabs->strings, ptabs->str_tabl_size);
-	fprintf (stderr, "   Debug   	at 0x%8.8X (%d)\n", ptabs->debug);
-	fprintf (stderr, "   PltGOT  	at 0x%8.8X (%d)\n", ptabs->pltgot);
+	fprintf (stderr, "   Symbol entry size = %d, entries = %d\n", ptabs->sym_ent_size, ptabs->sym_ent_num);
+	fprintf (stderr, "   Strings at 0x%8.8X (%d), size: %d\n", ptabs->strings, ptabs->str_tabl_size);
+	fprintf (stderr, "   Debug at 0x%8.8X (%d)\n", ptabs->debug);
+	fprintf (stderr, "   PltGOT at 0x%8.8X (%d)\n", ptabs->pltgot);
 
 	if (ptabs->strings != NULL && ptabs->str_tabl_size > 2)
 	{
@@ -334,14 +334,14 @@ print_signal_context (struct sigcontext *psc)
 		fprintf (stderr, "  Registers\n");
 		i = 0;								   /* to avoid warnings */
 # if defined(_ASMi386_SIGCONTEXT_H)
-		fprintf (stderr, "   EAX: 0x%8.8lX", (unsigned long)(psc->eax));
+		fprintf (stderr, "  EAX: 0x%8.8lX", (unsigned long)(psc->eax));
 		fprintf (stderr, "  EBX: 0x%8.8lX", (unsigned long)(psc->ebx));
 		fprintf (stderr, "  ECX: 0x%8.8lX", (unsigned long)(psc->ecx));
 		fprintf (stderr, "  EDX: 0x%8.8lX\n", (unsigned long)(psc->edx));
-		fprintf (stderr, "   ESP: 0x%8.8lX", (unsigned long)(psc->esp));
+		fprintf (stderr, "  ESP: 0x%8.8lX", (unsigned long)(psc->esp));
 		fprintf (stderr, "  EBP: 0x%8.8lX", (unsigned long)(psc->ebp));
 		fprintf (stderr, "  EIP: 0x%8.8lX\n", (unsigned long)(psc->eip));
-		fprintf (stderr, "   ESI: 0x%8.8lX", (unsigned long)(psc->esi));
+		fprintf (stderr, "  ESI: 0x%8.8lX", (unsigned long)(psc->esi));
 		fprintf (stderr, "  EDI: 0x%8.8lX\n", (unsigned long)(psc->edi));
 # elif defined(_ASMAXP_SIGCONTEXT_H) || defined(__ASM_MIPS_SIGCONTEXT_H) || defined(__ASM_SH_SIGCONTEXT_H)
 		for (; i < 32; i++)
@@ -417,7 +417,7 @@ print_my_backtrace (long *ebp, long *esp, long *eip)
 		const char   *func_name = NULL;
 
 		frame_no++;
-		fprintf (stderr, "   0x%8.8lX", (unsigned long)ebp);
+		fprintf (stderr, "  0x%8.8lX", (unsigned long)ebp);
 		fprintf (stderr, "  0x%8.8lX", (unsigned long)*(ebp));
 		fprintf (stderr, "  0x%8.8lX", (unsigned long)esp);
 		if (*(ebp) == 0)
