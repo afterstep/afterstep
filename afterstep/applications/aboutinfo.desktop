@@ -2,7 +2,7 @@
 Name=AfterStep Home Page
 GenericName=URL Link
 Comment=http://www.afterstep.org/
-Exec=ASRun --immediate --cmd http://www.afterstep.org/index.php
+Exec=ASRun --immediate --cmd http://www.afterstep.org/
 Icon=logos/AfterStep
 Terminal=false
 Type=Application
