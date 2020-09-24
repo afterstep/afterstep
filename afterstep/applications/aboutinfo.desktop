@@ -23,6 +23,7 @@ Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
 Name[pl]=Nowości w tej wersji
+Name[nl]=Nieuw in deze versie
 
 [Desktop Entry]
 Name=Supported standards
@@ -36,6 +37,7 @@ Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
 Name[pl]=Obsługiwane standardy
+Name[nl]=Ondersteunde standaards
 
 [Desktop Entry]
 Name=libAfterImage
@@ -214,4 +216,4 @@ Encoding=UTF-8
 Categories=AfterStepInfo
 TryExec=ASRun
 Name[pl]=Zgłoszone błędy i problemy
-
+Name[nl]=Rapporteer fouten en problemen
