@@ -1,0 +1,6 @@
+<composite>
+  <img src="large/Monitor1"/>
+
+  <text x="10" y="20" fgcolor="#DDDDDD">#urxvt</text>
+</composite>
+

@@ -74,27 +74,23 @@
 *WharfGeometry		+1+1
 *WharfBevel		Bottom,Right,NoOutline,Extra
 
-#Use this setting to set what is show in the balloon :
-# default is to show everything
+# Use this setting to set what is shown in the balloon, the default is to show
+# everything:
 #*WharfShowHints   Name, Comment, Exec
 
 #-------------------------------------------------------------------------------
 # Applications/Icons :
 #-------------------------------------------------------------------------------
 #
-# X TErms. Note that only one of this will be displayed on Wharf, as they all
-# have same button name. Change button name ( first column after *Wharf) to make them a separate buttons :
-
-*Wharf term Monitor.xpm Exec "-" x-terminal-emulator &
-*Wharf term "-" DesktopEntry urxvt
-*Wharf term "-" DesktopEntry aterm
-
-# aterm 1.0 should pick MyStyle from look, if it does not the following is a nice alternative :
-#*Wharf term aterm Exec "-" aterm -tr -tint blue -fg yellow -bg black &
-
-*Wharf term rxvt  Exec "-" rxvt  -tr -fg yellow -bg black &
-*Wharf term eterm Exec "-" Eterm -O --tint blue -fg yellow -bg black &
-*Wharf term xterm Exec "-" xterm -fg yellow -bg blue &
+# X Terms. Note that only one of these will be displayed on Wharf, as they all
+# have the same button name. Change the button name (first column after *Wharf) 
+# to make them into separate buttons:
+#
+*Wharf term normal/Terminal Exec "-" x-terminal-emulator &
+*Wharf term normal/Terminal urxvt Exec "-" urxvt &
+*Wharf term normal/Terminal rxvt  Exec "-" rxvt  -tr -fg yellow -bg black &
+*Wharf term normal/Terminal eterm Exec "-" Eterm -O --tint blue -fg yellow -bg black &
+*Wharf term normal/Terminal xterm Exec "-" xterm -fg yellow -bg blue &
 
 #
 # Midnight commander file manager in the term of choice :
