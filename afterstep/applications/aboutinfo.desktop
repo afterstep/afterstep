@@ -14,8 +14,8 @@ Name[pl]=Strona domowa AfterStepa
 [Desktop Entry]
 Name=New in this version
 GenericName=URL Link
-Comment=http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD
-Exec=ASRun --immediate --cmd http://cvs.aftercode.net/cgi-bin/viewcvs.cgi/afterstep-stable/NEW?rev=HEAD
+Comment=https://github.com/afterstep/afterstep/blob/master/NEW
+Exec=ASRun --immediate --cmd https://github.com/afterstep/afterstep/blob/master/NEW
 Icon=logos/AfterStep
 Terminal=false
 Type=Application
