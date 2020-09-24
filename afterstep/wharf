@@ -132,7 +132,7 @@
 *Wharf Mail	normal/MailBox2 Exec "mozilla-mail" mozilla --mail &
 *Wharf Mail	normal/MailBox2 Exec "kmail" kmail &
 *Wharf Mail	normal/MailBox2 Exec "balsa" balsa &
-*Wharf Mail	normal/MailBox2 ExecInTerm "Mutt"  -e mutt &
+*Wharf Mail	normal/MailBox2 ExecInTerm "Mutt" -e mutt &
 *Wharf Mail	normal/MailBox2 ExecInTerm "Pine" -title "Pine e-mail and news reader" -e pine &
 
 
@@ -148,7 +148,7 @@
 *Wharf TextEditor medit.png Exec "medit" medit &
 *Wharf TextEditor Text.xpm Exec "NEdit" nedit &
 *Wharf TextEditor Text.xpm Exec "cooledit" cooledit &
-*Wharf TextEditor logos/GNU Exec "XEmacs" xemacs &
+*Wharf TextEditor logos/GNU Exec "Emacs" emacs &
 *Wharf TextEditor Text.xpm Exec "VIM" gvim &
 
 #
