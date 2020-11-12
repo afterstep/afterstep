@@ -1,22 +1,19 @@
-Supplied collection of TTF font has been compiled from this valuable sources :
+The supplied collection of TTF fonts has been compiled from these valuable
+sources:
 
 FSF FreeFonts project ( http://savannah.nongnu.org/projects/freefont/ )
-maintained by Primoz Peterlin, <primoz.peterlin@biofiz.mf.uni-lj.si>
+maintained by Primoz Peterlin <primoz.peterlin@biofiz.mf.uni-lj.si>,
 licensed under GPL.
-	These were renamed from FreeMono*.ttf setof monospaced fonts :
+	These were renamed from the FreeMono*.ttf set of monospaced fonts:
 		Default.ttf
 	        DefaultBold.ttf
 		DefaultOblique.ttf
 		DefaultBoldOblique.ttf
-	These were renamed from FreeSans*.ttf set of fonts :
+	These were renamed from the FreeSans*.ttf set of fonts:
 		DefaultSans.ttf
 	        DefaultSansBold.ttf
 		DefaultSansOblique.ttf
 		DefaultSansBoldOblique.ttf
 
-
-Public Domain Doug Miles and Earl Allen Black Chancery font :
+Public Domain Doug Miles and Earl Allen Black Chancery font:
 	DefaultFancy.ttf
-
-
-
