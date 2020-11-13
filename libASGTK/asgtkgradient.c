@@ -450,7 +450,7 @@ query_point_values (ASGtkGradient * ge, ASGradientPoint * point)
 		free (point->color_str);
 	if (color == NULL || color[0] == '\0') {
 		asgtk_warning2 (GTK_WIDGET (ge),
-										"Color value is not specifyed. Default color of black will be used.",
+										"Color value is not specified. Default color of black will be used.",
 										NULL, NULL);
 		point->color_str = mystrdup (DEFAULT_COLOR_STR);
 		point->color_argb = DEFAULT_COLOR;
