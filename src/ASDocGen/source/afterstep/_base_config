@@ -18,6 +18,7 @@
 	<varlistentry>
 	<term>-h | --help</term>
 	<listitem>
+   <para>Display usage information and stop.    </para>
    <para>Display uasge information and stop.    </para>
    </listitem>
 	</varlistentry>

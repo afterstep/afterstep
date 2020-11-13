@@ -1261,8 +1261,8 @@ version 2.0 beta1
         of command line switches :
         -v --version         - Display version information and stop.
         -c --config          - Display Config information and stop.
-        -h --help            - Display uasge information and stop.
-           --debug           - Debugging: Run in Synchronous mode..
+        -h --help            - Display usage information and stop.
+           --debug           - Debugging: Run in Synchronous mode.
         -s --single          - Run on single screen only.
         -r --restart         - Run as if it was restarted.
                                same as regular startup, only runs RestartFunction

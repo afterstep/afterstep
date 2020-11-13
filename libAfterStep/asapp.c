@@ -322,7 +322,7 @@ CommandLineOpts as_standard_cmdl_options[STANDARD_CMDL_OPTS_NUM] = {
 				handler_show_info, NULL, SHOW_VERSION},
 /* 1*/ {"c", "config", "Display Config information and stop", NULL,
 				handler_show_info, NULL, SHOW_CONFIG},
-/* 2*/ {"h", "help", "Display uasge information and stop", NULL,
+/* 2*/ {"h", "help", "Display usage information and stop", NULL,
 				handler_show_info, NULL, SHOW_USAGE},
 /* 3*/ {NULL, "debug", "Debugging: Run in Synchronous mode", NULL,
 				handler_set_flag, &(as_app_args.flags),
