@@ -614,7 +614,7 @@ HandleOutput (AfterShowContext *ctx, int channel)
 	<layer id="layer_id" x="x" y="y" width="width" height="height">
 		single image or composite tag
 	</layer>
-   	possibly 0 or more overlaping <Layer> tags 
+   	possibly 0 or more overlapping <Layer> tags
  </window>
  
  If encompasing <window> tag is missing - default client's window is assumed.

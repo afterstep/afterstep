@@ -1381,7 +1381,7 @@ If a sibling and a stack_mode are specified, the window is restacked
 #define OCCLUSION_BELOW		 1
 
 /* Checks if rectangle above is at least partially obscuring client below */
-inline Bool is_rect_overlaping (ASRectangle * above, ASRectangle * below)
+inline Bool is_rect_overlapping (ASRectangle * above, ASRectangle * below)
 {
 	if (above == NULL)
 		return False;
@@ -1395,7 +1395,7 @@ inline Bool is_rect_overlaping (ASRectangle * above, ASRectangle * below)
 }
 
 inline Bool
-is_status_overlaping (ASStatusHints * above, ASStatusHints * below)
+is_status_overlapping (ASStatusHints * above, ASStatusHints * below)
 {
 	if (above == NULL)
 		return False;
@@ -1408,7 +1408,7 @@ is_status_overlaping (ASStatusHints * above, ASStatusHints * below)
 					&& above->y + above->height > below->y);
 }
 
-inline Bool is_canvas_overlaping (ASCanvas * above, ASCanvas * below)
+inline Bool is_canvas_overlapping (ASCanvas * above, ASCanvas * below)
 {
 	if (above == NULL)
 		return False;
@@ -1433,20 +1433,20 @@ inline Bool is_canvas_overlaping (ASCanvas * above, ASCanvas * below)
 	return False;
 }
 
-#define IS_OVERLAPING(a,b)    is_canvas_overlaping(a->frame_canvas,b->frame_canvas)
+#define IS_OVERLAPPING(a,b)    is_canvas_overlapping(a->frame_canvas,b->frame_canvas)
 
-static inline Bool is_overlaping_b (ASWindow * a, ASWindow * b)
+static inline Bool is_overlapping_b (ASWindow * a, ASWindow * b)
 {
 	int i;
 	ASWindow **sublist;
-	if (IS_OVERLAPING (a, b))
+	if (IS_OVERLAPPING (a, b))
 		return True;
 
 	if (b->transients) {
 		sublist = PVECTOR_HEAD (ASWindow *, b->transients);
 		for (i = 0; i < PVECTOR_USED (b->transients); ++i)
 			if (!ASWIN_GET_FLAGS (sublist[i], AS_Dead))
-				if (IS_OVERLAPING (a, sublist[i]))
+				if (IS_OVERLAPPING (a, sublist[i]))
 					return True;
 	}
 #if 0														/* TODO do we really need that ??? */
@@ -1454,25 +1454,25 @@ static inline Bool is_overlaping_b (ASWindow * a, ASWindow * b)
 		sublist = PVECTOR_HEAD (ASWindow *, b->group_members);
 		for (i = 0; i < PVECTOR_USED (b->group_members); ++i)
 			if (!ASWIN_GET_FLAGS (sublist[i], AS_Dead))
-				if (IS_OVERLAPING (a, sublist[i]))
+				if (IS_OVERLAPPING (a, sublist[i]))
 					return True;
 	}
 #endif
 	return False;
 }
 
-static inline Bool is_overlaping (ASWindow * a, ASWindow * b)
+static inline Bool is_overlapping (ASWindow * a, ASWindow * b)
 {
 	int i;
 	ASWindow **sublist;
-	if (is_overlaping_b (a, b))
+	if (is_overlapping_b (a, b))
 		return True;
 
 	if (a->transients) {
 		sublist = PVECTOR_HEAD (ASWindow *, a->transients);
 		for (i = 0; i < PVECTOR_USED (a->transients); ++i)
 			if (!ASWIN_GET_FLAGS (sublist[i], AS_Dead))
-				if (is_overlaping_b (sublist[i], b))
+				if (is_overlapping_b (sublist[i], b))
 					return True;
 	}
 #if 0														/* TODO do we really need that ??? */
@@ -1480,7 +1480,7 @@ static inline Bool is_overlaping (ASWindow * a, ASWindow * b)
 		sublist = PVECTOR_HEAD (ASWindow *, a->group_members);
 		for (i = 0; i < PVECTOR_USED (a->group_members); ++i)
 			if (!ASWIN_GET_FLAGS (sublist[i], AS_Dead))
-				if (is_overlaping_b (sublist[i], b))
+				if (is_overlapping_b (sublist[i], b))
 					return True;
 	}
 #endif
@@ -1493,7 +1493,7 @@ Bool is_window_obscured (ASWindow * above, ASWindow * below)
 	ASWindow **members;
 
 	if (above != NULL && below != NULL)
-		return is_overlaping (above, below);
+		return is_overlapping (above, below);
 
 	if (above == NULL && below != NULL) {	/* checking if window "below" is completely obscured by any of the
 																				   windows with the same layer above it in stacking order */
@@ -1510,7 +1510,7 @@ Bool is_window_obscured (ASWindow * above, ASWindow * below)
 			if ((t = members[i]) == below) {
 				return False;
 			} else if (ASWIN_DESK (t) == ASWIN_DESK (below)) {
-				if (is_overlaping (t, below)) {
+				if (is_overlapping (t, below)) {
 					return True;
 				}
 			}
@@ -1529,7 +1529,7 @@ Bool is_window_obscured (ASWindow * above, ASWindow * below)
 			if ((t = members[i]) == above)
 				return False;
 			else if (ASWIN_DESK (t) == ASWIN_DESK (above))
-				if (is_overlaping (above, t))
+				if (is_overlapping (above, t))
 					return True;
 		}
 	}
