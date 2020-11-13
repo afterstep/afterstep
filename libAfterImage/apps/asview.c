@@ -102,36 +102,6 @@ int main(int argc, char* argv[])
 	{
 #ifndef X_DISPLAY_MISSING
 		Window w ;
-#if 0
-		/* test example for get_asimage_channel_rects() : */
-		XRectangle *rects ;	unsigned int rects_count =0; int i ;
-		rects = get_asimage_channel_rects( im, IC_ALPHA, 10, 
-											&rects_count );
-		fprintf( stderr, " %d rectangles generated : \n", rects_count );
-		for( i = 0 ; i < rects_count ; ++i )
-			fprintf( stderr, "\trect[%d]=%dx%d%+d%+d;\n", 
-					 i, rects[i].width, rects[i].height, 
-					 rects[i].x, rects[i].y );
-#endif
-
-
-#if 0		 
-		/* test example for fill_asimage : */
-		fill_asimage(asv, im, 0, 0, 50, 50, 0xFFFF0000);
-		fill_asimage(asv, im, 50, 50, 100, 50, 0xFFFF0000);
-		fill_asimage(asv, im, 0, 100, 200, 50, 0xFFFF0000);
-		fill_asimage(asv, im, 150, 0, 50, 50, 0xFFFF0000);
-#endif
-#if 0
-		/* test example for conversion to argb32 :*/
-		{
-			ASImage *tmp = tile_asimage( asv, im, 0, 0, im->width, im->height, TINT_NONE, ASA_ARGB32, 
-										  0, ASIMAGE_QUALITY_DEFAULT );	 
-			destroy_asimage( &im );
-			set_flags( tmp->flags, ASIM_DATA_NOT_USEFUL|ASIM_XIMAGE_NOT_USEFUL );
-			im = tmp ;
-		}		   
-#endif		   
 		/* see ASView.4 : */
 		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 			                         im->width, im->height, 1, 0, NULL,
@@ -151,7 +121,6 @@ int main(int argc, char* argv[])
 				asimage2drawable( asv, p, im, NULL, 0, 0, 0, 0, im->width, im->height, False);
 				SHOW_TIME("", started);
 			}
-			/* print_storage(NULL); */
 			destroy_asimage( &im );
 			/* see common.c:set_window_background_and_free(): */
 			p = set_window_background_and_free( w, p );

@@ -277,12 +277,6 @@ main (int argc, char **argv)
 	if( source_dir == NULL ) 
 		source_dir = do_data?"../../afterstep":"source" ;
 
-#if 0
-
-    ConnectAfterStep ( mask_reg, 0);
-	
-  	SendInfo ( "Nop \"\"", 0);
-#endif
 	ProcessedSyntaxes = create_ashash( 7, pointer_hash_value, NULL, NULL );
 	Glossary = create_ashash( 4096, string_hash_value, string_compare, string_destroy );
 	Index = create_ashash( 4096, string_hash_value, string_compare, string_destroy );

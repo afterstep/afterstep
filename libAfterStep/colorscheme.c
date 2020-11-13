@@ -610,26 +610,6 @@ ASColorScheme *make_ascolor_scheme (ARGB32 base, int angle)
 	make_color_scheme_argb (cs, ASMC_HighActiveText, base_alpha16, base_hue,
 													high_active_text_sat, high_active_text_val);
 
-#if 0
-	if (cs->base_sat > ASCS_DISABLED_SATURATION_LEVEL)
-		cs->main_colors[ASMC_DisabledText] =
-				make_color_scheme_argb (base_alpha16, cs->base_hue,
-																cs->base_sat -
-																ASCS_DISABLED_SATURATION_LEVEL,
-																cs->high_inactive_text_val);
-	else if (cs->base_sat > ASCS_DISABLED_SATURATION_THRESHOLD)
-		cs->main_colors[ASMC_DisabledText] =
-				make_color_scheme_argb (base_alpha16, cs->base_hue,
-																cs->base_sat +
-																(ASCS_DISABLED_SATURATION_LEVEL * 2),
-																cs->high_inactive_text_val);
-	else
-		cs->main_colors[ASMC_DisabledText] =
-				make_color_scheme_argb (base_alpha16, cs->base_hue,
-																cs->base_sat +
-																ASCS_DISABLED_SATURATION_LEVEL,
-																cs->high_inactive_text_val);
-#endif
 	if (base_val > 50)
 		make_color_scheme_argb (cs, ASMC_DisabledText, base_alpha16, base_hue,
 														(base_sat * 80) / 100,

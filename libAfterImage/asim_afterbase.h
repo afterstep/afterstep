@@ -294,17 +294,7 @@ double asim_parse_math(const char* str, char** endptr, double size);
 #define as_hlton16(ui16)		as_ntohl(ui16)     /* conversion is symmetrical */
 #endif
 
-#if 0
-typedef union ASHashableValue
-{
-  unsigned long 	   long_val;
-  char 				  *string_val;
-  void 				  *ptr ;
-}
-ASHashableValue;
-#else
 typedef unsigned long ASHashableValue;
-#endif
 
 typedef union ASHashData
 {

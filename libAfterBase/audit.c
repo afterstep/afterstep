@@ -489,28 +489,9 @@ countfree (const char *fname, int line, void *ptr)
 		}
 		return;
 	}
-#if 0
-// this is invalid code!!
-	if (m1->freed > 0)
-	{
-		fprintf (stderr, "%s:mem already freed %d time(s)!\n", __FUNCTION__, m1->freed);
-		fprintf (stderr, "%s:freed from %s:%d\n", __FUNCTION__, (*m1).fname, (*m1).line);
-		fprintf (stderr, "%s:called from %s:%d\n", __FUNCTION__, fname, line);
-		print_simple_backtrace();
-#ifdef DEBUG_ALLOC_STRICT
-{	char *segv = NULL ;	*segv = 0 ;  }
-#endif
-		/* exit (1); */
-	} else
-		safefree (m1->ptr);
-	m1->freed++;
-	m1->fname = fname;
-	m1->line = line;
-#else
 	fprintf( stderr, "%s: freeing %p at %s:%d\n", __FUNCTION__, m->ptr, fname, line );
 	safefree (m->ptr);
 	mem_destroy( (ASHashableValue)NULL, m );
-#endif
 }
 
 Bool check_hash_item_reused (ASHashItem *item);

@@ -700,8 +700,6 @@ void check_AfterStep_dirtree (char *ashome, Bool create_non_conf)
 					}
 				}
 				fclose (p);
-				/*pclose (p); */
-				/*p = popen ("mail -s \"AfterStep installation info\" sasha@aftercode.net", "w"); */
 			}
 		}
 #endif
@@ -710,31 +708,6 @@ void check_AfterStep_dirtree (char *ashome, Bool create_non_conf)
 	CheckOrCreateFile (fullfilename);
 	free (fullfilename);
 
-#if 0
-	fullfilename = make_file_name (ashome, THEME_FILE_DIR);
-	CheckOrCreate (fullfilename);
-	free (fullfilename);
-
-	fullfilename = make_file_name (ashome, LOOK_DIR);
-	CheckOrCreate (fullfilename);
-	free (fullfilename);
-
-	fullfilename = make_file_name (ashome, FEEL_DIR);
-	CheckOrCreate (fullfilename);
-	free (fullfilename);
-
-	fullfilename = make_file_name (ashome, THEME_DIR);
-	CheckOrCreate (fullfilename);
-	free (fullfilename);
-
-	fullfilename = make_file_name (ashome, COLORSCHEME_DIR);
-	CheckOrCreate (fullfilename);
-	free (fullfilename);
-
-	fullfilename = make_file_name (ashome, BACK_DIR);
-	CheckOrCreate (fullfilename);
-	free (fullfilename);
-#endif
 	fullfilename = make_file_name (ashome, DESKTOP_DIR);
 	CheckOrCreate (fullfilename);
 	free (fullfilename);

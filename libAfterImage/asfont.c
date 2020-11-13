@@ -935,35 +935,6 @@ load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs )
 	if( !get_flags( font->flags, ASF_Monospaced) )
 		font->space_size = font->space_size*2/3 ;
 
-#if 0 /*I18N*/
-	if( xfs->max_byte1 > 0 && xfs->min_byte1 > 0 )
-	{
-
-		char_num *= rows ;
-	}else
-	{
-		int i;
-		int min_byte1 = (xfs->min_char_or_byte2>>8)&0x00FF;
-		int max_byte1 = (xfs->max_char_or_byte2>>8)&0x00FF;
-        size_t offset = MAX(0x00FF,(int)xfs->max_char_or_byte2-(int)(min_byte1<<8)) ;
-
-		load_X11_glyph_range( dpy, font, xfs, 0, min_byte1,
-											xfs->min_char_or_byte2-(min_byte1<<8),
-			                                offset, &gc );
-		offset -= xfs->min_char_or_byte2-(min_byte1<<8);
-		if( max_byte1 > min_byte1 )
-		{
-			for( i = min_byte1+1; i < max_byte1 ; i++ )
-			{
-				load_X11_glyph_range( dpy, font, xfs, offset, i, 0x00, 0xFF, &gc );
-				offset += 256 ;
-			}
-			load_X11_glyph_range( dpy, font, xfs, offset, max_byte1,
-				                                     0,
-                                                     (int)xfs->max_char_or_byte2-(int)(max_byte1<<8), &gc );
-		}
-	}
-#else
 	{
 		/* we blame X consortium for the following mess : */
 		int min_char, max_char, our_min_char = 0x0021, our_max_char = 0x00FF ;
@@ -993,7 +964,6 @@ load_X11_glyphs( Display *dpy, ASFont *font, XFontStruct *xfs )
 
         load_X11_glyph_range( dpy, font, xfs, (int)our_min_char-(int)min_char, byte1, our_min_char&0x00FF, our_max_char&0x00FF, &gc );
 	}
-#endif
 	if( font->default_glyph.pixmap == NULL )
 		make_X11_default_glyph( font, xfs );
 	if( gc )
@@ -1048,11 +1018,7 @@ load_glyph_freetype( ASFont *font, ASGlyph *asg, int glyph, UNICODE_CHAR uc )
 		if( uc >= 0x0300 && uc <= 0x0362 ) 
 			asg->step = 0 ; 
 		else
-#if 0			
-			asg->step = bmap->width+face->glyph->bitmap_left ;
-#else
 			asg->step = (short)face->glyph->advance.x>>6 ;
-#endif
 				
 		/* we only want to keep lead if it was negative */
 		if( uc >= 0x0300 && uc <= 0x0362 && face->glyph->bitmap_left >= 0 ) 

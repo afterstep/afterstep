@@ -86,14 +86,6 @@ prepare_scanline( unsigned int width, unsigned int shift, ASScanline *reusable_m
 	}
 	/* this way we can be sure that our buffers have size of multiplies of 8s
 	 * and thus we can skip unneeded checks in code */
-#if 0
-	/* initializing padding into 0 to avoid any garbadge carry-over
-	 * bugs with diffusion: */
-	sl->red[aligned_width-1]   = 0;
-	sl->green[aligned_width-1] = 0;
-	sl->blue[aligned_width-1]  = 0;
-	sl->alpha[aligned_width-1] = 0;
-#endif	
 	sl->back_color = ARGB32_DEFAULT_BACK_COLOR;
 
 	return sl;
@@ -269,18 +261,6 @@ decode_12_be (CARD32 *c1, CARD32 *c2, CARD8 *data, int width, int data_size)
 			c1[x] = (((CARD32)data[0]) << 8)|tail|(tail>>4);
 			c2[x] = ASIM_SCL_MissingValue;
 		}
-
-#if 0
-#if defined(LOCAL_DEBUG) && !defined(NO_DEBUG_OUTPUT)	
-fprintf (stderr, "decode_12_be  C1 data : ");		
-	for (x = 0 ; x < max_x; ++x)
-		fprintf (stderr, " %4.4X", c1[x]);						
-fprintf (stderr, "\ndecode_12_be  C2 data : ");		
-	for (x = 0 ; x < max_x; ++x)
-		fprintf (stderr, " %4.4X", c2[x]);						
-fprintf (stderr, "\n");				
-#endif
-#endif
 	}
 	return max_x;
 } 
@@ -466,21 +446,8 @@ interpolate_asim_strip_gradients (ASIMStrip *strip, int line, int chan_from, int
 	if (above < 4) /* not enough data for interpolation */
 		return False;
 
-#if 0
-print_16bit_chan (chan_lines[0], strip->lines[line]->width); 
-print_16bit_chan (chan_lines[1], strip->lines[line]->width); 
-print_16bit_chan (chan_lines[2], strip->lines[line]->width); 
-print_16bit_chan (chan_lines[3], strip->lines[line]->width); 
-print_16bit_chan (chan_lines[4], strip->lines[line]->width); 
-#endif
-
 fprintf( stderr, "Line %d, start_line = %d, offset = %d, chan_to = %d, chan_from = %d\n", line, strip->start_line, offset, chan_to, chan_from);
 	func (strip->lines[line]->channels[chan_to], chan_lines, strip->lines[line]->width, offset);
-
-#if 0
-print_16bit_chan (strip->lines[line]->channels[chan_to], strip->lines[line]->width); 
-fprintf( stderr, "\n");
-#endif
 	
 	return True;
 }
@@ -642,47 +609,7 @@ void
 interpolate_asim_strip_custom_rggb2 (ASIMStrip *strip, ASFlagType filter, Bool force_all)
 {
 	int line;
-#if 0
-	int chan;
-	for (line = 0; line < 2 ; ++line)
-		for (chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan)
-			if ( get_flags( filter, 0x01<<chan) )
-			{
-				if (!get_flags(strip->lines[line]->flags, 0x01<<chan))
-				{
-					copy_component (strip->lines[line+1]->channels[chan], strip->lines[line]->channels[chan], 0, strip->lines[line]->width);
-					set_flags (strip->lines[0]->flags, 0x01<<chan);
-				}
-#if 1
-				if (!get_flags(strip->lines[line]->flags, (ASIM_SCL_InterpolatedV|ASIM_SCL_InterpolatedH)<<chan))
-				{
-					interpolate_channel_h_105x501 (strip->lines[line]->channels[chan], strip->lines[line]->width);
-					set_flags(strip->lines[line]->flags, ASIM_SCL_InterpolatedH<<chan);
-				}
-#endif				
-			}
 
-	if (force_all)
-		for (line = strip->size-2; strip->size ; ++line)
-			for (chan = 0 ; chan < IC_NUM_CHANNELS ; ++chan)
-				if ( get_flags( filter, 0x01<<chan) )
-				{
-					if (!get_flags(strip->lines[line]->flags, 0x01<<chan))
-					{
-						copy_component (strip->lines[line-1]->channels[chan], strip->lines[line]->channels[chan], 0, strip->lines[line]->width);
-						set_flags (strip->lines[0]->flags, 0x01<<chan);
-					}
-
-					if (!get_flags(strip->lines[line]->flags, (ASIM_SCL_InterpolatedV|ASIM_SCL_InterpolatedH)<<chan))
-					{
-						interpolate_channel_h_105x501 (strip->lines[line]->channels[chan], strip->lines[line]->width);
-						set_flags(strip->lines[line]->flags, ASIM_SCL_InterpolatedH<<chan);
-					}
-				}
-
-#endif
-
-#if 1
 	/* interpolation of green */
 	if ( get_flags( filter, SCL_DO_GREEN) )
 	{
@@ -699,11 +626,10 @@ interpolate_asim_strip_custom_rggb2 (ASIMStrip *strip, ASFlagType filter, Bool f
 														 strip->lines[line]->width,
 														 ASIM_IsMissingValue(strip->lines[line]->green[0])?0:1);
 					set_flags(strip->lines[line]->flags, (ASIM_SCL_InterpolatedH|ASIM_SCL_InterpolatedV)<<ARGB32_GREEN_CHAN);
-//					strip->lines[line]->flags =  SCL_DO_GREEN| ((ASIM_SCL_InterpolatedH|ASIM_SCL_InterpolatedV)<<ARGB32_GREEN_CHAN);
 				}
 			}
 	}
-#endif
+
 
 /* now that we have smooth subtrate of green - we can build red/blue channels : 
  *   1) Calculate R-G difference for all RG lines, averaging missing values from 2 neightbours
@@ -711,7 +637,7 @@ interpolate_asim_strip_custom_rggb2 (ASIMStrip *strip, ASFlagType filter, Bool f
  *   3) Calculate ALL RED values by adding calulated difference to Green channel.
  *  Do the same for BLUE.
  */
-#if 1
+
 	/* interpolation of red from green + (R-G) */
 	if ( get_flags( filter, SCL_DO_RED) )
 	{
@@ -742,8 +668,7 @@ interpolate_asim_strip_custom_rggb2 (ASIMStrip *strip, ASFlagType filter, Bool f
 					set_flags(strip->lines[line]->flags, SCL_DO_RED|(ASIM_SCL_InterpolatedAll<<ARGB32_RED_CHAN));
 			}
 	}
-#endif
-#if 1
+
 	/* interpolation of blue from green + (B-G) */
 	if ( get_flags( filter, SCL_DO_BLUE) )
 	{
@@ -774,6 +699,4 @@ interpolate_asim_strip_custom_rggb2 (ASIMStrip *strip, ASFlagType filter, Bool f
 					set_flags(strip->lines[line]->flags, SCL_DO_BLUE|(ASIM_SCL_InterpolatedAll<<ARGB32_BLUE_CHAN));
 			}
 	}
-#endif
-
 }

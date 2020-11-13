@@ -583,16 +583,12 @@ handle_asxml_tag_text( ASImageXMLState *state, xml_elem_t* doc, xml_elem_t* parm
 
 			result = draw_fancy_text( text, font, &attr, 0, 0/*autodetect length*/ );
 			if (result && fgcolor_str) {
-#if 0
-				result->back_color = attr.fore_color ;
-#else
 				ASImage* fgimage = create_asimage(result->width, result->height, ASIMAGE_QUALITY_TOP);
 				parse_argb_color(fgcolor_str, &fgcolor);
 				fill_asimage(state->asv, fgimage, 0, 0, result->width, result->height, fgcolor);
 				move_asimage_channel(fgimage, IC_ALPHA, result, IC_ALPHA);
 				safe_asimage_destroy(result);
 				result = fgimage ;
-#endif
 			}
 			if (result && fgimage_str) {
 				ASImage* fgimage = NULL;

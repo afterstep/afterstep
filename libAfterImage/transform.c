@@ -1987,15 +1987,13 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 					}
 			}
 			d = vector[x]-points[curr_point];
-/*			fprintf( stderr, "%f|%d|%f*%f=%d(%f)+%d=", vector[x], curr_point, d, multipliers[0][curr_point], (int)(d*multipliers[0][curr_point]),(d*multipliers[0][curr_point]) , palette->channels[0][curr_point] ); */
+
 			while( --i >= 0 )
 				if( multipliers[i] )
 				{/* the following calculation is the most expensive part of the algorithm : */
 					buf.channels[i][x] = (int)(d*multipliers[i][curr_point])+palette->channels[i][curr_point] ;
-/*					fprintf( stderr, "%2.2X.", buf.channels[i][x] ); */
 				}
-/*			fputc( ' ', stderr ); */
-#if 1
+
 			while( ++x < (int)im->width )
 				if( vector[x] == vector[x-1] )
 				{
@@ -2005,11 +2003,8 @@ colorize_asimage_vector( ASVisual *asv, ASImage *im,
 					buf.alpha[x] = buf.alpha[x-1] ;
 				}else
 					break;
-#else
-			++x ;
-#endif
 		}
-/*		fputc( '\n', stderr ); */
+
 		imout->output_image_scanline( imout, &buf, 1);
 		vector += im->width ;
 	}
@@ -2055,23 +2050,6 @@ create_asimage_from_vector( ASVisual *asv, double *vector,
 
 #undef PI
 #define PI 3.141592526
-
-#if 0
-static inline void
-gauss_component(CARD32 *src, CARD32 *dst, int radius, double* gauss, int len)
-{
-	int x, j, r = radius - 1;
-	for (x = 0 ; x < len ; x++) {
-		register double v = 0.0;
-		for (j = x - r ; j <= 0 ; j++) v += src[0] * gauss[x - j];
-		for ( ; j < x ; j++) v += src[j] * gauss[x - j];
-		v += src[x] * gauss[0];
-		for (j = x + r ; j >= len ; j--) v += src[len - 1] * gauss[j - x];
-		for ( ; j > x ; j--) v += src[j] * gauss[j - x];
-		dst[x] = (CARD32)v;
-	}
-}
-#endif
 
 #define GAUSS_COEFF_TYPE int
 /* static void calc_gauss_double(double radius, double* gauss); */
@@ -2336,15 +2314,7 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 	int horz = (int)dhorz;
 	int vert = (int)dvert;
 	int width, height ; 
-#if 0
-	struct timeval stv;
-	gettimeofday (&stv,NULL);
-#define PRINT_BACKGROUND_OP_TIME do{ struct timeval tv;gettimeofday (&tv,NULL); tv.tv_sec-= stv.tv_sec;\
-                                     fprintf (stderr,__FILE__ "%d: elapsed  %ld usec\n",__LINE__,\
-                                              tv.tv_sec*1000000+tv.tv_usec-stv.tv_usec );}while(0)
-#else                                           
 #define PRINT_BACKGROUND_OP_TIME do{}while(0)                                          
-#endif
 
 	if (!src) return NULL;
 
@@ -2495,9 +2465,6 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 						int j = 0;
 						CARD32 *src_chan1 = ysrc[0]->channels[chan];
 						memset( res_chan, 0x00, width*4 );
-/*						for( x = 0 ; x < width ; ++x ) 
-							res_chan[x] = src_chan1[x]*vert_gauss[0];
- */							
 						while( ++j < vert ) 
 						{
 							CARD32 *src_chan2 = ysrc[j]->channels[chan];
@@ -2513,7 +2480,6 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 									for( x = 0 ; x < width ; ++x ) 
 										res_chan[x] += (src_chan1[x]+src_chan2[x])<<1;
 									break;
-#if 1
 								case 4 :
 									for( x = 0 ; x < width ; ++x ) 
 										res_chan[x] += (src_chan1[x]+src_chan2[x])<<2;
@@ -2530,7 +2496,6 @@ ASImage* blur_asimage_gauss(ASVisual* asv, ASImage* src, double dhorz, double dv
 									for( x = 0 ; x < width ; ++x ) 
 										res_chan[x] += (src_chan1[x]+src_chan2[x])<<5;
 									break;
-#endif		
 								default : 									
 									for( x = 0 ; x < width ; ++x ) 
 										res_chan[x] += (src_chan1[x]+src_chan2[x])*g;
@@ -2618,48 +2583,6 @@ PRINT_BACKGROUND_OP_TIME;
 
 	return dst;
 }
-
-#if 0 /* unused for the time being */
-static void calc_gauss_double(double radius, double* gauss) 
-{
-	int i, mult;
-	double std_dev, sum = 0.0;
-	double g0, g_last;
-	double n, nn, nPI, nnPI;
-	if (radius <= 1.0) 
-	{
-		gauss[0] = 1.0;
-		return;
-	}
-	/* after radius of 128 - gaussian degrades into something weird,
-	   since our colors are only 8 bit */
-	if (radius > 128.0) radius = 128.0; 
-	std_dev = (radius - 1) * 0.3003866304;
-	do
-	{
-		sum = 0 ;
-		n = std_dev * std_dev;
-		nn = 2*n ;
-		nPI = n*PI;
-		nnPI = nn*PI;
-		sum = g0 = 1.0 / nnPI ;
-		for (i = 1 ; i < radius-1 ; i++) 
-			sum += exp((double)-i * (double)i / nn)/nPI; 
-		g_last = exp((double)-i * (double)i / nn)/nnPI; 
-		sum += g_last*2.0 ; 
-	
-		mult = (int)((1024.0+radius*0.94)/sum);
-		std_dev += 0.1 ;
-	}while( g_last*mult  < 1. );
-
-	gauss[0] = g0/sum ; 
-	gauss[(int)radius-1] = g_last/sum;
-	
-	sum *= nnPI;
-	for (i = 1 ; i < radius-1 ; i++)
-		gauss[i] = exp((double)-i * (double)i / nn)/sum;
-}
-#endif
 
 /* even though lookup tables take space - using those speeds kernel calculations tenfold */
 static const double standard_deviations[128] = 

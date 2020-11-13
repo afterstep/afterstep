@@ -506,7 +506,7 @@ color_preview_size_alloc (GtkWidget * widget, GtkAllocation * allocation,
 	int w = allocation->width - 4;
 	int h = allocation->height - 4;
 
-#if 1														/* if size changed - refresh */
+	/* if size changed - refresh */
 	if (ge->color_preview_width != w || ge->color_preview_height != h) {
 		const char *color;
 
@@ -515,7 +515,6 @@ color_preview_size_alloc (GtkWidget * widget, GtkAllocation * allocation,
 		color = gtk_entry_get_text (GTK_ENTRY (ge->color_entry));
 		update_color_preview (ge, color);
 	}
-#endif
 }
 
 
@@ -633,14 +632,8 @@ GtkWidget *asgtk_gradient_new ()
 
 	ge->color_entry = gtk_entry_new_with_max_length (24);
 	gtk_entry_set_width_chars (GTK_ENTRY (ge->color_entry), 16);
-#if 0
-	ge->color_preview = gtk_color_button_new ();
-	g_signal_connect ((gpointer) ge->color_preview, "clicked",
-										G_CALLBACK (on_color_preview_clicked), ge);
-#else
 	ge->color_preview = gtk_image_new ();
 	update_color_preview (ge, DEFAULT_COLOR_STR);
-#endif
 
 	ge->offset_entry = gtk_spin_button_new_with_range (0., 1., 0.05);
 
@@ -655,9 +648,6 @@ GtkWidget *asgtk_gradient_new ()
 	table = gtk_table_new (4, 2, FALSE);
 	gtk_container_set_border_width (GTK_CONTAINER (table), 3);
 
-
-//  hbox = gtk_hbox_new( FALSE, 5 );               
-//  gtk_container_set_border_width( GTK_CONTAINER (hbox), 3 );
 	gtk_box_pack_start (GTK_BOX (vbox), table, FALSE, FALSE, 0);
 	label = gtk_label_new ("Color : ");
 	gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
@@ -680,7 +670,7 @@ GtkWidget *asgtk_gradient_new ()
 
 	btn = gtk_button_new ();
 	gtk_container_set_border_width (GTK_CONTAINER (btn), 0);
-	//btn = gtk_button_new_with_label(" Color selector ");
+
 	colorize_gtk_widget (GTK_WIDGET (btn), get_colorschemed_style_button ());
 	gtk_container_add (GTK_CONTAINER (btn), frame);
 	gtk_widget_show (frame);

@@ -44,7 +44,6 @@
 #ifdef HAVE_GLX
 # include <GL/gl.h>
 # include <GL/glx.h>
-/*# include <GL/glu.h> */
 #endif
 
 
@@ -74,15 +73,7 @@ picture_ximage2asimage (ASVisual *asv, XImage *xim, XImage *alpha_xim, unsigned 
 #ifdef LOCAL_DEBUG
 	CARD32       *tmp ;
 #endif
-#if 0
-  struct timeval stv;
-	gettimeofday (&stv,NULL);
-#define PRINT_BACKGROUND_OP_TIME do{ struct timeval tv;gettimeofday (&tv,NULL); tv.tv_sec-= stv.tv_sec;\
-                                     fprintf (stderr,__FILE__ "%d: elapsed  %ld usec\n",__LINE__,\
-                                              tv.tv_sec*1000000+tv.tv_usec-stv.tv_usec );}while(0)
-#else                                           
 #define PRINT_BACKGROUND_OP_TIME do{}while(0)                                          
-#endif
 
 	if( xim && alpha_xim )
 		if( xim->width != alpha_xim->width ||

@@ -190,19 +190,6 @@ GtkStyle *get_colorschemed_style_normal ()
 												 &(ASGtkStyleNormal->base[GTK_STATE_SELECTED]));
 		color_name2GdkColor ("Inactive1",
 												 &(ASGtkStyleNormal->base[GTK_STATE_INSENSITIVE]));
-#if 0
-		color_name2GdkColor ("",
-												 &(ASGtkStyleNormal->text_aa[GTK_STATE_NORMAL]));
-		color_name2GdkColor ("",
-												 &(ASGtkStyleNormal->text_aa[GTK_STATE_ACTIVE]));
-		color_name2GdkColor ("",
-												 &(ASGtkStyleNormal->text_aa[GTK_STATE_PRELIGHT]));
-		color_name2GdkColor ("",
-												 &(ASGtkStyleNormal->text_aa[GTK_STATE_SELECTED]));
-		color_name2GdkColor ("",
-												 &(ASGtkStyleNormal->
-													 text_aa[GTK_STATE_INSENSITIVE]));
-#endif
 	}
 	return ASGtkStyleNormal;
 }
@@ -283,19 +270,6 @@ GtkStyle *get_colorschemed_style_button ()
 												 &(ASGtkStyleButton->base[GTK_STATE_SELECTED]));
 		color_name2GdkColor ("HighInactive",
 												 &(ASGtkStyleButton->base[GTK_STATE_INSENSITIVE]));
-#if 0
-		color_name2GdkColor ("",
-												 &(ASGtkStyleButton->text_aa[GTK_STATE_NORMAL]));
-		color_name2GdkColor ("",
-												 &(ASGtkStyleButton->text_aa[GTK_STATE_ACTIVE]));
-		color_name2GdkColor ("",
-												 &(ASGtkStyleButton->text_aa[GTK_STATE_PRELIGHT]));
-		color_name2GdkColor ("",
-												 &(ASGtkStyleButton->text_aa[GTK_STATE_SELECTED]));
-		color_name2GdkColor ("",
-												 &(ASGtkStyleButton->
-													 text_aa[GTK_STATE_INSENSITIVE]));
-#endif
 	}
 	return ASGtkStyleButton;
 }
@@ -324,22 +298,8 @@ void colorize_gtk_window (GtkWidget * window)
 void
 colorize_gtk_tree_view (GtkCellRenderer * cell, GtkTreeViewColumn * column)
 {
-#if 0
-	GdkColor bg;
-	GdkColor fg;
-
-	color_name2GdkColor ("Inactive1", &bg);
-	color_name2GdkColor ("InactiveText1", &fg);
-
-	g_object_set (G_OBJECT (cell), "background-gdk", &bg, "foreground-gdk",
-								&fg, NULL);
-	g_object_set (G_OBJECT (column), "background-gdk", &bg, "foreground-gdk",
-								&fg, NULL);
-#else
 	gtk_widget_set_style (GTK_WIDGET (cell),
 												get_colorschemed_style_normal ());
-#endif
-
 }
 
 void colorize_gtk_widget (GtkWidget * widget, gpointer data)

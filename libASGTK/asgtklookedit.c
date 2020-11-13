@@ -500,25 +500,6 @@ asgtk_mystyle_edit_set_style_def (MyStyleDefinition * msd,
 	if (msd->overlay_type >= TEXTURE_TRANSPIXMAP) {
 		asgtk_mystyle_edit_set_line_enabled (self, ASGtkMSO_Overlay, True);
 
-#if 0														// TODO:
-		GtkTreeIter iter;
-
-		// gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(self->overlay), TRUE );
-		if (gtk_tree_model_get_iter_first (self->mystyles_list, &iter)) {
-			char *tmp = NULL;
-
-			do {
-				gtk_tree_model_get (self->mystyles_list, &iter, 0, &tmp, -1);
-				if (mystrcasecmp (tmp, item.data.string) == 0) {
-					gtk_combo_box_set_active_iter (GTK_COMBO_BOX
-																				 (self->combo_overlay_mystyle),
-																				 &iter);
-					break;
-				}
-			}
-			while (gtk_tree_model_iter_next (self->mystyles_list, &iter));
-		}
-#endif
 	}
 	if (msd->back_pixmap) {
 		// TODO
@@ -545,11 +526,6 @@ static void on_mystyle_overlay_clicked (GtkWidget * widget, gpointer data)
 {
 	ASGtkMyStyleEdit *self = ASGTK_MYSTYLE_EDIT (data);
 	Bool active = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget));
-
-#if 0
-	gtk_widget_set_sensitive (self->overlay_mystyle, active);
-#endif
-
 }
 
 
@@ -684,13 +660,6 @@ on_add_to_library_mystyle_btn_clicked (GtkButton * button,
 	if (msd) {
 		char *filename;
 
-#if 0
-		filename = make_session_data_file (Session, False, 0, MYSTYLES_DIR);
-		if (filename) {
-			CheckOrCreate (filename);
-			free (filename);
-		}
-#endif
 		filename =
 				make_session_data_file (Session, False, 0, MYSTYLES_DIR, msd->Name,
 																NULL);

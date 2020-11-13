@@ -113,16 +113,6 @@ ARGB32_manhattan_distance (long a, long b)
  ***************************************************************************/
 int get_bits_per_pixel(Display *dpy, int depth)
 {
-#if 0
-#ifndef X_DISPLAY_MISSING
- 	register ScreenFormat *fmt = dpy->pixmap_format;
- 	register int i;
-
- 	for (i = dpy->nformats + 1; --i; ++fmt)
- 		if (fmt->depth == depth)
- 			return(fmt->bits_per_pixel);
-#endif
-#endif
 	if (depth <= 4)
 	    return 4;
 	if (depth <= 8)
@@ -566,10 +556,6 @@ setup_truecolor_visual( ASVisual *asv )
 						glXDestroyContext(asv->dpy, asv->glx_scratch_gc_direct );
 						asv->glx_scratch_gc_direct = NULL ;
 					}
-#if 0                          /* that needs some more research :  */
-				/* under Cygwin that seems to be 40% faster then regular XImage for some reason */
-				set_flags( asv->glx_support, ASGLX_UseForImageTx );
-#endif
 			}
 		}
 	}
@@ -1543,16 +1529,12 @@ create_visual_ximage( ASVisual *asv, unsigned int width, unsigned int height, un
 	if( asv == NULL )
 		return NULL;
 
-#if 0
-	unit = asv->dpy->bitmap_unit;
-#else
 	if( depth == 0 )
 		unit = (asv->true_depth+7)&0x0038;
 	else
 		unit = (depth+7)&0x0038;
 	if( unit == 24 )
 		unit = 32 ;
-#endif
 #ifdef XSHMIMAGE
 	if( _as_use_shm_images && width*height > 4000 )
 	{
@@ -1625,16 +1607,12 @@ create_visual_scratch_ximage( ASVisual *asv, unsigned int width, unsigned int he
 	if( asv == NULL )
 		return NULL;
 
-#if 0
-	unit = asv->dpy->bitmap_unit;
-#else
 	if( depth == 0 )
 		unit = (asv->true_depth+7)&0x0038;
 	else
 		unit = (depth+7)&0x0038;
 	if( unit == 24 )
 		unit = 32 ;
-#endif
 
 	/* for shared memory XImage we already do caching - no need for scratch ximage */
 #ifdef XSHMIMAGE

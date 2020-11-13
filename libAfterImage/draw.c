@@ -33,7 +33,6 @@
 #endif
 
 /*#define LOCAL_DEBUG*/
-/*#define DO_CLOCKING*/
 
 #include <string.h>
 #include <stdlib.h>
@@ -1274,37 +1273,8 @@ asim_straight_ellips( ASDrawContext *ctx, int x, int y, int rx, int ry, Bool fil
 		long rx2 = rx*rx, ry2 = ry * ry, d ; 
 #endif		
 
-#if 1
 		if (y + ry  > ctx->canvas_height && y - ry  < 0) 
 			max_y = max (y, ctx->canvas_height - y); 
-#endif			
-#if 0
-		if( fill ) 
-		{
-			long y1 = 0; 
-			long x1 = rx-1;
-			long ty = rx*rx ;
-			long tx = x1*x1 ;
-			
-			do
-			{
-				while( tx > ty && x1 > 0 )
-				{
-					tx -= (x1<<1)+1 ;
-					--x1 ;
-				}
-				CTX_FILL_HLINE(ctx,x-x1,y+y1,x+x1,255);
-				CTX_FILL_HLINE(ctx,x-x1,y-y1,x+x1,255);
-				
-				d = (y1<<1)+1 ;
-				/* this is likely to break for large radii when there are no 64 bit ints */
-				if( rx != ry )
-					d = (d*rx2)/ry2 ;
-				ty -= (long)d;
-			
-			}while( ++y1 < max_y ); 
-		}
-#endif
 
 		asim_start_path( ctx );
 		asim_move_to( ctx, x+rx, y );

@@ -1962,26 +1962,6 @@ struct MyLook *LookConfig2MyLook ( struct LookConfig *config, struct MyLook *loo
 								   unsigned long what_flags	);
 /***************************************************************************/
 /***************************************************************************/
-/*                        Directory Tree definitions                       */
-/***************************************************************************/
-#if 0
-#include "dirtree.h"
-
-/***************************************************************************/
-/***************************************************************************/
-/*                        Menu data definitions                            */
-/***************************************************************************/
-MenuData *dirtree2menu_data (struct ASHashTable **list, dirtree_t * tree, char *buf);
-MenuData *FreeStorage2MenuData( struct FreeStorageElem *storage, ConfigItem *item, struct ASHashTable *list );
-struct FreeStorageElem **MenuData2FreeStorage( struct SyntaxDef *syntax, struct FreeStorageElem **tail, MenuData *md );
-void      dir2menu_data (char *name, struct ASHashTable** list);
-void      file2menu_data (char *name, struct ASHashTable** list);
-
-void      load_standard_menu( struct ASHashTable** list );
-void      load_fixed_menu( struct ASHashTable** list  );
-#endif
-/***************************************************************************/
-/***************************************************************************/
 /*                  Complex Function data definitions                      */
 /***************************************************************************/
 ComplexFunction *FreeStorage2ComplexFunction( struct FreeStorageElem *storage, struct ConfigItem *item, struct ASHashTable *list );

@@ -337,34 +337,12 @@ ASImage* GIcon2ASImage (GIcon *icon)
 		return NULL;
 	g_object_get (icon, "names", &icon_names, NULL);
 
-#if 0
-	{
-		GdkPixbuf* iconPixbuf;
-		GtkIconInfo  *icon_info;
-		GtkIconTheme *icon_theme;
-		GError       *error = NULL;
-		icon_info = gtk_icon_theme_choose_icon (gtk_icon_theme_get_default(), (const char **)icon_names, DEFAULT_TILE_WIDTH, 0);
-		icon_theme = gtk_icon_theme_get_for_screen (gdk_screen_get_default());
-  	icon_info = gtk_icon_theme_lookup_by_gicon (icon_theme, v->icon, DEFAULT_TILE_WIDTH, GTK_ICON_LOOKUP_USE_BUILTIN);
-
-		iconPixbuf = gtk_icon_info_load_icon (icon_info, &error);
-		gtk_icon_info_free (icon_info);
-
-		if (iconPixbuf )
-			asim = GdkPixbuf2ASImage (iconPixbuf);
-		else {
-			g_warning ("could not load icon pixbuf: %s\n", error->message);
-	  	g_clear_error (&error);
-		}
-	}
-#else	
 	{
 		int i;
 		for (i = 0 ; icon_names[i] ; ++i)
 			if ((asim = load_environment_icon ("devices", icon_names[i], DEFAULT_TILE_WIDTH)) != NULL)
 				break;
 	}
-#endif
 	g_strfreev (icon_names);
 	return asim;
 }
@@ -1051,13 +1029,8 @@ HandleXEvent()
 {
 	int handled = 0, pending;
   ASEvent event;
-#if 0
-	while (XQLength(dpy)>0)
-#else
 	while ((pending = XPending(dpy))>0)
-#endif	
 	{
-//		show_debug (__FILE__,__FUNCTION__,__LINE__, "%d pending X events", pending);
 		if( ASNextEvent (&(event.x), False) ){
    		event.client = NULL ;
 			LOCAL_DEBUG_OUT("event = %d", event.x.type);
@@ -1070,33 +1043,9 @@ HandleXEvent()
 		addTimeout();
 	}
 }
-
-#if 0
-static gboolean
-x11_fd_check (GSource *source)
-{
-
-//	SHOW_CHECKPOINT;
-/* for some reason if events are handled in dispatch - it messes up the timeout events */
-//	show_debug (__FILE__,__FUNCTION__,__LINE__,"XQLength = %d, x_fd = %d", XQLength(dpy), x_fd);
-	HandleXEvent();
-//	XSync (dpy, True);
-//	show_debug (__FILE__,__FUNCTION__,__LINE__,"XQLength = %d", XQLength(dpy));
-	return FALSE;
-}
-
-static gboolean
-x11_fd_dispatch(GSource* source, GSourceFunc callback, gpointer user_data)
-{
-	SHOW_CHECKPOINT;
-  /* never actually get here - see _check() above */
-	/* if FALSE then our GSource will get removed */
-  return TRUE;
-}
-#else
 static gboolean x11_fd_check (GSource *source){	return FALSE; }
 static gboolean x11_fd_dispatch(GSource* source, GSourceFunc callback, gpointer user_data) { return TRUE;}
-#endif
+
 /******************************************************************************/
 void mainLoop ()
 {
@@ -1116,10 +1065,6 @@ void mainLoop ()
 	g_source_add_poll(x11_source, &dpy_pollfd);
 	g_source_attach(x11_source,NULL); /* must use default context so that DBus signal handling is not impeded */
 	{
-#if 0
-		GMainLoop *mainloop = g_main_loop_new(NULL,FALSE);
-		g_main_loop_run(mainloop);
-#else
 		GMainContext *ctx = g_main_context_default ();
 		GPollFD qfd_a[10];
 		do {
@@ -1132,20 +1077,18 @@ void mainLoop ()
 			   Ain't that stupid!!!!!! */
 			g_poll (qfd_a, recordCount, 200);
 			/* don't want to trust glib's main loop with our X event handling - it gets all screwed up */
-#if 1
+
 			for (i = 0 ; i < recordCount ; ++i)
 				if (qfd_a[i].revents) {
-/*					show_progress ( "%d: fd = %d, events = 0x%X, revents = 0x%X", time(NULL), qfd_a[i].fd, qfd_a[i].events, qfd_a[i].revents); */
 					if (qfd_a[i].fd == x_fd) {
 						HandleXEvent();
 						qfd_a[i].revents = 0;
 					}
 				}
-#endif  	 
+
 		  g_main_context_check(ctx, -1, qfd_a, recordCount);
 			g_main_context_dispatch (ctx);
 		}while (1);
-#endif		
 	}
 }	
 
@@ -1320,13 +1263,8 @@ void updateVolumeContents (ASVolume *v){
 	if (v->iconIm){
 
 		safe_asimage_destroy (v->iconImScaled);
-#if 0		
-		v->iconImScaled = scale_asimage (Scr.asv, v->iconIm, AppState.tileWidth-5, AppState.tileHeight-5-(AppState.buttons[0]->height + 4), ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
-		add_astbar_icon(v->contents, 0, 0, False, 0, v->iconImScaled);
-#else		
 		v->iconImScaled = scale_asimage (Scr.asv, v->iconIm, AppState.tileWidth*2/3, (AppState.tileHeight-(AppState.buttons[0]->height + 4)), ASA_ASImage, 100, ASIMAGE_QUALITY_DEFAULT);
 		add_astbar_icon(v->contents, 0, 0, False, ALIGN_CENTER, v->iconImScaled);
-#endif		
 	}
   add_astbar_label (v->contents, 0, 0, False, align|AS_TilePadRight, h_spacing, v_spacing, v->name, AS_Text_UTF8 );
 
@@ -1362,7 +1300,7 @@ Bool redecorateVolume(void *data, void *aux_data) {
 	
 	if (v) {
 		XSetWindowAttributes attr;
-//	  ARGB2PIXEL(Scr.asv,Config->border_color_argb,&(attr.border_pixel));
+
     if( v->canvas == NULL ) {
    		Window w;
       attr.event_mask = EnterWindowMask|PointerMotionMask|LeaveWindowMask|StructureNotifyMask|ButtonReleaseMask|ButtonPressMask ;
@@ -1379,10 +1317,6 @@ Bool redecorateVolume(void *data, void *aux_data) {
 		updateVolumeContents (v);		
     set_astbar_size (v->contents, width, height);
 		/* redraw will happen on ConfigureNotify */
-#if 0
-    render_astbar (v->contents, v->canvas );
-    update_canvas_display (v->canvas );
-#endif		
 	}
 
 	return True;

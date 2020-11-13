@@ -383,12 +383,6 @@ void decode_func_units (FunctionData * data)
 {
 	register int i;
 
-#if 0
-	int defaults[MAX_FUNC_ARGS];
-
-	defaults[0] = ASDefaultScrWidth;
-	defaults[1] = ASDefaultScrHeight;
-#endif
 	for (i = 0; i < MAX_FUNC_ARGS; i++)
 		switch (data->unit[i]) {
 		case 'p':

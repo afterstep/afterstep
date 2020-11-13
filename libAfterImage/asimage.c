@@ -982,13 +982,6 @@ LOCAL_DEBUG_OUT( "copying %d lines of channel %d...", nlines, chan );
 					dst_rows[i] = dup_data( NULL, src_rows[i] );
 				}
 			}
-#if 0
-		for( i = 0 ; i < nlines ; ++i )
-		{
-			asimage_print_line( src, IC_ALPHA, i, (i==4)?VRB_EVERYTHING:VRB_LINE_SUMMARY );
-			asimage_print_line( dst, IC_ALPHA, i, (i==4)?VRB_EVERYTHING:VRB_LINE_SUMMARY );
-		}
-#endif
 	}
 }
 

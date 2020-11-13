@@ -530,9 +530,6 @@ close_xpm_file( ASXpmFile **xpm_file )
 			}
 			if( (*xpm_file)->cmap_name_xref )
 				destroy_ashash( &((*xpm_file)->cmap_name_xref) );
-#if 0
-			memset( *xpm_file, 0x00, sizeof(ASXpmFile));
-#endif
 			free( *xpm_file );
 			*xpm_file = NULL ;
 		}
@@ -554,8 +551,7 @@ open_xpm_file( const char *realfilename )
 			xpm_file->fd = fd;
 			xpm_file->parse_state = XPM_InFile ;
 			xpm_file->buffer = safemalloc(AS_XPM_BUFFER_UNDO+AS_XPM_BUFFER_SIZE+1);
-         xpm_file->data = 0;
-/*			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+fread( &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]), 1, AS_XPM_BUFFER_SIZE, fp ); */
+			xpm_file->data = 0;
 			xpm_file->bytes_in = AS_XPM_BUFFER_UNDO+read( fd, &(xpm_file->buffer[AS_XPM_BUFFER_UNDO]),  AS_XPM_BUFFER_SIZE );
 			xpm_file->curr_byte = AS_XPM_BUFFER_UNDO ;
 			if (get_xpm_string( xpm_file ) == XPM_Success)

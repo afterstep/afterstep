@@ -18,7 +18,6 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/*#undef NO_DEBUG_OUTPUT*/
 #ifndef NO_DEBUG_OUTPUT
 #define DEBUG_TIFF
 #endif
@@ -345,11 +344,7 @@ file2ASImage( const char *file, ASFlagType what, double gamma, unsigned int comp
 	iparams.gamma = gamma ;
 	iparams.compression = compression ;
 	iparams.search_path = &(paths[0]);
-#if 0
-	iparams.width = 1024 ; 
-	iparams.height = -1 ; 	
-	iparams.flags |= AS_IMPORT_SCALED_H|AS_IMPORT_SCALED_V ;
-#endif
+	
 	if (check_compressed_file_type (file))
 		set_flags(iparams.flags, AS_IMPORT_SKIP_COMPRESSED);
 
@@ -2370,20 +2365,6 @@ LOCAL_DEBUG_OUT( "strip size = %d, bytes_in = %d, bytes_per_row = %d", bc[strip_
 							if (loaded_rows == 0)
 							{ /* need to write out some rows to free up space */
 								interpolate_asim_strip_custom_rggb2 (strip, SCL_DO_RED|SCL_DO_GREEN|SCL_DO_BLUE, False);
-#if 0
-								if (!get_flags (strip->lines[0]->flags, SCL_DO_RED))
-								{
-									int x;
-									for (x = 0; x < width; ++x)
-									{
-										strip->lines[0]->red[x] = strip->lines[1]->red[x];
-										strip->lines[1]->blue[x] = strip->lines[0]->blue[x];
-									}
-									set_flags (strip->lines[0]->flags, SCL_DO_RED);
-									set_flags (strip->lines[1]->flags, SCL_DO_BLUE);
-								}
-#endif								
-//clear_flags (strip->lines[0]->flags, SCL_DO_GREEN|SCL_DO_BLUE);
 								imout->output_image_scanline( imout, strip->lines[0], 1);
 								
 								advance_asim_strip (strip);

@@ -351,12 +351,8 @@ GtkWidget *asgtk_image_browser_new ()
 										(gpointer) ib);
 
 
-#if 0
-	ib->list_hbox = gtk_hbox_new (FALSE, 0);
-#else
 	ib->list_hbox = gtk_hpaned_new ();
 	colorize_gtk_widget (ib->list_hbox, get_colorschemed_style_normal ());
-#endif
 	gtk_widget_show (ib->list_hbox);
 	gtk_box_pack_start (GTK_BOX (main_vbox), ib->list_hbox, TRUE, TRUE, 0);
 
@@ -374,12 +370,8 @@ GtkWidget *asgtk_image_browser_new ()
 											 get_colorschemed_style_button ());
 
 	/* now designing dirlist controls : */
-#if 0
-	list_vbox = gtk_vbox_new (FALSE, 0);
-#else
 	list_vbox = gtk_vpaned_new ();
 	colorize_gtk_widget (list_vbox, get_colorschemed_style_normal ());
-#endif
 	gtk_widget_show (list_vbox);
 
 	if (GTK_IS_PANED (ib->list_hbox))

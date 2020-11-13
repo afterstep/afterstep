@@ -195,14 +195,6 @@ int main (int argc, char **argv)
 	InitMyApp ("TestParserFS", argc, argv, NULL, NULL, 0);
 	LinkAfterStepConfig ();
 	InitSession ();
-#if 0
-	fullfilename = PutHome (CONFIG_FILE);
-
-
-	tree =
-			file2free_storage (fullfilename, CONFIG_MYNAME, CONFIG_SYNTAX,
-												 CONFIG_SPECIAL, NULL);
-#else
 	{
 		ConfigData cd;
 		ConfigDef *ConfigReader;
@@ -214,7 +206,6 @@ int main (int argc, char **argv)
 				InitConfigReader ("afterstep", &StyleSyntax, CDT_Data, cd, NULL);
 		ParseConfig (ConfigReader, &tree);
 	}
-#endif
 	freestorage_print (CONFIG_MYNAME, CONFIG_SYNTAX, tree, 0);
 	DestroyFreeStorage (&tree);
 	FreeMyAppResources ();

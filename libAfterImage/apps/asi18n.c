@@ -66,15 +66,6 @@ int main(int argc, char* argv[])
 	set_output_threshold(OUTPUT_LEVEL_DEBUG);
 #endif
 
-#if 0
-	for( i = 0x21 ; i < 256 ;++i ) 
-	{
-		default_text[k++] = i ;
-		if( k%50 == 0 ) 
-			default_text[k++] = '\n' ;
-	}
-	default_text[i-0x21] = '\0' ;
-#endif	
 	if( argc == 1 )
 		usage();
 	else for( i = 1 ; i < argc ; i++ )

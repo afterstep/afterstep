@@ -629,30 +629,6 @@ MergeMyStyleTextureOld (MyStyleDefinition ** list, const char *name,
 
 	if ((style = GetMyStyleDefinition (list, name, True)) == NULL)
 		return;
-
-#if 0
-	if (!get_flags (style->set_flags, F_BACKPIXMAP)) {
-		TextureDef *t =
-				add_texture_def (&(style->back), &(style->back_layers));
-
-		type = pixmap_type2texture_type (type);
-		if (TEXTURE_IS_ICON (type)) {
-			if (pixmap != NULL) {
-				set_string_value (&(t->data.icon.image), pixmap,
-													&(style->set_flags), F_BACKTEXTURE);
-				t->type = type;
-			}
-		} else if (TEXTURE_IS_GRADIENT (type)) {
-			if (color_from != NULL && color_to != NULL) {
-				make_old_gradient (t, type, color_from, color_to);
-			}
-		} else if (TEXTURE_IS_TRANSPARENT (type) && pixmap) {
-			set_string_value (&(t->data.icon.tint), pixmap, &(style->set_flags),
-												F_BACKTEXTURE);
-			style->back[0].type = type;
-		}
-	}
-#endif
 }
 
 FreeStorageElem *MyStyleSpecialTerms2FreeStorage (MyStyleDefinition * msd,
@@ -668,22 +644,6 @@ FreeStorageElem *MyStyleSpecialTerms2FreeStorage (MyStyleDefinition * msd,
 																	msd->inherit[i], MYSTYLE_Inherit_ID);
 
 	tail = Flag2FreeStorage (&MyStyleSyntax, tail, MYSTYLE_DONE_ID);
-
-#if 0
-
-	if (get_flags (def->set_flags, F_BACKPIXMAP))
-
-		for (i = 0; i < def->back_layers; i++)
-			tail =
-					TextureDef2FreeStorage (&MyStyleSyntax, tail, &(def->back[i]),
-																	MYSTYLE_BACKPIXMAP_ID);
-	if (get_flags (def->set_flags, F_DRAWTEXTBACKGROUND))
-		tail =
-				Integer2FreeStorage (&MyStyleSyntax, tail, NULL,
-														 def->draw_text_background,
-														 MYSTYLE_DRAWTEXTBACKGROUND_ID);
-
-#endif
 
 	return fs;
 }

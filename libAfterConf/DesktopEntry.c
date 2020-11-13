@@ -19,7 +19,6 @@
 
 
 /*#define LOCAL_DEBUG */
-/*#define DO_CLOCKING */
 
 #include "../configure.h"
 
@@ -40,45 +39,6 @@ const char *default_aliases[][2] = {
 	{NULL, NULL}
 
 };
-
-
-/*************************************************************************/
-/* private stuff : 													 */
-/*************************************************************************/
-#if 0
-static char **parse_category_list (char *list, int *pnum_return)
-{
-	char **shortcuts = NULL;
-	int num = 0;
-
-	if (list) {
-		int i;
-
-		for (i = 0; list[i]; ++i)
-			if (list[i] == ';')
-				++num;
-		if (i > 0 && list[i - 1] != ';')
-			++num;
-		if (num > 0) {
-			int sc_i = 0;
-
-			shortcuts = safecalloc (num + 1, sizeof (char *));
-
-			shortcuts[sc_i++] = &list[0];
-			for (i = 0; list[i]; ++i)
-				if (list[i] == ';') {
-					list[i++] = '\0';
-					if (list[i] == '\0' || sc_i >= num)
-						break;
-					shortcuts[sc_i++] = &list[i];
-				}
-		}
-	}
-	if (pnum_return)
-		*pnum_return = num;
-	return shortcuts;
-}
-#endif
 
 static char *filter_desktop_entry_exec (const char *exec)
 {

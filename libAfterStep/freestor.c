@@ -52,10 +52,6 @@
 
 extern char *_disabled_keyword;
 
-#if 0
-static char *_as_nothing_ = "";
-#endif
-
 struct {
 	char *label;
 	int value;
@@ -988,9 +984,7 @@ static void FreeConfigItem (ConfigItem * item)
 		break;
 
 	case TT_BUTTON:
-#if 1
 		destroy_asbutton (item->data.button, False);
-#endif
 		break;
 	case TT_CURSOR:
 		destroy_ascursor (&(item->data.cursor));
@@ -1093,13 +1087,6 @@ int ReadConfigItem (ConfigItem * item, FreeStorageElem * stored)
 		case TT_UINTEGER:
 			if (!check_avail_args (stored, pos, 1))
 				return 0;
-#if 0
-			if (!isdigit (stored->argv[pos][0]) && stored->argv[pos][0] != '-') {
-
-
-			} else
-				item->data.integer = atol (stored->argv[pos]);
-#endif
 			item->data.integer = parse_math (stored->argv[pos], NULL, 0);
 			++pos;
 			if (stored->term->type == TT_UINTEGER && item->data.integer < 0) {
@@ -1568,45 +1555,6 @@ FreeStorageElem **ASButton2FreeStorage (SyntaxDef * syntax,
 																				FreeStorageElem ** tail, int index,
 																				ASButton * b, int id)
 {
-#if 0
-	TermDef *pterm = FindTerm (syntax, TT_ANY, id);
-	char *list[ASB_StateCount + 1];
-	char *string;
-	char *ind_str;
-
-	if (pterm && b) {
-		int i;
-
-		for (i = 0; i < ASB_StateCount; ++i)
-			list[i] = b->shapes[i] ? b->shapes[i] : _as_nothing_;
-		list[i] = NULL;
-
-		ind_str = string_from_int (index);
-		string = list2comma_string (list);
-		if (ind_str != NULL) {			/* list of icons could be blank */
-			FreeStorageElem *new_elem = NULL;
-
-			if ((new_elem =
-					 AddFreeStorageElem (syntax, tail, pterm, id)) != NULL) {
-				new_elem->argc = string ? 2 : 1;
-				new_elem->argv = CreateStringArray (new_elem->argc);
-				new_elem->argv[0] =
-						(char *)safemalloc (strlen (ind_str) + 1 +
-																(string ? strlen (string) + 1 : 0));
-				strcpy (new_elem->argv[0], ind_str);
-				if (string) {
-					new_elem->argv[1] = new_elem->argv[0] + strlen (ind_str) + 1;
-					strcpy (new_elem->argv[1], string);
-				}
-				tail = &(new_elem->next);
-			}
-		}
-		if (string)
-			free (string);
-		if (ind_str)
-			free (ind_str);
-	}
-#endif
 	return tail;
 }
 

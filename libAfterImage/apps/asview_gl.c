@@ -147,17 +147,6 @@ int main(int argc, char* argv[])
 		ASVisual *asv ;
 		int screen, depth ;
 
-#if 0
-		XRectangle *rects ;	unsigned int rects_count =0; int i ;
-		rects = get_asimage_channel_rects( im, IC_ALPHA, 10, 
-											&rects_count );
-		fprintf( stderr, " %d rectangles generated : \n", rects_count );
-		for( i = 0 ; i < rects_count ; ++i )
-			fprintf( stderr, "\trect[%d]=%dx%d%+d%+d;\n", 
-					 i, rects[i].width, rects[i].height, 
-					 rects[i].x, rects[i].y );
-#endif
-
 	    dpy = XOpenDisplay(NULL);
 		XSynchronize (dpy, True);
 		if (! glXQueryExtension (dpy, NULL, NULL))
@@ -172,26 +161,6 @@ int main(int argc, char* argv[])
 		/* see ASView.3 : */
 		asv = create_asvisual( dpy, screen, depth, NULL );
 
-		/* test example for fill_asimage : */
-#if 0
-		fill_asimage(asv, im, 0, 0, 50, 50, 0xFFFF0000);
-		fill_asimage(asv, im, 50, 50, 100, 50, 0xFFFF0000);
-		fill_asimage(asv, im, 0, 100, 200, 50, 0xFFFF0000);
-		fill_asimage(asv, im, 150, 0, 50, 50, 0xFFFF0000);
-#endif
-		/* test example for conversion to argb32 :*/
-#if 0
-		{
-			ASImage *tmp = tile_asimage( asv, im, 0, 0, im->width, im->height, TINT_NONE, ASA_ARGB32, 
-										  0, ASIMAGE_QUALITY_DEFAULT );	 
-			destroy_asimage( &im );
-			set_flags( tmp->flags, ASIM_DATA_NOT_USEFUL|ASIM_XIMAGE_NOT_USEFUL );
-			im = tmp ;
-		}		   
-#endif		   
-		
-
-
 		/* see ASView.4 : */
 		w = create_top_level_window( asv, DefaultRootWindow(dpy), 32, 32,
 			                         im->width, im->height, 1, 0, NULL,
@@ -203,10 +172,7 @@ int main(int argc, char* argv[])
 
 	  		XMapRaised   (dpy, w);
 			XSync(dpy,False);
-			//sleep_a_millisec(1000);
-			//XSync(dpy,False);
 			/* see ASView.5 : */
-//			show_warning( "asimage2pmap Done");
 			p = create_visual_pixmap( asv, DefaultRootWindow(dpy), im->width, im->height, 0 );
 
 			{
@@ -255,6 +221,6 @@ int main(int argc, char* argv[])
 
     return 0 ;
 }
-/**************/
+
 
 

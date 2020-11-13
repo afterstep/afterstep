@@ -208,50 +208,6 @@ xml_elem_t* xml_parse_parm(const char* parm, ASHashTable *vocabulary) {
 
 Bool xml_tags2xml_buffer( xml_elem_t *tags, ASXmlBuffer *xb, int tags_count, int depth);
 
-#if 0 /* old version : */
-/* The recursive version of xml_print(), so we can indent XML. */
-static Bool xml_print_r(xml_elem_t* root, int depth) 
-{
-	xml_elem_t* child;
-	Bool new_line = False, new_line_child = False ; 
-	
-	if (root->tag_id == XML_CDATA_ID || !strcmp(root->tag, cdata_str)) {
-		char* ptr = root->parm;
-		while (isspace((int)*ptr)) ptr++;
-		fprintf(stderr, "%s", ptr);
-	} else {
-		if( root->child != NULL || root->next != NULL  ) 
-		{
-			new_line = True ;	  
-			fprintf(stderr, "\n%*s", depth * 2, "");
-		}
-		fprintf(stderr, "<%s", root->tag);
-		if (root->parm) {
-			xml_elem_t* parm = xml_parse_parm(root->parm, NULL);
-			while (parm) {
-				xml_elem_t* p = parm->next;
-				fprintf(stderr, " %s=\"%s\"", parm->tag, parm->parm);
-				free(parm->tag);
-				free(parm->parm);
-				free(parm);
-				parm = p;
-			}
-		}
-		if (root->child) {
-			fprintf(stderr, ">");
-			for (child = root->child ; child ; child = child->next)
-				if( xml_print_r(child, depth + 1) )
-					new_line_child = True ;
-			if( new_line_child ) 
-				fprintf(stderr, "\n%*s", depth * 2, "");
-			fprintf(stderr, "</%s>", root->tag);
-		} else {
-			fprintf(stderr, "/>");
-		}
-	}
-	return new_line ;
-}
-#endif
 void xml_print(xml_elem_t* root) 
 {
 	ASXmlBuffer xb;

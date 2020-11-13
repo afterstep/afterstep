@@ -2715,20 +2715,6 @@ set_all_client_hints (Window w, ASHints * hints, ASStatusHints * status,
 			|| get_flags (extwm_hints.flags, EXTWM_DoesWMPing))
 		set_client_protocols (w, protocols, extwm_hints.flags);
 
-#if 0
-	if (set_command) {
-		char *host_name = safecalloc (MAXHOSTNAME + 1, sizeof (char));
-
-		if (mygethostname (host_name, MAXHOSTNAME))
-			set_text_property (w, XA_WM_CLIENT_MACHINE, &host_name, 1,
-												 TPE_String);
-
-		if (MyArgs.saved_argc > 0 && MyArgs.saved_argv)
-			set_text_property (w, XA_WM_COMMAND, MyArgs.saved_argv,
-												 MyArgs.saved_argc, TPE_String);
-		free (host_name);
-	}
-#endif
 	if (client_hints2motif_hints (&mwm_hints, hints, status))
 		set_multi32bit_property (w, _XA_MwmAtom, XA_CARDINAL, 4,
 														 mwm_hints.flags, mwm_hints.functions,

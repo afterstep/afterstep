@@ -11,18 +11,8 @@ extern "C" {
 
 struct wild_reg_exp;
 
-#if 0
-typedef union ASHashableValue
-{
-  unsigned long 	   long_val;
-  char 				  *string_val;
-  struct wild_reg_exp *wrexp_val;	/* regular expression */
-  void 				  *ptr ;
-}ASHashableValue;
-#else
 typedef unsigned long ASHashableValueBase;
 typedef const ASHashableValueBase ASHashableValue;
-#endif
 
 typedef union ASHashData
 {

@@ -139,7 +139,6 @@ get_proc_tables (proc_tables * ptabs)
 static void
 print_elf_data (proc_tables * ptabs)
 {
-#if 0
 	fprintf (stderr, "found data structures :\n");
 	fprintf (stderr, "   Symbols at 0x%8.8X (%d)\n", ptabs->symbols);
 	fprintf (stderr, "   Symbol's hash at 0x%8.8X\n", ptabs->sym_hash);
@@ -202,7 +201,6 @@ print_elf_data (proc_tables * ptabs)
 		}
 	}
 # endif
-#endif
 }
 #endif
 
