@@ -169,7 +169,7 @@ static void parse_desktop_entry_line (ASDesktopEntry * de, char *ptr)
 
 static void
 fix_desktop_entry (ASDesktopEntry * de, const char *default_category,
-									 const char *icon_path, const char *origin, Bool applnk)
+									 const char *icon_path, const char *origin)
 {
 	if (de->Categories == NULL && default_category) {
 		if (get_flags (de->flags, ASDE_KDE | ASDE_GNOME) == 0) {
@@ -181,8 +181,6 @@ fix_desktop_entry (ASDesktopEntry * de, const char *default_category,
 		if (de->type != ASDE_TypeDirectory)
 			de->Categories = mystrdup (default_category);
 	}
-	if (applnk)
-		set_flags (de->flags, ASDE_KDE);
 
 	if (de->Categories != NULL) {
 		de->categories_len = strlen (de->Categories);
@@ -261,8 +259,7 @@ static ASDesktopEntry *parse_desktop_entry (const char *fullfilename,
 																						const char *default_category,
 																						ASDesktopEntryTypes
 																						default_type,
-																						const char *icon_path,
-																						Bool applnk)
+																						const char *icon_path)
 {
 	ASDesktopEntry *de = NULL;
 	FILE *fp = NULL;
@@ -276,8 +273,7 @@ static ASDesktopEntry *parse_desktop_entry (const char *fullfilename,
 		de = create_desktop_entry (default_type);
 		while (fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL)
 			parse_desktop_entry_line (de, &(rb[0]));
-		fix_desktop_entry (de, default_category, icon_path, fullfilename,
-											 applnk);
+		fix_desktop_entry (de, default_category, icon_path, fullfilename);
 		fclose (fp);
 	}
 	return de;
@@ -288,7 +284,7 @@ parse_desktop_entry_list (const char *fullfilename,
 													ASBiDirList * entry_list,
 													const char *default_category,
 													ASDesktopEntryTypes default_type,
-													const char *icon_path, Bool applnk)
+													const char *icon_path)
 {
 	ASDesktopEntry *de = NULL;
 	int count = 0;
@@ -301,7 +297,7 @@ parse_desktop_entry_list (const char *fullfilename,
 	if (fp) {
 		static char rb[MAXLINELENGTH + 1];
 
-#define FIX_DE do {if (de) {fix_desktop_entry (de, default_category, icon_path, fullfilename, applnk); \
+#define FIX_DE do {if (de) {fix_desktop_entry (de, default_category, icon_path, fullfilename); \
 										append_bidirelem (entry_list, de); de = NULL;} } while(0)
 
 		while (fgets (&(rb[0]), MAXLINELENGTH, fp) != NULL) {
@@ -333,7 +329,7 @@ static void
 parse_desktop_entry_tree (char *fullpath, const char *dirname,
 													ASBiDirList * entry_list,
 													ASDesktopEntry * parent, const char *icon_path,
-													const char *default_app_category, Bool applnk)
+													const char *default_app_category)
 {
 	struct direntry **list = NULL;
 	int list_len, i, curr_dir_index = -1;
@@ -350,7 +346,7 @@ parse_desktop_entry_tree (char *fullpath, const char *dirname,
 				curr_dir_index = i;
 				tmp =
 						parse_desktop_entry (fullpath, parent ? parent->Name : NULL,
-																 ASDE_TypeDirectory, icon_path, applnk);
+																 ASDE_TypeDirectory, icon_path);
 				if (tmp) {
 					if (tmp->Name == NULL)
 						tmp->Name = mystrdup (dirname);
@@ -366,7 +362,7 @@ parse_desktop_entry_tree (char *fullpath, const char *dirname,
 	if (curr_dir == NULL) {
 		curr_dir =
 				parse_desktop_entry (fullpath, parent ? parent->Name : NULL,
-														 ASDE_TypeDirectory, icon_path, applnk);
+														 ASDE_TypeDirectory, icon_path);
 		if (curr_dir) {
 			if (curr_dir->Name == NULL) {
 				curr_dir->Name = mystrdup (dirname);
@@ -382,13 +378,13 @@ parse_desktop_entry_tree (char *fullpath, const char *dirname,
 /*fprintf(stderr, "Parsing subtree %s.\n", entry_fullpath);*/
 				parse_desktop_entry_tree (entry_fullpath, list[i]->d_name,
 																	entry_list, curr_dir, icon_path,
-																	default_app_category, applnk);
+																	default_app_category);
 			} else if (i != curr_dir_index) {
 /*fprintf(stderr, "Parsing subitem %s.\n", entry_fullpath);*/
 				parse_desktop_entry_list (entry_fullpath, entry_list,
 																	dir_category ? dir_category :
 																	default_app_category,
-																	ASDE_TypeApplication, icon_path, applnk);
+																	ASDE_TypeApplication, icon_path);
 			}
 			free (entry_fullpath);
 		}
@@ -433,17 +429,14 @@ Bool load_category_tree (ASCategoryTree * ct)
 				create_asbidirlist (desktop_entry_destroy_list_item);
 
 		for (i = 0; i < ct->dir_num; ++i) {
-			Bool applnk = (strstr (ct->dir_list[i], "/applnk") != NULL);
-
 			if (CheckDir (ct->dir_list[i]) == 0) {
-/*				fprintf( stderr, "location : \"%s\", applnk == %d\n", ct->dir_list[i], applnk );
+/*				fprintf( stderr, "location : \"%s\"\n", ct->dir_list[i] );
 */
 				parse_desktop_entry_tree (ct->dir_list[i], NULL, entry_list, NULL,
-																	ct->icon_path, ct->name, applnk);
+																	ct->icon_path, ct->name);
 			} else if (CheckFile (ct->dir_list[i]) == 0)
 				parse_desktop_entry_list (ct->dir_list[i], entry_list, ct->name,
-																	ASDE_TypeDirectory, ct->icon_path,
-																	applnk);
+																	ASDE_TypeDirectory, ct->icon_path);
 		}
 		LOCAL_DEBUG_OUT ("Done parsing for tree %s, total entris %d", ct->name, entry_list->count);
 		dedup_asbidirlist(entry_list, compareDesktopEntry);
@@ -673,7 +666,6 @@ int main (int argc, char **argv)
 #else
 #ifdef TEST_AS_DESKTOP_ENTRY
 
-#define REDHAT_APPLNK	"/etc/X11/applnk"
 #define DEBIAN_APPLNK	"/usr/share/applications"
 
 /*
