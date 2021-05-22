@@ -22,26 +22,7 @@ for d in `find . -maxdepth 1 -type d` ; do
     fi
 done;
 
-# processing KDE entries
-
-for f in `find . -maxdepth 1 -type f -name "*.kdelnk"` ; do
-
-    name=`grep -w "Name" < $f| head -n 1 | cut -c '6-'`
-#	name="aaaa"
-    if [ "X$name" == "X" ]; then name=$f ; fi
-    echo "$name"  
-    if grep "Exec=" < $f > /dev/null ; then
-		cmd=`grep "Exec=" < $f | head -n 1 | grep -v Swallow | cut -c '6-'`
-		if echo $cmd | grep "%" > /dev/null ; then
-			echo "skipping $cmd"
-		else
-			echo "Exec \"$name\" exec " $cmd "&" >"$2/$f"
-			echo "Exec \"$name\" exec " $cmd "&"
-		fi
-    fi
-done;
-
-#now processing GNOME entries
+# processing XDG entries
 
 for f in `find . -maxdepth 1 -type f -name "*.desktop"` ; do
 
